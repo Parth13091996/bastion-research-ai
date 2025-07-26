@@ -68,7 +68,7 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-red-200 transition-colors">
+                <a href="/footer-privacy-policy" className="hover:text-red-200 transition-colors">
                   Privacy Policy
                 </a>
               </li>
@@ -155,7 +155,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-red-500 flex justify-between items-center text-sm">
           <p>Copyright © 2024 Bastion Research</p>
-          <p>Powered by KB's Webstore</p>
+          <p>Developed by D.N.M. Squad ( DeNiMi Labs) </p>
         </div>
       </div>
     </footer>
