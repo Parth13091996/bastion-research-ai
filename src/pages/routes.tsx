@@ -9,7 +9,7 @@ const Contact = lazy(() => import("../pages/Contact"));
 const RefundPolicy = lazy(() => import("../pages/RefundPolicy"));
 const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
-// const Compliance = lazy(() => import("../pages/Compliance"));
+const Compliance = lazy(() => import("../pages/Complaince"));
 // const Blog = lazy(() => import("../pages/Blog"));
 const Login = lazy(() => import("../pages/Login"));
 // const BastionCore = lazy(() => import("../pages/BastionCore"));
@@ -52,7 +52,7 @@ export const routes = [
   { Component: RefundPolicy, path: AppRoutes.refundPolicy() },
   { Component: PrivacyPolicy, path: AppRoutes.privacyPolicy() },
   { Component: TermAndCondition, path: AppRoutes.termAndCondition() },
-  // { Component: Compliance, path: AppRoutes.compliance() },
+  { Component: Compliance, path: AppRoutes.compliance() },
   // { Component: Blog, path: AppRoutes.blog() },
   { Component: Login, path: AppRoutes.login() },
   // { Component: BastionCore, path: AppRoutes.bastionCore() },
