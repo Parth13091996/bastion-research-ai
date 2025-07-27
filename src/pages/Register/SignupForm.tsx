@@ -89,8 +89,6 @@ const SignupForm = () => {
       const result = await signUp.create({
         emailAddress: formData.emailAddress,
         password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
       });
 
       if (result.status === "complete") {
@@ -163,7 +161,6 @@ const SignupForm = () => {
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
                 className="pl-10 h-14 !text-lg border-gray-200 rounded-lg focus:border-primary"
-                required
               />
             </div>
 
@@ -176,7 +173,6 @@ const SignupForm = () => {
                 value={formData.firstName}
                 onChange={(e) => handleInputChange("firstName", e.target.value)}
                 className="pl-10 h-14 !text-lg border-gray-200 rounded-lg focus:border-primary"
-                required
               />
             </div>
 
@@ -233,7 +229,6 @@ const SignupForm = () => {
                   handleInputChange("panCardNumber", e.target.value)
                 }
                 className="pl-10 h-14 !text-lg border-gray-200 rounded-lg focus:border-primary"
-                required
               />
             </div>
 
@@ -312,7 +307,6 @@ const SignupForm = () => {
               value={formData.dateOfBirth}
               onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
               className="h-14 !text-lg border-gray-200 rounded-lg focus:border-primary"
-              required
             />
 
             {/* GST Number */}
