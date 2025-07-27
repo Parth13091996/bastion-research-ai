@@ -17,8 +17,12 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header
+      className="bg-white shadow-sm py-6"
+      itemtype="https://schema.org/Organization"
+      itemscope
+    >
+      <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/">
@@ -47,9 +51,10 @@ const Header = () => {
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <div className="relative group">
-              <button
-                onClick={() => toggleSubmenu("desktopKnowledgeCenter")}
-                className="relative text-gray-700 hover:text-red-600 transition-colors group-hover:text-red-600 flex items-center"
+              <div
+                className="relative text-gray-700 hover:text-red-600 transition-colors group-hover:text-red-600 flex items-center cursor-pointer"
+                onMouseEnter={() => setOpenSubmenu("desktopKnowledgeCenter")}
+                onMouseLeave={() => setOpenSubmenu(null)}
               >
                 Knowledge Center
                 <svg
@@ -66,13 +71,11 @@ const Header = () => {
                   ></path>
                 </svg>
                 <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-              </button>
+              </div>
               <div
-                className={`absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 transition-all duration-200 ${
-                  openSubmenu === "desktopKnowledgeCenter"
-                    ? "opacity-100 visible"
-                    : "opacity-0 invisible"
-                }`}
+                className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+                onMouseEnter={() => setOpenSubmenu("desktopKnowledgeCenter")}
+                onMouseLeave={() => setOpenSubmenu(null)}
               >
                 <Link
                   to="/newsletters-archive"
@@ -84,7 +87,7 @@ const Header = () => {
                   to="/podcast"
                   className="block px-4 py-2 text-gray-700 hover:text-red-600"
                 >
-                  Podcast
+                  Podcast (MADE IN INDIA)
                 </Link>
                 <Link
                   to="/webinars"
@@ -259,7 +262,7 @@ const Header = () => {
                     className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50"
                     onClick={toggleDrawer}
                   >
-                    Podcast
+                    Podcast (MADE IN INDIA)
                   </Link>
                   <Link
                     to="/webinars"
