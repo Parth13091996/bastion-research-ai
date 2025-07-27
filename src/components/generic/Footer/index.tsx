@@ -8,7 +8,7 @@ const CollapsibleSection = ({ title, children }) => {
   return (
     <div className=" md:border-none md:pb-0 md:mb-0">
       <button
-        className="flex justify-between items-center w-full text-lg font-semibold mb-4 md:mb-4 md:cursor-default"
+        className="flex justify-between items-center w-full text-lg font-semibold mb-mb-4 md:mb-4 md:cursor-default"
         onClick={() => setIsOpen(!isOpen)}
       >
         {title}
@@ -170,7 +170,23 @@ const Footer = () => {
           {/* Let's Connect */}
           <div className="flex-1 min-w-64">
             <CollapsibleSection title="Let's Connect">
-              <SocialIcons />
+              <SocialIcons className="flex flex-col items-start gap-3 justify-center mb-4" />
+              <div className="mt-6">
+                <h5 className="font-semibold mb-2">
+                  Subscribe To Our Newsletter
+                </h5>
+                <div className="flex">
+                  <input
+                    type="email"
+                    placeholder="Your email"
+                    className="px-3 py-2 text-gray-800 rounded-l focus:outline-none w-full flex-1 min-w-0"
+                    aria-label="Email for newsletter subscription"
+                  />
+                  <button className="bg-white text-red-600 px-4 py-2 rounded-r hover:bg-gray-100 transition-colors whitespace-nowrap">
+                    Subscribe
+                  </button>
+                </div>
+              </div>
             </CollapsibleSection>
           </div>
         </div>
@@ -203,8 +219,17 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-red-500 flex flex-col md:flex-row justify-between items-center text-sm gap-4">
-          <p>Copyright © 2024 Bastion Research</p>
-          <p>Powered by React</p>
+          <p>Copyright © {new Date().getFullYear()} Bastion Research</p>
+          <p>
+            Powered by {"\n"}
+            <Link
+              to="https://vite.dev/"
+              className="text-red-200 hover:text-red-300 transition-colors"
+              aria-label="Visit Bastion Research homepage"
+            >
+              Vite
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
