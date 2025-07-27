@@ -1,17 +1,12 @@
-import { SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import Header from "@/components/generic/Header";
 import Footer from "@/components/generic/Footer";
+import Header from "@/components/generic/Header";
+import MainBanner from "@/files/main-banner.svg";
+// import mainPageImage from "@/files/main-page-image.svg";
 import { CheckCircle } from "lucide-react";
-import MainBanner from "../files/main-banner.svg";
-import mainPageImage from "../files/main-page-textimage.svg";
 
 const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex flex-col">
-      <Header />
-
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="relative bg-[#1B2852] w-full min-h-[300px] md:min-h-[500px] flex items-center justify-center overflow-hidden">
@@ -55,11 +50,11 @@ const Home = () => {
                 </p>
               </div>
               <div className="md:w-1/2 mt-8 md:mt-0">
-                <img
+                {/* <img
                   src={mainPageImage}
                   alt="Bastion Research illustration"
                   className="w-full h-auto"
-                />
+                /> */}
               </div>
             </div>
           </div>
@@ -175,8 +170,6 @@ const Home = () => {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 };
