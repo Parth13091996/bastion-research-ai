@@ -1,101 +1,131 @@
-import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
 
-const RefundPolicy = () => {
+const FooterRefundPolicy = () => {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10">
-      <header className="flex justify-between items-center p-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          <Link to="/">MyApp</Link>
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Content */}
+      <main className="max-w-5xl mx-auto px-6 py-16">
+        {/* Title */}
+        <h1 className="text-5xl font-bold text-gray-800 mb-8">
+          Refund Policy For Bastion{" "}
+          <span className="text-red-500">C O R E</span>
         </h1>
-        <nav className="flex items-center gap-4">
-          <Button asChild variant="ghost">
-            <Link to="/">Home</Link>
-          </Button>
-          <Button asChild variant="ghost">
-            <Link to="/contact">Contact</Link>
-          </Button>
-          <Button asChild variant="ghost">
-            <Link to="/privacy-policy">Privacy</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/auth?mode=sign-in">Sign In</Link>
-          </Button>
-        </nav>
-      </header>
-      
-      <div className="flex justify-center py-20">
-        <div className="max-w-4xl w-full px-4">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-bold">Refund Policy</CardTitle>
-              <CardDescription>
-                Last updated: {new Date().toLocaleDateString()}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="prose prose-slate max-w-none">
-              <div className="space-y-6">
-                <section>
-                  <h3 className="text-xl font-semibold mb-3">Refund Eligibility</h3>
-                  <p className="text-muted-foreground">
-                    We offer refunds for our services under specific circumstances. Refund requests must be 
-                    made within 30 days of the original purchase date. The service must not have been 
-                    extensively used, and you must provide a valid reason for the refund request.
-                  </p>
-                </section>
 
-                <section>
-                  <h3 className="text-xl font-semibold mb-3">Refund Process</h3>
-                  <p className="text-muted-foreground">
-                    To request a refund, please contact our customer support team through the Contact page. 
-                    Include your order number, the reason for the refund request, and any relevant details. 
-                    We will review your request within 5-7 business days.
-                  </p>
-                </section>
+        {/* Effective Date */}
+        <p className="text-gray-600 mb-12 text-lg">
+          Effective Date: 1st August 2023
+        </p>
 
-                <section>
-                  <h3 className="text-xl font-semibold mb-3">Processing Time</h3>
-                  <p className="text-muted-foreground">
-                    Once your refund is approved, it will be processed within 7-10 business days. The refund 
-                    will be credited back to the original payment method used for the purchase. Please note 
-                    that depending on your payment provider, it may take additional time for the refund to 
-                    appear in your account.
-                  </p>
-                </section>
+        {/* Content */}
+        <div className="space-y-8 text-gray-700 text-lg leading-relaxed">
+          <p>
+            At <span className="font-semibold">Bastion C O R E</span>, we are
+            dedicated to delivering high-quality equity research services to our
+            valued subscribers. This Refund and Cancellation Policy outlines our
+            approach to refunds and cancellations for our subscription-based
+            services.
+          </p>
 
-                <section>
-                  <h3 className="text-xl font-semibold mb-3">Non-Refundable Items</h3>
-                  <p className="text-muted-foreground">
-                    Certain services and products are non-refundable, including but not limited to: services 
-                    that have been fully delivered, custom development work that has been completed, and 
-                    services used beyond the trial period.
-                  </p>
-                </section>
+          <p>
+            <span className="font-semibold">Refund Policy</span> – We want to
+            emphasize that all subscription payments made to{" "}
+            <span className="font-semibold">C O R E</span> are non-refundable.
+            Once payment is processed and the subscription period begins, we do
+            not provide refunds for any reason, including but not limited to
+            dissatisfaction with the content or any other circumstances. We
+            recommend that you carefully review the details of our services
+            before subscribing.
+          </p>
 
-                <section>
-                  <h3 className="text-xl font-semibold mb-3">Partial Refunds</h3>
-                  <p className="text-muted-foreground">
-                    In some cases, we may offer partial refunds based on the extent of service usage. 
-                    This will be determined on a case-by-case basis and communicated to you during the 
-                    refund review process.
-                  </p>
-                </section>
+          <div>
+            <p className="mb-4">
+              <span className="font-semibold">Cancellation Policy</span> – As a
+              subscriber, you have the flexibility to manage your subscription
+              through your account settings on our platform. You can cancel your
+              subscription at any time by following these steps:
+            </p>
+            <ol className="list-decimal list-inside space-y-2 ml-4">
+              <li>Log in to your account.</li>
+              <li>Navigate to the "Account" section.</li>
+              <li>
+                Locate your active subscription and select the "Cancel" or
+                "Unsubscribe" option.
+              </li>
+            </ol>
+          </div>
 
-                <section>
-                  <h3 className="text-xl font-semibold mb-3">Contact Us</h3>
-                  <p className="text-muted-foreground">
-                    If you have any questions about our refund policy or need to request a refund, 
-                    please contact us through our Contact page. Our support team is here to help you.
-                  </p>
-                </section>
-              </div>
-            </CardContent>
-          </Card>
+          <p className="font-medium">
+            Please note the following regarding cancellations:
+          </p>
+
+          <div className="space-y-6">
+            <p>
+              <span className="font-semibold">Immediate Cancellation</span> –
+              Upon cancellation, your subscription will remain active until the
+              end of the current billing cycle. You will retain access to the
+              subscribed content until that date.
+            </p>
+
+            <p>
+              <span className="font-semibold">Access After Cancellation</span> –
+              After the cancellation takes effect, you will lose access to the
+              premium content and features associated with your subscription.
+            </p>
+
+            <p>
+              <span className="font-semibold">No Partial Refunds</span> – We do
+              not provide partial refunds for unused portions of the
+              subscription period.
+            </p>
+
+            <p>
+              <span className="font-semibold">Reactivation</span> – If you
+              decide to reactivate your subscription later, you will need to
+              subscribe again and make a new payment.
+            </p>
+
+            <p>
+              <span className="font-semibold">Changes to this Policy</span> – We
+              reserve the right to modify or amend this Refund and Cancellation
+              Policy at any time, in our sole discretion. Any changes to this
+              policy will be effective immediately upon posting on our platform.
+              It is your responsibility to review this policy periodically for
+              updates.
+            </p>
+          </div>
         </div>
-      </div>
+      </main>
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-50"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp size={24} />
+        </button>
+      )}
     </div>
   );
 };
 
-export default RefundPolicy;
+export default FooterRefundPolicy;

@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  MapPin,
-  Mail,
-  Phone,
-  Twitter,
-  Linkedin,
-  Instagram,
-  Youtube,
-  Rss,
-} from "lucide-react";
+import { MapPin, Mail, Phone, Twitter, Linkedin, Youtube } from "lucide-react";
 import Header from "@/components/generic/Header";
 import Footer from "@/components/generic/Footer";
 
@@ -42,7 +33,6 @@ const ContactUs = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-    <Header/>
       {/* Get In Touch Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -219,8 +209,6 @@ const ContactUs = () => {
           </form>
         </div>
       </section>
-      <Footer/>
-
     </div>
   );
 };

@@ -19,8 +19,6 @@ const Header = () => {
   return (
     <header
       className="bg-white shadow-sm py-6"
-      itemtype="https://schema.org/Organization"
-      itemscope
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
@@ -30,7 +28,6 @@ const Header = () => {
                 src="https://bastionresearch.in/wp-content/uploads/2023/03/BASTION-RESEARCH-_-logo-min-e1680501100187-190x45.png"
                 alt="Bastion Research"
                 className="h-8 md:h-10"
-                itemprop="logo"
               />
             </Link>
           </div>
@@ -38,13 +35,10 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav
             className="hidden md:flex items-center space-x-8"
-            itemtype="https://schema.org/SiteNavigationElement"
-            itemscope
           >
             <Link
               to="/"
               className="relative text-gray-700 hover:text-red-600 transition-colors group"
-              itemprop="name"
             >
               Home
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
@@ -52,7 +46,6 @@ const Header = () => {
             <Link
               to="/bastion-core"
               className="relative text-gray-700 hover:text-red-600 transition-colors group"
-              itemprop="name"
             >
               Bastion CORE
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
@@ -79,11 +72,10 @@ const Header = () => {
                 <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
               </button>
               <div
-                className={`absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 transition-all duration-200 ${
-                  openSubmenu === "desktopKnowledgeCenter"
+                className={`absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 transition-all duration-200 ${openSubmenu === "desktopKnowledgeCenter"
                     ? "opacity-100 visible"
                     : "opacity-0 invisible"
-                }`}
+                  }`}
               >
                 <Link
                   to="/newsletters-archive"
@@ -127,7 +119,7 @@ const Header = () => {
             </Link>
             <Link
               to="/contact"
-              className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors font-medium"
+              className="bg-background text-white px-6 py-2 !rounded-lg hover:bg-red-700 transition-colors font-medium"
             >
               Contact Us
             </Link>
@@ -207,9 +199,8 @@ const Header = () => {
 
       {/* Mobile Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-300 ease-in-out z-50 md:hidden`}
+        className={`fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform ${isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          } transition-transform duration-300 ease-in-out z-50 md:hidden`}
       >
         <div className="px-6 py-4 h-full overflow-y-auto">
           <nav className="flex flex-col space-y-2 mt-4">
@@ -238,9 +229,8 @@ const Header = () => {
                 <span>Knowledge Center</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`h-5 w-5 transform transition-transform ${
-                    openSubmenu === "knowledgeCenter" ? "rotate-180" : ""
-                  }`}
+                  className={`h-5 w-5 transform transition-transform ${openSubmenu === "knowledgeCenter" ? "rotate-180" : ""
+                    }`}
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -253,9 +243,8 @@ const Header = () => {
               </button>
 
               <div
-                className={`overflow-hidden transition-all duration-200 ${
-                  openSubmenu === "knowledgeCenter" ? "max-h-40" : "max-h-0"
-                }`}
+                className={`overflow-hidden transition-all duration-200 ${openSubmenu === "knowledgeCenter" ? "max-h-40" : "max-h-0"
+                  }`}
               >
                 <div className="pl-4 flex flex-col space-y-1 my-1">
                   <Link

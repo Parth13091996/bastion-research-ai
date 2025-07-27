@@ -1,14 +1,10 @@
 import {
-  Twitter,
-  Linkedin,
-  Instagram,
-  Youtube,
-  Rss,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 import { Link } from "react-router-dom"; // Import Link
 import { useState, useEffect } from "react";
+import SocialIcons from "./SocialIcons";
 
 const CollapsibleSection = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +48,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-red-600 text-white py-16">
+    <footer className="bg-background text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row flex-wrap justify-between gap-4">
           {/* Company Info - Always visible */}
@@ -177,71 +173,7 @@ const Footer = () => {
           {/* Let's Connect */}
           <div className="flex-1 min-w-64">
             <CollapsibleSection title="Let's Connect">
-              <div className="space-y-4">
-                <p>connect@bastionresearch.in</p>
-                {/* Social Icons - Kept as anchor tags for external links */}
-                <div className="flex space-x-3">
-                  <a
-                    href="https://twitter.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white bg-opacity-20 rounded flex items-center justify-center hover:bg-opacity-30 cursor-pointer transition-all"
-                    aria-label="Twitter"
-                  >
-                    <Twitter className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="https://linkedin.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white bg-opacity-20 rounded flex items-center justify-center hover:bg-opacity-30 cursor-pointer transition-all"
-                    aria-label="LinkedIn"
-                  >
-                    <Linkedin className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="https://instagram.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white bg-opacity-20 rounded flex items-center justify-center hover:bg-opacity-30 cursor-pointer transition-all"
-                    aria-label="Instagram"
-                  >
-                    <Instagram className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="https://youtube.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white bg-opacity-20 rounded flex items-center justify-center hover:bg-opacity-30 cursor-pointer transition-all"
-                    aria-label="YouTube"
-                  >
-                    <Youtube className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="/rss"
-                    className="w-8 h-8 bg-white bg-opacity-20 rounded flex items-center justify-center hover:bg-opacity-30 cursor-pointer transition-all"
-                    aria-label="RSS"
-                  >
-                    <Rss className="w-4 h-4" />
-                  </a>
-                </div>
-                <div>
-                  <h5 className="font-semibold mb-2">
-                    Subscribe To Our Newsletter
-                  </h5>
-                  <div className="flex">
-                    <input
-                      type="email"
-                      placeholder="Your email"
-                      className="px-3 py-2 text-gray-800 rounded-l focus:outline-none w-full flex-1 min-w-0"
-                      aria-label="Email for newsletter subscription"
-                    />
-                    <button className="bg-white text-red-600 px-4 py-2 rounded-r hover:bg-gray-100 transition-colors whitespace-nowrap">
-                      Subscribe
-                    </button>
-                  </div>
-                </div>
-              </div>
+            <SocialIcons />
             </CollapsibleSection>
           </div>
         </div>
