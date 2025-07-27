@@ -11,12 +11,11 @@ const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
 // const Compliance = lazy(() => import("../pages/Compliance"));
 // const Blog = lazy(() => import("../pages/Blog"));
-// const Login = lazy(() => import("../pages/Login"));
+const Login = lazy(() => import("../pages/Login"));
 // const BastionCore = lazy(() => import("../pages/BastionCore"));
 const Register = lazy(() => import("../pages/Register"));
 const EditProfile = lazy(() => import("../pages/EditProfile"));
 const Subscription = lazy(() => import("../pages/Subscription"));
-const NotFound = lazy(() => import("../pages/NotFound"));
 
 // Define App Routes
 export const AppRoutes = {
@@ -55,7 +54,7 @@ export const routes = [
   { Component: TermAndCondition, path: AppRoutes.termAndCondition() },
   // { Component: Compliance, path: AppRoutes.compliance() },
   // { Component: Blog, path: AppRoutes.blog() },
-  // { Component: Login, path: AppRoutes.login() },
+  { Component: Login, path: AppRoutes.login() },
   // { Component: BastionCore, path: AppRoutes.bastionCore() },
   { Component: Register, path: AppRoutes.register() },
   // Protected Routes
