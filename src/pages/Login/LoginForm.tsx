@@ -1,20 +1,45 @@
-import { SignedOut, SignInButton } from "@clerk/clerk-react";
+import { SignedOut, SignInButton, useSignIn } from "@clerk/clerk-react";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AppRoutes } from "../routes";
+import { useToast } from "@/hooks/use-toast";
 
 const LoginForm = () => {
+  const { signIn, setActive } = useSignIn();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   // State for form inputs
-  const [username, setUsername] = useState("");
+  const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Username:", username);
-    console.log("Password:", password);
-    // Add your login logic here
+    if (!signIn) return;
+
+    try {
+      const result = await signIn.create({
+        identifier: emailAddress,
+        password,
+      });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        toast({
+          title: "Login Successful",
+          description: "You have been successfully logged in!",
+        });
+        navigate("/");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        title: "Error",
+        description: error.errors?.[0]?.message || "Failed to log in",
+        variant: "destructive",
+      });
+    }
   };
 
   // Toggle password visibility
@@ -30,13 +55,13 @@ const LoginForm = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username Input */}
+          {/* Email Input */}
           <div>
             <input
-              type="text"
-              placeholder="* Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              placeholder="* Email"
+              value={emailAddress}
+              onChange={(e) => setEmailAddress(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
             />
           </div>
