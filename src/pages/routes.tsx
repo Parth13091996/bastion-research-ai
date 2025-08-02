@@ -10,12 +10,14 @@ const RefundPolicy = lazy(() => import("../pages/RefundPolicy"));
 const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
 const Compliance = lazy(() => import("../pages/Complaince"));
-// const Blog = lazy(() => import("../pages/Blog"));
+//g const Blog = lazy(() => import("../pages/Blog"));
 const Login = lazy(() => import("../pages/Login"));
 // const BastionCore = lazy(() => import("../pages/BastionCore"));
 const Register = lazy(() => import("../pages/Register"));
 const EditProfile = lazy(() => import("../pages/EditProfile"));
 const Subscription = lazy(() => import("../pages/Subscription"));
+const PodcastsGrid = lazy(() => import("../components/generic/PodcastsGrid.tsx"));
+// const PodcatsBlog = lazy(() => import("../components/generic/PodcatsBlog"));
 
 // Define App Routes
 export const AppRoutes = {
@@ -29,13 +31,15 @@ export const AppRoutes = {
   compliance: () => "/compliance",
   blog: () => "/blog",
   login: () => "/login",
-  bastionCore: () => "/bastion-core",
+  // bastionCore: () => "/bastion-core",
   register: () => "/register",
   editProfile: () => "/edit-profile",
   subscription: () => "/subscription",
   newslettersArchive: () => "/newsletters-archive", // Added for Header dropdown
   podcast: () => "/podcast", // Added for Header dropdown
   webinars: () => "/webinars", // Added for Header dropdown
+  PodcastsGrid: () => "/podcasts-grid", // Added for PodcastsGrid component
+  // PodcatsBlog: () => "/podcats-blog", // Added for PodcatsBlog component
   // Add more route names and path functions as needed
 };
 
@@ -64,15 +68,17 @@ export const routes = [
     path: AppRoutes.subscription(),
     isProtected: true,
   },
+  {
+    Component: PodcastsGrid,
+    path: AppRoutes.PodcastsGrid(),
+    
+  },
   // Additional routes for Header dropdown (assuming they are public pages)
   // {
   //   Component: lazy(() => import("./pages/NewslettersArchive")),
   //   path: AppRoutes.newslettersArchive(),
   // }, // Assuming component exists
-  // {
-  //   Component: lazy(() => import("./pages/Podcast")),
-  //   path: AppRoutes.podcast(),
-  // }, // Assuming component exists
+ // Podcast component does not exist
   // {
   //   Component: lazy(() => import("./pages/Webinars")),
   //   path: AppRoutes.webinars(),
