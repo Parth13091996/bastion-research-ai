@@ -44,7 +44,7 @@ const Header = () => {
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link
-              to="/"
+              to="../src/pages/BastionCore.tsx"
               className="relative text-gray-700 hover:text-red-600 transition-colors group"
             >
               Bastion CORE
