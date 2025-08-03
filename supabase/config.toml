@@ -1,1 +1,7 @@
 project_id = "ftuuyfhfrhvlllfwfbjx"
+
+[functions.send-otp]
+  entrypoint = "supabase/functions/send-otp/index.ts"
+
+[functions.verify-otp]
+  entrypoint = "supabase/functions/verify-otp/index.ts"
