@@ -1,4 +1,4 @@
-import { SignedOut, SignInButton, useSignIn } from "@clerk/clerk-react";
+import { GoogleOneTap, SignedOut, SignIn, SignInButton, useSignIn } from "@clerk/clerk-react";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppRoutes } from "../routes";
@@ -46,6 +46,10 @@ const LoginForm = () => {
   const handleShowPassword = () => {
     setShowPassword(!showPassword);
   };
+
+  return (
+    <SignIn/>
+  )
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -142,12 +146,8 @@ const LoginForm = () => {
           <hr className="w-1/2 h-px bg-gray-300" />
         </div>
 
-        {/* Google Sign-In Button */}
-        <SignedOut>
-          <button className="custom-google-signin mx-auto w-full rounded-md text-md flex items-center justify-center">
-            <SignInButton mode="redirect" />
-          </button>
-        </SignedOut>
+
+          <GoogleOneTap/>
 
         {/* Sign Up Link */}
         <p className="text-center mt-4">

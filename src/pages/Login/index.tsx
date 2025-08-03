@@ -1,7 +1,7 @@
 import LoginForm from "./LoginForm";
 
 function App() {
-  return <LoginForm />;
+  return <LoginForm />
 }
 
 export default App;
