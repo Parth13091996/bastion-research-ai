@@ -1,155 +1,52 @@
-import { GoogleOneTap, SignedOut, SignIn, SignInButton, useSignIn } from "@clerk/clerk-react";
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useSignIn } from "@clerk/clerk-react";
+import React from "react";
+import { Link } from "react-router-dom";
 import { AppRoutes } from "../routes";
 import { useToast } from "@/hooks/use-toast";
 
 const LoginForm = () => {
-  const { signIn, setActive } = useSignIn();
-  const navigate = useNavigate();
+  const { signIn } = useSignIn();
   const { toast } = useToast();
-  // State for form inputs
-  const [emailAddress, setEmailAddress] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const signInWith = (strategy) => {
     if (!signIn) return;
-
-    try {
-      const result = await signIn.create({
-        identifier: emailAddress,
-        password,
-      });
-
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        toast({
-          title: "Login Successful",
-          description: "You have been successfully logged in!",
-        });
-        navigate("/");
-      }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast({
-        title: "Error",
-        description: error.errors?.[0]?.message || "Failed to log in",
-        variant: "destructive",
-      });
-    }
+    return signIn.authenticateWithRedirect({
+      strategy,
+      redirectUrl: AppRoutes.home(),
+      redirectUrlComplete: AppRoutes.home(),
+    });
   };
-
-  // Toggle password visibility
-  const handleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  return (
-    <SignIn/>
-  )
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        {/* Header */}
-        <h2 className="text-2xl font-bold text-center mb-6">Please Login</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Welcome Back!</h2>
+        <p className="text-center text-gray-600 mb-6">
+          Sign in to continue to your account.
+        </p>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Input */}
-          <div>
-            <input
-              type="email"
-              placeholder="* Email"
-              value={emailAddress}
-              onChange={(e) => setEmailAddress(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* Password Input */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="* Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            />
-            {/* Eye Icon to toggle password visibility */}
-            <button
-              type="button"
-              onClick={handleShowPassword}
-              className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              {showPassword ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                  <path
-                    fillRule="evenodd"
-                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7C18.268 14.057 14.478 17 10 17s-8.268-2.943-9.542-7zm3 8A9.021 9.021 0 016.976 10c0-4.216 2.77-6.604 6.592-6.604 3.822 0 6.592 2.388 6.592 6.604 0 4.02-2.77 6.604-6.592 6.604zm-6.592-6.604c2.822 0 5.156-1.921 5.156-4.712 0-2.791-2.334-4.712-5.156-4.712-2.822 0-5.156 1.921-5.156 4.712 0 2.791 2.334 4.712 5.156 4.712z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                  <path
-                    fillRule="evenodd"
-                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7C18.268 14.057 14.478 17 10 17s-8.268-2.943-9.542-7zm3 8A9.021 9.021 0 016.976 10c0-4.216 2.77-6.604 6.592-6.604 3.822 0 6.592 2.388 6.592 6.604 0 4.02-2.77 6.604-6.592 6.604zm-6.592-6.604c2.822 0 5.156-1.921 5.156-4.712 0-2.791-2.334-4.712-5.156-4.712-2.822 0-5.156 1.921-5.156 4.712 0 2.791 2.334 4.712 5.156 4.712z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
-
-          {/* Remember Me and Lost Password */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <input type="checkbox" id="remember-me" className="mr-2" />
-              <label htmlFor="remember-me" className="text-gray-600">
-                Remember me
-              </label>
-            </div>
-            <a href="#" className="text-blue-500 hover:text-blue-700">
-              Lost Your Password?
-            </a>
-          </div>
-
-          {/* Login Button */}
-          <button
-            type="submit"
-            className="w-full bg-indigo-800 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-300"
+        <button
+          onClick={() => signInWith("oauth_google")}
+          className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300 flex items-center justify-center"
+        >
+          <svg
+            className="w-5 h-5 mr-2"
+            aria-hidden="true"
+            focusable="false"
+            data-prefix="fab"
+            data-icon="google"
+            role="img"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 488 512"
           >
-            LOGIN
-          </button>
-        </form>
+            <path
+              fill="currentColor"
+              d="M488 261.8C488 403.3 381.5 512 244 512S0 403.3 0 261.8C0 120.3 106.5 8 244 8S488 120.3 488 261.8zM100.9 261.8c0 79.2 61.4 143.4 143.1 143.4s143.1-64.2 143.1-143.4S323.2 118.4 244 118.4 100.9 182.6 100.9 261.8zM393.1 261.8c0 42.4-31.5 76.8-70.3 76.8s-70.3-34.4-70.3-76.8 31.5-76.8 70.3-76.8 70.3 34.4 70.3 76.8zM476.9 261.8c0-12.7-1.1-25.2-3.1-37.3H244v71.5h131.3c-5.4 36.5-34.3 63.3-71.5 63.3-42.2 0-76.5-34.3-76.5-76.5s34.3-76.5 76.5-76.5c23.3 0 43.6 9.6 58.9 24.5l56.2-56.2C387.1 82.2 322.8 48 244 48c-79.5 0-144.7 54.8-167.1 128.2-1.9 7.6-1.9 15.6 0 23.2C79.3 371.2 144.5 426 223 426c45.4 0 84.4-19.6 112.4-51.4 28-31.8 43.5-73.9 43.5-112.8z"
+            ></path>
+          </svg>
+          Sign in with Google
+        </button>
 
-        {/* OR Separator */}
-        <div className="my-4 flex items-center justify-center">
-          <hr className="w-1/2 h-px bg-gray-300" />
-          <span className="mx-4 text-gray-500">OR</span>
-          <hr className="w-1/2 h-px bg-gray-300" />
-        </div>
-
-
-          <GoogleOneTap/>
-
-        {/* Sign Up Link */}
         <p className="text-center mt-4">
           Don't have an account?{" "}
           <Link

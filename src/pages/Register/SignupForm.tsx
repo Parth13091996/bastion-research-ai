@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Check, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
 
 const SignUpForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -21,6 +23,9 @@ const SignUpForm = () => {
     agreeToTerms: false
   });
   const [otpTimer, setOtpTimer] = useState(51);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
 
   const steps = [
     { id: 1, name: 'Register', icon: '👤' },
@@ -61,6 +66,56 @@ const SignUpForm = () => {
       setCurrentStep(currentStep - 1);
     }
   };
+
+  const handleSendOtp = async () => {
+    setIsLoading(true);
+    const phone = "+91" + formData.phone;
+    try {
+      const { error } = await supabase.functions.invoke('send-otp', {
+        body: { phone },
+      });
+      if (error) throw error;
+      toast({
+        title: "OTP Sent!",
+        description: "We've sent an OTP to your mobile number.",
+      });
+      nextStep();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send OTP.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setIsLoading(true);
+    const phone = "+91" + formData.phone;
+    const otp = formData.otp.join('');
+    try {
+      const { error } = await supabase.functions.invoke('verify-otp', {
+        body: { phone, otp },
+      });
+      if (error) throw error;
+      toast({
+        title: "Success!",
+        description: "Your mobile number has been verified.",
+      });
+      nextStep();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Invalid or expired OTP.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   if (!isOpen) return null;
 
@@ -133,10 +188,11 @@ const SignUpForm = () => {
       </div>
 
       <button
-        onClick={nextStep}
+        onClick={handleSendOtp}
+        disabled={isLoading}
         className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
       >
-        Get OTP →
+        {isLoading ? 'Sending...' : 'Get OTP →'}
       </button>
     </div>
   );
@@ -148,7 +204,7 @@ const SignUpForm = () => {
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Enter OTP to verify</h2>
         <p className="text-gray-600 text-sm">
           We have sent you a message with a 4-digit verification code on<br />
-          {formData.email} & {formData.phone}
+          +91{formData.phone}
         </p>
       </div>
 
@@ -183,10 +239,11 @@ const SignUpForm = () => {
           <ArrowLeft size={20} className="mr-1" /> Back
         </button>
         <button
-          onClick={nextStep}
+          onClick={handleVerifyOtp}
+          disabled={isLoading}
           className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
         >
-          <Check size={20} className="mr-1" /> Verify OTP
+          {isLoading ? 'Verifying...' : <><Check size={20} className="mr-1" /> Verify OTP</>}
         </button>
       </div>
     </div>
