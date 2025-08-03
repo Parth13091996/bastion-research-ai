@@ -12,15 +12,13 @@ const Header = () => {
     }
   };
 
-  const toggleSubmenu = (menuName) => {
+  const toggleSubmenu = (menuName: any) => {
     setOpenSubmenu(openSubmenu === menuName ? null : menuName);
   };
 
   return (
     <header
       className="bg-white shadow-sm py-6"
-      itemtype="https://schema.org/Organization"
-      itemscope
     >
       <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-8">
         <div className="flex justify-between items-center">
@@ -199,9 +197,8 @@ const Header = () => {
 
       {/* Mobile Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-300 ease-in-out z-50 md:hidden`}
+        className={`fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform ${isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          } transition-transform duration-300 ease-in-out z-50 md:hidden`}
       >
         <div className="px-6 py-4 h-full overflow-y-auto">
           <nav className="flex flex-col space-y-2 mt-4">
@@ -230,9 +227,8 @@ const Header = () => {
                 <span>Knowledge Center</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`h-5 w-5 transform transition-transform ${
-                    openSubmenu === "knowledgeCenter" ? "rotate-180" : ""
-                  }`}
+                  className={`h-5 w-5 transform transition-transform ${openSubmenu === "knowledgeCenter" ? "rotate-180" : ""
+                    }`}
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -245,9 +241,8 @@ const Header = () => {
               </button>
 
               <div
-                className={`overflow-hidden transition-all duration-200 ${
-                  openSubmenu === "knowledgeCenter" ? "max-h-40" : "max-h-0"
-                }`}
+                className={`overflow-hidden transition-all duration-200 ${openSubmenu === "knowledgeCenter" ? "max-h-40" : "max-h-0"
+                  }`}
               >
                 <div className="pl-4 flex flex-col space-y-1 my-1">
                   <Link

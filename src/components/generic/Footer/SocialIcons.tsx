@@ -25,7 +25,7 @@ const SocialIcons = ({ className = "flex space-x-3" }) => {
     <div className={className}>
       <p>{Config.connect_url}</p>
       <div className="flex space-x-3">
-        {Object.entries(social_links).map(([platform, url]) => {
+        {Object.entries(social_links).map(([platform, url], index) => {
           const SvgIcon = SocialSvgMap[platform];
           // Only render if we have a URL and an SVG component for the platform
           if (url && SvgIcon) {
@@ -45,13 +45,13 @@ const SocialIcons = ({ className = "flex space-x-3" }) => {
 
             if (isExternal) {
               return (
-                <a {...commonProps}>
+                <a {...commonProps} key={index}>
                   <SvgIcon />
                 </a>
               );
             } else {
               return (
-                <Link {...commonProps}>
+                <Link {...commonProps} key={index}>
                   <SvgIcon />
                 </Link>
               );
