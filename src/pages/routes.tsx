@@ -39,7 +39,7 @@ export const AppRoutes = {
   newslettersArchive: () => "/newsletters-archive", // Added for Header dropdown
   podcast: () => "/podcast", // Added for Header dropdown
   webinars: () => "/webinars", // Added for Header dropdown
-  PodcastsGrid: () => "/podcasts-grid", // Added for PodcastsGrid component
+  PodcastsGrid: () => "/podcasts", // Added for PodcastsGrid component
   // PodcatsBlog: () => "/podcats-blog", // Added for PodcatsBlog component
   SpotLights: () => "/spotlights", // Added for Spotlight page
   // Add more route names and path functions as needed
@@ -73,19 +73,19 @@ export const routes = [
   {
     Component: PodcastsGrid,
     path: AppRoutes.PodcastsGrid(),
-    
+
   },
-   {
+  {
     Component: SpotLights,
     path: AppRoutes.SpotLights(),
-    
+
   },
   // Additional routes for Header dropdown (assuming they are public pages)
   // {
   //   Component: lazy(() => import("./pages/NewslettersArchive")),
   //   path: AppRoutes.newslettersArchive(),
   // }, // Assuming component exists
- // Podcast component does not exist
+  // Podcast component does not exist
   // {
   //   Component: lazy(() => import("./pages/Webinars")),
   //   path: AppRoutes.webinars(),

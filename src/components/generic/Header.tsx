@@ -84,7 +84,7 @@ const Header = () => {
                   Newsletter Archive
                 </Link>
                 <Link
-                  to="/podcast"
+                  to="/podcasts"
                   className="block px-4 py-2 text-gray-700 hover:text-red-600"
                 >
                   Podcast (MADE IN INDIA)
