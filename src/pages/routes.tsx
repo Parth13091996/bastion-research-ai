@@ -1,11 +1,12 @@
 import { lazy } from "react";
+import CareerPage from "./CareerPage.tsx";
 
 const Home = lazy(() => import("../pages/Home"));
 // const AboutUs = lazy(() => import("../pages/AboutUs"));
 // const Spotlight = lazy(() => import("../pages/Spotlight"));
 // const Quant = lazy(() => import("../pages/Quant"));
 const Contact = lazy(() => import("../pages/Contact"));
-// const Career = lazy(() => import("../pages/Career"));
+const CareerPage = lazy(() => import("../pages/CareerPage.tsx"));
 const RefundPolicy = lazy(() => import("../pages/RefundPolicy"));
 const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
@@ -25,7 +26,7 @@ export const AppRoutes = {
   home: () => "/",
   aboutUs: () => "/about-us",
   contact: () => "/contact",
-  career: () => "/career",
+  CareerPage: () => "/career-page",
   refundPolicy: () => "/refund-policy",
   privacyPolicy: () => "/privacy-policy", // Ensure this matches Footer link
   termAndCondition: () => "/terms-and-conditions",
@@ -54,14 +55,14 @@ export const routes = [
   // { Component: Spotlight, path: AppRoutes.spotlight() },
   // { Component: Quant, path: AppRoutes.quant() },
   { Component: Contact, path: AppRoutes.contact() },
-  // { Component: Career, path: AppRoutes.career() },
+  { Component: CareerPage, path: AppRoutes.CareerPage() },
   { Component: RefundPolicy, path: AppRoutes.refundPolicy() },
   { Component: PrivacyPolicy, path: AppRoutes.privacyPolicy() },
   { Component: TermAndCondition, path: AppRoutes.termAndCondition() },
   { Component: Compliance, path: AppRoutes.compliance() },
   // { Component: Blog, path: AppRoutes.blog() },
   { Component: Login, path: AppRoutes.login() },
-  // { Component: BastionCore, path: AppRoutes.bastionCore() },
+  { Component: BastionCore, path: AppRoutes.BastionCore() },
   { Component: Register, path: AppRoutes.register() },
   // Protected Routes
   { Component: EditProfile, path: AppRoutes.editProfile(), isProtected: true },

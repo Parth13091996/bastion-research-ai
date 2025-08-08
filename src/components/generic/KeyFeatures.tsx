@@ -42,14 +42,14 @@ const KeyFeatures = () => {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-background p-8 relative">
+    <div className="min-h-screen bg-background relative">
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 gap-8">
+      <div className="max-w-6xl mx-auto ">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {cardData.map((card, index) => (
             <div
               key={index}
-              className="relative h-64"
+              className="relative h-64 rounded-2xl shadow-2xl"
               style={{ perspective: '1000px' }}
               onMouseEnter={() => setHoveredCard(index)}
               onMouseLeave={() => setHoveredCard(null)}
@@ -62,7 +62,7 @@ const KeyFeatures = () => {
                 style={{
                   transformStyle: 'preserve-3d',
                   transform: hoveredCard === index ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                  transition: 'transform 0.6s ease-in-out'
+                  transition: 'transform 0.4s ease-in-out'
                 }}
               >
                 {/* Front Face - Red Card */}
@@ -70,7 +70,7 @@ const KeyFeatures = () => {
                   className="absolute inset-0 w-full h-full backface-hidden"
                   style={{ backfaceVisibility: 'hidden' }}
                 >
-                  <div className="w-full h-full bg-primary rounded-2xl shadow-lg border-4 border-gray-200 p-8 flex flex-col justify-center items-center text-white text-center">
+                  <div className="w-full h-full bg-primary rounded-2xl p-8 flex flex-col justify-center items-center text-white text-center">
                     <h2 className="text-xl font-semibold leading-tight mb-4">{card.title}</h2>
                     <ArrowRight className="h-6 w-6" />
                   </div>
@@ -84,9 +84,9 @@ const KeyFeatures = () => {
                     transform: 'rotateY(180deg)'
                   }}
                 >
-                  <div className="w-full h-full bg-secondary rounded-2xl shadow-lg border-4 border-gray-200 p-8 flex items-center justify-center">
+                  <div className="w-full h-full bg-secondary rounded-2xl p-8 flex items-center justify-center">
                     <div className="text-left">
-                      <h3 className="text-xl font-bold text-white mb-6">{card.title}</h3>
+                      {/* <h3 className="text-xl font-bold text-white mb-6">{card.title}</h3> */}
                       <ul className="text-white leading-relaxed space-y-3">
                         {card.content.map((item, itemIndex) => (
                           <li key={itemIndex} className="flex items-start">

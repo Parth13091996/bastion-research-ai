@@ -140,11 +140,11 @@ const SpotLights = () => {
     <div className="min-h-screen bg-white">
 
       {/* Hero Section */}
-      <section className="bg-slate-800 text-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <section className="bg-slate-800 text-white relative overflow-hidden h-[250px] rounded-br-[80px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-15">
           <div className="flex justify-between items-center">
             <div className="max-w-2xl">
-              <h1 className="text-6xl font-bold mb-8">Our Research</h1>
+              <h1 className="text-7xl font-bold mb-20">Our Research</h1>
             </div>
             
             {/* Illustration */}
@@ -179,7 +179,7 @@ const SpotLights = () => {
       {/* Research Tables Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Animated Button */}
-        <div className="mb-8 text-center">
+        <div className="mb-8">
           <button className="group relative bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md transition-all duration-300 overflow-hidden">
             <span className="group-hover:-translate-y-8 transition-transform duration-300 block">
               View Latest Updates
@@ -217,22 +217,31 @@ const SpotLights = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Coverage Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Lock / Unlock
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Company
+                   Company
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Coverage Initiation Date
+                   Coverage Initiation Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sector
+                  Sector
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Research Material
+                  Action
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Comments
+                  </th>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                   % Return since Recommendation
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                   % IRR Potential from CMP
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                   Research Material
                   </th>
                 </tr>
               </thead>
