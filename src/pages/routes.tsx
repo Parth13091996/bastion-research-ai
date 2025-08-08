@@ -12,7 +12,7 @@ const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
 const Compliance = lazy(() => import("../pages/Complaince"));
 //g const Blog = lazy(() => import("../pages/Blog"));
 const Login = lazy(() => import("../pages/Login"));
-// const BastionCore = lazy(() => import("../pages/BastionCore"));
+const BastionCore = lazy(() => import("../pages/BastionCore.tsx"));
 const Register = lazy(() => import("../pages/Register"));
 const EditProfile = lazy(() => import("../pages/EditProfile"));
 const Subscription = lazy(() => import("../pages/Subscription"));
@@ -32,7 +32,7 @@ export const AppRoutes = {
   compliance: () => "/compliance",
   blog: () => "/blog",
   login: () => "/login",
-  // bastionCore: () => "/bastion-core",
+  BastionCore: () => "/bastion-core",
   register: () => "/register",
   editProfile: () => "/edit-profile",
   subscription: () => "/subscription",
