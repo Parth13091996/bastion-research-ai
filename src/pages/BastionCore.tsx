@@ -3,6 +3,7 @@ import Header from "../components/generic/Header";
 import Footer from "../components/generic/Footer";
 import KeyFeatures from "@/components/generic/KeyFeatures";
 import PricingComponent from "@/components/generic/PricingComponent";
+import SmartFrameworks from "@/components/generic/SmartFrameworks";
 
 const useTypingEffect = (text, speed = 150) => {
   const [displayedText, setDisplayedText] = useState("");
@@ -86,8 +87,11 @@ const BastionCore = () => {
             </div>
           </section>
 
-          {/* Typing effect section */}
-          <section className="mt-16">
+          {/* Smart framework section */}
+
+
+          <SmartFrameworks/>
+          {/* <section className="mt-16">
             <h3 className="text-3xl font-bold mb-8">SMART Framework</h3>
             <div className="flex flex-wrap gap-4">
               {[
@@ -107,7 +111,7 @@ const BastionCore = () => {
             <div className="mt-8 text-xl font-semibold cursor-text border-r-2 border-red-600 pr-2 whitespace-nowrap overflow-x-hidden max-w-full">
               {typed2}
             </div>
-          </section>
+          </section> */}
 
           {/* Pricing Section */}
           <PricingComponent />
@@ -211,6 +215,103 @@ const BastionCore = () => {
                   </li>
                 </ul>
               </details>
+              <details className="border border-gray-300 rounded-lg p-4">
+                <summary className="font-semibold cursor-pointer">
+                  What is not provided as part of the service?
+                </summary>
+                <ul className="list-disc list-inside mt-2">
+                  <li>
+                    We do not provide, BUY/SELL recommendations or model portfolio
+                    service
+                  </li>
+                  <li>
+                    We do not provide guarantee of the performance as part of the
+                    service. Kindly do your due diligence while investing in the
+                    ideas under our coverage
+                  </li>
+                </ul>
+              </details>
+              <details className="border border-gray-300 rounded-lg p-4">
+                <summary className="font-semibold cursor-pointer">
+                  What is not provided as part of the service?
+                </summary>
+                <ul className="list-disc list-inside mt-2">
+                  <li>
+                    We do not provide, BUY/SELL recommendations or model portfolio
+                    service
+                  </li>
+                  <li>
+                    We do not provide guarantee of the performance as part of the
+                    service. Kindly do your due diligence while investing in the
+                    ideas under our coverage
+                  </li>
+                </ul>
+              </details>
+              <details className="border border-gray-300 rounded-lg p-4">
+                <summary className="font-semibold cursor-pointer">
+                  What is not provided as part of the service?
+                </summary>
+                <ul className="list-disc list-inside mt-2">
+                  <li>
+                    We do not provide, BUY/SELL recommendations or model portfolio
+                    service
+                  </li>
+                  <li>
+                    We do not provide guarantee of the performance as part of the
+                    service. Kindly do your due diligence while investing in the
+                    ideas under our coverage
+                  </li>
+                </ul>
+              </details>
+              <details className="border border-gray-300 rounded-lg p-4">
+                <summary className="font-semibold cursor-pointer">
+                  What is not provided as part of the service?
+                </summary>
+                <ul className="list-disc list-inside mt-2">
+                  <li>
+                    We do not provide, BUY/SELL recommendations or model portfolio
+                    service
+                  </li>
+                  <li>
+                    We do not provide guarantee of the performance as part of the
+                    service. Kindly do your due diligence while investing in the
+                    ideas under our coverage
+                  </li>
+                </ul>
+              </details>
+              <details className="border border-gray-300 rounded-lg p-4">
+                <summary className="font-semibold cursor-pointer">
+                  What is not provided as part of the service?
+                </summary>
+                <ul className="list-disc list-inside mt-2">
+                  <li>
+                    We do not provide, BUY/SELL recommendations or model portfolio
+                    service
+                  </li>
+                  <li>
+                    We do not provide guarantee of the performance as part of the
+                    service. Kindly do your due diligence while investing in the
+                    ideas under our coverage
+                  </li>
+                </ul>
+              </details>
+              <details className="border border-gray-300 rounded-lg p-4">
+                <summary className="font-semibold cursor-pointer">
+                  What is not provided as part of the service?
+                </summary>
+                <ul className="list-disc list-inside mt-2">
+                  <li>
+                    We do not provide, BUY/SELL recommendations or model portfolio
+                    service
+                  </li>
+                  <li>
+                    We do not provide guarantee of the performance as part of the
+                    service. Kindly do your due diligence while investing in the
+                    ideas under our coverage
+                  </li>
+                </ul>
+              </details>
+
             </div>
           </section>
         </div>

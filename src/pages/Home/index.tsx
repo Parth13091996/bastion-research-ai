@@ -4,6 +4,7 @@ import MainBanner from "@/files/main-banner.svg";
 // import mainPageImage from "@/files/main-page-image.svg";
 import { CheckCircle } from "lucide-react";
 
+
 const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex flex-col">
@@ -28,6 +29,7 @@ const Home = () => {
         </section>
 
         {/* About Section */}
+
         <section className="py-12 pb-16 bg-white">
           <div className="max-w-7xl px-6 md:px-8 mx-auto">
             <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
