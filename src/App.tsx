@@ -8,6 +8,12 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import AuthCallback from './pages/AuthCallback';
 import RootLayout from './layouts/RootLayout';
+import AdminLayout from './layouts/AdminLayout';
+import AdminRoute from './components/AdminRoute';
+import AdminDashboard from './pages/admin/Dashboard';
+import JobOpenings from './pages/admin/JobOpenings';
+import Users from './pages/admin/Users';
+import Settings from './pages/admin/Settings';
 
 const queryClient = new QueryClient();
 
@@ -24,6 +30,14 @@ function App() {
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+              </Route>
+            </Route>
+            <Route element={<AdminLayout />}>
+              <Route element={<AdminRoute />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/job-openings" element={<JobOpenings />} />
+                <Route path="/admin/users" element={<Users />} />
+                <Route path="/admin/settings" element={<Settings />} />
               </Route>
             </Route>
           </Routes>
