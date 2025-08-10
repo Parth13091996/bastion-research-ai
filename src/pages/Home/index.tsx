@@ -1,16 +1,196 @@
+import React, { useState, useEffect, useRef } from "react";
 import Footer from "@/components/generic/Footer";
 import Header from "@/components/generic/Header";
 import MainBanner from "@/files/main-banner.svg";
-// import mainPageImage from "@/files/main-page-image.svg";
-import { CheckCircle } from "lucide-react";
+import mainPageImage from "@/files/main-page-textimage.svg";
+import { CheckCircle, ArrowRight, BookOpen, FileText } from "lucide-react";
 
+const TRANSITION_MS = 500;
 
 const Home = () => {
+  const tabs = [
+    {
+      title: "Research Ally",
+      type: "DIY Individual",
+      bullets: [
+        "I am a seasoned investor responsible for the financial position of the company.",
+        "I am looking for healthcare research and technology to improve my health and wellbeing.",
+        "I want a team who can work as an external researcher on our own."
+      ],
+      button: {
+        text: "Book a Call",
+        icon: <ArrowRight size={16} />
+      },
+      start: "#6366F1",
+      end: "#7C3AED"
+    },
+    {
+      title: "Bastion Core",
+      type: "Non-DIY Traduction",
+      bullets: [
+        "I have time to go through quality research output",
+        "I have a good judgement of taking investment decisions",
+        "I enjoy short kicking losses on quality inputs"
+      ],
+      buttons: [
+        {
+          text: "Book a Call",
+          icon: <ArrowRight size={16} />
+        },
+        {
+          text: "View Sample Research",
+          icon: <FileText size={16} />
+        },
+        {
+          text: "Subscribe Now",
+          icon: <BookOpen size={16} />
+        }
+      ],
+      start: "#10B981",
+      end: "#0D9488"
+    },
+    {
+      title: "Qualified Investor",
+      type: "DTV Traduction",
+      bullets: [
+        "I want to take research located in/real market decision.",
+        "I don't want to spend time sending research.",
+        "I don't want to speculate.",
+        "I need professional help with portfolio creation."
+      ],
+      button: {
+        text: "View Portfolios",
+        icon: <ArrowRight size={16} />
+      },
+      start: "#F59E0B",
+      end: "#F97316"
+    }
+  ];
+
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [tabPos, setTabPos] = useState({ x: 50, y: 50 });
+  const [activeTab, setActiveTab] = useState(0);
+  const activeTabRef = useRef(activeTab);
+  const [isHovered, setIsHovered] = useState(false);
+  const [interactionCount, setInteractionCount] = useState(0);
+
+  const [isLayerAActive, setIsLayerAActive] = useState(true);
+  const [layerA, setLayerA] = useState({ start: tabs[0].start, end: tabs[0].end });
+  const [layerB, setLayerB] = useState(null);
+  const [visibleA, setVisibleA] = useState(true);
+  const [visibleB, setVisibleB] = useState(false);
+
+  const intervalRef = useRef(null);
+  const transitionTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  const handleTabChange = (index, opts = { fromAutoplay: false }) => {
+    if (index === activeTab) return;
+
+    const prevLayerAActive = isLayerAActive;
+
+    const next = tabs[index];
+
+    if (prevLayerAActive) {
+      setLayerB({ start: next.start, end: next.end });
+      setVisibleB(true);
+      setVisibleA(false);
+      setIsLayerAActive(false);
+    } else {
+      setLayerA({ start: next.start, end: next.end });
+      setVisibleA(true);
+      setVisibleB(false);
+      setIsLayerAActive(true);
+    }
+
+    setActiveTab(index);
+
+    if (!opts.fromAutoplay) setInteractionCount((c) => c + 1);
+
+    if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+    transitionTimeoutRef.current = setTimeout(() => {
+      if (prevLayerAActive) {
+        setLayerA(null);
+        setVisibleA(false);
+      } else {
+        setLayerB(null);
+        setVisibleB(false);
+      }
+    }, TRANSITION_MS + 40);
+  };
+
+  useEffect(() => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      if (!isHovered) {
+        const nextIndex = (activeTabRef.current + 1) % tabs.length;
+        handleTabChange(nextIndex, { fromAutoplay: true });
+      }
+    }, 7000);
+
+    return () => clearInterval(intervalRef.current);
+  }, [isHovered, interactionCount]);
+
+  useEffect(() => {
+    return () => {
+      clearInterval(intervalRef.current);
+      if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+    };
+  }, []);
+
+  const handleMouseMove = (e) => {
+    if (tabSectionRef.current) {
+      const { left, top, width, height } = tabSectionRef.current.getBoundingClientRect();
+      const x = ((e.clientX - left) / width) * 100;
+      const y = ((e.clientY - top) / height) * 100;
+      setTabPos({ x, y });
+    }
+  };
+
+  const tabSectionRef = useRef(null);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex flex-col">
       <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="relative bg-[#1B2852] w-full min-h-[300px] md:min-h-[500px] flex items-center justify-center overflow-hidden">
+        <section
+          className="relative bg-[#1B2852] w-full min-h-[300px] md:min-h-[500px] flex items-center justify-center overflow-hidden"
+          onMouseMove={(e) => {
+            const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - left) / width) * 100;
+            const y = ((e.clientY - top) / height) * 100;
+            setPos({ x, y });
+          }}
+        >
+          <div className="absolute inset-0">
+            <div
+              className="absolute inset-0 opacity-20 transition-transform duration-300"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+                transform: `translate(${(pos.x - 50) / 20}px, ${(pos.y - 50) / 20}px)`,
+              }}
+            />
+            <div
+              className="absolute inset-0 opacity-20 transition-transform duration-300"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)",
+                backgroundSize: "20px 20px",
+                transform: `translate(${(pos.x - 50) / 10}px, ${(pos.y - 50) / 10}px)`,
+              }}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(255,255,255,0.08), transparent 40%)`,
+              }}
+            />
+          </div>
+
           <div className="w-full max-w-7xl mx-auto px-6 md:px-8 relative z-10">
             <img
               src={MainBanner}
@@ -28,144 +208,117 @@ const Home = () => {
           </div>
         </section>
 
-        {/* About Section */}
+        <section
+          className="relative w-full py-16 overflow-hidden"
+          onMouseMove={handleMouseMove}
+          ref={tabSectionRef}
+        >
+          <div className="absolute inset-0 pointer-events-none">
+            {layerA && (
+              <div
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out`
+                }
+                style={{
+                  background: `linear-gradient(135deg, ${layerA.start}, ${layerA.end})`,
+                  opacity: visibleA ? 1 : 0,
+                }}
+              />
+            )}
 
-        <section className="py-12 pb-16 bg-white">
-          <div className="max-w-7xl px-6 md:px-8 mx-auto">
-            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-              <div className="md:w-1/2">
-                <h2 className="text-3xl font-bold text-gray-800 mb-6">
-                  About Bastion
-                </h2>
-                <p className="text-lg text-gray-600 mb-4">
-                  Bastion Research is a boutique equity research entity focusing
-                  on the Indian market. We provide comprehensive and independent
-                  research services to empower fund managers, institutional
-                  entities, and family offices in making prudent investment
-                  decisions.
-                </p>
-                <p className="text-lg text-gray-600">
-                  Our strength lies in a deep understanding of the domain we
-                  serve. Our approach is rooted in delivering top-notch service,
-                  essentially acting as an additional research partner for your
-                  organization and enhancing your strategic capacities.
-                </p>
-              </div>
-              <div className="md:w-1/2 mt-8 md:mt-0">
-                {/* <img
-                  src={mainPageImage}
-                  alt="Bastion Research illustration"
-                  className="w-full h-auto"
-                /> */}
-              </div>
+            {layerB && (
+              <div
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out`
+                }
+                style={{
+                  background: `linear-gradient(135deg, ${layerB.start}, ${layerB.end})`,
+                  opacity: visibleB ? 1 : 0,
+                }}
+              />
+            )}
+
+            <div
+              className="absolute inset-0 transition-opacity duration-500 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at ${tabPos.x}% ${tabPos.y}%, rgba(255,255,255,0.06), transparent 60%)`,
+                mixBlendMode: 'overlay',
+                opacity: 0.9,
+              }}
+            />
+
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'linear-gradient(45deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
+              }}
+            />
+          </div>
+
+          <div
+            className="relative w-full max-w-4xl mx-auto z-10 transition-all duration-500"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div className="flex justify-center gap-0 mb-0">
+              {tabs.map((tab, index) => {
+                const isActive = index === activeTab;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleTabChange(index)}
+                    className={`px-6 py-3 font-medium rounded-t-lg border border-white/20 relative transition-all duration-300 ${
+                      isActive ? '-mb-px z-30 border-b-0 shadow-lg' : 'z-20 bg-transparent hover:bg-white/10'
+                    }`}
+                    style={
+                      isActive
+                        ? { backgroundImage: `linear-gradient(90deg, ${tab.start}, ${tab.end})`, color: '#fff' }
+                        : { color: 'rgba(255,255,255,0.95)' }
+                    }
+                  >
+                    {tab.type}
+                  </button>
+                );
+              })}
             </div>
-          </div>
-        </section>
 
-        {/* Quote Section */}
-        <section className="bg-red-600 pb-16 py-12">
-          <div className="px-6 md:px-8 max-w-7xl mx-auto">
-            <blockquote className="text-xl sm:text-2xl lg:text-3xl font-medium text-white text-center">
-              <p className="mb-4">
-                Coming Together Is Beginning. Keeping Together Is Progress.
-                Working Together Is Success.
-              </p>
-              <footer className="text-base sm:text-lg text-white opacity-90">
-                - Henry Ford
-              </footer>
-            </blockquote>
-          </div>
-        </section>
+            <div className="relative">
+              <div className="rounded-b-xl border border-white/20 bg-transparent shadow-2xl p-8 min-h-[400px] flex flex-col backdrop-blur-sm">
+                <div className="mb-4">
+                  <span className="text-sm font-medium text-white/80">{tabs[activeTab].type}</span>
+                  <h2 className="text-3xl font-bold text-white mt-1">{tabs[activeTab].title}</h2>
+                </div>
 
-        {/* Engagement Models Section */}
-        <section className="py-12 pb-16 bg-white">
-          <div className="max-w-7xl px-6 md:px-8 mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-10">
-              Engagement Models
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-[12rem]">
-              {/* Research Ally */}
-              <div className="bg-[#1B2852] rounded-lg overflow-hidden shadow-lg">
-                <div className="bg-[#1B2852] text-white p-5 font-semibold text-lg text-center">
-                  Research Ally
+                <div className="flex-grow">
+                  <ul className="space-y-3 mb-8">
+                    {tabs[activeTab].bullets.map((bullet, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <CheckCircle className="flex-shrink-0 h-5 w-5 text-white mt-0.5 mr-3" />
+                        <span className="text-white/90">{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div className="bg-white p-6 space-y-4">
-                  {[
-                    "One-to-One Interaction",
-                    "Comprehending the Business",
-                    "Quarterly & Other Updates",
-                    "Analyst Access",
-                    "Access to Key Data",
-                    "Response to queries regarding the business under discussion",
-                  ].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-3 border-b pb-2 last:border-b-0 last:pb-0"
-                    >
-                      <CheckCircle className="text-green-500 mt-1 w-5 h-5" />
-                      <span className="text-sm text-gray-800">{item}</span>
-                    </div>
-                  ))}
-                  <div className="pt-4">
-                    <button className="bg-[#1B2852] text-white text-sm font-semibold px-4 py-2 rounded hover:opacity-90">
-                      Know More
-                    </button>
-                  </div>
-                </div>
-              </div>
 
-              {/* Bastion Core */}
-              <div className="bg-[#101B42] rounded-lg overflow-hidden shadow-lg">
-                <div className="bg-[#101B42] text-white p-5 font-semibold text-lg text-center">
-                  Bastion <span className="text-red-500">CORE</span>
-                </div>
-                <div className="bg-white p-6 space-y-4">
-                  {[
-                    "Subscription Based Platform",
-                    "Comprehensive Business Note",
-                    "Quarterly Result & Con Call Updates",
-                    "Regular Updates on Key Matters",
-                    "“Preferred” Seal based on our S M A R T Framework",
-                    "Q U A N T Screen for Ideation",
-                  ].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-3 border-b pb-2 last:border-b-0 last:pb-0"
-                    >
-                      <CheckCircle className="text-green-500 mt-1 w-5 h-5" />
-                      <span className="text-sm text-gray-800">
-                        {item.includes("S M A R T") ? (
-                          <>
-                            “Preferred” Seal based on our{" "}
-                            <span className="text-red-600 font-semibold">
-                              S M A R T
-                            </span>{" "}
-                            Framework
-                          </>
-                        ) : item.includes("Q U A N T") ? (
-                          <>
-                            <span className="text-red-600 font-semibold">
-                              Q U A N T
-                            </span>{" "}
-                            Screen for Ideation
-                          </>
-                        ) : (
-                          item
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="pt-4 flex flex-wrap justify-between gap-2">
-                    <button className="bg-[#101B42] text-white text-sm font-semibold px-4 py-2 rounded hover:opacity-90">
-                      Know More
+                <div className="flex justify-center gap-4 mt-auto">
+                  {tabs[activeTab].buttons ? (
+                    tabs[activeTab].buttons.map((button, idx) => (
+                      <button
+                        key={idx}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                          idx === 0
+                            ? 'bg-white text-black hover:bg-white/90 shadow-lg'
+                            : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/20 shadow-md'
+                        }`}
+                      >
+                        {button.text}
+                        {button.icon}
+                      </button>
+                    ))
+                  ) : (
+                    <button className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-white text-[#C9122D] hover:bg-white/90 transition-all duration-300 shadow-lg">
+                      {tabs[activeTab].button.text}
+                      {tabs[activeTab].button.icon}
                     </button>
-                    <button className="bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-red-700">
-                      Explore Spotlight
-                    </button>
-                    <button className="bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-red-700">
-                      Explore QUANT
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
