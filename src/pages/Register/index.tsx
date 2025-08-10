@@ -1,11 +1,10 @@
-import { useUser } from "@clerk/clerk-react";
 import { Navigate } from "react-router-dom";
 import SignUpForm from "./SignupForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Register() {
-  const { isSignedIn } = useUser();
-
-  if (isSignedIn) {
+  const { user } = useAuth();
+  if (!user) {
     return <Navigate to="/" replace />;
   }
 
