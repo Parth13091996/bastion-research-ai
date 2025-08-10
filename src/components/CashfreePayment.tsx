@@ -1,4 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
+
+import { load } from "@cashfreepayments/cashfree-js";
 import { Button } from '@/components/ui/button';
 import axiosInstance from '@/api/axios';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +12,7 @@ interface OrderResponse {
 const CashfreePayment = () => {
   const { user } = useAuth();
 
+  let cashfree;
   const mutation = useMutation<OrderResponse, Error, void>({
     mutationFn: () =>
       axiosInstance
@@ -20,8 +23,19 @@ const CashfreePayment = () => {
           customer_phone: '9876543210', // This should be dynamic
         })
         .then((res) => res.data),
-    onSuccess: (data) => {
-      window.location.href = data.payment_link;
+    onSuccess: async(data: any) => {
+      var initializeSDK = async function () {
+        cashfree = await load({
+          mode: "sandbox",
+        });
+      };
+      await initializeSDK()
+      let checkoutOptions = {
+        paymentSessionId: data.order.payment_session_id,
+        redirectTarget: "_self",
+      };
+      cashfree.checkout(checkoutOptions);
+
     },
   });
 
