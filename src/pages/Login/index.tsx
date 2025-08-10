@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import axiosInstance from '@/api/axios';
-import { AuthResponse } from '@/types';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -28,7 +27,7 @@ const Login = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const mutation = useMutation<AuthResponse, Error, LoginFormValues>({
+  const mutation = useMutation<any, Error, LoginFormValues>({
     mutationFn: (data) =>
       axiosInstance.post('/api/auth/signin', data).then((res) => res.data),
     onSuccess: (data) => {

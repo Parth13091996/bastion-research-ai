@@ -1,6 +1,4 @@
-import Footer from "@/components/generic/Footer";
-import Header from "@/components/generic/Header";
-import MainBanner from "@/files/main-banner.svg";
+import MainBanner from "../../files/main-banner.svg";
 // import mainPageImage from "@/files/main-page-image.svg";
 import { CheckCircle } from "lucide-react";
 
