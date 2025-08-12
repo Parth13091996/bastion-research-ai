@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function Register() {
   const { user } = useAuth();
-  if (!user) {
+  if (user) {
     return <Navigate to="/" replace />;
   }
 
