@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { X, Check, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
-const SignUpForm = () => {
+interface SignUpFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [isOpen, setIsOpen] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -473,7 +477,7 @@ const SignUpForm = () => {
         <button
           onClick={() => {
             alert('Payment completed! Welcome to TripleEdge!');
-            setIsOpen(false);
+            onClose();
           }}
           className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
         >
@@ -562,7 +566,7 @@ const SignUpForm = () => {
                 <p className="text-sm text-gray-600">Subscribe to invest in <strong>TripleEdge</strong></p>
               </div>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={onClose}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X size={24} />
