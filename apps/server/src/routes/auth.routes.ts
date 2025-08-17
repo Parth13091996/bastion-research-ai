@@ -5,7 +5,9 @@ import {
     forgotPassword,
     googleOAuthStart,
     googleOAuthCallback,
-    completeGoogleProfile
+    completeGoogleProfile,
+    getMe,
+    logout
 } from '../controllers/auth.controller';
 
 const router = Router();
@@ -19,5 +21,9 @@ router.post('/forgot-password', forgotPassword);
 router.get('/google', googleOAuthStart);
 router.get('/google/callback', googleOAuthCallback);
 router.post('/google/complete-profile', completeGoogleProfile);
+
+// User session routes
+router.get('/me', getMe);
+router.post('/logout', logout);
 
 export default router;

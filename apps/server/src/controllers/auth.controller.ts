@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { supabase } from '../config/supabase';
 import { OAuth2Client } from 'google-auth-library';
+import { User } from '@repo/types';
 
 const generateToken = (id: string, email: string, expiresIn: string = '1d') => {
   const secret = process.env.JWT_SECRET;
@@ -204,11 +205,17 @@ export const googleOAuthCallback = async (req: Request, res: Response) => {
     }
 
     if (user) {
-      // User exists, sign them in
+      // User exists, sign them in by setting a cookie
       const loginToken = generateToken(user.id, user.email);
-      return res.redirect(`${frontendUrl}/auth/callback?token=${loginToken}`);
+      res.cookie('token', loginToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
+      return res.redirect(`${frontendUrl}/dashboard`); // Redirect to a protected route
     } else {
-      // User is new, redirect to complete profile
+      // User is new, redirect to complete profile with a temporary token
       const tempTokenPayload = { email, googleId, firstName, lastName };
       const tempToken = generateTemporaryToken(tempTokenPayload);
       return res.redirect(`${frontendUrl}/complete-profile?temp_token=${tempToken}`);
@@ -255,9 +262,15 @@ export const completeGoogleProfile = async (req: Request, res: Response) => {
 
     const loginToken = generateToken(newUser.id, newUser.email);
 
+    res.cookie('token', loginToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     res.status(201).json({
       message: 'User profile completed and created successfully.',
-      token: loginToken,
       user: newUser,
     });
 
