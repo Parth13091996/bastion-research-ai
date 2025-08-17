@@ -1,332 +1,355 @@
 import React, { useState, useEffect, useRef } from "react";
-import Footer from "@/components/generic/Footer";
-import Header from "@/components/generic/Header";
-import MainBanner from "@/files/main-banner.svg";
-import mainPageImage from "@/files/main-page-textimage.svg";
-import { CheckCircle, ArrowRight, BookOpen, FileText } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
-const TRANSITION_MS = 500;
+// Brand colors
+const NAVY = "#1C2852";
+const MAROON = "#C00000";
 
-const Home = () => {
-  const tabs = [
-    {
-      title: "Research Ally",
-      type: "DIY Individual",
-      bullets: [
-        "I am a seasoned investor responsible for the financial position of the company.",
-        "I am looking for healthcare research and technology to improve my health and wellbeing.",
-        "I want a team who can work as an external researcher on our own."
-      ],
-      button: {
-        text: "Book a Call",
-        icon: <ArrowRight size={16} />
-      },
-      start: "#6366F1",
-      end: "#7C3AED"
-    },
-    {
-      title: "Bastion Core",
-      type: "Non-DIY Traduction",
-      bullets: [
-        "I have time to go through quality research output",
-        "I have a good judgement of taking investment decisions",
-        "I enjoy short kicking losses on quality inputs"
-      ],
-      buttons: [
-        {
-          text: "Book a Call",
-          icon: <ArrowRight size={16} />
-        },
-        {
-          text: "View Sample Research",
-          icon: <FileText size={16} />
-        },
-        {
-          text: "Subscribe Now",
-          icon: <BookOpen size={16} />
-        }
-      ],
-      start: "#10B981",
-      end: "#0D9488"
-    },
-    {
-      title: "Qualified Investor",
-      type: "DTV Traduction",
-      bullets: [
-        "I want to take research located in/real market decision.",
-        "I don't want to spend time sending research.",
-        "I don't want to speculate.",
-        "I need professional help with portfolio creation."
-      ],
-      button: {
-        text: "View Portfolios",
-        icon: <ArrowRight size={16} />
-      },
-      start: "#F59E0B",
-      end: "#F97316"
-    }
-  ];
+const tabs = [
+  { key: "qualified", label: "Qualified Investor" },
+  { key: "diy", label: "DIY Individual" },
+  { key: "non_diy", label: "Non-DIY Individual" },
+] as const;
 
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [tabPos, setTabPos] = useState({ x: 50, y: 50 });
-  const [activeTab, setActiveTab] = useState(0);
-  const activeTabRef = useRef(activeTab);
-  const [isHovered, setIsHovered] = useState(false);
-  const [interactionCount, setInteractionCount] = useState(0);
+type TabKey = typeof tabs[number]["key"];
 
-  const [isLayerAActive, setIsLayerAActive] = useState(true);
-  const [layerA, setLayerA] = useState({ start: tabs[0].start, end: tabs[0].end });
-  const [layerB, setLayerB] = useState(null);
-  const [visibleA, setVisibleA] = useState(true);
-  const [visibleB, setVisibleB] = useState(false);
+export default function LandingPage() {
+  const [active, setActive] = useState<TabKey>("qualified");
+  const [progress, setProgress] = useState(0); // progress % for bar
+  const [paused, setPaused] = useState(false);
 
-  const intervalRef = useRef(null);
-  const transitionTimeoutRef = useRef(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const activeIndex = tabs.findIndex((t) => t.key === active);
 
+  // auto switch logic
   useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
+    if (paused) return;
 
-  const handleTabChange = (index, opts = { fromAutoplay: false }) => {
-    if (index === activeTab) return;
-
-    const prevLayerAActive = isLayerAActive;
-
-    const next = tabs[index];
-
-    if (prevLayerAActive) {
-      setLayerB({ start: next.start, end: next.end });
-      setVisibleB(true);
-      setVisibleA(false);
-      setIsLayerAActive(false);
-    } else {
-      setLayerA({ start: next.start, end: next.end });
-      setVisibleA(true);
-      setVisibleB(false);
-      setIsLayerAActive(true);
-    }
-
-    setActiveTab(index);
-
-    if (!opts.fromAutoplay) setInteractionCount((c) => c + 1);
-
-    if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
-    transitionTimeoutRef.current = setTimeout(() => {
-      if (prevLayerAActive) {
-        setLayerA(null);
-        setVisibleA(false);
-      } else {
-        setLayerB(null);
-        setVisibleB(false);
-      }
-    }, TRANSITION_MS + 40);
-  };
-
-  useEffect(() => {
-    clearInterval(intervalRef.current);
+    // progress runs in small steps
     intervalRef.current = setInterval(() => {
-      if (!isHovered) {
-        const nextIndex = (activeTabRef.current + 1) % tabs.length;
-        handleTabChange(nextIndex, { fromAutoplay: true });
-      }
-    }, 7000);
+      setProgress((prev) => {
+        if (prev >= 100) {
+          // move to next tab when full
+          const nextIndex = (activeIndex + 1) % tabs.length;
+          setActive(tabs[nextIndex].key);
+          return 0; // reset
+        }
+        return prev + 100 / (4 * 20); // 20 steps per second → 4s total
+      });
+    }, 50); // update every 50ms
 
-    return () => clearInterval(intervalRef.current);
-  }, [isHovered, interactionCount]);
-
-  useEffect(() => {
     return () => {
-      clearInterval(intervalRef.current);
-      if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, []);
+  }, [active, paused, activeIndex]);
 
-  const handleMouseMove = (e) => {
-    if (tabSectionRef.current) {
-      const { left, top, width, height } = tabSectionRef.current.getBoundingClientRect();
-      const x = ((e.clientX - left) / width) * 100;
-      const y = ((e.clientY - top) / height) * 100;
-      setTabPos({ x, y });
-    }
-  };
-
-  const tabSectionRef = useRef(null);
+  // reset progress whenever tab changes
+  useEffect(() => {
+    setProgress(0);
+  }, [active]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex flex-col">
-      <main className="flex-grow">
-        <section
-          className="relative bg-[#1B2852] w-full min-h-[300px] md:min-h-[500px] flex items-center justify-center overflow-hidden"
-          onMouseMove={(e) => {
-            const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-            const x = ((e.clientX - left) / width) * 100;
-            const y = ((e.clientY - top) / height) * 100;
-            setPos({ x, y });
-          }}
-        >
-          <div className="absolute inset-0">
-            <div
-              className="absolute inset-0 opacity-20 transition-transform duration-300"
-              style={{
-                backgroundImage:
-                  "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)",
-                backgroundSize: "40px 40px",
-                transform: `translate(${(pos.x - 50) / 20}px, ${(pos.y - 50) / 20}px)`,
-              }}
-            />
-            <div
-              className="absolute inset-0 opacity-20 transition-transform duration-300"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)",
-                backgroundSize: "20px 20px",
-                transform: `translate(${(pos.x - 50) / 10}px, ${(pos.y - 50) / 10}px)`,
-              }}
-            />
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `radial-gradient(circle at ${pos.x}% ${pos.y}%, rgba(255,255,255,0.08), transparent 40%)`,
-              }}
-            />
-          </div>
+    <div
+      className="overflow-hidden bg-white"
+      style={{ color: NAVY }}
+    >
+      <div className="h-full w-full flex flex-col max-w-6xl mx-auto px-6 py-5 relative">
 
-          <div className="w-full max-w-7xl mx-auto px-6 md:px-8 relative z-10">
-            <img
-              src={MainBanner}
-              alt="Research Banner"
-              className="absolute right-0 top-1/2 -translate-y-1/2 h-auto w-full md:w-[55%] object-contain pointer-events-none z-0"
-            />
-            <div className="relative z-10 max-w-[700px]">
-              <div className="absolute inset-0 bg-[#1B2852]/80 md:hidden -z-10 rounded-lg" />
-              <h1 className="text-white text-2xl md:text-[4rem] font-semibold leading-snug drop-shadow-md">
-                Maximizing Your <br className="hidden sm:block" />
-                Research Quality <br className="hidden sm:block" />
-                Per Unit Of Stress
-              </h1>
-            </div>
-          </div>
+        {/* Hero copy */}
+        <section className="mt-8 text-center">
+          <h1 className="text-3xl md:text-5xl font-semibold leading-tight mx-auto max-w-4xl">
+            Maximizing Your Research Quality Per Unit of Stress
+          </h1>
+          <p className="mt-4 text-base md:text-lg opacity-80 max-w-3xl mx-auto">
+            All investing is intelligent investing if it’s based on informed judgement and not speculation
+          </p>
         </section>
 
-        <section
-          className="relative w-full py-16 overflow-hidden"
-          onMouseMove={handleMouseMove}
-          ref={tabSectionRef}
-        >
-          <div className="absolute inset-0 pointer-events-none">
-            {layerA && (
-              <div
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out`
-                }
-                style={{
-                  background: `linear-gradient(135deg, ${layerA.start}, ${layerA.end})`,
-                  opacity: visibleA ? 1 : 0,
-                }}
-              />
-            )}
-
-            {layerB && (
-              <div
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out`
-                }
-                style={{
-                  background: `linear-gradient(135deg, ${layerB.start}, ${layerB.end})`,
-                  opacity: visibleB ? 1 : 0,
-                }}
-              />
-            )}
-
-            <div
-              className="absolute inset-0 transition-opacity duration-500 pointer-events-none"
-              style={{
-                background: `radial-gradient(circle at ${tabPos.x}% ${tabPos.y}%, rgba(255,255,255,0.06), transparent 60%)`,
-                mixBlendMode: 'overlay',
-                opacity: 0.9,
-              }}
-            />
-
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'linear-gradient(45deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
-              }}
-            />
-          </div>
-
+        {/* Body: Tabbed card */}
+        <section className="mt-6 flex-1">
           <div
-            className="relative w-full max-w-4xl mx-auto z-10 transition-all duration-500"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className="h-full w-full rounded-3xl shadow-xl border overflow-hidden bg-white flex flex-col"
+            style={{ borderColor: "#E6E6E6" }}
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
           >
-            <div className="flex justify-center gap-0 mb-0">
-              {tabs.map((tab, index) => {
-                const isActive = index === activeTab;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleTabChange(index)}
-                    className={`px-6 py-3 font-medium rounded-t-lg border border-white/20 relative transition-all duration-300 ${
-                      isActive ? '-mb-px z-30 border-b-0 shadow-lg' : 'z-20 bg-transparent hover:bg-white/10'
-                    }`}
-                    style={
-                      isActive
-                        ? { backgroundImage: `linear-gradient(90deg, ${tab.start}, ${tab.end})`, color: '#fff' }
-                        : { color: 'rgba(255,255,255,0.95)' }
-                    }
-                  >
-                    {tab.type}
-                  </button>
-                );
-              })}
+            {/* Progress bar */}
+            <div className="h-1 w-full bg-gray-200 relative overflow-hidden">
+              <motion.div
+                className="h-full"
+                style={{ background: NAVY }}
+                animate={{ width: `${progress}%` }}
+                transition={{ ease: "linear", duration: 0.05 }}
+              />
             </div>
 
+            {/* Prompt */}
+            <div
+              className="px-6 py-4 text-center font-semibold text-xl md:text-2xl"
+              style={{ color: "black" }}
+            >
+              What type of Investor are you?
+            </div>
+
+            {/* Tab bar */}
             <div className="relative">
-              <div className="rounded-b-xl border border-white/20 bg-transparent shadow-2xl p-8 min-h-[400px] flex flex-col backdrop-blur-sm">
-                <div className="mb-4">
-                  <span className="text-sm font-medium text-white/80">{tabs[activeTab].type}</span>
-                  <h2 className="text-3xl font-bold text-white mt-1">{tabs[activeTab].title}</h2>
-                </div>
-
-                <div className="flex-grow">
-                  <ul className="space-y-3 mb-8">
-                    {tabs[activeTab].bullets.map((bullet, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <CheckCircle className="flex-shrink-0 h-5 w-5 text-white mt-0.5 mr-3" />
-                        <span className="text-white/90">{bullet}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="flex justify-center gap-4 mt-auto">
-                  {tabs[activeTab].buttons ? (
-                    tabs[activeTab].buttons.map((button, idx) => (
-                      <button
-                        key={idx}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                          idx === 0
-                            ? 'bg-white text-black hover:bg-white/90 shadow-lg'
-                            : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/20 shadow-md'
-                        }`}
-                      >
-                        {button.text}
-                        {button.icon}
-                      </button>
-                    ))
-                  ) : (
-                    <button className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-white text-[#C9122D] hover:bg-white/90 transition-all duration-300 shadow-lg">
-                      {tabs[activeTab].button.text}
-                      {tabs[activeTab].button.icon}
-                    </button>
-                  )}
-                </div>
+              <div className="grid grid-cols-3 text-sm md:text-base select-none">
+                {tabs.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setActive(t.key)}
+                    className={`py-4 md:py-5 px-4 font-medium transition focus:outline-none focus-visible:ring-2 hover:bg-[rgba(28,40,82,0.06)]`}
+                    style={{
+                      color: active === t.key ? MAROON : NAVY,
+                      opacity: active === t.key ? 1 : 0.85,
+                    }}
+                    aria-selected={active === t.key}
+                    role="tab"
+                  >
+                    {t.label}
+                  </button>
+                ))}
               </div>
+              <motion.div
+                className="absolute bottom-0 left-0 h-1 rounded"
+                style={{ background: MAROON }}
+                initial={false}
+                animate={{
+                  width: `${100 / 3}%`,
+                  x: `${100 * activeIndex}%`,
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+              <div
+                className="absolute inset-x-0 bottom-0 h-px"
+                style={{ background: "rgba(28,40,82,0.15)" }}
+              />
             </div>
+
+            {/* Content area */}
+            <div className="flex-1 p-5 md:p-8 overflow-hidden">
+              <AnimatePresence mode="wait">
+                {active === "qualified" && (
+                  <motion.div
+                    key="qualified"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="h-full flex flex-col md:flex-row gap-6"
+                  >
+                    <Panel
+                      title="Institutional-Grade Coverage"
+                      bullets={[
+                        "Deep dives built for CIOs, PMs, and analysts",
+                        "Source-first: filings, transcripts, and on-ground checks",
+                        "Actionable scenarios with base/bull/bear valuations",
+                      ]}
+                    />
+                    <Panel
+                      title="What You Get"
+                      bullets={[
+                        "Weekly notes + event-driven briefs",
+                        "Allocator-ready models & tear sheets",
+                        "Priority access for management Q&A",
+                      ]}
+                    />
+                  </motion.div>
+                )}
+
+                {active === "diy" && (
+                  <motion.div
+                    key="diy"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="h-full flex flex-col md:flex-row gap-6"
+                  >
+                    <Panel
+                      title="For Self-Directed Investors"
+                      bullets={[
+                        "Plain-English breakdowns of complex businesses",
+                        "Templates for thesis, risk, and exit rules",
+                        "Curated learning paths for 30 minutes a week",
+                      ]}
+                    />
+                    <Panel
+                      title="Tools Included"
+                      bullets={[
+                        "Idea checklists & red-flag scanner",
+                        "Quarterly result explainers you’ll actually read",
+                        "Workspace to track positions & catalysts",
+                      ]}
+                    />
+                  </motion.div>
+                )}
+
+                {active === "non_diy" && (
+                  <motion.div
+                    key="non_diy"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="h-full flex flex-col md:flex-row gap-6"
+                  >
+                    <Panel
+                      title="Hands-Off, High-Conviction"
+                      bullets={[
+                        "Model portfolios with disciplined risk controls",
+                        "Clear rationale for every add/trim/exit",
+                        "Quarterly calls to align goals & risk",
+                      ]}
+                    />
+                    <Panel
+                      title="White-Glove Experience"
+                      bullets={[
+                        "Concise updates—no jargon, no noise",
+                        "Access to our research vault on demand",
+                        "Dedicated point of contact",
+                      ]}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* CTA buttons */}
+            {active === "qualified" && (
+              <div
+                className="p-5 text-center border-t flex justify-center gap-4 flex-wrap"
+                style={{ borderColor: "rgba(28,40,82,0.12)" }}
+              >
+                <button
+                  className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                  style={{
+                    background: MAROON,
+                    color: "white",
+                    borderColor: MAROON,
+                  }}
+                >
+                  Request a Call
+                </button>
+                <button
+                  className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                  style={{
+                    background: MAROON,
+                    color: "white",
+                    borderColor: MAROON,
+                  }}
+                >
+                  Download Product Note
+                </button>
+              </div>
+            )}
+
+            {active === "diy" && (
+              <div
+                className="p-5 text-center border-t flex justify-center gap-4 flex-wrap"
+                style={{ borderColor: "rgba(28,40,82,0.12)" }}
+              >
+                <button
+                  className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                  style={{
+                    background: MAROON,
+                    color: "white",
+                    borderColor: MAROON,
+                  }}
+                >
+                  Request a Call
+                </button>
+                <button
+                  className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                  style={{
+                    background: MAROON,
+                    color: "white",
+                    borderColor: MAROON,
+                  }}
+                >
+                  Access Research
+                </button>
+                <button
+                  className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                  style={{
+                    background: MAROON,
+                    color: "white",
+                    borderColor: MAROON,
+                  }}
+                >
+                  Subscribe Now
+                </button>
+              </div>
+            )}
+
+            {active === "non_diy" && (
+              <div
+                className="p-5 text-center border-t flex justify-center gap-4 flex-wrap"
+                style={{ borderColor: "rgba(28,40,82,0.12)" }}
+              >
+                <button
+                  className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                  style={{
+                    background: MAROON,
+                    color: "white",
+                    borderColor: MAROON,
+                  }}
+                >
+                  View Product Page
+                </button>
+                <button
+                  className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                  style={{
+                    background: MAROON,
+                    color: "white",
+                    borderColor: MAROON,
+                  }}
+                >
+                  Subscribe Portfolio
+                </button>
+              </div>
+            )}
           </div>
         </section>
-      </main>
+
+        <footer className="pt-4 text-xs opacity-60 text-center">
+          © {new Date().getFullYear()} Bastion Research. All rights reserved.
+        </footer>
+      </div>
     </div>
   );
-};
+}
 
-export default Home;
+function Panel({ title, bullets }: { title: string; bullets: string[] }) {
+  return (
+    <div
+      className="flex-1 min-w-[260px] border rounded-2xl p-5 md:p-6 flex flex-col shadow-[0_10px_30px_rgba(28,40,82,0.08)]"
+      style={{ borderColor: "#E6E6E6", background: NAVY, color: "white" }}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className="h-1.5 w-8 rounded-full"
+          style={{ background: `linear-gradient(90deg, white, ${MAROON})` }}
+        />
+        <h3
+          className="text-lg md:text-xl font-semibold"
+          style={{ color: "white" }}
+        >
+          {title}
+        </h3>
+      </div>
+      <ul className="mt-3 space-y-2 text-sm md:text-base leading-relaxed">
+        {bullets.map((b, i) => (
+          <li key={i} className="pl-5 relative">
+            <span
+              className="absolute left-0 top-2 h-2 w-2 rounded-full"
+              style={{ background: MAROON }}
+            />
+            {b}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
