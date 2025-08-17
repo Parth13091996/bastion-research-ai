@@ -6,6 +6,7 @@ import {
   downloadSignedDocument,
   cancelSignatureRequest,
   digioWebhook,
+  initiateSignatureJSON
 } from '../controllers/digio.controller'
 
 const router = Router()
@@ -21,6 +22,10 @@ if (DIGIO_DISABLED) {
   // Start a signature request by uploading a PDF
   // Accept any multipart fields; controller will pick 'file' or 'pdf'
   router.post('/esign/upload', upload.any(), initiateSignature)
+ 
+  // Start a signature request by uploading a PDF (JSON with base64)
+  // Send PDF as base64 in file_data field
+  router.post("/esign/uploadjson", initiateSignatureJSON);
 
   // Document detail/status
   router.get('/esign/:documentId', getDocumentDetails)
