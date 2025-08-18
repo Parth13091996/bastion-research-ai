@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import { Star, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
 import Review from "../components/generic/Review.tsx";
 import Testimonial from "../components/generic/Testimonial.tsx";
+import "../styles/main.css";
+import Lottie from "lottie-react";
+import priceTag from "../files/price-core.json";
 
 // Brand Colors
 const COLORS = {
@@ -348,46 +351,116 @@ export default function BastionCoreProductPage() {
         </section>
 
         {/* Section 4: Pricing */}
-        <section id="pricing" className="mx-auto max-w-md px-4 py-12 md:py-16">
-          <div className="rounded-3xl overflow-hidden shadow-2xl">
-            <div
-              className="text-center py-2 font-bold tracking-wide"
-              style={{ background: COLORS.red, color: COLORS.white }}
-            >
-              Subscribe Now!
+        <section id="pricing" className="mx-auto max-w-6xl px-4 py-12 md:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            {/* Pricing Box */}
+            <div className="rounded-3xl overflow-hidden shadow-2xl h-full max-h-[500px] flex flex-col">
+              <div
+                className="text-center py-2 font-bold tracking-wide"
+                style={{ background: COLORS.red, color: COLORS.white }}
+              >
+                Subscribe Now!
+              </div>
+              <div
+                className="p-6 md:p-8 flex-1 flex flex-col justify-end"
+                style={{ background: COLORS.white }}
+              >
+                <div className="text-center flex flex-col items-center">
+                  {/* Lottie Animation */}
+                  <Lottie
+                    animationData={priceTag}
+                    loop={true}
+                    style={{ width: 155, height: 155 }}
+                  />
+
+                  {/* Title & Price */}
+                  <div
+                    className="text-2xl md:text-3xl font-extrabold mt-2"
+                    style={{ color: COLORS.blue }}
+                  >
+                    Bastion CORE
+                  </div>
+                  <div
+                    className="mt-2 text-lg md:text-xl font-semibold"
+                    style={{ color: COLORS.blue }}
+                  >
+                    Rs. 18,750 / Annually
+                  </div>
+                  <div
+                    className="mt-2 text-xs opacity-70"
+                    style={{ color: COLORS.blue }}
+                  >
+                    * Above Price is Inclusive of GST
+                  </div>
+                  <button
+                    className="mt-5 w-full rounded-xl py-3 font-semibold hover:opacity-90"
+                    style={{ background: COLORS.red, color: COLORS.white }}
+                  >
+                    Start Taking Informed Decisions
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="p-6 md:p-8" style={{ background: COLORS.white }}>
-              <div className="text-center">
-                <div
-                  className="text-2xl md:text-3xl font-extrabold"
-                  style={{ color: COLORS.blue }}
-                >
-                  Bastion CORE
+
+            {/* Testimonial Box */}
+            <div
+              className="rounded-3xl  max-h-[500px] rounded-3xl overflow-hidden shadow-2xl"
+              style={{ background: COLORS.white }}
+            >
+              <div
+                className="text-center py-2 font-bold tracking-wide"
+                style={{ background: COLORS.red, color: COLORS.white }}
+              >
+                Add Your Testimonial
+              </div>
+              <div className="p-6 md:p-8 flex flex-col gap-4 h-full">
+                {/* First + Last Name */}
+                <div className="flex gap-4">
+                  <input
+                    placeholder="First Name *"
+                    required
+                    className="w-1/2 rounded-xl p-3 border focus:outline-none"
+                    style={{ borderColor: COLORS.gray }}
+                  />
+                  <input
+                    placeholder="Last Name *"
+                    required
+                    className="w-1/2 rounded-xl p-3 border focus:outline-none"
+                    style={{ borderColor: COLORS.gray }}
+                  />
                 </div>
-                <div
-                  className="mt-2 text-lg md:text-xl font-semibold"
-                  style={{ color: COLORS.blue }}
-                >
-                  Rs. 18,750 / Annually
-                </div>
+
+                {/* Email */}
+                <input
+                  type="email"
+                  placeholder="Email *"
+                  required
+                  className="w-full rounded-xl p-3 border focus:outline-none"
+                  style={{ borderColor: COLORS.gray }}
+                />
+
+                {/* Testimonial */}
+                <textarea
+                  placeholder="Write your testimonial... *"
+                  required
+                  className="w-full rounded-xl p-3 border h-28 resize-none focus:outline-none"
+                  style={{ borderColor: COLORS.gray }}
+                />
+
+                {/* Submit */}
                 <button
                   className="mt-5 w-full rounded-xl py-3 font-semibold hover:opacity-90"
                   style={{ background: COLORS.red, color: COLORS.white }}
                 >
-                  Start Taking Informed Decisions
+                  Submit
                 </button>
-                <div
-                  className="mt-2 text-xs opacity-70"
-                  style={{ color: COLORS.blue }}
-                >
-                  * Above Price is Inclusive of GST
-                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-4xl px-4 pb-4">
+        {/* Section 5: FAQs */}
+        <section className="mx-auto max-w-6xl px-4 pb-4">
           <h2 className="text-3xl font-bold text-left mb-4">FAQs</h2>
           <div className="space-y-4">
             {faqsNew.map((faq, index) => (

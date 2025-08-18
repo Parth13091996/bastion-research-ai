@@ -29,18 +29,18 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 z-[9999]  left-0 w-full bg-white py-6 transition-shadow duration-300 ${
+      className={`fixed top-0 z-[9999] left-0 w-full py-6 transition-shadow duration-300 ${
         scrolled ? "shadow-[0_2px_6px_rgba(0,0,0,0.08)]" : "shadow-none"
-      }`}
+      } bg-white/60 backdrop-blur-md border-b border-white/20`}
       itemType="https://schema.org/Organization"
       itemScope
     >
-        <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-8">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/">
               <img
-                src="https://bastionresearch.in/wp-content/uploads/2023/03/BASTION-RESEARCH-_-logo-min-e1680501100187-190x45.png"
+                src="src/files/header-logo.webp"
                 alt="Bastion Research"
                 className="h-8 md:h-10"
               />
@@ -86,7 +86,7 @@ const Header = () => {
                 <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
               </div>
               <div
-                className="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-[999] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+                className="absolute left-0 mt-2 w-56 bg-white border border-white/20 rounded-md shadow-lg py-1 z-[999] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
                 onMouseEnter={() => setOpenSubmenu("desktopKnowledgeCenter")}
                 onMouseLeave={() => setOpenSubmenu(null)}
               >
@@ -212,22 +212,22 @@ const Header = () => {
 
       {/* Mobile Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform ${
+        className={`fixed inset-y-0 right-0 h-full w-64 bg-white/70 backdrop-blur-md border-l border-white/20 shadow-lg transform ${
           isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-300 ease-in-out z-50 md:hidden`}
+        } transition-transform duration-300 ease-in-out z-[999999] md:hidden`}
       >
         <div className="px-6 py-4 h-full overflow-y-auto">
           <nav className="flex flex-col space-y-2 mt-4">
             <Link
               to="/"
-              className="text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50"
+              className="text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50/50"
               onClick={toggleDrawer}
             >
               Home
             </Link>
             <Link
               to="/bastion-core"
-              className="text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50"
+              className="text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50/50"
               onClick={toggleDrawer}
             >
               Bastion CORE
@@ -237,7 +237,7 @@ const Header = () => {
             <div className="flex flex-col">
               <button
                 onClick={() => toggleSubmenu("knowledgeCenter")}
-                className="flex items-center justify-between text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50 w-full text-left"
+                className="flex items-center justify-between text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50/50 w-full text-left"
                 aria-expanded={openSubmenu === "knowledgeCenter"}
               >
                 <span>Knowledge Center</span>
@@ -265,21 +265,21 @@ const Header = () => {
                 <div className="pl-4 flex flex-col space-y-1 my-1">
                   <Link
                     to="/newsletters-archive"
-                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50"
+                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50/50"
                     onClick={toggleDrawer}
                   >
                     Newsletter Archive
                   </Link>
                   <Link
                     to="/podcast"
-                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50"
+                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50/50"
                     onClick={toggleDrawer}
                   >
                     Podcast (MADE IN INDIA)
                   </Link>
                   <Link
                     to="/webinars"
-                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50"
+                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50/50"
                     onClick={toggleDrawer}
                   >
                     Webinars
