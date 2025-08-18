@@ -20,6 +20,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@supabase/supabase-js':
         specifier: ^2.43.4
         version: 2.55.0
@@ -183,6 +186,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.7
         version: 1.2.7(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@supabase/supabase-js':
         specifier: ^2.52.1
         version: 2.55.0
@@ -352,6 +358,8 @@ importers:
       typescript-eslint:
         specifier: ^8.37.0
         version: 8.39.1(eslint@9.33.0(jiti@1.21.7))(typescript@5.8.3)
+
+  packages/types: {}
 
   packages/typescript-config: {}
 

@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@/types';
+import { User } from '@repo/types';
 import axiosInstance from '@/api/axios';
 
 interface AuthContextType {
   user: User | null;
   login: (user: User) => void;
   logout: () => void;
+  refetchUser: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
@@ -17,19 +18,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const response = await axiosInstance.get('/api/auth/me');
-        setUser(response.data.user);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const refetchUser = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get('/api/auth/me');
+      setUser(response.data.user);
+    } catch (error) {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    checkUser();
+  useEffect(() => {
+    refetchUser();
   }, []);
 
   const login = (newUser: User) => {
@@ -50,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, isAdmin, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, refetchUser, isAuthenticated, isAdmin, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

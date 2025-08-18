@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@repo/types": "workspace:*",
     "@supabase/supabase-js": "^2.43.4",
     "@types/cookie-parser": "^1.4.9",
     "axios": "^1.7.4",
