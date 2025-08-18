@@ -10,10 +10,13 @@ import AuthCallback from './pages/AuthCallback';
 import RootLayout from './layouts/RootLayout';
 import AdminLayout from './layouts/AdminLayout';
 import AdminRoute from './components/AdminRoute';
-import AdminDashboard from './pages/admin/Dashboard';
-import JobOpenings from './pages/admin/JobOpenings';
-import Users from './pages/admin/Users';
-import Settings from './pages/admin/Settings';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminJobOpenings from './pages/AdminJobOpenings';
+import AdminUsers from './pages/AdminUsers';
+import AdminSettings from './pages/AdminSettings';
+import AdminComments from './pages/AdminComments';
+import AdminARMember from './pages/AdminARMember';
+import AdminSiteKit from './pages/AdminSiteKit';
 import PublicPage from './pages/PublicPage';
 
 const queryClient = new QueryClient();
@@ -34,12 +37,15 @@ function App() {
               </Route>
               <Route path="/:pageName" element={<PublicPage />} />
             </Route>
-            <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminLayout />}>
               <Route element={<AdminRoute />}>
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/job-openings" element={<JobOpenings />} />
-                <Route path="/admin/users" element={<Users />} />
-                <Route path="/admin/settings" element={<Settings />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="comments" element={<AdminComments />} />
+                <Route path="armember" element={<AdminARMember />} />
+                <Route path="job-openings" element={<AdminJobOpenings />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="site-kit" element={<AdminSiteKit />} />
               </Route>
             </Route>
           </Routes>
