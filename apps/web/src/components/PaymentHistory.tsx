@@ -1,6 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '@/api/axios';
-import { PaymentTransaction } from '@/types';
+import { useQuery } from "@tanstack/react-query";
+import axiosInstance from "@/api/axios";
 import {
   Table,
   TableBody,
@@ -8,16 +7,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 
 const PaymentHistory = () => {
-  const { data, isLoading, isError, error } = useQuery<
-    PaymentTransaction[],
-    Error
-  >({
-    queryKey: ['paymentHistory'],
+  const { data, isLoading, isError, error } = useQuery<any[], Error>({
+    queryKey: ["paymentHistory"],
     queryFn: () =>
-      axiosInstance.get('/api/cashfree/orders').then((res) => res.data),
+      axiosInstance.get("/api/cashfree/orders").then((res) => res.data),
   });
 
   if (isLoading) {

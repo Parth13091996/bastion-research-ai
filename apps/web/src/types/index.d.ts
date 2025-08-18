@@ -15,7 +15,7 @@ export interface User {
   gst_number?: string | null;
   company?: string | null;
   password?: string | null; // Null for OAuth users
-  role?: 'user' | 'admin'; // Assuming possible roles
+  role?: "user" | "admin"; // Assuming possible roles
   cameFromOAuth?: boolean;
   created_at?: string;
 }
