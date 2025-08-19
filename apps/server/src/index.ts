@@ -27,12 +27,22 @@ app.get("/healthcheck", (req: Request, res: Response) => {
   res.status(200).json({ status: "ok", message: "Server is healthy" });
 });
 
+import userRoutes from "./routes/user.routes";
+import jobRoutes from "./routes/job.routes";
+import membershipRoutes from "./routes/membership.routes";
+import couponRoutes from "./routes/coupon.routes";
+import applicationRoutes from "./routes/application.routes";
+
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/digio", digioRoutes);
 app.use("/api/cashfree", cashfreeRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api", userRoutes);
+app.use("/api", jobRoutes);
+app.use("/api", applicationRoutes);
+app.use("/api", membershipRoutes);
 
 // Root endpoint
 app.get("/", (req: Request, res: Response) => {

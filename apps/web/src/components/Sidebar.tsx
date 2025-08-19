@@ -3,29 +3,59 @@ import { NavLink } from 'react-router-dom';
 import {
   ChevronLeft,
   LayoutDashboard,
-  MessageSquare,
-  User,
   Users,
   Settings,
   Briefcase,
-  ExternalLink,
   Menu,
   X,
+  ChevronDown,
+  CreditCard,
+  UserPlus,
+  FileText,
+  Gift,
+  Contact,
+  Calendar,
+  ClipboardList,
 } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
-  { name: 'Comments', icon: MessageSquare, path: '/admin/comments' },
-  { name: 'ARMember', icon: User, path: '/admin/armember' },
-  { name: 'Job Openings', icon: Briefcase, path: '/admin/job-openings' },
-  { name: 'Users', icon: Users, path: '/admin/users' },
+  {
+    name: 'AR Members',
+    icon: Users,
+    subItems: [
+      { name: 'Manage Members', icon: Contact, path: '/admin/ar/members' },
+      { name: 'Manage Plans', icon: FileText, path: '/admin/ar/plans' },
+      { name: 'Manage Subscriptions', icon: Calendar, path: '/admin/ar/subscriptions' },
+      { name: 'Payment History', icon: CreditCard, path: '/admin/ar/payments' },
+      { name: 'Coupon Management', icon: Gift, path: '/admin/ar/coupons' },
+    ],
+  },
+  {
+    name: 'Job Openings',
+    icon: Briefcase,
+    subItems: [
+      { name: 'Job Openings', icon: ClipboardList, path: '/admin/jobs/openings' },
+      { name: 'Add new Job', icon: UserPlus, path: '/admin/jobs/add' },
+      { name: 'Applications', icon: FileText, path: '/admin/jobs/applications' },
+    ],
+  },
+  {
+    name: 'Users',
+    icon: Users,
+    subItems: [
+      { name: 'All Users', icon: Users, path: '/admin/users/all' },
+      { name: 'Add User', icon: UserPlus, path: '/admin/users/add' },
+      { name: 'Profile', icon: Contact, path: '/admin/users/profile' },
+    ],
+  },
   { name: 'Settings', icon: Settings, path: '/admin/settings' },
-  { name: 'Site Kit', icon: ExternalLink, path: '/admin/site-kit' },
 ];
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -33,6 +63,10 @@ const Sidebar = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileOpen(!isMobileOpen);
+  };
+
+  const toggleSection = (name: string) => {
+    setOpenSections((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
   const sidebarContent = (
@@ -48,19 +82,59 @@ const Sidebar = () => {
       </div>
       <nav className="flex-1 mt-8 space-y-2 px-2">
         {navItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center p-2 rounded-lg transition-colors
-              ${isCollapsed ? 'justify-center' : ''}
-              ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}`
-            }
-            title={isCollapsed ? item.name : ''}
-          >
-            <item.icon className="h-6 w-6" />
-            {!isCollapsed && <span className="ml-4">{item.name}</span>}
-          </NavLink>
+          <div key={item.name}>
+            {item.subItems ? (
+              <>
+                <button
+                  onClick={() => toggleSection(item.name)}
+                  className={`flex items-center justify-between w-full p-2 rounded-lg transition-colors hover:bg-gray-700`}
+                >
+                  <div className="flex items-center">
+                    <item.icon className="h-6 w-6" />
+                    {!isCollapsed && <span className="ml-4">{item.name}</span>}
+                  </div>
+                  {!isCollapsed && (
+                    <ChevronDown
+                      className={`h-5 w-5 transition-transform ${
+                        openSections[item.name] ? 'rotate-180' : ''
+                      }`}
+                    />
+                  )}
+                </button>
+                {openSections[item.name] && !isCollapsed && (
+                  <div className="pl-8 mt-2 space-y-2">
+                    {item.subItems.map((subItem) => (
+                      <NavLink
+                        key={subItem.name}
+                        to={subItem.path}
+                        className={({ isActive }) =>
+                          `flex items-center p-2 rounded-lg transition-colors ${
+                            isActive ? 'bg-gray-700' : 'hover:bg-gray-700'
+                          }`
+                        }
+                      >
+                        <subItem.icon className="h-5 w-5" />
+                        <span className="ml-4">{subItem.name}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <NavLink
+                to={item.path!}
+                className={({ isActive }) =>
+                  `flex items-center p-2 rounded-lg transition-colors
+                  ${isCollapsed ? 'justify-center' : ''}
+                  ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}`
+                }
+                title={isCollapsed ? item.name : ''}
+              >
+                <item.icon className="h-6 w-6" />
+                {!isCollapsed && <span className="ml-4">{item.name}</span>}
+              </NavLink>
+            )}
+          </div>
         ))}
       </nav>
     </div>
