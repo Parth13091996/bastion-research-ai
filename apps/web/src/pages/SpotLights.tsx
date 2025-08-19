@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const SpotLights = () => {
   const [activeTab, setActiveTab] = useState('inactive');
@@ -309,7 +309,7 @@ const SpotLights = () => {
       {activeTab === 'active' && (
         <>
           <tr className="bg-gray-100">
-            <td colSpan="9" className="px-6 py-4 text-center font-medium text-gray-700">
+            <td colSpan={9} className="px-6 py-4 text-center font-medium text-gray-700">
               Active Investments
             </td>
           </tr>
@@ -337,7 +337,7 @@ const SpotLights = () => {
 
           {/* Closed Investments Header */}
           <tr className="bg-gray-100 border-2 border-gray-200">
-            <td colSpan="9" className="px-6 py-4 text-center font-medium text-gray-700">
+            <td colSpan={9} className="px-6 py-4 text-center font-medium text-gray-700">
               Closed Investments
             </td>
           </tr>
