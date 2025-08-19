@@ -1,11 +1,11 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import Lottie from "lottie-react";
-import { ChevronDown } from "lucide-react";
-import React, { useState } from "react";
-import BackgroundShapes from "../components/generic/framer-motion.tsx";
+import { Star, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
 import Review from "../components/generic/Review.tsx";
 import Testimonial from "../components/generic/Testimonial.tsx";
+import Lottie from "lottie-react";
 import priceTag from "../files/price-core.json";
+import BackgroundShapes from "../components/generic/framer-motion.tsx";
 
 // Brand Colors
 const COLORS = {
@@ -175,7 +175,7 @@ export default function BastionCoreProductPage() {
   };
 
   return (
-    <div className="main pt-[80px] md:pt-[88px]">
+    <div>
       <BackgroundShapes />
 
       <div className="min-h-screen w-full" style={{ background: COLORS.gray }}>
