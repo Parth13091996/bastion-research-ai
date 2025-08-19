@@ -6,7 +6,7 @@ const RootLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow">
+      <main className="flex-grow main pt-[80px] md:pt-[88px]">
         <Outlet />
       </main>
       <Footer />

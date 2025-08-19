@@ -17,7 +17,8 @@ const CompleteProfile = lazy(() => import("../pages/CompleteProfile"));
 const AuthCallback = lazy(() => import("../pages/AuthCallback"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const Contact = lazy(() => import("../pages/Contact"));
-const CareerPage = lazy(() => import("../pages/CareerPage"));
+const CareerPage = lazy(() => import("../pages/Careers"));
+const SingleCareerPage = lazy(() => import("../pages/Careers/SingleCareer"));
 const RefundPolicy = lazy(() => import("../pages/RefundPolicy"));
 const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
@@ -57,7 +58,8 @@ export const AppRoutes = {
     authCallback: () => "/auth/callback",
     dashboard: () => "/dashboard",
     contact: () => "/contact",
-    careerPage: () => "/career-page",
+    careerPage: () => "/careers",
+    singleCareerPage: () => "/careers/:slug",
     refundPolicy: () => "/refund-policy",
     privacyPolicy: () => "/privacy-policy",
     termAndCondition: () => "/terms-and-conditions",
@@ -95,6 +97,7 @@ export const routes: RouteObject[] = [
             { path: AppRoutes.authCallback(), element: <AuthCallback /> },
             { path: AppRoutes.contact(), element: <Contact /> },
             { path: AppRoutes.careerPage(), element: <CareerPage /> },
+            { path: AppRoutes.singleCareerPage(), element: <SingleCareerPage /> },
             { path: AppRoutes.refundPolicy(), element: <RefundPolicy /> },
             { path: AppRoutes.privacyPolicy(), element: <PrivacyPolicy /> },
             { path: AppRoutes.termAndCondition(), element: <TermAndCondition /> },
