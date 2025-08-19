@@ -85,7 +85,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    to="/quant"
+                    to="/spotlights"
                     className="relative group hover:text-red-200 transition-colors inline-block"
                   >
                     QUANT

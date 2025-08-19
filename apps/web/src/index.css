@@ -60,3 +60,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+::selection {
+  background-color: #C00000;
+  color: #fff;
+}

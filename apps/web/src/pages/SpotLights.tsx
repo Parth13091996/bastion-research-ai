@@ -146,7 +146,7 @@ const SpotLights = () => {
             <div className="max-w-2xl">
               <h1 className="text-7xl font-bold mb-20">Our Research</h1>
             </div>
-            
+
             {/* Illustration */}
             <div className="hidden lg:block relative">
               <div className="flex space-x-8">
@@ -161,7 +161,7 @@ const SpotLights = () => {
                     <div className="w-2 h-2 bg-red-400 rounded-full mt-1 ml-1"></div>
                   </div>
                 </div>
-                
+
                 {/* Person 2 */}
                 <div className="relative mt-8">
                   <div className="w-20 h-12 bg-gray-400 rounded-t-lg mb-2"></div>
@@ -194,17 +194,15 @@ const SpotLights = () => {
         <div className="flex mb-8">
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-8 py-3 font-medium text-white rounded-t-lg ${
-              activeTab === 'active' ? 'bg-red-500' : 'bg-gray-400'
-            }`}
+            className={`px-8 py-3 font-medium text-white rounded-t-lg ${activeTab === 'active' ? 'bg-red-500' : 'bg-gray-400'
+              }`}
           >
             Active Universe
           </button>
           <button
             onClick={() => setActiveTab('inactive')}
-            className={`px-8 py-3 font-medium text-gray-700 rounded-t-lg ${
-              activeTab === 'inactive' ? 'bg-red-500 text-white' : 'bg-gray-200'
-            }`}
+            className={`px-8 py-3 font-medium text-gray-700 rounded-t-lg ${activeTab === 'inactive' ? 'bg-red-500 text-white' : 'bg-gray-200'
+              }`}
           >
             Inactive Universe
           </button>
@@ -213,121 +211,161 @@ const SpotLights = () => {
         {/* Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lock / Unlock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                   Company
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                   Coverage Initiation Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sector
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Comments
-                  </th>
-                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                   % Return since Recommendation
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                   % IRR Potential from CMP
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                   Research Material
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {/* Inactive Universe Tab */}
-                {activeTab === 'inactive' && (
-                  <>
-                    {inactiveInvestments.map((investment, index) => (
-                      <tr key={index} className="bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-medium">
-                          {investment.coverageStatus}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="w-5 h-5 text-orange-500">🔒</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.company}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.sector}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
-                            View Research
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </>
-                )}
+  <table className="min-w-full divide-y divide-gray-200 border-2 border-gray-200">
+    
+    {/* Table Header */}
+    {activeTab === 'active' && (
+      <thead className="bg-gray-50 active-universe">
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Lock / Unlock
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Company
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Coverage Initiation Date
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Sector
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Action
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Comments
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            % Return since Recommendation
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            % IRR Potential from CMP
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Research Material
+          </th>
+        </tr>
+      </thead>
+    )}
 
-                {/* Active Universe Tab */}
-                {activeTab === 'active' && (
-                  <>
-                    <tr className="bg-gray-100">
-                      <td colSpan="9" className="px-6 py-4 text-center font-medium text-gray-700">
-                        Active Investments
-                      </td>
-                    </tr>
-                    {activeInvestments.map((investment, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="w-5 h-5 text-orange-500">🔒</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">*****</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.sector}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">*****</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.comments || '*****'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.returnSinceRec}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.irrPotential}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
-                            View Research
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    
-                    {/* Closed Investments Header */}
-                    <tr className="bg-gray-100">
-                      <td colSpan="9" className="px-6 py-4 text-center font-medium text-gray-700">
-                        Closed Investments
-                      </td>
-                    </tr>
-                    {closedInvestments.map((investment, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="w-5 h-5 text-orange-500">🔒</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.company}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.sector}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.action}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.comments}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.returnSinceRec}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{investment.irrPotential}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
-                            View Research
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </>
-                )}
-              </tbody>
-            </table>
-          </div>
+    {activeTab === 'inactive' && (
+      <thead className="bg-gray-60 inactive-universe">
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Coverage Status
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Lock / Unlock
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Company
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Coverage Initiation Date
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Sector
+          </th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-2 border-gray-200">
+            Research Material
+          </th>
+        </tr>
+      </thead>
+    )}
+
+    {/* Table Body */}
+    <tbody className="bg-white divide-y divide-gray-200">
+      {/* Inactive Universe Tab */}
+      {activeTab === 'inactive' && (
+        <>
+          {inactiveInvestments.map((investment, index) => (
+            <tr key={index} className="bg-gray-50">
+              <td className="px-6 py-4 text-sm text-red-500 font-medium border-2 border-gray-200">
+                {investment.coverageStatus}
+              </td>
+              <td className="px-6 py-4">
+                <div className="w-5 h-5 text-orange-500">🔒</div>
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">
+                {investment.company}
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">
+                {investment.date}
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">
+                {investment.sector}
+              </td>
+              <td className="px-6 py-4 border-2 border-gray-200">
+                <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
+                  View Research
+                </button>
+              </td>
+            </tr>
+          ))}
+        </>
+      )}
+
+      {/* Active Universe Tab */}
+      {activeTab === 'active' && (
+        <>
+          <tr className="bg-gray-100">
+            <td colSpan="9" className="px-6 py-4 text-center font-medium text-gray-700">
+              Active Investments
+            </td>
+          </tr>
+          {activeInvestments.map((investment, index) => (
+            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <td className="px-6 py-4 border-2 border-gray-200">
+                <div className="w-5 h-5 text-orange-500">🔒</div>
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">*****</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.date}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.sector}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">*****</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">
+                {investment.comments || '*****'}
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.returnSinceRec}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.irrPotential}</td>
+              <td className="px-6 py-4 border-2 border-gray-200">
+                <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
+                  View Research
+                </button>
+              </td>
+            </tr>
+          ))}
+
+          {/* Closed Investments Header */}
+          <tr className="bg-gray-100 border-2 border-gray-200">
+            <td colSpan="9" className="px-6 py-4 text-center font-medium text-gray-700">
+              Closed Investments
+            </td>
+          </tr>
+          {closedInvestments.map((investment, index) => (
+            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <td className="px-6 py-4 border-2 border-gray-200">
+                <div className="w-5 h-5 text-orange-500">🔒</div>
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.company}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.date}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.sector}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.action}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.comments}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.returnSinceRec}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 border-2 border-gray-200">{investment.irrPotential}</td>
+              <td className="px-6 py-4 border-2 border-gray-200">
+                <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
+                  View Research
+                </button>
+              </td>
+            </tr>
+          ))}
+        </>
+      )}
+    </tbody>
+  </table>
+</div>
+
         </div>
       </section>
     </div>

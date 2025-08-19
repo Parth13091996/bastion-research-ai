@@ -1,65 +1,147 @@
 // components/Header/MobileNavIcons.jsx
 import { Link } from "react-router-dom";
 
-const MobileNavIcons = ({ toggleDrawer }) => {
+const MobileNavIcons = ({ toggleDrawer, toggleSubmenu , openSubmenu, isDrawerOpen}) => {
   return (
-    <div className="flex items-center space-x-6 md:hidden">
-      <Link to="/login" className="text-gray-700 hover:text-red-600">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-      </Link>
-
-      <Link to="/contact" className="text-gray-700 hover:text-red-600">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-          />
-        </svg>
-      </Link>
-
-      <button
-        onClick={toggleDrawer}
-        className="text-gray-700 hover:text-red-600 focus:outline-none"
-        aria-label="Toggle menu"
+    
+    <div
+        className={`fixed inset-y-0 right-0 h-full w-64 bg-white/70 backdrop-blur-md border-l border-white/20 shadow-lg transform ${
+          isDrawerOpen ? "translate-x-0" : "translate-x-full"
+        } transition-transform duration-300 ease-in-out z-[999999] md:hidden`}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d={toggleDrawer ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
-          />
-        </svg>
-      </button>
-    </div>
+        <div className="px-6 py-4 h-full overflow-y-auto">
+          <nav className="flex flex-col space-y-2 mt-4">
+            <Link
+              to="/"
+              className="text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50/50"
+              onClick={toggleDrawer}
+            >
+              Home
+            </Link>
+            <Link
+              to="/bastion-core"
+              className="text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50/50"
+              onClick={toggleDrawer}
+            >
+              Bastion CORE
+            </Link>
+
+            {/* Collapsible Knowledge Center Menu */}
+            <div className="flex flex-col">
+              <button
+                onClick={() => toggleSubmenu("knowledgeCenter")}
+                className="flex items-center justify-between text-gray-700 hover:text-red-600 transition-colors py-3 px-2 rounded hover:bg-gray-50/50 w-full text-left"
+                aria-expanded={openSubmenu === "knowledgeCenter"}
+              >
+                <span>Knowledge Center</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-5 w-5 transform transition-transform ${
+                    openSubmenu === "knowledgeCenter" ? "rotate-180" : ""
+                  }`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              <div
+                className={`overflow-hidden transition-all duration-200 ${
+                  openSubmenu === "knowledgeCenter" ? "max-h-40" : "max-h-0"
+                }`}
+              >
+                <div className="pl-4 flex flex-col space-y-1 my-1">
+                  <Link
+                    to="/newsletters-archive"
+                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50/50"
+                    onClick={toggleDrawer}
+                  >
+                    Newsletter Archive
+                  </Link>
+                  <Link
+                    to="/podcast"
+                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50/50"
+                    onClick={toggleDrawer}
+                  >
+                    Podcast (MADE IN INDIA)
+                  </Link>
+                  <Link
+                    to="/webinars"
+                    className="text-gray-600 hover:text-red-600 transition-colors py-2 px-2 rounded hover:bg-gray-50/50"
+                    onClick={toggleDrawer}
+                  >
+                    Webinars
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
   );
 };
 
 export default MobileNavIcons;
+
+
+// <div className="flex items-center space-x-6 md:hidden">
+    //   <Link to="/login" className="text-gray-700 hover:text-red-600">
+    //     <svg
+    //       xmlns="http://www.w3.org/2000/svg"
+    //       className="h-6 w-6"
+    //       fill="none"
+    //       viewBox="0 0 24 24"
+    //       stroke="currentColor"
+    //     >
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+    //       />
+    //     </svg>
+    //   </Link>
+
+    //   <Link to="/contact" className="text-gray-700 hover:text-red-600">
+    //     <svg
+    //       xmlns="http://www.w3.org/2000/svg"
+    //       className="h-6 w-6"
+    //       fill="none"
+    //       viewBox="0 0 24 24"
+    //       stroke="currentColor"
+    //     >
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+    //       />
+    //     </svg>
+    //   </Link>
+
+    //   <button
+    //     onClick={toggleDrawer}
+    //     className="text-gray-700 hover:text-red-600 focus:outline-none"
+    //     aria-label="Toggle menu"
+    //   >
+    //     <svg
+    //       xmlns="http://www.w3.org/2000/svg"
+    //       className="h-6 w-6"
+    //       fill="none"
+    //       viewBox="0 0 24 24"
+    //       stroke="currentColor"
+    //     >
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d={toggleDrawer ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+    //       />
+    //     </svg>
+    //   </button>
+    // </div>
