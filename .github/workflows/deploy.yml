@@ -11,25 +11,25 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # Update to latest version for better compatibility
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4 # Update to latest version
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm" # Cache npm dependencies for faster builds
+          cache: "pnpm"
 
       - name: Install pnpm
-        run: npm install -g pnpm # Use pnpm for Turborepo (recommended)
+        run: npm install -g pnpm@latest
 
       - name: Install dependencies
-        run: pnpm install # Use pnpm to handle workspace dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build project
-        run: pnpm run build # Build both web and server apps (assuming Turborepo config)
+        run: pnpm run build
 
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25 # Update to latest version
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
