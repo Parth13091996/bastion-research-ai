@@ -13,19 +13,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3 # Pin a specific version for stability
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "pnpm" # Cache pnpm dependencies for faster builds
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: "9" # Specify a stable pnpm version (e.g., 9.x)
-
       - name: Verify pnpm installation
-        run: pnpm --version # Debugging step to confirm pnpm is installed
+        run: |
+          echo "Checking pnpm installation..."
+          pnpm --version || { echo "pnpm not found"; exit 1; } # Fail explicitly if pnpm is not found
+          echo "pnpm installed successfully"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile # Respect pnpm-lock.yaml
