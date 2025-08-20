@@ -16,7 +16,7 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.12.3 # Pin a specific version for stability
+          version: 10.4.1 # Pin a specific version for stability
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
