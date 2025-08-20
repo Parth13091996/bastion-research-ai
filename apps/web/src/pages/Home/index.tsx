@@ -100,6 +100,10 @@ export default function LandingPage() {
                   >
                     What type of Investor are you?
                   </div>
+                  <p className="mb-4 text-base md:text-lg opacity-80 max-w-3xl mx-auto">
+                    Pick the option that fits you best and we will show you the
+                    right Bastion product.
+                  </p>
 
                   {/* Enhanced tab bar */}
                   <div className="relative">
@@ -285,13 +289,15 @@ export default function LandingPage() {
                       transition={{ delay: 0.3 }}
                     >
                       {[
-                        "Request a Call",
-                        "Access Research",
-                        "Subscribe Now",
-                      ].map((text, i) => (
-                        <motion.button
-                          key={text}
+                        { label: "Bastion CORE", href: "/bastion-core" },
+                        { label: "Access Research", href: "/spotlights" },
+                        { label: "Subscribe Now", href: "/subscribe" },
+                      ].map((item, i) => (
+                        <motion.a
+                          key={item.label}
+                          aria-label={item.label}
                           className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                          href={item.href}
                           style={{
                             background: `linear-gradient(135deg, ${MAROON}, ${MAROON}dd)`,
                             color: "white",
@@ -306,8 +312,8 @@ export default function LandingPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.4 + i * 0.1 }}
                         >
-                          {text}
-                        </motion.button>
+                          {item.label}
+                        </motion.a>
                       ))}
                     </motion.div>
                   )}
@@ -355,9 +361,12 @@ export default function LandingPage() {
                 </div>
               </motion.section>
 
-              <footer className="pt-4 text-xs opacity-60 text-center relative">
-                © {new Date().getFullYear()} Bastion Research. All rights
-                reserved.
+              <footer className="pt-4 text-lg opacity-60 text-center relative">
+                Not sure where you fit?{" "}
+                <a href="/contact" className="underline">
+                  Contact us
+                </a>{" "}
+                and we will guide you.
               </footer>
             </div>
           </div>

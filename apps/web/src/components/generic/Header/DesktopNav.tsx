@@ -13,14 +13,6 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
         <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
       </Link>
 
-      <Link
-        to="/bastion-core"
-        className="relative text-gray-700 hover:text-red-600 transition-colors group"
-      >
-        Bastion CORE
-        <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-      </Link>
-
       {/* Knowledge Center Dropdown (Hover) */}
       <div className="relative group">
         <div
@@ -29,7 +21,12 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
           onMouseLeave={() => setOpenSubmenu(null)}
         >
           Knowledge Center
-          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="ml-1 w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -45,13 +42,22 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
           onMouseEnter={() => setOpenSubmenu("desktopKnowledgeCenter")}
           onMouseLeave={() => setOpenSubmenu(null)}
         >
-          <Link to="/newsletters-archive" className="block px-4 py-2 text-gray-700 hover:text-red-600">
+          <Link
+            to="/newsletters-archive"
+            className="block px-4 py-2 text-gray-700 hover:text-red-600"
+          >
             Newsletter Archive
           </Link>
-          <Link to="/podcasts" className="block px-4 py-2 text-gray-700 hover:text-red-600">
+          <Link
+            to="/podcasts"
+            className="block px-4 py-2 text-gray-700 hover:text-red-600"
+          >
             Podcast (MADE IN INDIA)
           </Link>
-          <Link to="/webinars" className="block px-4 py-2 text-gray-700 hover:text-red-600">
+          <Link
+            to="/webinars"
+            className="block px-4 py-2 text-gray-700 hover:text-red-600"
+          >
             Webinars
           </Link>
         </div>
