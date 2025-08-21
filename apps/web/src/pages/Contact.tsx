@@ -52,7 +52,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="main pt-[80px] md:pt-[88px]">
+    <div>
       <BackgroundShapes />
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2">
@@ -84,7 +84,7 @@ export default function ContactPage() {
           <InfoCard
             icon={<Phone className="w-6 h-6" />}
             title="Phone number"
-            lines={[""]}
+            lines={["+91 98765 43210"]}
           />
         </div>
       </section>
@@ -232,12 +232,12 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="rounded-2xl overflow-hidden border shadow-lg min-h-[420px]"
+            className="rounded-2xl overflow-hidden border shadow-lg h-full"
             style={{ borderColor: colors.light }}
           >
             <iframe
               title="Bastion Research Location Map"
-              src="https://www.google.com/maps/dir//Megh+Serman+Apartment,+Panaas,+Athwa,+Surat,+Gujarat+395007/@21.1642067,72.7154062,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x3be053087a8dc30b:0x759eceffd1da1ff!2m2!1d72.7978079!2d21.1642267?entry=ttu"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3720.70269747765!2d72.79522761070062!3d21.16422668043798!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be053087a8dc30b%3A0x759eceffd1da1ff!2sBastion%20Research!5e0!3m2!1sen!2sus!4v1755634209831!5m2!1sen!2sus"
               width="100%"
               height="100%"
               style={{ border: 0, minHeight: 420 }}
@@ -302,7 +302,7 @@ function InfoCard({ icon, title, lines }) {
           className="flex h-10 w-10 items-center justify-center rounded-xl"
           style={{ background: colors.light }}
         >
-          <span className="text-gray-800">{icon}</span>
+          <span style={{ color: colors.red }}>{icon}</span>
         </div>
         <div>
           <h4 className="font-semibold" style={{ color: colors.blue }}>

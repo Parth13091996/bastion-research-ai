@@ -1,11 +1,10 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import Lottie from "lottie-react";
-import { ChevronDown } from "lucide-react";
-import React, { useState } from "react";
-import BackgroundShapes from "../components/generic/framer-motion.tsx";
-import Review from "../components/generic/Review.tsx";
+import { Star, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
 import Testimonial from "../components/generic/Testimonial.tsx";
+import Lottie from "lottie-react";
 import priceTag from "../files/price-core.json";
+import BackgroundShapes from "../components/generic/framer-motion.tsx";
 
 // Brand Colors
 const COLORS = {
@@ -50,14 +49,27 @@ function TypingLoop({ phrases, typingSpeed = 30, pauseTime = 2000 }) {
     return () => clearTimeout(timer);
   }, [charIndex, deleting, phrases, index, typingSpeed, pauseTime]);
 
+  // Function to highlight first letter of each word
+  const renderHighlightedText = (txt) => {
+    return txt.split(/(\s+)/).map((part, i) => {
+      if (part.trim().length === 0) {
+        // It's just whitespace, render as-is
+        return <span key={i}>{part}</span>;
+      }
+
+      // Word case → first letter red
+      return (
+        <span key={i}>
+          <span className="text-red-600">{part[0]}</span>
+          {part.slice(1)}
+        </span>
+      );
+    });
+  };
+
   return (
     <div className="font-semibold text-2xl md:text-3xl lg:text-4xl tracking-tight text-center">
-      {text.length > 0 && (
-        <>
-          <span className="text-red-600">{text[0]}</span>
-          <span>{text.slice(1)}</span>
-        </>
-      )}
+      {text.length > 0 && renderHighlightedText(text)}
       <span
         className="inline-block w-[2px] h-[1.2em] align-[-0.15em] ml-1 animate-pulse"
         style={{ background: "red" }}
@@ -70,10 +82,7 @@ function TypingLoop({ phrases, typingSpeed = 30, pauseTime = 2000 }) {
 function FlipCard({ front, back, color = COLORS.blue }) {
   return (
     <div className="group [perspective:1000px]">
-      <div
-        className="relative w-full h-40 md:h-48 [transform-style:preserve-3d] transition-transform duration-500 group-hover:[transform:rotateY(180deg)]"
-        style={{}}
-      >
+      <div className="relative w-full h-40 md:h-48 [transform-style:preserve-3d] transition-transform duration-500 group-hover:[transform:rotateY(180deg)]">
         {/* Front */}
         <div
           className="absolute inset-0 flex items-center justify-center rounded-2xl shadow-lg p-6 [backface-visibility:hidden]"
@@ -90,13 +99,16 @@ function FlipCard({ front, back, color = COLORS.blue }) {
         </div>
         {/* Back */}
         <div
-          className="absolute inset-0 rounded-2xl shadow-lg p-6 [transform:rotateY(180deg)] [backface-visibility:hidden] flex items-center justify-center text-center"
+          className="absolute inset-0 rounded-2xl shadow-lg py-6 px-2 [transform:rotateY(180deg)] [backface-visibility:hidden] flex flex-col gap-2 items-center justify-center text-center"
           style={{
             background: COLORS.white,
             color: COLORS.blue,
             border: `2px solid ${color}`,
           }}
         >
+          <div className="text-m md:text-m font-bold leading-snug">
+            {back.title}
+          </div>
           <div className="text-sm md:text-base font-medium leading-snug">
             {back.text}
           </div>
@@ -175,9 +187,8 @@ export default function BastionCoreProductPage() {
   };
 
   return (
-    <div className="main pt-[80px] md:pt-[88px]">
+    <div>
       <BackgroundShapes />
-
       <div className="min-h-screen w-full" style={{ background: COLORS.gray }}>
         {/* Sub-header typing banner */}
         <section className="mx-auto max-w-6xl px-4 pt-10 md:pt-14">
@@ -194,162 +205,6 @@ export default function BastionCoreProductPage() {
               research.
             </div>
           </div>
-        </section>
-
-        {/* Section 1: Importance of Research */}
-        <section
-          id="research"
-          className="mx-auto max-w-6xl px-4 py-12 md:py-16"
-        >
-          <div className="grid md:grid-cols-2 gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="rounded-3xl p-6 md:p-8 shadow-lg flex flex-col justify-center text-left"
-              style={{ background: COLORS.white }}
-            >
-              <h2
-                className="text-2xl md:text-3xl font-bold w-max mb-4 relative"
-                style={{ color: COLORS.blue }}
-              >
-                Why Research Matters
-                <div
-                  className="absolute bottom-[-28%] left-0 w-full h-1"
-                  style={{ background: COLORS.red }}
-                ></div>
-              </h2>
-              <p
-                className="mt-4 leading-relaxed"
-                style={{ color: COLORS.blue }}
-              >
-                Research constitutes the <strong>FUNDAMENTAL</strong> component
-                of an investor's investing endeavours. Our unwavering commitment
-                with Bastion CORE lies in providing best research while ensuring
-                its accessibility to investors, irrespective of the size of
-                their capital.
-              </p>
-              <p
-                className="mt-3 leading-relaxed"
-                style={{ color: COLORS.blue }}
-              >
-                With thorough business comprehension and insights aiding your
-                investment decisions, we guide you through your investment
-                journey with detailed research reports and timely updates
-                through our proprietary <strong>SMART Framework</strong>.
-              </p>
-              <div
-                className="mt-6 border-l-4 pl-4 italic text-sm md:text-base"
-                style={{ borderColor: COLORS.red, color: COLORS.blue }}
-              >
-                “Know What you Own and know why you own it” –{" "}
-                <span className="font-semibold">Peter Lynch</span>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="rounded-3xl p-6 md:p-8 shadow-lg flex flex-col items-center justify-center"
-              style={{ background: COLORS.blue }}
-            >
-              {/* Image with modern 3D hover effect */}
-              <div className="relative mb-4">
-                <div className="overflow-visible rounded-3xl shadow-2xl transition-transform duration-500 transform">
-                  <img
-                    src="src/files/peter-lynch-portrait.webp"
-                    alt="Peter Lynch"
-                    className="w-64 md:w-80 h-auto rounded-3xl object-contain"
-                  />
-                </div>
-                <div className="mt-3 text-center text-white text-lg md:text-xl font-semibold">
-                  Peter Lynch
-                </div>
-              </div>
-
-              {/* Text content */}
-              <div className="text-center text-white">
-                <div className="text-2xl md:text-3xl font-semibold">
-                  Clean. Objective. Actionable.
-                </div>
-                <div className="opacity-80 mt-2 text-lg md:text-base">
-                  No fluff. Just high-quality research you can actually use.
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Section 2: SMART Framework */}
-        <section id="smart" className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-          <div className="flex items-end justify-between mb-8">
-            <h2
-              className="text-2xl md:text-3xl font-bold"
-              style={{ color: COLORS.blue }}
-            >
-              SMART Framework
-            </h2>
-            <div
-              className="text-sm md:text-base font-medium"
-              style={{ color: COLORS.blue }}
-            >
-              Five simple filters. Serious edge.
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-            <FlipCard
-              front={{ letter: "S", caption: "Strong Business" }}
-              back={{
-                text: "Strong Business – Avoid Businesses Exhibiting Signs of Weakness",
-              }}
-              color={COLORS.blue}
-            />
-            <FlipCard
-              front={{ letter: "M", caption: "Strong Management" }}
-              back={{
-                text: "Strong Management – Not Partnering with Managements Unwilling to Share Upside",
-              }}
-              color={COLORS.red}
-            />
-            <FlipCard
-              front={{ letter: "A", caption: "Clean Accounts" }}
-              back={{
-                text: "Clean Accounts – Making Sure the Numbers Are Reliable to Form Decisions",
-              }}
-              color={COLORS.beige}
-            />
-            <FlipCard
-              front={{ letter: "R", caption: "Reasonable Valuations" }}
-              back={{
-                text: "Reasonable Valuations – Not Buying Anything at Any Price",
-              }}
-              color={COLORS.blue}
-            />
-            <FlipCard
-              front={{ letter: "T", caption: "Business Tailwinds" }}
-              back={{
-                text: "Business Tailwinds – Steer Clear of Businesses Belonging to a Dying or Stagnant Industry",
-              }}
-              color={COLORS.red}
-            />
-          </div>
-        </section>
-
-        {/* Section 3: Testimonials */}
-        <section
-          id="testimonials"
-          className="mx-auto max-w-6xl px-4 py-12 md:py-16"
-        >
-          <h2
-            className="text-2xl md:text-3xl font-bold text-left"
-            style={{ color: COLORS.blue }}
-          >
-            Look What Our Subscribers Are Saying About Us
-          </h2>
-          <Review />
-          <Testimonial />
         </section>
 
         {/* Section 4: Pricing */}
@@ -459,6 +314,157 @@ export default function BastionCoreProductPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Section 1: Importance of Research */}
+        <section
+          id="research"
+          className="mx-auto max-w-6xl px-4 py-12 md:py-16"
+        >
+          <div className="grid md:grid-cols-1 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="rounded-3xl p-6 md:p-8 shadow-lg flex flex-col justify-center text-left"
+              style={{ background: COLORS.white }}
+            >
+              <h2
+                className="text-2xl md:text-3xl font-bold w-max mb-4 relative"
+                style={{ color: COLORS.blue }}
+              >
+                Why Research Matters
+                <div
+                  className="absolute bottom-[-28%] left-0 w-full h-1"
+                  style={{ background: COLORS.red }}
+                ></div>
+              </h2>
+              <p
+                className="mt-4 leading-relaxed"
+                style={{ color: COLORS.blue }}
+              >
+                Research constitutes the <strong>FUNDAMENTAL</strong> component
+                of an investor's investing endeavours. Our unwavering commitment
+                with Bastion CORE lies in providing best research while ensuring
+                its accessibility to investors, irrespective of the size of
+                their capital.
+              </p>
+              <p
+                className="mt-3 leading-relaxed"
+                style={{ color: COLORS.blue }}
+              >
+                With thorough business comprehension and insights aiding your
+                investment decisions, we guide you through your investment
+                journey with detailed research reports and timely updates
+                through our proprietary <strong>SMART Framework</strong>.
+              </p>
+              <div
+                className="mt-6 border-l-4 pl-4 italic text-sm md:text-base"
+                style={{ borderColor: COLORS.red, color: COLORS.blue }}
+              >
+                “Know What you Own and know why you own it” –{" "}
+                <span className="font-semibold">Peter Lynch</span>
+              </div>
+            </motion.div>
+
+            {/* <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="rounded-3xl p-6 md:p-8 shadow-lg flex flex-col items-center justify-center"
+              style={{ background: COLORS.blue }}
+            >
+              <div className="relative mb-4">
+                <div className="overflow-visible rounded-3xl shadow-2xl transition-transform duration-500 transform">
+                  <img
+                    src="src/files/peter-lynch-portrait.webp"
+                    alt="Peter Lynch"
+                    className="w-64 md:w-80 h-auto rounded-3xl object-contain"
+                  />
+                </div>
+                <div className="mt-3 text-center text-white text-lg md:text-xl font-semibold">
+                  Peter Lynch
+                </div>
+              </div>
+
+              <div className="text-center text-white">
+                <div className="text-2xl md:text-3xl font-semibold">
+                  Clean. Objective. Actionable.
+                </div>
+                <div className="opacity-80 mt-2 text-lg md:text-base">
+                  No fluff. Just high-quality research you can actually use.
+                </div>
+              </div>
+            </motion.div> */}
+          </div>
+        </section>
+
+        {/* Section 2: SMART Framework */}
+        <section id="smart" className="mx-auto max-w-6xl px-4 py-12 md:py-16">
+          <div className="flex items-end justify-between mb-8">
+            <h2
+              className="text-2xl md:text-3xl font-bold"
+              style={{ color: COLORS.blue }}
+            >
+              SMART Framework
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+            <FlipCard
+              front={{ letter: "S", caption: "Strong Business" }}
+              back={{
+                title: "Strong Business",
+                text: "Avoid businesses exhibiting signs of weakness",
+              }}
+              color={COLORS.blue}
+            />
+
+            <FlipCard
+              front={{ letter: "M", caption: "Strong Management" }}
+              back={{
+                title: "Strong Management",
+                text: "Not partnering with managements unwilling to share upside",
+              }}
+              color={COLORS.red}
+            />
+
+            <FlipCard
+              front={{ letter: "A", caption: "Clean Accounts" }}
+              back={{
+                title: "Clean Accounts",
+                text: "Making sure the numbers are reliable to form decisions",
+              }}
+              color={COLORS.blue}
+            />
+
+            <FlipCard
+              front={{ letter: "R", caption: "Reasonable Valuations" }}
+              back={{
+                title: "Reasonable Valuations",
+                text: "Not buying anything at any price",
+              }}
+              color={COLORS.red}
+            />
+
+            <FlipCard
+              front={{ letter: "T", caption: "Business Tailwinds" }}
+              back={{
+                title: "Business Tailwinds",
+                text: "Steer clear of businesses belonging to a dying or stagnant industry",
+              }}
+              color={COLORS.blue}
+            />
+          </div>
+        </section>
+
+        {/* Section 3: Testimonials */}
+        <section
+          id="testimonials"
+          className="mx-auto max-w-6xl px-4 py-12 md:py-16"
+        >
+          <Testimonial />
         </section>
 
         {/* Section 5: FAQs */}
