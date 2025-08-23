@@ -4,10 +4,12 @@ import type { RouteObject } from "react-router-dom";
 // Layouts
 const RootLayout = lazy(() => import("../layouts/RootLayout"));
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
+const UserAdminLayout = lazy(() => import("../layouts/UserAdminLayout"));
 
 // Guards
 const ProtectedRoute = lazy(() => import("../components/ProtectedRoute"));
 const AdminRoute = lazy(() => import("../components/AdminRoute"));
+const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
 
 // Pages
 const Home = lazy(() => import("../pages/Home"));
@@ -28,6 +30,17 @@ const EditProfile = lazy(() => import("../pages/EditProfile"));
 const Subscription = lazy(() => import("../pages/Subscription"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
 const NotFound = lazy(() => import("../pages/NotFound"));
+
+// User Admin Pages
+const UserAdminDashboard = lazy(
+  () => import("@/pages/UserAdmin/app/UserDashboard")
+);
+const UserAdminRecommendation = lazy(
+  () => import("@/pages/UserAdmin/app/Recommendation")
+);
+const UserAdminResearchHub = lazy(
+  () => import("@/pages/UserAdmin/app/ResearchHub")
+);
 
 // Admin Pages
 const AdminLogin = lazy(() => import("../pages/AdminLogin"));
@@ -51,6 +64,7 @@ const AdminSettings = lazy(() => import("../pages/AdminSettings"));
 
 // Components that are used as pages
 const PodcastsBlog = lazy(() => import("../components/generic/PodcastsBlog"));
+const Test = lazy(() => import("../components/generic/Test"));
 const NewsletterArchive = lazy(
   () => import("../components/generic/NewsletterArchive")
 );
@@ -79,6 +93,7 @@ export const AppRoutes = {
   subscription: () => "/subscription",
   spotlights: () => "/spotlights",
   podcasts: () => "/podcasts",
+  test: () => "/test",
   newsletter: () => "/newsletters-archive",
   webinar: () => "/webinars",
   smartFrameworks: () => "/smart-frameworks",
@@ -117,6 +132,7 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.bastionCore(), element: <BastionCore /> },
       { path: AppRoutes.spotlights(), element: <SpotLights /> },
       { path: AppRoutes.podcasts(), element: <PodcastsBlog /> },
+      { path: AppRoutes.test(), element: <Test /> },
       { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
       { path: AppRoutes.webinar(), element: <Webinar /> },
       { path: AppRoutes.smartFrameworks(), element: <SmartFrameworks /> },
@@ -154,6 +170,21 @@ export const routes: RouteObject[] = [
           { path: "users/add", element: <AddUser /> },
           { path: "users/profile", element: <Profile /> },
           { path: "settings", element: <AdminSettings /> },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/user",
+    element: <UserAdminLayout />,
+    children: [
+      {
+        element: <UserAdminRoute />,
+        children: [
+          { path: "app/", element: <UserAdminDashboard /> },
+          { path: "app/dashboard", element: <UserAdminDashboard /> },
+          { path: "app/recommendation", element: <UserAdminRecommendation /> },
+          { path: "app/research-hub", element: <UserAdminResearchHub /> },
         ],
       },
     ],

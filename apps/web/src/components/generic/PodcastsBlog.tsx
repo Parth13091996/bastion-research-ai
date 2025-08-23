@@ -2,6 +2,16 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Search, Crown, ChevronLeft, ChevronRight } from "lucide-react";
 import BackgroundShapes from "./framer-motion.tsx";
 
+// Brand Colors
+const COLORS = {
+  red: "#C00000",
+  blue: "#1C2852",
+  beige: "#C4B696",
+  gray: "#E6E6E6",
+  white: "#ffffff",
+  black: "#000000",
+};
+
 const podcasts = [
   {
     id: 9,
@@ -180,7 +190,6 @@ const PodcastsBlog = () => {
   const filteredPodcasts = useMemo(() => {
     let filtered = podcasts;
 
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(
         (podcast) =>
@@ -189,7 +198,6 @@ const PodcastsBlog = () => {
       );
     }
 
-    // Apply category filter
     if (activeFilter !== "all") {
       filtered = filtered.filter(
         (podcast) => podcast.category === activeFilter
@@ -236,14 +244,20 @@ const PodcastsBlog = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+    <div
+      className="min-h-screen relative overflow-hidden"
+      style={{ backgroundColor: COLORS.gray }}
+    >
       <BackgroundShapes />
 
       <div className="relative z-10">
         {/* Header */}
         <div className="px-4 sm:px-6 lg:px-8 pt-8 pb-4">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl font-bold text-gray-900 mb-8">
+            <h1
+              className="text-4xl font-bold mb-8"
+              style={{ color: COLORS.blue }}
+            >
               Made In India Podcasts
             </h1>
           </div>
@@ -251,10 +265,14 @@ const PodcastsBlog = () => {
 
         {/* Sticky Search and Filter Bar */}
         <div
-          className={`transition-all duration-300 ${isSticky ? "fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg z-50" : "relative"}`}
+          className={`transition-all duration-300 ${
+            isSticky
+              ? "fixed top-[90px] left-1/2 -translate-x-1/2 backdrop-blur-md shadow-lg z-50 hidden sm:block rounded-full px-4 py-0 bg-white/60"
+              : "relative"
+          }`}
         >
           <div className="px-4 sm:px-6 lg:px-8 py-4">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl  mx-auto">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 {/* Search Bar */}
                 <div className="flex-1 lg:max-w-md relative">
@@ -264,7 +282,7 @@ const PodcastsBlog = () => {
                     placeholder="Search podcasts..."
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
                   />
                 </div>
 
@@ -276,9 +294,15 @@ const PodcastsBlog = () => {
                       onClick={() => handleFilterChange(filter.id)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                         activeFilter === filter.id
-                          ? "bg-blue-600 text-white shadow-md transform scale-105"
-                          : "bg-white text-gray-700 border border-gray-300 hover:border-blue-300 hover:bg-blue-50"
+                          ? "text-white shadow-md transform scale-105"
+                          : "bg-white text-gray-700 border border-gray-300 hover:border-red-400 hover:bg-red-50"
                       }`}
+                      style={{
+                        backgroundColor:
+                          activeFilter === filter.id
+                            ? COLORS.red
+                            : COLORS.white,
+                      }}
                     >
                       {filter.label} ({filter.count})
                     </button>
@@ -287,7 +311,10 @@ const PodcastsBlog = () => {
                   {/* Premium Scratch Card Link */}
                   <a
                     href="/bastion-core"
-                    className="px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 transform hover:scale-105 shadow-md flex items-center gap-2"
+                    className="px-4 py-2 rounded-full text-sm font-medium text-yellow-900 transition-all duration-200 transform hover:scale-105 shadow-md flex items-center gap-2"
+                    style={{
+                      background: "linear-gradient(to right, #FACC15, #F59E0B)",
+                    }}
                   >
                     <Crown className="h-4 w-4" />
                     Scratch Card
@@ -307,7 +334,10 @@ const PodcastsBlog = () => {
                 Showing {currentPodcasts.length} of {filteredPodcasts.length}{" "}
                 podcasts
                 {searchQuery && (
-                  <span className="ml-2 text-blue-600 font-medium">
+                  <span
+                    className="ml-2 font-medium"
+                    style={{ color: COLORS.red }}
+                  >
                     for "{searchQuery}"
                   </span>
                 )}
@@ -317,9 +347,10 @@ const PodcastsBlog = () => {
             {/* Podcast Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {currentPodcasts.map((podcast) => (
-                <div
+                <a
                   key={podcast.id}
-                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 group"
+                  href={`/podcast/${podcast.id}`}
+                  className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 group block"
                 >
                   <div className="aspect-video overflow-hidden bg-gray-100">
                     <img
@@ -336,7 +367,10 @@ const PodcastsBlog = () => {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    <h3
+                      className="text-lg font-bold mb-3 leading-tight line-clamp-2 group-hover:text-red-700 transition-colors"
+                      style={{ color: COLORS.blue }}
+                    >
                       {podcast.title}
                     </h3>
 
@@ -344,11 +378,16 @@ const PodcastsBlog = () => {
                       {podcast.description}
                     </p>
 
-                    <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg">
-                      Play Now →
-                    </button>
+                    {/* Read More Link */}
+                    <span
+                      className="inline-block relative text-sm font-medium"
+                      style={{ color: COLORS.red }}
+                    >
+                      Read more
+                      <span className="absolute left-0 -bottom-0.5 w-full h-[2px] bg-current origin-right transform scale-x-100 transition-transform duration-300 group-hover:scale-x-0"></span>
+                    </span>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
 
@@ -356,7 +395,10 @@ const PodcastsBlog = () => {
             {filteredPodcasts.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-gray-400 text-6xl mb-4">🎧</div>
-                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                <h3
+                  className="text-xl font-medium mb-2"
+                  style={{ color: COLORS.blue }}
+                >
                   No podcasts found
                 </h3>
                 <p className="text-gray-600">
@@ -392,9 +434,14 @@ const PodcastsBlog = () => {
                           onClick={() => handlePageChange(page)}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${
                             isActive
-                              ? "bg-blue-600 text-white shadow-md"
+                              ? "text-white shadow-md"
                               : "text-gray-700 hover:bg-gray-100 border border-gray-300"
                           }`}
+                          style={{
+                            backgroundColor: isActive
+                              ? COLORS.red
+                              : COLORS.white,
+                          }}
                         >
                           {page}
                         </button>
@@ -418,9 +465,12 @@ const PodcastsBlog = () => {
                       onClick={() => handlePageChange(page)}
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
                         isActive
-                          ? "bg-blue-600 text-white shadow-md"
+                          ? "text-white shadow-md"
                           : "text-gray-700 hover:bg-gray-100 border border-gray-300"
                       }`}
+                      style={{
+                        backgroundColor: isActive ? COLORS.red : COLORS.white,
+                      }}
                     >
                       {page}
                     </button>
