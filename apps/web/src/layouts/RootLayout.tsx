@@ -1,6 +1,7 @@
-import { Outlet } from 'react-router-dom';
-import Header from '@/components/generic/Header';
-import Footer from '@/components/generic/Footer';
+import { Outlet } from "react-router-dom";
+import Header from "@/components/generic/Header";
+import Footer from "@/components/generic/Footer";
+import BackToTop from "@/components/generic/backToTop";
 
 const RootLayout = () => {
   return (
@@ -8,6 +9,7 @@ const RootLayout = () => {
       <Header />
       <main className="flex-grow main pt-[80px] md:pt-[88px]">
         <Outlet />
+        <BackToTop />
       </main>
       <Footer />
     </div>

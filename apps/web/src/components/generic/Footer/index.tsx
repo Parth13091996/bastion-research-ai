@@ -3,6 +3,16 @@ import { Link } from "react-router-dom"; // Import Link
 import { useState, useEffect } from "react";
 import SocialIcons from "./SocialIcons";
 
+// Brand Colors
+const COLORS = {
+  red: "#C00000",
+  blue: "#1C2852",
+  beige: "#C4B696",
+  gray: "#E6E6E6",
+  white: "#ffffff",
+  black: "#000000",
+};
+
 const CollapsibleSection = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -45,7 +55,11 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-primary text-white py-16">
+    <footer
+      className="text-white py-16"
+      style={{ backgroundColor: COLORS.red }}
+      aria-label="Footer"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row flex-wrap justify-between gap-4">
           {/* Company Info - Always visible */}
@@ -103,7 +117,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    to="/career-page"
+                    to="/careers"
                     className="relative group hover:text-red-200 transition-colors inline-block"
                   >
                     Career
