@@ -404,7 +404,7 @@ const MemberManagementDashboard = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white rounded-lg shadow-sm max-w-[80rem] mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h1 className="text-2xl font-semibold text-gray-900">
