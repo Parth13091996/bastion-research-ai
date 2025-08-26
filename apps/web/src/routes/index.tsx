@@ -1,3 +1,4 @@
+import Editor from "@/components/core/editor";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 
@@ -111,6 +112,7 @@ export const AppRoutes = {
   adminAddUser: () => "/admin/users/add",
   adminProfile: () => "/admin/users/profile",
   adminSettings: () => "/admin/settings",
+  editor: () => "/admin/editor",
 };
 
 export const routes: RouteObject[] = [
@@ -170,6 +172,7 @@ export const routes: RouteObject[] = [
           { path: "users/add", element: <AddUser /> },
           { path: "users/profile", element: <Profile /> },
           { path: "settings", element: <AdminSettings /> },
+          { path: "editor", element: <Editor /> },
         ],
       },
     ],
