@@ -1,24 +1,60 @@
-import React, { useState, useMemo } from 'react';
-import { Plus, Edit2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import React, { useState, useMemo } from "react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 const MembershipPlans = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [hoveredRow, setHoveredRow] = useState(null);
 
   const plansData = [
-    { id: 5, name: 'Freemium', type: 'Free', priceAmount: 0, currency: 'INR', duration: '-', members: 166, role: 'ARMember' },
-    { id: 4, name: 'Bastion Research Core', type: 'Paid', priceAmount: 4000, currency: 'INR', duration: '3 months x 12 installments', members: 5, role: 'ARMember' },
-    { id: 2, name: 'Annual Plan', type: 'Paid', priceAmount: 15890, currency: 'INR', duration: '12 months (One-time)', members: 49, role: 'ARMember' },
+    {
+      id: 5,
+      name: "Freemium",
+      type: "Free",
+      priceAmount: 0,
+      currency: "INR",
+      duration: "-",
+      members: 166,
+      role: "ARMember",
+    },
+    {
+      id: 4,
+      name: "Bastion Research Core",
+      type: "Paid",
+      priceAmount: 4000,
+      currency: "INR",
+      duration: "3 months x 12 installments",
+      members: 5,
+      role: "ARMember",
+    },
+    {
+      id: 2,
+      name: "Annual Plan",
+      type: "Paid",
+      priceAmount: 15890,
+      currency: "INR",
+      duration: "12 months (One-time)",
+      members: 49,
+      role: "ARMember",
+    },
   ];
 
   const filteredPlans = useMemo(() => {
-    return plansData.filter(plan =>
-      plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plan.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plan.id.toString().includes(searchTerm) ||
-      plan.members.toString().includes(searchTerm)
+    return plansData.filter(
+      (plan) =>
+        plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plan.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plan.id.toString().includes(searchTerm) ||
+        plan.members.toString().includes(searchTerm)
     );
   }, [searchTerm]);
 
@@ -29,17 +65,21 @@ const MembershipPlans = () => {
   const currentEntries = filteredPlans.slice(startIndex, endIndex);
 
   const handlePlanClick = (planId) => console.log(`Clicked plan ID: ${planId}`);
-  const handleMemberClick = (members) => console.log(`Clicked members: ${members}`);
+  const handleMemberClick = (members) =>
+    console.log(`Clicked members: ${members}`);
   const handleEdit = (planId) => console.log(`Edit plan ID: ${planId}`);
   const handleDelete = (planId) => console.log(`Delete plan ID: ${planId}`);
-  const goToPage = (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  const goToPage = (page) =>
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
 
   return (
     <div className="bg-gray-50 flex-1 overflow-y-auto">
-      <div className="mx-auto bg-white rounded-lg shadow-sm">
+      <div className="mx-auto max-w-[80rem] bg-white rounded-lg shadow-sm">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900 mb-4 sm:mb-0">Manage Membership Plans</h1>
+          <h1 className="text-xl font-semibold text-gray-900 mb-4 sm:mb-0">
+            Manage Membership Plans
+          </h1>
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
             <Plus size={16} />
             Add New Plan
@@ -70,15 +110,33 @@ const MembershipPlans = () => {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Plan ID</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Plan Name</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Plan Type</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Members</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Wp Role</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Price Amount</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Currency</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Duration</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Plan ID
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Plan Name
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Plan Type
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Members
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Wp Role
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Price Amount
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Currency
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Duration
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -90,7 +148,7 @@ const MembershipPlans = () => {
                     onMouseLeave={() => setHoveredRow(null)}
                   >
                     <td className="py-3 px-4">
-                      <button 
+                      <button
                         onClick={() => handlePlanClick(plan.id)}
                         className="text-blue-600 hover:text-blue-800 hover:underline"
                       >
@@ -98,7 +156,7 @@ const MembershipPlans = () => {
                       </button>
                     </td>
                     <td className="py-3 px-4">
-                      <button 
+                      <button
                         onClick={() => handlePlanClick(plan.id)}
                         className="text-blue-600 hover:text-blue-800 hover:underline text-left"
                       >
@@ -106,16 +164,18 @@ const MembershipPlans = () => {
                       </button>
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium w-fit ${
-                        plan.type === 'Free' 
-                          ? 'bg-gray-100 text-gray-800' 
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium w-fit ${
+                          plan.type === "Free"
+                            ? "bg-gray-100 text-gray-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
                         {plan.type}
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <button 
+                      <button
                         onClick={() => handleMemberClick(plan.members)}
                         className="text-blue-600 hover:text-blue-800 hover:underline"
                       >
@@ -157,7 +217,7 @@ const MembershipPlans = () => {
             <div className="text-sm text-gray-700">
               Showing {startIndex + 1} to {endIndex} of {totalEntries} entries
             </div>
-            
+
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700">Show</span>
@@ -192,7 +252,7 @@ const MembershipPlans = () => {
                 >
                   <ChevronLeft size={16} />
                 </button>
-                
+
                 <div className="flex items-center gap-1 mx-2">
                   {[...Array(totalPages)].map((_, i) => {
                     const page = i + 1;
@@ -207,8 +267,8 @@ const MembershipPlans = () => {
                           onClick={() => goToPage(page)}
                           className={`px-3 py-1 text-sm rounded ${
                             currentPage === page
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           {page}
@@ -218,13 +278,19 @@ const MembershipPlans = () => {
                       page === currentPage - 2 ||
                       page === currentPage + 2
                     ) {
-                      return <span key={page} className="px-1 text-gray-400">...</span>;
+                      return (
+                        <span key={page} className="px-1 text-gray-400">
+                          ...
+                        </span>
+                      );
                     }
                     return null;
                   })}
                 </div>
 
-                <span className="text-sm text-gray-700 mx-2">of {totalPages}</span>
+                <span className="text-sm text-gray-700 mx-2">
+                  of {totalPages}
+                </span>
 
                 <button
                   onClick={() => goToPage(currentPage + 1)}
