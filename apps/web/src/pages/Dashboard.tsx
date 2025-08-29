@@ -1,6 +1,6 @@
-import { useAuth } from '@/contexts/AuthContext';
-import CashfreePayment from '@/components/CashfreePayment';
-import PaymentHistory from '@/components/PaymentHistory';
+import { useAuth } from "@/contexts/AuthContext";
+import CashfreePayment from "@/components/core/payment/CashfreePayment";
+import PaymentHistory from "@/components/core/payment/PaymentHistory";
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -8,7 +8,9 @@ const Dashboard = () => {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Welcome, {user?.name || user?.email}</h1>
+        <h1 className="text-2xl font-bold">
+          Welcome, {user?.name || user?.email}
+        </h1>
         <button
           onClick={logout}
           className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
