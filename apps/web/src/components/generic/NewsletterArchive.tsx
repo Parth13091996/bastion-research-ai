@@ -253,7 +253,7 @@ const NewsletterArchive = () => {
       <div className="relative z-10">
         {/* Header */}
         <div className="px-4 sm:px-6 lg:px-8 pt-8 pb-4">
-          <div className="max-w-7xl mx-auto">
+          <div className="w-full sm:w-[45rem] sm:mx-auto">
             <h1
               className="text-4xl font-bold mb-8"
               style={{ color: COLORS.blue }}
@@ -287,7 +287,7 @@ const NewsletterArchive = () => {
                 </div>
 
                 {/* Filter Pills */}
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap overflow-x-auto">
                   {filters.map((filter) => (
                     <button
                       key={filter.id}

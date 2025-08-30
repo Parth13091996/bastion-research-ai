@@ -30,6 +30,7 @@ const BastionCore = lazy(() => import("../pages/BastionCore"));
 const EditProfile = lazy(() => import("../pages/EditProfile"));
 const Subscription = lazy(() => import("../pages/Subscription"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
+const About = lazy(() => import("../pages/About"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
 // User Admin Pages
@@ -94,6 +95,7 @@ export const AppRoutes = {
   subscription: () => "/subscription",
   spotlights: () => "/spotlights",
   podcasts: () => "/podcasts",
+  about: () => "/about",
   test: () => "/test",
   newsletter: () => "/newsletters-archive",
   webinar: () => "/webinars",
@@ -132,6 +134,7 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.termAndCondition(), element: <TermAndCondition /> },
       { path: AppRoutes.compliance(), element: <Compliance /> },
       { path: AppRoutes.bastionCore(), element: <BastionCore /> },
+      { path: AppRoutes.about(), element: <About /> },
       { path: AppRoutes.spotlights(), element: <SpotLights /> },
       { path: AppRoutes.podcasts(), element: <PodcastsBlog /> },
       { path: AppRoutes.test(), element: <Test /> },
