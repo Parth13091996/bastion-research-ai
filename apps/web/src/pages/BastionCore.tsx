@@ -118,80 +118,116 @@ function FlipCard({ front, back, color = COLORS.blue }) {
   );
 }
 
-const faqsNew = [
-  {
-    q: "How do I subscribe and What are the Subscription Charges?",
-    a: (
-      <span>
-        You can subscribe via the button below at{" "}
-        <strong>Rs. 18,750 per year</strong>. After checkout, you’ll receive
-        instant access to research, archives, and updates.
-      </span>
-    ),
-  },
-  {
-    q: "Can I get refund after I subscribe?",
-    a: "Subscriptions are non-refundable. If you have issues, reach out to connect@bastionresearch.in and we’ll help.",
-  },
-  {
-    q: "Is Bastion CORE Sector and Market Cap Agnostic?",
-    a: "Yes. We are sector and market-cap agnostic. We go where the risk-adjusted opportunity is.",
-  },
-  {
-    q: "For Whom is this Service Suitable?",
-    a: "DIY investors who want high-quality, objective research with timely updates and a clean process.",
-  },
-  {
-    q: "For Whom is this Service Not Suitable?",
-    a: "Anyone looking for intraday tips, F&O calls, or guaranteed returns.",
-  },
-  {
-    q: "Do you Provide Free Trials?",
-    a: "We currently do not offer free trials.",
-  },
-  {
-    q: "What is not Provided as Part of the Service?",
-    a: "No intraday calls, no F&O recommendations, and no personalized portfolio management.",
-  },
-  {
-    q: "Frequency of New Ideas?",
-    a: "We publish new ideas regularly and maintain active coverage with quarterly tracking and updates.",
-  },
-  {
-    q: "Do I Get Constant Access to Important Updates and Results of Companies under Coverage?",
-    a: "Yes. We provide timely result notes and updates for companies under our coverage.",
-  },
-  {
-    q: "Do I get Analyst Access to Further Clarify My Doubts?",
-    a: "Yes, we offer reasonable analyst access for subscribers for clarifications related to our research.",
-  },
-  {
-    q: "What do I get as a subscriber?",
-    a: "Stock ideas, deep-dive research reports, quarterly tracking, archives, and updates—delivered via our SMART framework.",
-  },
-  {
-    q: "Do you provide research on demand?",
-    a: "On-demand custom research is part of our Research Ally offering, not Bastion CORE.",
-  },
-  {
-    q: "Do you provide ready-made portfolios?",
-    a: "No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.",
-  },
-];
-
 export default function BastionCoreProductPage() {
-  const [openIndex, setOpenIndex] = useState(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // 👇 Move items array here
+  const items = [
+    {
+      title: "Detailed Business Understanding Note",
+      desc: "Get access to detailed business understanding notes on companies under active coverage.",
+      img: "https://cdn.shopify.com/s/files/1/0723/2415/3587/files/businessUnderstanding.jpg?v=1756568173",
+    },
+    {
+      title: "Regular Updates",
+      desc: "Stay updated with all relevant updates including quarterly results, key announcements and special situations on companies under active coverage.",
+      img: "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&w=1600&q=60",
+    },
+    {
+      title: "Scratch Pad Access",
+      desc: "Sometimes, we pass the idea but the learning stays with us. We communicate these useful learnings via. Scratch Pad.",
+      img: "https://images.unsplash.com/photo-1543286386-2e659306cd6c?auto=format&fit=crop&w=1600&q=60",
+    },
+    {
+      title: "Model Portfolio",
+      desc: "Don't just want access to research but also ready to execute portfolio? We have got you covered.",
+      img: "https://cdn.shopify.com/s/files/1/0723/2415/3587/files/businessUnderstanding.jpg?v=1756568173",
+    },
+    {
+      title: "Quarterly Interactions",
+      desc: "As a subscriber, we speak to you at least once a quarter. In this discussion, we discuss the business progress of our investments, communicate our views with respect to new incoming information and clear your queries.",
+      img: "https://images.unsplash.com/photo-1510070009289-b5bc34383727?auto=format&fit=crop&w=1600&q=60",
+    },
+    {
+      title: "Access to Premium Webinars",
+      desc: "From time to time, we conduct enriching webinars, Bastion CORE subscribers get access to all our premium webinars.",
+      img: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=60",
+    },
+  ];
 
-  const toggleFAQ = (index) => {
+  // 👇 State for which item is active
+  const [active, setActive] = useState(0);
+
+  const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  const faqsNew = [
+    {
+      q: "How do I subscribe and What are the Subscription Charges?",
+      a: (
+        <span>
+          You can subscribe via the button below at{" "}
+          <strong>Rs. 18,750 per year</strong>. After checkout, you’ll receive
+          instant access to research, archives, and updates.
+        </span>
+      ),
+    },
+    {
+      q: "Can I get refund after I subscribe?",
+      a: "Subscriptions are non-refundable. If you have issues, reach out to connect@bastionresearch.in and we’ll help.",
+    },
+    {
+      q: "Is Bastion CORE Sector and Market Cap Agnostic?",
+      a: "Yes. We are sector and market-cap agnostic. We go where the risk-adjusted opportunity is.",
+    },
+    {
+      q: "For Whom is this Service Suitable?",
+      a: "DIY investors who want high-quality, objective research with timely updates and a clean process.",
+    },
+    {
+      q: "For Whom is this Service Not Suitable?",
+      a: "Anyone looking for intraday tips, F&O calls, or guaranteed returns.",
+    },
+    {
+      q: "Do you Provide Free Trials?",
+      a: "We currently do not offer free trials.",
+    },
+    {
+      q: "What is not Provided as Part of the Service?",
+      a: "No intraday calls, no F&O recommendations, and no personalized portfolio management.",
+    },
+    {
+      q: "Frequency of New Ideas?",
+      a: "We publish new ideas regularly and maintain active coverage with quarterly tracking and updates.",
+    },
+    {
+      q: "Do I Get Constant Access to Important Updates and Results of Companies under Coverage?",
+      a: "Yes. We provide timely result notes and updates for companies under our coverage.",
+    },
+    {
+      q: "Do I get Analyst Access to Further Clarify My Doubts?",
+      a: "Yes, we offer reasonable analyst access for subscribers for clarifications related to our research.",
+    },
+    {
+      q: "What do I get as a subscriber?",
+      a: "Stock ideas, deep-dive research reports, quarterly tracking, archives, and updates—delivered via our SMART framework.",
+    },
+    {
+      q: "Do you provide research on demand?",
+      a: "On-demand custom research is part of our Research Ally offering, not Bastion CORE.",
+    },
+    {
+      q: "Do you provide ready-made portfolios?",
+      a: "No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.No. We focus on research and decision support, not portfolio products.",
+    },
+  ];
 
   return (
     <div>
       <BackgroundShapes />
       <div className="min-h-screen w-full" style={{ background: COLORS.gray }}>
         {/* Sub-header typing banner */}
-        <section className="mx-auto max-w-6xl px-4 pt-10 md:pt-14">
+        <section className="mx-auto max-w-7xl px-4 pt-10 md:pt-14">
           <div
             className="rounded-3xl p-6 md:p-10 shadow-lg text-center"
             style={{ background: COLORS.white }}
@@ -208,108 +244,47 @@ export default function BastionCoreProductPage() {
         </section>
 
         {/* Section 4: Pricing */}
-        <section id="pricing" className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            {/* Pricing Box */}
-            <div className="rounded-3xl overflow-hidden shadow-2xl h-full max-h-[500px] flex flex-col">
-              <div
-                className="text-center py-2 font-bold tracking-wide"
-                style={{ background: COLORS.red, color: COLORS.white }}
-              >
-                Subscribe Now!
-              </div>
-              <div
-                className="p-6 md:p-8 flex-1 flex flex-col justify-end"
-                style={{ background: COLORS.white }}
-              >
-                <div className="text-center flex flex-col items-center">
-                  {/* Lottie Animation */}
-                  <Lottie
-                    animationData={priceTag}
-                    loop={true}
-                    style={{ width: 155, height: 155 }}
-                  />
-
-                  {/* Title & Price */}
-                  <div
-                    className="text-2xl md:text-3xl font-extrabold mt-2"
-                    style={{ color: COLORS.blue }}
-                  >
-                    Bastion CORE
-                  </div>
-                  <div
-                    className="mt-2 text-lg md:text-xl font-semibold"
-                    style={{ color: COLORS.blue }}
-                  >
-                    Rs. 18,750 / Annually
-                  </div>
-                  <div
-                    className="mt-2 text-xs opacity-70"
-                    style={{ color: COLORS.blue }}
-                  >
-                    * Above Price is Inclusive of GST
-                  </div>
-                  <button
-                    className="mt-5 w-full rounded-xl py-3 font-semibold hover:opacity-90"
-                    style={{ background: COLORS.red, color: COLORS.white }}
-                  >
-                    Start Taking Informed Decisions
-                  </button>
+        <section className="max-w-7xl px-4 mx-auto  py-10">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
+            Choose your plan
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Quarterly Plan */}
+            <div className="relative rounded-2xl border border-[#E6E6E6] bg-white p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between">
+                  <h3 className="text-xl font-semibold">Quarterly Plan</h3>
                 </div>
+                <p className="mt-3 text-3xl font-bold text-[#C00000]">
+                  Rs. 4,000/-
+                </p>
+                <p className="text-sm text-slate-500">Including GST</p>
+                <p className="mt-1 text-[12px] text-slate-500">
+                  * Valid Only Once
+                </p>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button className="px-4 py-2 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors">
+                  Subscribe Now
+                </button>
               </div>
             </div>
 
-            {/* Testimonial Box */}
-            <div
-              className="rounded-3xl  max-h-[500px] rounded-3xl overflow-hidden shadow-2xl"
-              style={{ background: COLORS.white }}
-            >
-              <div
-                className="text-center py-2 font-bold tracking-wide"
-                style={{ background: COLORS.red, color: COLORS.white }}
-              >
-                Add Your Testimonial
-              </div>
-              <div className="p-6 md:p-8 flex flex-col gap-4 h-full">
-                {/* First + Last Name */}
-                <div className="flex gap-4">
-                  <input
-                    placeholder="First Name *"
-                    required
-                    className="w-1/2 rounded-xl p-3 border focus:outline-none"
-                    style={{ borderColor: COLORS.gray }}
-                  />
-                  <input
-                    placeholder="Last Name *"
-                    required
-                    className="w-1/2 rounded-xl p-3 border focus:outline-none"
-                    style={{ borderColor: COLORS.gray }}
-                  />
+            {/* Yearly Plan */}
+            <div className="relative rounded-2xl border border-[#C4B696]/40 bg-[#1C2852] p-6 shadow-sm hover:shadow-md transition-shadow text-white flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between">
+                  <h3 className="text-xl font-semibold">Yearly Plan</h3>
+                  <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-[#C4B696] text-[#1C2852]">
+                    Best value
+                  </span>
                 </div>
-
-                {/* Email */}
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  required
-                  className="w-full rounded-xl p-3 border focus:outline-none"
-                  style={{ borderColor: COLORS.gray }}
-                />
-
-                {/* Testimonial */}
-                <textarea
-                  placeholder="Write your testimonial... *"
-                  required
-                  className="w-full rounded-xl p-3 border h-28 resize-none focus:outline-none"
-                  style={{ borderColor: COLORS.gray }}
-                />
-
-                {/* Submit */}
-                <button
-                  className="mt-5 w-full rounded-xl py-3 font-semibold hover:opacity-90"
-                  style={{ background: COLORS.red, color: COLORS.white }}
-                >
-                  Submit
+                <p className="mt-3 text-3xl font-bold">Rs. 18,750/-</p>
+                <p className="text-sm text-gray-200">Including GST</p>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button className="px-4 py-2 bg-[#C4B696] text-[#1C2852] rounded-xl hover:bg-[#b3a67d] transition-colors">
+                  Subscribe Now
                 </button>
               </div>
             </div>
@@ -319,7 +294,7 @@ export default function BastionCoreProductPage() {
         {/* Section 1: Importance of Research */}
         <section
           id="research"
-          className="mx-auto max-w-6xl px-4 py-12 md:py-16"
+          className="mx-auto max-w-7xl px-4 py-12 md:py-16"
         >
           <div className="grid md:grid-cols-1 gap-8">
             <motion.div
@@ -402,7 +377,7 @@ export default function BastionCoreProductPage() {
         </section>
 
         {/* Section 2: SMART Framework */}
-        <section id="smart" className="mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <section id="smart" className="mx-auto max-w-7xl px-4 py-12 md:py-16">
           <div className="flex items-end justify-between mb-8">
             <h2
               className="text-2xl md:text-3xl font-bold"
@@ -462,13 +437,108 @@ export default function BastionCoreProductPage() {
         {/* Section 3: Testimonials */}
         <section
           id="testimonials"
-          className="mx-auto max-w-6xl px-4 py-12 md:py-16"
+          className="mx-auto max-w-7xl px-4 py-12 md:py-16"
         >
           <Testimonial />
         </section>
 
+        {/* Section 4: Content */}
+        {/* Section 4: Content */}
+        <section className="max-w-7xl px-4 mx-auto  pb-16">
+          <div className="rounded-3xl border border-[#E6E6E6] overflow-hidden">
+            {/* Grid: 60/40 split on md+ */}
+            <div className="grid grid-cols-1 md:grid-cols-5">
+              {/* Left: 60% (3/5 columns) */}
+              <div className="md:col-span-3 bg-white">
+                <div className="divide-y divide-[#E6E6E6]">
+                  {items.map((it, idx) => (
+                    <div key={it.title}>
+                      <button
+                        onClick={() => setActive(idx)} // click works for mobile + desktop
+                        onMouseEnter={() => setActive(idx)} // hover works for desktop
+                        className={`group w-full text-left p-5 focus:outline-none transition-colors ${
+                          active === idx
+                            ? "bg-[#E6E6E6]/40"
+                            : "bg-white hover:bg-[#E6E6E6]/30"
+                        }`}
+                        aria-current={active === idx}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={` h-2.5 w-2.5 rounded-full transition-colors ${
+                              active === idx
+                                ? "bg-[#C00000]"
+                                : "bg-[#C4B696] group-hover:bg-[#C00000]"
+                            }`}
+                          />
+                          <div>
+                            <h4 className="text-base md:text-lg font-semibold">
+                              {it.title}
+                            </h4>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`mt-1  opacity-0 h-2.5 w-2.5 rounded-full transition-colors ${
+                              active === idx
+                                ? "bg-[#C00000]"
+                                : "bg-[#C4B696] group-hover:bg-[#C00000]"
+                            }`}
+                          />
+                          <div>
+                            <p className="mt-1 text-sm text-slate-600">
+                              {it.desc}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Mobile collapsible image */}
+                      <div
+                        className={`md:hidden overflow-hidden transition-all duration-300 ${
+                          active === idx ? "max-h-[700px] mt-2" : "max-h-0"
+                        }`}
+                      >
+                        <div className="relative bg-[#E6E6E6]">
+                          <img
+                            src={it.img}
+                            alt={it.title}
+                            className="h-48 w-full object-cover rounded-b-xl"
+                          />
+                          <div className="absolute bottom-2 left-2 right-2 bg-white/85 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+                            <p className="text-sm font-medium text-[#1C2852]">
+                              {it.title}
+                            </p>
+                            <p className="text-xs text-slate-600">{it.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: 40% (2/5 columns) - Desktop image area */}
+              <div className="hidden md:block md:col-span-2 relative bg-[#E6E6E6] aspect-[16/10] md:aspect-auto">
+                <img
+                  key={items[active].img}
+                  src={items[active].img}
+                  alt={items[active].title}
+                  className="h-full w-full object-cover transition-opacity duration-300"
+                />
+                <div className="absolute bottom-4 left-4 right-4 bg-white/85 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
+                  <p className="text-sm font-medium text-[#1C2852]">
+                    {items[active].title}
+                  </p>
+                  <p className="text-xs text-slate-600">{items[active].desc}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Section 5: FAQs */}
-        <section className="mx-auto max-w-6xl px-4 pb-4">
+        <section className="mx-auto max-w-7xl px-4 pb-4">
           <h2 className="text-3xl font-bold text-left mb-4">FAQs</h2>
           <div className="space-y-4">
             {faqsNew.map((faq, index) => (

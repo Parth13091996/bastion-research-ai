@@ -8,36 +8,11 @@ import researchAllyAnim from "@/files/researchAlly.json";
 import bastionCoreAnim from "@/files/bastionCore.json";
 import adaptiveQualityAnim from "@/files/adaptiveQuality.json";
 
-const COLORS = {
-  red: "#C00000",
-  blue: "#1C2852",
-  beige: "#C4B696",
-  gray: "#E6E6E6",
-  white: "#ffffff",
-  black: "#000000",
-};
-
-interface ServiceCard {
-  id: string;
-  lottie: any;
-  title: string;
-  description: string;
-}
-
-interface MousePosition {
-  x: number;
-  y: number;
-}
-
 const About: React.FC = () => {
-  const [activeService, setActiveService] = useState<string>("bastion-core");
-  const [mousePosition, setMousePosition] = useState<MousePosition>({
-    x: 0,
-    y: 0,
-  });
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const headerRef = useRef<HTMLElement>(null);
 
-  const services: ServiceCard[] = [
+  const services = [
     {
       id: "research-ally",
       lottie: researchAllyAnim,
@@ -61,18 +36,6 @@ const About: React.FC = () => {
     },
   ];
 
-  // Auto-rotate services
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveService((prevActive) => {
-        const currentIndex = services.findIndex((s) => s.id === prevActive);
-        const nextIndex = (currentIndex + 1) % services.length;
-        return services[nextIndex].id;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [services]);
-
   // Handle mouse movement for cursor light effect
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (headerRef.current) {
@@ -94,18 +57,6 @@ const About: React.FC = () => {
         className="relative bg-gradient-to-br from-[#1C2852] to-[#1C2852] text-white py-16 text-center overflow-hidden"
         onMouseMove={handleMouseMove}
       >
-        {/* Subtle grid background */}
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, ${COLORS.gray} 1px, transparent 1px),
-              linear-gradient(to bottom, ${COLORS.gray} 1px, transparent 1px)
-            `,
-            backgroundSize: "40px 40px",
-          }}
-        />
-
         {/* Interactive cursor light effect */}
         <div
           className="absolute pointer-events-none transition-all duration-300 ease-out opacity-20"
@@ -147,13 +98,13 @@ const About: React.FC = () => {
 
       <div className="relative z-10">
         <BackgroundShapes />
-        {/* Section 1: Investing with Clarity and Conviction */}
+
+        {/* Section 1 */}
         <section className="py-20">
           <div className="container mx-auto px-8 max-w-4xl">
             <h2 className="text-4xl font-bold text-blue-900 mb-12 text-center">
               Investing with Clarity and Conviction
             </h2>
-
             <div className="text-xl leading-relaxed">
               <p className="mb-6">
                 At Bastion Research, we believe good investing shouldn't be
@@ -162,15 +113,14 @@ const About: React.FC = () => {
                 savings deserves access to honest, in-depth research that makes
                 decisions clearer and more confident.
               </p>
-
               <p className="mb-8">
                 We're a boutique equity research firm focused exclusively on
                 Indian listed companies. Our work supports a wide spectrum of
                 investors:
               </p>
 
-              <div className="bg-white rounded-xl p-8 shadow-lg border-l-4 border-red-600">
-                <div className="mb-6 pl-4 border-l-4 border-red-600">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="pt-4 border-t-4 border-red-600 shadow-md rounded-md p-4">
                   <strong className="text-blue-900 text-lg block mb-2">
                     Institutions, fund managers, and family offices
                   </strong>
@@ -178,7 +128,8 @@ const About: React.FC = () => {
                     who rely on us for sharp, independent insights.
                   </span>
                 </div>
-                <div className="pl-4 border-l-4 border-red-600">
+
+                <div className="pt-4 border-t-4 border-red-600 shadow-md rounded-md p-4">
                   <strong className="text-blue-900 text-lg block mb-2">
                     Individual investors
                   </strong>
@@ -199,60 +150,47 @@ const About: React.FC = () => {
           </div>
         </section>
 
-        {/* Section 2: Research Built Around You */}
+        {/* Section 2 - static */}
         <section className="py-20 bg-gray-50">
           <div className="container mx-auto px-8 max-w-5xl">
             <h2 className="text-4xl font-bold text-blue-900 mb-12 text-center">
               Research Built Around You
             </h2>
-
             <p className="text-center text-xl mb-12">
               No matter the size of your portfolio or how you manage it, we've
               built offerings to meet you where you are:
             </p>
 
-            <div className="bg-white rounded-3xl p-12 shadow-xl">
-              <div className="flex justify-center items-center gap-8 relative max-w-4xl mx-auto">
-                {services.map((service, index) => (
-                  <React.Fragment key={service.id}>
-                    <div
-                      className={`
-                      relative z-10 w-72 p-8 rounded-2xl text-center border-2
-                      ${
-                        activeService === service.id
-                          ? `bg-gradient-to-br from-[${COLORS.blue}] to-[${COLORS.blue}] text-white border-[${COLORS.red}]`
-                          : `bg-gradient-to-br from-${COLORS.gray} to-${COLORS.white} text-gray-800 border-gray-200`
-                      }
-                    `}
-                    >
-                      <div className="w-24 h-24 mx-auto mb-4">
-                        <Lottie animationData={service.lottie} loop autoplay />
-                      </div>
-                      <h3 className="text-xl font-bold mb-4 text-blue-900">
-                        {service.title}
-                      </h3>
-                      <p className="text-sm leading-relaxed text-gray-600">
-                        {service.description}
-                      </p>
+            <div className="bg-white rounded-3xl p-4 md:p-12 shadow-xl">
+              <div className="flex flex-col lg:flex-row justify-center items-stretch gap-8 max-w-4xl mx-auto">
+                {services.map((service) => (
+                  <div
+                    key={service.id}
+                    className="flex flex-col w-full sm:w-72 p-8 rounded-2xl text-center border-2 border-gray-200 bg-white shadow-md"
+                  >
+                    <div className="w-120 h-120 sm:w-120 sm:h-120 mx-auto mb-4">
+                      {/* bigger lottie size */}
+                      <Lottie animationData={service.lottie} loop autoplay />
                     </div>
-
-                    {index < services.length - 1 && (
-                      <div className="hidden lg:block w-16 h-0.5 bg-gradient-to-r from-red-600 to-blue-900 relative z-0 opacity-70" />
-                    )}
-                  </React.Fragment>
+                    <h3 className="text-xl font-bold mb-4 text-blue-900">
+                      {service.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-gray-600 flex-grow">
+                      {service.description}
+                    </p>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section 3: More Than Just Reports */}
+        {/* Section 3 */}
         <section className="py-20">
           <div className="container mx-auto px-8 max-w-4xl">
             <h2 className="text-4xl font-bold text-blue-900 mb-12 text-center">
               More Than Just Reports
             </h2>
-
             <div className="text-xl leading-relaxed text-center">
               <p>
                 At Bastion, we're building more than research deliverables.
