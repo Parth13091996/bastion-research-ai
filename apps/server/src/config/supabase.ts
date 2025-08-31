@@ -10,4 +10,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase URL or Anon Key is not set in the environment variables.');
 }
 
+console.log(supabaseUrl, supabaseAnonKey, 'asdfasdf')
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
