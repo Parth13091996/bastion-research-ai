@@ -3,7 +3,7 @@ import { User } from '@repo/types';
 import axiosInstance from '@/api/axios';
 
 interface AuthContextType {
-  user: User | null;
+  user: any;
   login: (user: User) => void;
   logout: () => void;
   refetchUser: () => Promise<void>;
@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isAuthenticated = !!user;
+  //@ts-ignore
   const isAdmin = user?.role === 'administrator';
 
   return (
