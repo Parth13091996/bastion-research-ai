@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const response = await axiosInstance.get('/api/auth/me');
+      console.log(response, 'response')
       setUser(response.data.user);
     } catch (error) {
       setUser(null);

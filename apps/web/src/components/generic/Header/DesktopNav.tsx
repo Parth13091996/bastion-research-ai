@@ -1,8 +1,10 @@
 // components/Header/DesktopNav.jsx
+import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import MyAccountDropdown from "./MyAccountDropdown";
 
 const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
+  const { user} = useAuth()
+  console.log(user, 'user')
   return (
     <nav className="hidden md:flex items-center space-x-8">
       <Link

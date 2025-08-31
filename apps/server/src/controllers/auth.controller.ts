@@ -341,6 +341,7 @@ export const completeGoogleProfile = async (req: Request, res: Response) => {
 export const getMe = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.token;
+    console.log({token})
 
     if (!token) {
       return res.status(401).json({ message: 'Not authenticated' });
