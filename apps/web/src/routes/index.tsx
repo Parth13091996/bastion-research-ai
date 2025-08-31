@@ -1,4 +1,3 @@
-import Editor from "@/components/core/editor";
 import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 
@@ -8,9 +7,13 @@ const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const UserAdminLayout = lazy(() => import("../layouts/UserAdminLayout"));
 
 // Guards
-const ProtectedRoute = lazy(() => import("../components/ProtectedRoute"));
-const AdminRoute = lazy(() => import("../components/AdminRoute"));
-const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
+const ProtectedRoute = lazy(
+  () => import("../components/common/ProtectedRoute")
+);
+const AdminRoute = lazy(() => import("../components/core/admin/AdminRoute"));
+const UserAdminRoute = lazy(
+  () => import("../components/core/admin/UserAdminRoute")
+);
 
 // Pages
 const Home = lazy(() => import("../pages/Home"));
@@ -63,8 +66,7 @@ const AllUsers = lazy(() => import("../pages/Admin/Users/AllUsers"));
 const AddUser = lazy(() => import("../pages/Admin/Users/AddUser"));
 const Profile = lazy(() => import("../pages/Admin/Users/Profile"));
 const AdminSettings = lazy(() => import("../pages/AdminSettings"));
-
-// Components that are used as pages
+const Editor = lazy(() => import("../pages/Editor"));
 const PodcastsBlog = lazy(() => import("../components/generic/PodcastsBlog"));
 const Test = lazy(() => import("../components/generic/Test"));
 const NewsletterArchive = lazy(
@@ -152,7 +154,7 @@ export const routes: RouteObject[] = [
     ],
   },
   {
-    path: "/admin/login",
+    path: AppRoutes.adminLogin(),
     element: <AdminLogin />,
   },
   {
@@ -162,20 +164,29 @@ export const routes: RouteObject[] = [
       {
         element: <AdminRoute />,
         children: [
-          { path: "dashboard", element: <AdminDashboard /> },
-          { path: "ar/members", element: <ManageMembers /> },
-          { path: "ar/plans", element: <ManagePlans /> },
-          { path: "ar/subscriptions", element: <ManageSubscriptions /> },
-          { path: "ar/payments", element: <PaymentHistory /> },
-          { path: "ar/coupons", element: <CouponManagement /> },
-          { path: "jobs/openings", element: <JobOpenings /> },
-          { path: "jobs/add", element: <AddNewJob /> },
-          { path: "jobs/applications", element: <Applications /> },
-          { path: "users/all", element: <AllUsers /> },
-          { path: "users/add", element: <AddUser /> },
-          { path: "users/profile", element: <Profile /> },
-          { path: "settings", element: <AdminSettings /> },
-          { path: "editor", element: <Editor /> },
+          { path: AppRoutes.adminDashboard(), element: <AdminDashboard /> },
+          { path: AppRoutes.adminManageMembers(), element: <ManageMembers /> },
+          { path: AppRoutes.adminManagePlans(), element: <ManagePlans /> },
+          {
+            path: AppRoutes.adminManageSubscriptions(),
+            element: <ManageSubscriptions />,
+          },
+          {
+            path: AppRoutes.adminPaymentHistory(),
+            element: <PaymentHistory />,
+          },
+          {
+            path: AppRoutes.adminCouponManagement(),
+            element: <CouponManagement />,
+          },
+          { path: AppRoutes.adminJobOpenings(), element: <JobOpenings /> },
+          { path: AppRoutes.adminAddNewJob(), element: <AddNewJob /> },
+          { path: AppRoutes.adminApplications(), element: <Applications /> },
+          { path: AppRoutes.adminAllUsers(), element: <AllUsers /> },
+          { path: AppRoutes.adminAddUser(), element: <AddUser /> },
+          { path: AppRoutes.adminProfile(), element: <Profile /> },
+          { path: AppRoutes.adminSettings(), element: <AdminSettings /> },
+          { path: AppRoutes.editor(), element: <Editor /> },
         ],
       },
     ],
