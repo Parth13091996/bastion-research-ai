@@ -173,22 +173,18 @@ export const signIn = async (req: Request, res: Response) => {
   }
 
   try {
-    console.log(email, "check");
 
-    let response = await supabase.from("users").select("*");
-
-    console.log(response, "check user");
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
       .eq("email", email)
       .single();
 
-    if (error || !user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
+      if (error || !user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+      // const isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = password === user.password
 
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials." });
