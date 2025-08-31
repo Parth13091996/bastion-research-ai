@@ -33,7 +33,7 @@ const AdminLogin = () => {
     mutationFn: (data) =>
       axiosInstance.post('/api/auth/signin', data).then((res) => res.data),
     onSuccess: (data) => {
-      if (data.user?.role === 'admin') {
+      if (data.user?.role === 'administrator') {
         login(data.user);
         navigate('/admin/dashboard');
       } else {

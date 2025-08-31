@@ -32,9 +32,11 @@ import jobRoutes from "./routes/job.routes";
 import membershipRoutes from "./routes/membership.routes";
 import couponRoutes from "./routes/coupon.routes";
 import applicationRoutes from "./routes/application.routes";
+import adminRoutes from "./routes/admin.routes";
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/digio", digioRoutes);
 app.use("/api/cashfree", cashfreeRoutes);
 app.use("/api/otp", otpRoutes);

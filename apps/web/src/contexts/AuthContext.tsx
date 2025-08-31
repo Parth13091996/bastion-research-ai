@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isAuthenticated = !!user;
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'administrator';
 
   return (
     <AuthContext.Provider value={{ user, login, logout, refetchUser, isAuthenticated, isAdmin, isLoading }}>

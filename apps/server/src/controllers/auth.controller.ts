@@ -177,7 +177,7 @@ export const signIn = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message: 'Signed in successfully',
-      user: { id: user.id, username: user.username, email: user.email },
+      user: { id: user.id, username: user.username, email: user.email, role: user.role },
     });
   } catch (error) {
     console.error('Sign in error:', error);
