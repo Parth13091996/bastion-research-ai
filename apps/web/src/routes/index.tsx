@@ -1,5 +1,6 @@
 import Editor from "@/components/core/editor";
 import { lazy } from "react";
+import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 
 // Layouts
@@ -162,6 +163,7 @@ export const routes: RouteObject[] = [
       {
         element: <AdminRoute />,
         children: [
+          { index: true, element: <Navigate to="/admin/dashboard" replace /> },
           { path: "dashboard", element: <AdminDashboard /> },
           { path: "ar/members", element: <ManageMembers /> },
           { path: "ar/plans", element: <ManagePlans /> },
