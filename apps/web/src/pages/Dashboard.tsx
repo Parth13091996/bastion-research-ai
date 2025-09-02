@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import CashfreePayment from '@/components/CashfreePayment';
-import PaymentHistory from '@/components/PaymentHistory';
+import PaymentHistory from './Admin/AR/PaymentHistory';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();

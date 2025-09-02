@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import axiosInstance from '@/api/axios';
+import { toast } from 'sonner';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -34,6 +35,9 @@ const Login = () => {
       login(data.user);
       navigate('/dashboard');
     },
+    onError(error: any ) {
+      toast.error(error?.response?.data?.message || error.message)
+    }
   });
 
   const onSubmit = (data: LoginFormValues) => {
@@ -74,11 +78,6 @@ const Login = () => {
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? 'Logging in...' : 'Login'}
           </Button>
-          {mutation.isError && (
-            <p className="mt-2 text-sm text-red-600">
-              {mutation.error.message}
-            </p>
-          )}
         </form>
         <div className="mt-4 text-center">
           <a
