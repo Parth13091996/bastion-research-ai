@@ -210,21 +210,21 @@ const Applications = () => {
                       <div className={`flex items-center gap-2 transition-opacity duration-200 ${hoveredRow === item.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                         <button
                           onClick={() => handleView(item)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-white hover:text-black bg-blue-600 rounded-lg transition-colors"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleEdit(item)}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          className="p-2 text-white hover:text-green-600 bg-blue-600 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-white hover:text-red-600 bg-blue-600 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
