@@ -79,16 +79,6 @@ const Login = () => {
             {mutation.isPending ? 'Logging in...' : 'Login'}
           </Button>
         </form>
-        <div className="mt-4 text-center">
-          <a
-            href={`${import.meta.env.VITE_API_BASE_URL}/api/auth/google`}
-            className="inline-block w-full"
-          >
-            <Button variant="outline" className="w-full">
-              Sign in with Google
-            </Button>
-          </a>
-        </div>
       </div>
     </div>
   );
