@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import bcrypt from 'bcryptjs';
+import sendEmail from '../utils/email';
 
 export const getUsers = async (req: Request, res: Response) => {
   const { data, error } = await supabase.from('users').select('*');
@@ -28,7 +29,31 @@ export const getUserById = async (req: Request, res: Response) => {
 };
 
 export const createUser = async (req: Request, res: Response) => {
-  const { username, email, first_name, last_name, password, role } = req.body;
+  const {
+    username,
+    email,
+    first_name,
+    last_name,
+    password,
+    role,
+    phone,
+    pan_card_number,
+    address_1,
+    address_2,
+    state,
+    city,
+    pin_code,
+    date_of_birth,
+    gst_number,
+    company_name,
+    status,
+  } = req.body;
+
+  // Validate and parse the date of birth
+  if (!date_of_birth || isNaN(Date.parse(date_of_birth))) {
+    return res.status(400).json({ message: 'A valid date of birth is required.' });
+  }
+  const dob = new Date(date_of_birth);
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -42,19 +67,40 @@ export const createUser = async (req: Request, res: Response) => {
       last_name,
       password: hashedPassword,
       role: role || 'user',
-      phone: '0000000000',
-      address_1: 'N/A',
-      pan_card_number: 'N/A',
-      state: 'N/A',
-      city: 'N/A',
-      pin_code: 'N/A',
-      date_of_birth: new Date(),
+      phone,
+      pan_card_number,
+      address_1,
+      address_2,
+      state,
+      city,
+      pin_code,
+      date_of_birth: dob,
+      gst_number,
+      company_name,
+      status: status || 'active',
      }])
     .select();
 
   if (error) {
     return res.status(500).json({ error: error.message });
   }
+
+  // Send signup email notification
+  if (req.body.sendSignupEmail) {
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'Welcome to Bastion Research!',
+        text: `Hello ${first_name},\n\nWelcome to Bastion Research! Your account has been created successfully.\n\nYour username is: ${username}\n\nYou can now log in with the password you set.\n\nBest regards,\nThe Bastion Research Team`,
+        html: `<p>Hello ${first_name},</p><p>Welcome to Bastion Research! Your account has been created successfully.</p><p>Your username is: <strong>${username}</strong></p><p>You can now log in with the password you set.</p><p>Best regards,<br>The Bastion Research Team</p>`,
+      });
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Do not block the response for email failure.
+      // The user is created, but we should log the email error.
+    }
+  }
+
   res.status(201).json(data);
 };
 

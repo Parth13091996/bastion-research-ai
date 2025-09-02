@@ -10,6 +10,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef, GridReadyEvent } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import "../../../styles/ag-grid-custom.css";
 
 const mockMembers = [
   {
@@ -175,12 +176,15 @@ const ActionsRenderer = () => {
   );
 };
 
+import AddMemberModal from "../../../components/admin/AddMemberModal";
+
 const MemberManagementDashboard = () => {
   const [rowData, setRowData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("Select Plans");
   const [selectedStatus, setSelectedStatus] = useState("Select Status");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
 
   const [colDefs] = useState<ColDef[]>([
@@ -210,19 +214,27 @@ const MemberManagementDashboard = () => {
 
   useEffect(() => {
     if (gridRef.current?.api) {
-        let filteredData = mockMembers;
-
-        if (selectedPlan !== "Select Plans") {
-            filteredData = filteredData.filter(member => member.memberPlan === selectedPlan);
+      const planFilter = selectedPlan !== "Select Plans" ? {
+        memberPlan: {
+          filterType: 'text',
+          type: 'equals',
+          filter: selectedPlan,
         }
+      } : null;
 
-        if (selectedStatus !== "Select Status") {
-            filteredData = filteredData.filter(member => member.status === selectedStatus);
+      const statusFilter = selectedStatus !== "Select Status" ? {
+        status: {
+          filterType: 'text',
+          type: 'equals',
+          filter: selectedStatus,
         }
+      } : null;
 
-        gridRef.current.api.setRowData(filteredData);
+      const combinedFilter = { ...planFilter, ...statusFilter };
+      gridRef.current.api.setFilterModel(combinedFilter);
+      gridRef.current.api.onFilterChanged();
     }
-  }, [selectedPlan, selectedStatus, rowData]);
+  }, [selectedPlan, selectedStatus]);
 
   useEffect(() => {
     if (gridRef.current?.api) {
@@ -251,11 +263,13 @@ const MemberManagementDashboard = () => {
           <h1 className="text-2xl font-semibold text-gray-900">
             Manage Members
           </h1>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
             <Plus size={20} />
             <span>Add Member</span>
           </button>
         </div>
+
+        <AddMemberModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-wrap items-center gap-4 mb-4">

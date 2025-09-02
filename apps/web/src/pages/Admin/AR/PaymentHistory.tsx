@@ -4,6 +4,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import "../../../styles/ag-grid-custom.css";
 
 const mockData = [
     { transaction_id: "pay_MKJVgrVkAGQ", invoice_id: "BB-266", user_id: "shreyadhiruobhavyalit@gmail.com", user_email: "shreyadhiruobhavyalit@gmail.com", membership: "Annual Plan", payment_gateway: "Manual", payment_type: "One Time", payer_email: "Paid by admin", transaction_status: "Success", payment_date: "2025-08-27", amount: "₹750.30" },
