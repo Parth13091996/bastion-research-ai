@@ -1,318 +1,466 @@
-import React, { useState, useMemo } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import { ColDef } from 'ag-grid-community';
-// import { useQuery } from '@tanstack/react-query';
-// import axiosInstance from '@/api/axios';
-import { Edit2, Trash2, Plus, Upload, ChevronDown, Search } from 'lucide-react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// ActionsCellRenderer as React component outside main component
-const ActionsCellRenderer = (props: any) => {
-  const [isHovered, setIsHovered] = useState(false);
+const CouponsManagement = () => {
+  const [coupons, setCoupons] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [bulkAction, setBulkAction] = useState('');
+  const [selectedCoupons, setSelectedCoupons] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [hoveredRow, setHoveredRow] = useState(null);
 
-  const handleEdit = () => console.log('Edit row:', props.data);
-  const handleDelete = () => console.log('Delete row:', props.data);
+  // New: filters
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'active' | 'inactive'
+  const [validityFilter, setValidityFilter] = useState('all'); // 'all' | 'valid' | 'expired' | 'unlimited'
 
-  return (
-    <div
-      className="flex items-center justify-end h-full pr-2"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {isHovered && (
-        <div className="flex gap-2">
-          <button
-            onClick={handleEdit}
-            className="group relative p-1 rounded hover:bg-blue-100 transition-colors"
-            title="Edit"
-          >
-            <Edit2 size={16} className="text-blue-600" />
-          </button>
-          <button
-            onClick={handleDelete}
-            className="group relative p-1 rounded hover:bg-red-100 transition-colors"
-            title="Delete"
-          >
-            <Trash2 size={16} className="text-red-600" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ToggleRenderer as React component outside main component
-const ToggleRenderer = (props: any) => {
-  const handleToggle = () => console.log('Toggle active status:', props.data);
-  const isActive = props.data.is_active || false;
-
-  return (
-    <button
-      onClick={handleToggle}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        isActive ? 'bg-blue-600' : 'bg-gray-300'
-      }`}
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-          isActive ? 'translate-x-6' : 'translate-x-1'
-        }`}
-      />
-    </button>
-  );
-};
-
-const CouponManagement = () => {
-  const [searchText, setSearchText] = useState('');
-  const [selectedAction, setSelectedAction] = useState('Bulk Actions');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // Dummy Data with usage_limit as string for consistency
-  const dummyCoupons = [
+  // Dummy data
+  const dummyData = [
     {
-      coupon_id: 1,
-      coupon_label: 'New Year Offer',
-      coupon_code: 'NY2025',
-      discount_value: 20,
-      discount_type: 'percentage',
-      start_date: '2025-01-01',
-      expiry_date: '2025-12-31',
-      is_active: true,
-      description: 'Applicable for all products above ₹500',
-      used_count: 10,
-      usage_limit: '100',
+      id: 1,
+      label: '',
+      code: '101%',
+      discount: '15,390.00 INR',
+      startDate: 'May 8, 2025',
+      expireDate: 'Unlimited',
+      active: true,
+      subscription: 'All Membership Plans and paid posts',
+      used: 0,
+      allowedUses: 'Unlimited'
     },
     {
-      coupon_id: 2,
-      coupon_label: 'Flat Discount',
-      coupon_code: 'FLAT100',
-      discount_value: 100,
-      discount_type: 'fixed',
-      start_date: '2025-02-01',
-      expiry_date: null,
-      is_active: false,
-      description: 'Flat ₹100 off on orders above ₹1000',
-      used_count: 5,
-      usage_limit: 'Unlimited',
+      id: 2,
+      label: '',
+      code: '100%',
+      discount: '15,889.15 INR',
+      startDate: 'May 8, 2025',
+      expireDate: 'Unlimited',
+      active: true,
+      subscription: 'All Membership Plans and paid posts',
+      used: 6,
+      allowedUses: 'Unlimited'
     },
     {
-      coupon_id: 3,
-      coupon_label: 'Summer Sale',
-      coupon_code: 'SUMMER50',
-      discount_value: 50,
-      discount_type: 'percentage',
-      start_date: '2025-04-01',
-      expiry_date: '2025-06-30',
-      is_active: true,
-      description: '50% discount on summer collection',
-      used_count: 30,
-      usage_limit: '50',
+      id: 3,
+      label: '',
+      code: 'BASTION15',
+      discount: '15.00%',
+      startDate: 'December 9, 2024',
+      expireDate: 'December 14, 2024',
+      active: true,
+      subscription: 'Annual Plan\nAll Paid Posts',
+      used: 0,
+      allowedUses: '1'
     },
+    {
+      id: 4,
+      label: 'Puzzle Promo Code',
+      code: 'YOUDIDIT',
+      discount: '20.00%',
+      startDate: 'November 2, 2024',
+      expireDate: 'Unlimited',
+      active: true,
+      subscription: 'Annual Plan\nAll Paid Posts',
+      used: 2,
+      allowedUses: '200'
+    },
+    {
+      id: 5,
+      label: 'Discount to ISB Alumnus',
+      code: 'ISBALUM',
+      discount: '15.00%',
+      startDate: 'October 4, 2024',
+      expireDate: 'Unlimited',
+      active: true,
+      subscription: 'Annual Plan\nAll Paid Posts',
+      used: 1,
+      allowedUses: 'Unlimited'
+    },
+    {
+      id: 6,
+      label: 'Discount to Close Friends',
+      code: 'INNERCIRCLE',
+      discount: '25.00%',
+      startDate: 'June 3, 2024',
+      expireDate: 'December 31, 2024',
+      active: true,
+      subscription: 'Annual Plan\nAll Paid Posts',
+      used: 1,
+      allowedUses: 'Unlimited'
+    }
   ];
 
-  // API Fetch commented
-  /*
-  const { data: rowData = [], isLoading } = useQuery({
-    queryKey: ['coupons'],
-    queryFn: async () => {
-      const res = await axiosInstance.get('/api/coupons');
-      return Array.isArray(res.data.data) ? res.data.data : res.data;
-    },
-  });
-  */
-  const rowData = dummyCoupons;
+  // helpers
+  const isUnlimited = (d) => (d || '').toLowerCase() === 'unlimited';
 
-  // Column Definitions with cellRendererFramework for React components
-  const columnDefs: ColDef[] = useMemo(
-    () => [
--      { headerName: '', field: 'checkbox', width: 50, cellRendererFramework: CheckboxRenderer },
-+      { headerName: '', checkboxSelection: true, width: 50 },
-      { headerName: 'Coupon Label', field: 'coupon_label', width: 150 },
-      {
-        headerName: 'Coupon Code',
-        field: 'coupon_code',
-        width: 130,
-        cellStyle: { color: '#2563eb', textDecoration: 'underline', cursor: 'pointer' },
-      },
-      {
-        headerName: 'Discount',
-        field: 'discount_value',
-        width: 140,
-        valueFormatter: (params) =>
-          params.data.discount_type === 'percentage'
-            ? `${params.value}%`
-            : `${params.value} INR`,
-      },
-      {
-        headerName: 'Start Date',
-        field: 'start_date',
-        width: 120,
-        valueFormatter: (params) =>
-          params.value
-            ? new Date(params.value).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })
-            : '',
-      },
-      {
-        headerName: 'Expire Date',
-        field: 'expiry_date',
-        width: 120,
-        valueFormatter: (params) =>
-          params.value
-            ? new Date(params.value).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })
-            : 'Unlimited',
-        cellStyle: (params) => {
-          if (params.value && new Date(params.value) < new Date()) {
-            return { color: '#ef4444' };
-          }
-          if (!params.value) {
-            // If expiry_date is null, treat as unlimited, no red color
-            return null;
-          }
-          return null;
-        },
-      },
-      { headerName: 'Active', field: 'is_active', width: 80, cellRenderer: ToggleRenderer },
-      { headerName: 'Subscription', field: 'description', width: 200 },
-      { headerName: 'Used', field: 'used_count', width: 80 },
-      { headerName: 'Allowed Uses', field: 'usage_limit', width: 120 },
-      { headerName: '', field: 'actions', width: 100, cellRenderer: ActionsCellRenderer },
-    ],
-    []
-  );
-
-  // Filtered Data
-  const filteredData = useMemo(() => {
-    if (!searchText) return rowData;
-    return rowData.filter((row: any) =>
-      Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(searchText.toLowerCase())
-      )
-    );
-  }, [rowData, searchText]);
-
-  const handleBulkAction = () => {
-    console.log('Bulk action:', selectedAction);
-    setIsDropdownOpen(false);
+  const isExpired = (d) => {
+    if (!d || isUnlimited(d)) return false;
+    const parsed = new Date(d);
+    if (isNaN(parsed.getTime())) return false; // if not parseable, treat as not expired
+    const today = new Date();
+    // compare date-only to avoid time edge-cases
+    parsed.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+    return parsed < today;
   };
 
-  const handleAddCoupon = () => console.log('Add new coupon');
-  const handleBulkCreate = () => console.log('Bulk create coupons');
+  const isValidNow = (d) => isUnlimited(d) || !isExpired(d);
+
+  useEffect(() => {
+    setCoupons(dummyData);
+  }, []);
+
+  // Derived filtered list (search + filters)
+  const filteredCoupons = useMemo(() => {
+    const term = (searchTerm || '').toLowerCase().trim();
+
+    return coupons.filter((c) => {
+      // search across label, code, subscription
+      const label = (c.label || '').toLowerCase();
+      const code = (c.code || '').toLowerCase();
+      const subscription = (c.subscription || '').toLowerCase();
+      const matchesSearch =
+        !term || label.includes(term) || code.includes(term) || subscription.includes(term);
+
+      // active filter
+      const matchesActive =
+        activeFilter === 'all' ||
+        (activeFilter === 'active' && c.active) ||
+        (activeFilter === 'inactive' && !c.active);
+
+      // validity filter
+      const matchesValidity =
+        validityFilter === 'all' ||
+        (validityFilter === 'valid' && isValidNow(c.expireDate)) ||
+        (validityFilter === 'expired' && isExpired(c.expireDate)) ||
+        (validityFilter === 'unlimited' && isUnlimited(c.expireDate));
+
+      return matchesSearch && matchesActive && matchesValidity;
+    });
+  }, [coupons, searchTerm, activeFilter, validityFilter]);
+
+  const totalPages = Math.ceil(filteredCoupons.length / itemsPerPage) || 1;
+
+  const getCurrentPageCoupons = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredCoupons.slice(startIndex, endIndex);
+  };
+
+  // reset to page 1 when filters/search change
+  useEffect(() => {
+    setCurrentPage(1);
+    // also clear select-all state when data slice changes
+    setSelectedCoupons((prev) => prev.filter((id) => filteredCoupons.some((c) => c.id === id)));
+  }, [searchTerm, activeFilter, validityFilter, itemsPerPage, coupons]);
+
+  const handleSearch = (e) => setSearchTerm(e.target.value);
+  const handleBulkActionChange = (e) => setBulkAction(e.target.value);
+
+  const handleBulkActionGo = () => {
+    if (!bulkAction || selectedCoupons.length === 0) return;
+
+    setCoupons((prev) => {
+      if (bulkAction === 'delete') {
+        return prev.filter((c) => !selectedCoupons.includes(c.id));
+      }
+      if (bulkAction === 'activate') {
+        return prev.map((c) => (selectedCoupons.includes(c.id) ? { ...c, active: true } : c));
+      }
+      if (bulkAction === 'deactivate') {
+        return prev.map((c) => (selectedCoupons.includes(c.id) ? { ...c, active: false } : c));
+      }
+      return prev;
+    });
+
+    setSelectedCoupons([]);
+    setBulkAction('');
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const currentPageIds = getCurrentPageCoupons().map((c) => c.id);
+      setSelectedCoupons((prev) => {
+        // union with current page ids
+        const set = new Set([...prev, ...currentPageIds]);
+        return Array.from(set);
+      });
+    } else {
+      const currentPageIds = new Set(getCurrentPageCoupons().map((c) => c.id));
+      setSelectedCoupons((prev) => prev.filter((id) => !currentPageIds.has(id)));
+    }
+  };
+
+  const handleSelectCoupon = (couponId) => {
+    setSelectedCoupons((prev) =>
+      prev.includes(couponId) ? prev.filter((id) => id !== couponId) : [...prev, couponId]
+    );
+  };
+
+  const handleEdit = (couponId) => {
+    console.log('Edit coupon:', couponId);
+    // add your modal / navigation here
+  };
+
+  const handleDelete = (couponId) => {
+    setCoupons((prev) => prev.filter((c) => c.id !== couponId));
+    setSelectedCoupons((prev) => prev.filter((id) => id !== couponId));
+  };
+
+  const handlePageChange = (page) => setCurrentPage(page);
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value, 10));
+    setCurrentPage(1);
+  };
+
+  const formatExpireDate = (date) => {
+    if (isUnlimited(date)) return 'Unlimited';
+    if (isExpired(date)) {
+      return <span className="text-red-500">{date}</span>;
+    }
+    return date;
+    };
+
+  const renderSubscription = (subscription) => {
+    return (subscription || '').split('\n').map((line, index) => (
+      <div key={index} className="text-sm text-gray-600">
+        {line}
+      </div>
+    ));
+  };
+
+  // select-all checkbox checked state only for the current page slice
+  const currentPageIds = new Set(getCurrentPageCoupons().map((c) => c.id));
+  const allCurrentSelected =
+    getCurrentPageCoupons().length > 0 &&
+    getCurrentPageCoupons().every((c) => selectedCoupons.includes(c.id));
 
   return (
-    <div className="bg-white min-h-screen p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Coupons</h1>
-        <div className="flex gap-3">
-          <button
-            onClick={handleAddCoupon}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus size={16} />
-            Add Coupon
-          </button>
-          <button
-            onClick={handleBulkCreate}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Upload size={16} />
-            Bulk Create
-          </button>
-        </div>
-      </div>
-
-      {/* Controls Bar */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-3">
-          <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg bg-white hover:bg-gray-50 transition-colors"
-            >
-              {selectedAction}
-              <ChevronDown size={16} />
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-lg shadow-sm">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b">
+          <h1 className="text-2xl font-semibold text-gray-900">Coupons</h1>
+          <div className="flex gap-3">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+              <span className="text-lg">+</span>
+              Add Coupon
             </button>
-            {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                <div className="py-1">
-                  {['Delete Selected', 'Activate Selected', 'Deactivate Selected'].map((action) => (
-                    <button
-                      key={action}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={() => {
-                        setSelectedAction(action);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      {action}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+              <span className="text-lg">+</span>
+              Bulk Create
+            </button>
           </div>
-          <button
-            onClick={handleBulkAction}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Go
-          </button>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+
+        {/* Controls */}
+        <div className="flex flex-wrap gap-3 justify-between items-center p-6 border-b">
+          <div className="flex items-center gap-3">
+            <select
+              value={bulkAction}
+              onChange={handleBulkActionChange}
+              className="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+            >
+              <option value="">Bulk Actions</option>
+              <option value="delete">Delete</option>
+              <option value="activate">Activate</option>
+              <option value="deactivate">Deactivate</option>
+            </select>
+            <button
+              onClick={handleBulkActionGo}
+              disabled={!bulkAction || selectedCoupons.length === 0}
+              className={`px-4 py-2 rounded text-sm font-medium text-white ${
+                !bulkAction || selectedCoupons.length === 0
+                  ? 'bg-blue-300 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              Go
+            </button>
+
+            {/* New: Active filter */}
+            <select
+              value={activeFilter}
+              onChange={(e) => setActiveFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+
+            {/* New: Validity filter */}
+            <select
+              value={validityFilter}
+              onChange={(e) => setValidityFilter(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+            >
+              <option value="all">All Validity</option>
+              <option value="valid">Valid</option>
+              <option value="expired">Expired</option>
+              <option value="unlimited">Unlimited</option>
+            </select>
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search label, code or subscription"
+              value={searchTerm}
+              onChange={handleSearch}
+              className="border border-gray-300 rounded px-4 py-2 pr-10 text-sm w-72"
+            />
+            <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="w-8 p-4">
+                  <input
+                    type="checkbox"
+                    onChange={handleSelectAll}
+                    checked={allCurrentSelected}
+                    className="rounded"
+                  />
+                </th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Coupon Label</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Coupon Code</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Discount</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Start Date</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Expire Date</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Active</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Subscription</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Used</th>
+                <th className="text-left p-4 text-sm font-medium text-gray-700">Allowed Uses</th>
+                <th className="w-24 p-4 text-right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {getCurrentPageCoupons().map((coupon, index) => (
+                <tr
+                  key={coupon.id}
+                  className={`border-b hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
+                  onMouseEnter={() => setHoveredRow(coupon.id)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                >
+                  <td className="p-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedCoupons.includes(coupon.id)}
+                      onChange={() => handleSelectCoupon(coupon.id)}
+                      className="rounded"
+                    />
+                  </td>
+                  <td className="p-4 text-sm text-gray-900">{coupon.label}</td>
+                  <td className="p-4 text-sm text-blue-600 font-medium underline cursor-pointer">
+                    {coupon.code}
+                  </td>
+                  <td className="p-4 text-sm text-gray-900">{coupon.discount}</td>
+                  <td className="p-4 text-sm text-gray-900">{coupon.startDate}</td>
+                  <td className="p-4 text-sm text-gray-900">{formatExpireDate(coupon.expireDate)}</td>
+                  <td className="p-4">
+                    <div className="flex items-center">
+                      <div className={`w-10 h-5 rounded-full relative transition-colors ${coupon.active ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${coupon.active ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 text-sm text-gray-900">{renderSubscription(coupon.subscription)}</td>
+                  <td className="p-4 text-sm text-gray-900">{coupon.used}</td>
+                  <td className="p-4 text-sm text-gray-900">{coupon.allowedUses}</td>
+                  <td className="p-4 relative text-right">
+                    <div
+                      className={`flex gap-2 justify-end absolute right-4 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${
+                        hoveredRow === coupon.id ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <button
+                        onClick={() => handleEdit(coupon.id)}
+                        className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        title="Edit"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(coupon.id)}
+                        className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {filteredCoupons.length === 0 && (
+                <tr>
+                  <td colSpan={11} className="p-8 text-center text-sm text-gray-500">
+                    No coupons found for the selected filters/search.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center p-6 border-t">
+          <div className="text-sm text-gray-600">
+            Showing {filteredCoupons.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to{' '}
+            {Math.min(currentPage * itemsPerPage, filteredCoupons.length)} of {filteredCoupons.length} entries
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Show</span>
+              <select
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+                className="border border-gray-300 rounded px-2 py-1 text-sm"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-sm text-gray-600">entries</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="px-3 py-1 text-sm font-medium bg-blue-600 text-white rounded">
+                {currentPage}
+              </span>
+              <span className="text-sm text-gray-600">of {totalPages}</span>
+              <button
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages || filteredCoupons.length === 0}
+                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* AG-Grid Table */}
-      <div className="ag-theme-alpine border border-gray-300 rounded-lg" style={{ height: '500px', width: '100%' }}>
-        <AgGridReact
-          rowData={filteredData}
-          columnDefs={columnDefs}
-          defaultColDef={{ resizable: true, sortable: true, filter: true }}
-          pagination={true}
-          paginationPageSize={10}
-          domLayout="normal"
-          suppressRowClickSelection={true}
-          rowSelection="multiple"
-          animateRows={true}
-          getRowHeight={() => 60}
-          getRowId={(params) => params.data.coupon_id.toString()}
-        />
-      </div>
-
-      {/* Footer */}
-      <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <div>
-          Showing 1 to {Math.min(10, rowData.length)} of {rowData.length} entries
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Show</span>
-          <select className="border border-gray-300 rounded px-2 py-1">
-            <option>10</option>
-            <option>25</option>
-            <option>50</option>
-          </select>
-          <span>entries</span>
-        </div>
+      {/* Orange Help Button */}
+      <div className="fixed bottom-6 right-6">
+        <button className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-full shadow-lg">
+          <span className="text-xl font-bold">?</span>
+        </button>
       </div>
     </div>
   );
 };
 
-export default CouponManagement;
+export default CouponsManagement;
