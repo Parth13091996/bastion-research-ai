@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { Cashfree } from "cashfree-pg";
+import { createUserAfterOnboarding } from "./auth.controller";
+import { supabase } from "../config/supabase";
+import crypto from "crypto";
 
 // Environment/config
 const CF_APP_ID = process.env.CASHFREE_APP_ID;
@@ -94,13 +97,16 @@ export const listPlans = async (_req: Request, res: Response) => {
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const { plan, customer_id, customer_email, customer_phone } = req.body;
+    const { plan, customer_id, customer_email, customer_phone, sessionId } =
+      req.body;
     if (!plan || !(plan in PLANS))
       return res.status(400).json({ message: "Invalid plan. Use 3m or 12m." });
     if (!customer_id)
       return res.status(400).json({ message: "customer_id is required" });
     if (!customer_phone)
       return res.status(400).json({ message: "customer_phone is required" });
+    if (!sessionId)
+      return res.status(400).json({ message: "sessionId is required" });
 
     const selected = PLANS[plan as "3m" | "12m"];
     const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
@@ -120,6 +126,7 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       },
       order_meta: {
         return_url: returnUrl,
+        onboarding_session_id: sessionId,
       },
     };
 
@@ -138,6 +145,71 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
           : undefined,
     };
     return res.status(status).json(payload);
+  }
+};
+
+export const handleCashfreeWebhook = async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers["x-webhook-signature"] as string;
+    const timestamp = req.headers["x-webhook-timestamp"] as string;
+    const rawBody = (req as any).rawBody;
+
+    if (!signature || !timestamp || !rawBody) {
+      return res
+        .status(400)
+        .json({ message: "Missing webhook signature or timestamp." });
+    }
+
+    const secret = process.env.CASHFREE_SECRET;
+    if (!secret) {
+      throw new Error("CASHFREE_SECRET is not configured.");
+    }
+
+    const dataToVerify = `${timestamp}${rawBody}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(dataToVerify)
+      .digest("base64");
+
+    if (signature !== expectedSignature) {
+      return res.status(401).json({ message: "Invalid webhook signature." });
+    }
+
+    // Signature is valid, process the event
+    const event = JSON.parse(rawBody);
+
+    if (event.data.order.order_status === "PAID") {
+      const sessionId = event.data.order.order_meta.onboarding_session_id;
+
+      if (sessionId) {
+        // 1. Fetch the session
+        const { data: session, error: sessionError } = await supabase
+          .from("onboarding_sessions")
+          .select("session_data")
+          .eq("id", sessionId)
+          .single();
+
+        if (sessionError || !session) {
+          console.error(
+            `Webhook Error: Onboarding session not found for id: ${sessionId}`
+          );
+          return res.status(404).json({ message: "Session not found." });
+        }
+
+        // 2. Create the user
+        await createUserAfterOnboarding(session.session_data);
+
+        // 3. Delete the session
+        await supabase.from("onboarding_sessions").delete().eq("id", sessionId);
+      }
+    }
+
+    res.status(200).json({ message: "Webhook received successfully." });
+  } catch (error: any) {
+    console.error("Error handling Cashfree webhook:", error);
+    res
+      .status(500)
+      .json({ message: "Error handling webhook.", error: error.message });
   }
 };
 
