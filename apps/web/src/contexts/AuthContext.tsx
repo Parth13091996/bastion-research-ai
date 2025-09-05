@@ -1,11 +1,20 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@repo/types';
-import axiosInstance from '@/api/axios';
+import axiosInstance from "@/api/axios";
+import { Config } from "@/utils/config";
+import { User } from "@repo/types";
+import { useQuery } from "@tanstack/react-query";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: any;
   login: (user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   refetchUser: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -18,17 +27,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const {
+    data,
+    isLoading: isQueryLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["auth-session"],
+    queryFn: async () => (await axiosInstance.get("/api/auth/session")).data,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
+    gcTime: 10 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
+    retry: 1,
+  });
+
+  useEffect(() => {
+    setUser(data?.user ?? null);
+    setIsLoading(isQueryLoading);
+  }, [data, isQueryLoading]);
+
   const refetchUser = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axiosInstance.get('/api/auth/me');
-      console.log(response, 'response')
-      setUser(response.data.user);
-    } catch (error) {
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+    await refetch();
   };
 
   useEffect(() => {
@@ -41,20 +58,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await axiosInstance.post('/api/auth/logout');
+      const response = await axiosInstance.post("/api/auth/logout");
+      toast.success(response?.data?.message || "Logged out successfully");
     } catch (error) {
-      console.error('Logout failed', error);
+      console.error("Logout failed", error);
     } finally {
       setUser(null);
     }
   };
 
   const isAuthenticated = !!user;
-  //@ts-ignore
-  const isAdmin = user?.role === 'administrator';
+  const isAdmin = user?.role === Config.roles.admin;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, refetchUser, isAuthenticated, isAdmin, isLoading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        refetchUser,
+        isAuthenticated,
+        isAdmin,
+        isLoading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -63,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

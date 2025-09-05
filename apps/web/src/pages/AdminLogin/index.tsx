@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import axiosInstance from "@/api/axios";
+import { Config } from "@/utils/config";
+import { toast } from "sonner";
+import { AppRoutes } from "@/routes";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -18,14 +21,13 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, isAdmin } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+  const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && isAdmin) {
-      navigate("/admin/dashboard", { replace: true });
+    if (isAuthenticated && isAdmin && !isLoading) {
+      navigate(AppRoutes.adminDashboard(), { replace: true });
     }
-  }, [isAuthenticated, isAdmin, navigate]);
+  }, [isAuthenticated, isAdmin, isLoading, navigate]);
 
   const {
     register,
@@ -43,22 +45,25 @@ const AdminLogin = () => {
     mutationFn: (data) =>
       axiosInstance.post("/api/auth/signin", data).then((res) => res.data),
     onSuccess: (data: any) => {
-      if (data.user?.role === "administrator") {
+      if (data.user?.role === Config.roles.admin) {
+        toast.success("Admin logged in successfully");
         login(data.user);
-        navigate("/admin/dashboard");
-      } else {
-        setError("You are not authorized to access the admin panel.");
+        navigate(AppRoutes.adminDashboard());
       }
     },
-    onError: (error) => {
-      setError(error.message);
+    onError: (error: Error & { response: { data: { message: string } } }) => {
+      toast.error(error?.response?.data?.message);
     },
   });
 
   const onSubmit = (data: LoginFormValues) => {
-    setError(null);
     mutation.mutate(data);
   };
+
+  if (isLoading) {
+    // Add page loader.
+    return <></>;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -102,9 +107,6 @@ const AdminLogin = () => {
           >
             {mutation.isPending ? "Logging in..." : "Login"}
           </Button>
-          {error && (
-            <p className="mt-2 text-sm text-center text-red-600">{error}</p>
-          )}
         </form>
       </div>
     </div>

@@ -17,7 +17,6 @@ const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
 const Home = lazy(() => import("../pages/Home"));
 const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
-const AuthCallback = lazy(() => import("../pages/AuthCallback"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const Contact = lazy(() => import("../pages/Contact"));
 const CareerPage = lazy(() => import("../pages/Careers"));
@@ -80,7 +79,6 @@ export const AppRoutes = {
   home: () => "/",
   login: () => "/login",
   register: () => "/register",
-  authCallback: () => "/auth/callback",
   dashboard: () => "/dashboard",
   contact: () => "/contact",
   careerPage: () => "/careers",
@@ -123,7 +121,6 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.home(), element: <Home /> },
       { path: AppRoutes.login(), element: <Login /> },
       { path: AppRoutes.register(), element: <Register /> },
-      { path: AppRoutes.authCallback(), element: <AuthCallback /> },
       { path: AppRoutes.contact(), element: <Contact /> },
       { path: AppRoutes.careerPage(), element: <CareerPage /> },
       { path: AppRoutes.singleCareerPage(), element: <SingleCareerPage /> },
@@ -150,31 +147,76 @@ export const routes: RouteObject[] = [
     ],
   },
   {
-    path: "/admin/login",
+    path: AppRoutes.adminLogin(),
     element: <AdminLogin />,
   },
   {
-    path: "/admin",
+    path: AppRoutes.adminDashboard().replace("/dashboard", ""),
     element: <AdminLayout />,
     children: [
       {
         element: <AdminRoute />,
         children: [
-          { index: true, element: <Navigate to="/admin/dashboard" replace /> },
-          { path: "dashboard", element: <AdminDashboard /> },
-          { path: "ar/members", element: <ManageMembers /> },
-          { path: "ar/plans", element: <ManagePlans /> },
-          { path: "ar/subscriptions", element: <ManageSubscriptions /> },
-          { path: "ar/payments", element: <PaymentHistory /> },
-          { path: "ar/coupons", element: <CouponManagement /> },
-          { path: "jobs/openings", element: <JobOpenings /> },
-          { path: "jobs/add", element: <AddNewJob /> },
-          { path: "jobs/applications", element: <Applications /> },
-          { path: "users/all", element: <AllUsers /> },
-          { path: "users/add", element: <AddUser /> },
-          { path: "users/profile", element: <Profile /> },
-          { path: "settings", element: <AdminSettings /> },
-          { path: "editor", element: <Editor /> },
+          {
+            index: true,
+            element: <Navigate to={AppRoutes.adminDashboard()} replace />,
+          },
+          {
+            path: AppRoutes.adminDashboard(),
+            element: <AdminDashboard />,
+          },
+          {
+            path: AppRoutes.adminManageMembers(),
+            element: <ManageMembers />,
+          },
+          {
+            path: AppRoutes.adminManagePlans(),
+            element: <ManagePlans />,
+          },
+          {
+            path: AppRoutes.adminManageSubscriptions(),
+            element: <ManageSubscriptions />,
+          },
+          {
+            path: AppRoutes.adminPaymentHistory(),
+            element: <PaymentHistory />,
+          },
+          {
+            path: AppRoutes.adminCouponManagement(),
+            element: <CouponManagement />,
+          },
+          {
+            path: AppRoutes.adminJobOpenings(),
+            element: <JobOpenings />,
+          },
+          {
+            path: AppRoutes.adminAddNewJob(),
+            element: <AddNewJob />,
+          },
+          {
+            path: AppRoutes.adminApplications(),
+            element: <Applications />,
+          },
+          {
+            path: AppRoutes.adminAllUsers(),
+            element: <AllUsers />,
+          },
+          {
+            path: AppRoutes.adminAddUser(),
+            element: <AddUser />,
+          },
+          {
+            path: AppRoutes.adminProfile(),
+            element: <Profile />,
+          },
+          {
+            path: AppRoutes.adminSettings(),
+            element: <AdminSettings />,
+          },
+          {
+            path: AppRoutes.editor(),
+            element: <Editor />,
+          },
         ],
       },
     ],

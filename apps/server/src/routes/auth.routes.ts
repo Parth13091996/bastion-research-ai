@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   signIn,
   forgotPassword,
-  getMe,
+  getUserSession,
   logout,
   registerFromOnboarding,
 } from "../controllers/auth.controller";
@@ -15,7 +15,7 @@ router.post("/forgot-password", forgotPassword);
 router.post("/onboard", registerFromOnboarding);
 
 // User session routes
-router.get("/me", getMe);
+router.get("/session", getUserSession);
 router.post("/logout", logout);
 
 export default router;

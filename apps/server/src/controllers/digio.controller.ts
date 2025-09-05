@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import FormData from "form-data";
-import { supabase } from "../supabase/supabase";
+import { supabase } from "../supabase";
 
 const DIGIO_BASE_URL = process.env.DIGIO_BASE_URL || "https://ext.digio.in:444";
 const DIGIO_UPLOAD_PATH = "/v2/client/document/upload";
@@ -34,12 +34,10 @@ export const initiateSignature = async (req: Request, res: Response) => {
     const { identifier, name, include_authentication_url } = req.body;
 
     if (!file)
-      return res
-        .status(400)
-        .json({
-          message:
-            'file (pdf) is required. Use form-data with key "file" or "pdf".',
-        });
+      return res.status(400).json({
+        message:
+          'file (pdf) is required. Use form-data with key "file" or "pdf".',
+      });
     if (!identifier)
       return res
         .status(400)
