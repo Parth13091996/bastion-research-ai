@@ -6,8 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
-    "db:migrate": "DOTENV_CONFIG_PATH=./.env.temp ts-node -r dotenv/config src/scripts/create-onboarding-table.ts"
+    "dev": "nodemon src/index.ts"
   },
   "keywords": [
     "express",

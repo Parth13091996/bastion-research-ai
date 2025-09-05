@@ -39,33 +39,15 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    const initializeSession = async () => {
-      let sessionIdFromStorage = localStorage.getItem("onboardingSessionId");
-      const formDataFromStorage = localStorage.getItem("onboardingFormData");
-
-      if (formDataFromStorage) {
+    // Load any saved form data from localStorage
+    const formDataFromStorage = localStorage.getItem("onboardingFormData");
+    if (formDataFromStorage) {
+      try {
         setFormData(JSON.parse(formDataFromStorage));
-      }
-
-      if (sessionIdFromStorage) {
-        setSessionId(sessionIdFromStorage);
-      } else {
-        try {
-          const response = await axiosInstance.post("/api/onboarding/session");
-          sessionIdFromStorage = response.data.sessionId;
-          setSessionId(sessionIdFromStorage);
-          localStorage.setItem("onboardingSessionId", sessionIdFromStorage);
-        } catch (err) {
-          setError("Failed to create an onboarding session. Please try again.");
-          console.error(err);
-        }
-      }
-    };
-
-    initializeSession();
+      } catch {}
+    }
   }, []);
 
   const steps = [
@@ -113,25 +95,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const updateSessionData = async () => {
-    if (!sessionId) return;
-    try {
-      await axiosInstance.put(`/api/onboarding/session/${sessionId}`, {
-        session_data: formData,
-      });
-    } catch (err) {
-      console.error("Failed to update session data", err);
-      // We can choose to show an error to the user here
-    }
-  };
-
-  // This function will be called whenever the form data changes, to keep the backend in sync.
+  // Persist form data locally for continuity between steps
   useEffect(() => {
-    if (sessionId) {
-      localStorage.setItem("onboardingFormData", JSON.stringify(formData));
-      updateSessionData();
-    }
-  }, [formData, sessionId]);
+    localStorage.setItem("onboardingFormData", JSON.stringify(formData));
+  }, [formData]);
 
   const handleRegister = async () => {
     setError(null);
@@ -143,7 +110,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     try {
       // Data is already updated in the session via useEffect
       await axiosInstance.post("/api/otp/send", {
-        sessionId: sessionId,
+        phone: formData.phone,
       });
       nextStep();
     } catch (err: any) {
@@ -162,7 +129,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     const otp = formData.otp.join("");
     try {
       await axiosInstance.post("/api/otp/verify", {
-        sessionId: sessionId,
+        phone: formData.phone,
         otp: otp,
       });
       nextStep();
@@ -181,7 +148,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
     try {
       await axiosInstance.post("/api/otp/send", {
-        sessionId: sessionId,
+        phone: formData.phone,
       });
       setOtpTimer(51); // Reset timer
     } catch (err: any) {
@@ -203,7 +170,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         customer_id: formData.email,
         customer_email: formData.email,
         customer_phone: formData.phone,
-        sessionId: sessionId,
       });
 
       const { payment_session_id } = orderResponse.data.order;
@@ -221,12 +187,21 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             return;
           }
           if (result.paymentDetails.paymentStatus === "SUCCESS") {
-            // The backend webhook will handle user creation.
-            // We can just show a success message here or redirect to a success page.
-            alert(
-              "Payment successful! Welcome to TripleEdge! Your account is being created."
-            );
-            onClose();
+            try {
+              // Finalize onboarding by creating the user
+              await axiosInstance.post("/api/auth/onboard", formData);
+              alert(
+                "Payment successful! Welcome to TripleEdge! Your account has been created."
+              );
+              // Clear local storage of onboarding data
+              localStorage.removeItem("onboardingFormData");
+              onClose();
+            } catch (createErr: any) {
+              const msg =
+                createErr?.response?.data?.message ||
+                "Payment done, but account creation failed. Please contact support.";
+              setError(msg);
+            }
           }
         });
     } catch (err: any) {

@@ -97,7 +97,7 @@ export const listPlans = async (_req: Request, res: Response) => {
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const { plan, customer_id, customer_email, customer_phone, sessionId } =
+    const { plan, customer_id, customer_email, customer_phone } =
       req.body;
     if (!plan || !(plan in PLANS))
       return res.status(400).json({ message: "Invalid plan. Use 3m or 12m." });
@@ -105,8 +105,6 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "customer_id is required" });
     if (!customer_phone)
       return res.status(400).json({ message: "customer_phone is required" });
-    if (!sessionId)
-      return res.status(400).json({ message: "sessionId is required" });
 
     const selected = PLANS[plan as "3m" | "12m"];
     const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
@@ -126,7 +124,6 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       },
       order_meta: {
         return_url: returnUrl,
-        onboarding_session_id: sessionId,
       },
     };
 
@@ -177,32 +174,8 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
 
     // Signature is valid, process the event
     const event = JSON.parse(rawBody);
-
-    if (event.data.order.order_status === "PAID") {
-      const sessionId = event.data.order.order_meta.onboarding_session_id;
-
-      if (sessionId) {
-        // 1. Fetch the session
-        const { data: session, error: sessionError } = await supabase
-          .from("onboarding_sessions")
-          .select("session_data")
-          .eq("id", sessionId)
-          .single();
-
-        if (sessionError || !session) {
-          console.error(
-            `Webhook Error: Onboarding session not found for id: ${sessionId}`
-          );
-          return res.status(404).json({ message: "Session not found." });
-        }
-
-        // 2. Create the user
-        await createUserAfterOnboarding(session.session_data);
-
-        // 3. Delete the session
-        await supabase.from("onboarding_sessions").delete().eq("id", sessionId);
-      }
-    }
+    // We no longer depend on onboarding_sessions here. If required,
+    // client will finalize onboarding after payment success.
 
     res.status(200).json({ message: "Webhook received successfully." });
   } catch (error: any) {
