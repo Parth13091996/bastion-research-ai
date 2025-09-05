@@ -36,3 +36,5 @@ export const AppRoutes = {
   adminSettings: () => "/admin/settings",
   editor: () => "/admin/editor",
 };
+
+export const AuthRoutes = [AppRoutes.login(), AppRoutes.register()];

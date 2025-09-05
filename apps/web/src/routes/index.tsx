@@ -1,17 +1,16 @@
 import Editor from "@/components/core/editor";
 import { lazy } from "react";
-import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 import { AppRoutes } from "./app-routes";
 
 // Layouts
-const RootLayout = lazy(() => import("../layouts/RootLayout"));
+const ClientLayout = lazy(() => import("../layouts/ClientLayout"));
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const UserAdminLayout = lazy(() => import("../layouts/UserAdminLayout"));
 
 // Guards
-const ProtectedRoute = lazy(() => import("../components/ProtectedRoute"));
-const AdminRoute = lazy(() => import("../components/AdminRoute"));
+const ProtectedRoute = lazy(() => import("./ClientRoutes/ProtectedRoute"));
+const AdminRoute = lazy(() => import("./AdminRoutes/AdminRoute"));
 const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
 
 // Pages
@@ -77,7 +76,7 @@ const SmartFrameworks = lazy(
 
 export const routes: RouteObject[] = [
   {
-    element: <RootLayout />,
+    element: <ClientLayout />,
     children: [
       { path: AppRoutes.home(), element: <Home /> },
       { path: AppRoutes.login(), element: <Login /> },
@@ -108,19 +107,14 @@ export const routes: RouteObject[] = [
     ],
   },
   {
-    path: AppRoutes.adminLogin(),
-    element: <AdminLogin />,
-  },
-  {
-    path: AppRoutes.adminDashboard().replace("/dashboard", ""),
     element: <AdminLayout />,
     children: [
       {
         element: <AdminRoute />,
         children: [
           {
-            index: true,
-            element: <Navigate to={AppRoutes.adminDashboard()} replace />,
+            path: AppRoutes.adminLogin(),
+            element: <AdminLogin />,
           },
           {
             path: AppRoutes.adminDashboard(),
