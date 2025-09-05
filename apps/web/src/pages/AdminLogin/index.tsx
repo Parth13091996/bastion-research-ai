@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,11 +25,8 @@ const AdminLogin = () => {
   const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
   const { start: showLoader, stop: hideLoader } = useLoader();
 
-  useEffect(() => {
-    if (isAuthenticated && isAdmin && !isLoading) {
-      navigate(AppRoutes.adminDashboard(), { replace: true });
-    }
-  }, [isAuthenticated, isAdmin, isLoading, navigate]);
+  // Redirect immediately during render once auth is known
+  const shouldRedirect = !isLoading && isAuthenticated && isAdmin;
 
   useEffect(() => {
     if (isLoading) {
@@ -71,9 +68,8 @@ const AdminLogin = () => {
     mutation.mutate(data);
   };
 
-  if (isLoading) {
-    return <></>;
-  }
+  if (isLoading) return <></>;
+  if (shouldRedirect) return <Navigate to={AppRoutes.adminDashboard()} replace />;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
