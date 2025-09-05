@@ -92,7 +92,6 @@ export const createUserAfterOnboarding = async (userData: any) => {
     );
   }
 
-  console.log(`Successfully created new user: ${newUser.email}`);
   return newUser;
 };
 
@@ -117,7 +116,6 @@ export const signIn = async (req: Request, res: Response) => {
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
-    console.log(password, user.password, "check response");
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -157,7 +155,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
       .json({ message: "Please provide an email address." });
   }
 
-  console.log(`Password reset requested for: ${email}`);
   res.status(200).json({
     message:
       "If an account with this email exists, a password reset link has been sent.",

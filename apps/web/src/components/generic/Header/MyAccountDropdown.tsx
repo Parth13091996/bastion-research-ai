@@ -8,8 +8,6 @@ const MyAccountDropdown = () => {
   };
 
   const handleOptionClick = (e) => {
-    // Handle navigation or action here
-    console.log("Clicked:", e.target.textContent);
     setIsDropdownOpen(false);
   };
 
