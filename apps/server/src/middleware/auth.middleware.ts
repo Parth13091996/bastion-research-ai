@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { supabase } from "../supabase/supabase";
+import { supabase } from "../supabase";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -44,7 +44,7 @@ export const protect = async (
 };
 
 export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user && req.user.role === "administrator") {
+  if (req.user && req.user.role === "admin") {
     next();
   } else {
     res.status(401).json({ message: "Not authorized as an administrator" });

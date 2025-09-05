@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { supabase } from "../supabase/supabase";
+import { supabase } from "../supabase";
 
 export const getMembershipPlans = async (req: Request, res: Response) => {
   const { data, error } = await supabase.from("membership_plans").select("*");

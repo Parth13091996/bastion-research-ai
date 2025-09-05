@@ -164,10 +164,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
   });
 };
 
-export const getMe = async (req: Request, res: Response) => {
+export const getUserSession = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.token;
-    console.log({ token });
 
     if (!token) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -180,7 +179,7 @@ export const getMe = async (req: Request, res: Response) => {
 
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, username, email, role") // Make sure to select the 'role'
+      .select("*")
       .eq("id", decoded.id)
       .single();
 

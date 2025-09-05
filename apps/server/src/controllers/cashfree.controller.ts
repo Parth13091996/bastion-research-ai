@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { Cashfree } from "cashfree-pg";
-import { createUserAfterOnboarding } from "./auth.controller";
-import { supabase } from "../supabase/supabase";
 import crypto from "crypto";
 
 // Environment/config

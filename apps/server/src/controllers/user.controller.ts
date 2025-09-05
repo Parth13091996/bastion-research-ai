@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { supabase } from "../supabase/supabase";
 import bcrypt from "bcryptjs";
 import sendEmail from "../utils/email";
+import { supabase } from "../supabase";
 
 export const getUsers = async (req: Request, res: Response) => {
   const { data, error } = await supabase.from("users").select("*");

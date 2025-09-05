@@ -1,18 +1,30 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const AdminHeader = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const homeRedirect = () => {
+    navigate("/");
+  };
   return (
     <header className="bg-gray-800 text-white shadow-md">
-      <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <h1 className="text-xl font-bold">Admin Panel</h1>
-          </div>
-          <div className="flex items-center">
-            <a href="/" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline">Visit Website</Button>
-            </a>
+      <div className="mx-auto px-6 md:px-8 lg:px-8">
+        <div className="flex justify-center items-center h-16">
+          <div className="flex flex-1 gap-4 justify-end">
+            <Button
+              variant="outline"
+              className="text-black"
+              onClick={homeRedirect}
+            >
+              Visit Website
+            </Button>
+
+            <Button variant="outline" className="text-black" onClick={logout}>
+              Logout
+            </Button>
           </div>
         </div>
       </div>
