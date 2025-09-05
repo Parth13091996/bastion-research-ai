@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { supabase } from "../config/supabase";
 import twilio from "twilio";
 
 // Initialize Twilio Client
@@ -13,15 +12,19 @@ if (!accountSid || !authToken || !twilioFromNumber) {
 
 const twilioClient = twilio(accountSid, authToken);
 
+// In-memory OTP store keyed by phone number
+// Note: For production, prefer a persistent store (e.g., Redis) or Twilio Verify
+const otpStore = new Map<string, { otp: string; expiresAt: number }>();
+
 const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 export const sendOtp = async (req: Request, res: Response) => {
-  const { sessionId } = req.body;
+  const { phone } = req.body as { phone?: string };
 
-  if (!sessionId) {
-    return res.status(400).json({ message: "sessionId is required." });
+  if (!phone) {
+    return res.status(400).json({ message: "phone is required." });
   }
 
   if (!twilioClient) {
@@ -31,47 +34,14 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 
   try {
-    // 1. Find the onboarding session
-    const { data: session, error: sessionError } = await supabase
-      .from("onboarding_sessions")
-      .select("session_data")
-      .eq("id", sessionId)
-      .single();
-
-    if (sessionError || !session) {
-      return res.status(404).json({ message: "Onboarding session not found." });
-    }
-
-    const phone = session.session_data?.phone;
-    if (!phone) {
-      return res
-        .status(400)
-        .json({ message: "Phone number not found in session data." });
-    }
-
-    // 2. Generate OTP and expiration
+    // 1. Generate OTP and expiration
     const otp = generateOtp();
     const otp_expires_at = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-    // 3. Save OTP to the session's record
-    const updated_session_data = {
-      ...session.session_data,
-      otp,
-      otp_expires_at: otp_expires_at.toISOString(),
-    };
-    const { error: updateError } = await supabase
-      .from("onboarding_sessions")
-      .update({ session_data: updated_session_data })
-      .eq("id", sessionId);
+    // 2. Save OTP in-memory store for the phone
+    otpStore.set(phone, { otp, expiresAt: otp_expires_at.getTime() });
 
-    if (updateError) {
-      console.error("OTP update error:", updateError);
-      return res
-        .status(500)
-        .json({ message: "Failed to save OTP to session." });
-    }
-
-    // 4. Send the OTP via Twilio
+    // 3. Send the OTP via Twilio
     try {
       await twilioClient.messages.create({
         body: `Your verification code is: ${otp}`,
@@ -90,61 +60,34 @@ export const sendOtp = async (req: Request, res: Response) => {
 };
 
 export const verifyOtp = async (req: Request, res: Response) => {
-  const { sessionId, otp } = req.body;
+  const { phone, otp } = req.body as { phone?: string; otp?: string };
 
-  if (!sessionId || !otp) {
-    return res.status(400).json({ message: "sessionId and OTP are required." });
+  if (!phone || !otp) {
+    return res.status(400).json({ message: "phone and otp are required." });
   }
 
   try {
-    // 1. Find the session and its stored OTP
-    const { data: session, error: sessionError } = await supabase
-      .from("onboarding_sessions")
-      .select("session_data")
-      .eq("id", sessionId)
-      .single();
+    const entry = otpStore.get(phone);
 
-    if (sessionError || !session) {
-      return res.status(404).json({ message: "Onboarding session not found." });
+    if (!entry) {
+      return res.status(400).json({ message: "No OTP found. Please request one." });
     }
 
-    const { otp: storedOtp, otp_expires_at: storedOtpExpiresAt } =
-      session.session_data;
-
-    // 2. Verify the OTP
-    if (!storedOtp || !storedOtpExpiresAt) {
-      return res
-        .status(400)
-        .json({
-          message: "No OTP found for this session. Please request one.",
-        });
-    }
+    const { otp: storedOtp, expiresAt } = entry;
 
     if (storedOtp !== otp) {
       return res.status(400).json({ message: "Invalid OTP." });
     }
 
-    if (new Date() > new Date(storedOtpExpiresAt)) {
+    if (Date.now() > expiresAt) {
+      otpStore.delete(phone);
       return res
         .status(400)
         .json({ message: "OTP has expired. Please request a new one." });
     }
 
-    // 3. Clear the OTP from the session data and update status
-    const {
-      otp: _otp,
-      otp_expires_at: _otp_expires_at,
-      ...restOfSessionData
-    } = session.session_data;
-    const { error: updateError } = await supabase
-      .from("onboarding_sessions")
-      .update({ session_data: restOfSessionData, status: "otp_verified" })
-      .eq("id", sessionId);
-
-    if (updateError) {
-      console.error("OTP clear error:", updateError);
-      // Don't block the user, but log the error
-    }
+    // 3. Clear OTP for this phone after successful verification
+    otpStore.delete(phone);
 
     res.status(200).json({ message: "OTP verified successfully." });
   } catch (error) {

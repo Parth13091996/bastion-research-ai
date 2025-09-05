@@ -201,3 +201,35 @@ export const logout = (req: Request, res: Response) => {
   });
   res.status(200).json({ message: "Logged out successfully" });
 };
+
+// Endpoint to finalize onboarding and create the user after payment success
+export const registerFromOnboarding = async (req: Request, res: Response) => {
+  try {
+    const userData = req.body;
+
+    // createUserAfterOnboarding already validates required fields and checks duplicates
+    const newUser = await createUserAfterOnboarding(userData);
+
+    // Optionally, auto-login user here by setting a cookie
+    try {
+      const token = generateToken(newUser.id, newUser.email);
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+    } catch {}
+
+    return res.status(201).json({
+      message: "User created successfully",
+      user: newUser,
+    });
+  } catch (error: any) {
+    console.error("Onboarding finalize error:", error);
+    return res.status(400).json({
+      message: "Failed to create user from onboarding data",
+      error: error?.message,
+    });
+  }
+};
