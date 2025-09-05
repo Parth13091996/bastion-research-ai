@@ -6,6 +6,13 @@ import digioRoutes from "./routes/digio.routes";
 import cashfreeRoutes from "./routes/cashfree.routes";
 import otpRoutes from "./routes/otp.routes";
 import cookieParser from "cookie-parser";
+// Routes
+import userRoutes from "./routes/user.routes";
+import jobRoutes from "./routes/job.routes";
+import membershipRoutes from "./routes/membership.routes";
+import couponRoutes from "./routes/coupon.routes";
+import applicationRoutes from "./routes/application.routes";
+import adminRoutes from "./routes/admin.routes";
 
 dotenv.config();
 
@@ -15,7 +22,7 @@ const port = process.env.PORT || 3003;
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
@@ -33,13 +40,6 @@ app.get("/healthcheck", (req: Request, res: Response) => {
   res.status(200).json({ status: "ok", message: "Server is healthy" });
 });
 
-import userRoutes from "./routes/user.routes";
-import jobRoutes from "./routes/job.routes";
-import membershipRoutes from "./routes/membership.routes";
-import couponRoutes from "./routes/coupon.routes";
-import applicationRoutes from "./routes/application.routes";
-import adminRoutes from "./routes/admin.routes";
-
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -54,7 +54,9 @@ app.use("/api", membershipRoutes);
 
 // Root endpoint
 app.get("/", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
+  res
+    .status(200)
+    .json({ status: "ok", message: "Express + TypeScript Server running!" });
 });
 
 app.listen(port, () => {

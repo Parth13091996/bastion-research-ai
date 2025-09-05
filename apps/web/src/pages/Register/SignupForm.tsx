@@ -16,6 +16,609 @@ interface Plan {
   currency: string;
 }
 
+// Step components moved out to avoid remounting on parent state changes
+type UpdateFormFn = (field: string, value: any) => void;
+
+interface RegisterStepProps {
+  formData: {
+    email: string;
+    phone: string;
+    password: string;
+    confirmPassword: string;
+  };
+  showPassword: boolean;
+  onTogglePassword: () => void;
+  updateFormData: UpdateFormFn;
+  error: string | null;
+  isLoading: boolean;
+  onRegister: () => void;
+}
+
+const RegisterStepView: React.FC<RegisterStepProps> = ({
+  formData,
+  showPassword,
+  onTogglePassword,
+  updateFormData,
+  error,
+  isLoading,
+  onRegister,
+}) => (
+  <div className="space-y-6">
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        Create Your Account
+      </h2>
+      <p className="text-gray-600 text-sm">
+        Join TripleEdge to start your investment journey
+      </p>
+    </div>
+
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Email*
+        </label>
+        <input
+          type="email"
+          value={formData.email}
+          onChange={(e) => updateFormData("email", e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          placeholder="Enter your email"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Phone*
+        </label>
+        <div className="flex">
+          <select className="px-3 py-2 border border-gray-300 rounded-l-lg bg-gray-50">
+            <option>🇮🇳 +91</option>
+          </select>
+          <input
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => updateFormData("phone", e.target.value)}
+            className="flex-1 px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="Enter phone number"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Password*
+        </label>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={(e) => updateFormData("password", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 pr-10"
+            placeholder="Create password"
+          />
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Confirm Password*
+        </label>
+        <input
+          type="password"
+          value={formData.confirmPassword}
+          onChange={(e) => updateFormData("confirmPassword", e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          placeholder="Confirm password"
+        />
+      </div>
+    </div>
+    {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+    <button
+      onClick={onRegister}
+      disabled={isLoading}
+      className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
+    >
+      {isLoading ? "Processing..." : "Get OTP →"}
+    </button>
+  </div>
+);
+
+interface VerifyStepProps {
+  otp: string[];
+  otpTimer: number;
+  isLoading: boolean;
+  error: string | null;
+  onBack: () => void;
+  onVerify: () => void;
+  onResend: () => void;
+  onOtpChange: (index: number, value: string) => void;
+  email: string;
+  phone: string;
+}
+
+const VerifyStepView: React.FC<VerifyStepProps> = ({
+  otp,
+  otpTimer,
+  isLoading,
+  error,
+  onBack,
+  onVerify,
+  onResend,
+  onOtpChange,
+  email,
+  phone,
+}) => (
+  <div className="space-y-6">
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        Enter OTP to verify
+      </h2>
+      <p className="text-gray-600 text-sm">
+        We have sent you a message with a 6-digit verification code on
+        <br />
+        {email} & {phone}
+      </p>
+    </div>
+
+    <div className="space-y-4">
+      <div className="flex justify-center space-x-3">
+        {otp.map((digit, index) => (
+          <input
+            key={index}
+            type="text"
+            name={`otp-${index}`}
+            value={digit}
+            onChange={(e) => onOtpChange(index, e.target.value)}
+            className="w-12 h-12 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg font-semibold"
+            maxLength={1}
+          />
+        ))}
+      </div>
+
+      <div className="text-center">
+        <p className="text-sm text-gray-600">
+          Expire in 0:{otpTimer.toString().padStart(2, "0")}
+        </p>
+        <button
+          onClick={onResend}
+          disabled={isLoading || otpTimer > 0}
+          className="text-red-600 text-sm hover:underline mt-1 disabled:text-gray-400"
+        >
+          Didn't receive the OTP? Resend OTP
+        </button>
+      </div>
+    </div>
+    {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+    <div className="flex space-x-3">
+      <button
+        onClick={onBack}
+        className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
+        <ArrowLeft size={20} className="mr-1" /> Back
+      </button>
+      <button
+        onClick={onVerify}
+        disabled={isLoading}
+        className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center disabled:bg-gray-400"
+      >
+        {isLoading ? (
+          "Verifying..."
+        ) : (
+          <>
+            <Check size={20} className="mr-1" /> Verify OTP
+          </>
+        )}
+      </button>
+    </div>
+  </div>
+);
+
+interface OnboardStepProps {
+  formData: { firstName: string; lastName: string; dateOfBirth: string };
+  updateFormData: UpdateFormFn;
+  onBack: () => void;
+  onNext: () => void;
+}
+
+const OnboardStepView: React.FC<OnboardStepProps> = ({
+  formData,
+  updateFormData,
+  onBack,
+  onNext,
+}) => (
+  <div className="space-y-6">
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        Personal Information
+      </h2>
+      <p className="text-gray-600 text-sm">Please provide your basic details</p>
+    </div>
+
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            First Name*
+          </label>
+          <input
+            type="text"
+            value={formData.firstName}
+            onChange={(e) => updateFormData("firstName", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="First name"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Last Name*
+          </label>
+          <input
+            type="text"
+            value={formData.lastName}
+            onChange={(e) => updateFormData("lastName", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="Last name"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Date of Birth*
+        </label>
+        <input
+          type="date"
+          value={formData.dateOfBirth}
+          onChange={(e) => updateFormData("dateOfBirth", e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+        />
+      </div>
+    </div>
+
+    <div className="flex space-x-3">
+      <button
+        onClick={onBack}
+        className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
+        <ArrowLeft size={20} className="mr-1" /> Back
+      </button>
+      <button
+        onClick={onNext}
+        className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Continue
+      </button>
+    </div>
+  </div>
+);
+
+interface KYCStepProps {
+  formData: {
+    panCard: string;
+    aadharCard: string;
+    bankAccount: string;
+    ifscCode: string;
+  };
+  updateFormData: UpdateFormFn;
+  onBack: () => void;
+  onNext: () => void;
+}
+
+const KYCStepView: React.FC<KYCStepProps> = ({
+  formData,
+  updateFormData,
+  onBack,
+  onNext,
+}) => (
+  <div className="space-y-6">
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        KYC Verification
+      </h2>
+      <p className="text-gray-600 text-sm">
+        Please provide your identity documents
+      </p>
+    </div>
+
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            PAN Card*
+          </label>
+          <input
+            type="text"
+            value={formData.panCard}
+            onChange={(e) =>
+              updateFormData("panCard", e.target.value.toUpperCase())
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="ABCDE1234F"
+            maxLength={10}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Aadhar Card*
+          </label>
+          <input
+            type="text"
+            value={formData.aadharCard}
+            onChange={(e) => updateFormData("aadharCard", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="1234 5678 9012"
+            maxLength={12}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Bank Account*
+          </label>
+          <input
+            type="text"
+            value={formData.bankAccount}
+            onChange={(e) => updateFormData("bankAccount", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="Account number"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            IFSC Code*
+          </label>
+          <input
+            type="text"
+            value={formData.ifscCode}
+            onChange={(e) =>
+              updateFormData("ifscCode", e.target.value.toUpperCase())
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="SBIN0001234"
+            maxLength={11}
+          />
+        </div>
+      </div>
+    </div>
+
+    <div className="flex space-x-3">
+      <button
+        onClick={onBack}
+        className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
+        <ArrowLeft size={20} className="mr-1" /> Back
+      </button>
+      <button
+        onClick={onNext}
+        className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Continue
+      </button>
+    </div>
+  </div>
+);
+
+interface PlansStepProps {
+  plans: Plan[];
+  selectedPlan: string;
+  updateFormData: UpdateFormFn;
+  onBack: () => void;
+  onNext: () => void;
+  isLoading: boolean;
+  error: string | null;
+}
+
+const PlansStepView: React.FC<PlansStepProps> = ({
+  plans,
+  selectedPlan,
+  updateFormData,
+  onBack,
+  onNext,
+  isLoading,
+  error,
+}) => (
+  <div className="space-y-6">
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        Choose Your Plan
+      </h2>
+      <p className="text-gray-600 text-sm">
+        Select the investment plan that suits you best
+      </p>
+    </div>
+
+    {isLoading ? (
+      <p className="text-center">Loading plans...</p>
+    ) : (
+      <div className="space-y-3">
+        {plans.map((plan, index) => (
+          <div
+            key={index}
+            className={`border rounded-lg p-4 cursor-pointer hover:border-red-500 ${selectedPlan === plan.code ? "border-red-500 border-2" : ""}`}
+            onClick={() => updateFormData("selectedPlan", plan.code)}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">{plan.name}</h3>
+              <span className="text-red-600 font-bold">₹{plan.amount}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+    <div className="flex space-x-3">
+      <button
+        onClick={onBack}
+        className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
+        <ArrowLeft size={20} className="mr-1" /> Back
+      </button>
+      <button
+        onClick={onNext}
+        disabled={!selectedPlan || isLoading}
+        className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
+      >
+        Continue
+      </button>
+    </div>
+  </div>
+);
+
+interface AgreementStepProps {
+  agreeToTerms: boolean;
+  updateFormData: UpdateFormFn;
+  onBack: () => void;
+  onNext: () => void;
+}
+
+const AgreementStepView: React.FC<AgreementStepProps> = ({
+  agreeToTerms,
+  updateFormData,
+  onBack,
+  onNext,
+}) => (
+  <div className="space-y-6">
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        Terms & Agreement
+      </h2>
+      <p className="text-gray-600 text-sm">
+        Please review and accept our terms
+      </p>
+    </div>
+
+    <div className="max-h-48 overflow-y-auto border rounded-lg p-4 text-sm text-gray-700">
+      <h3 className="font-semibold mb-2">Terms of Service</h3>
+      <p className="mb-4">
+        By using TripleEdge services, you agree to the following terms and
+        conditions...
+      </p>
+      <p className="mb-4">
+        1. Investment Risks: All investments carry risk of loss. Past
+        performance does not guarantee future results.
+      </p>
+      <p className="mb-4">
+        2. Service Agreement: You agree to pay applicable fees for the services
+        provided.
+      </p>
+      <p className="mb-4">
+        3. Privacy Policy: We will protect your personal information as outlined
+        in our privacy policy.
+      </p>
+    </div>
+
+    <label className="flex items-start">
+      <input
+        type="checkbox"
+        checked={agreeToTerms}
+        onChange={(e) => updateFormData("agreeToTerms", e.target.checked)}
+        className="mt-1 mr-2"
+      />
+      <span className="text-sm text-gray-700">
+        I agree to the Terms of Service and Privacy Policy
+      </span>
+    </label>
+
+    <div className="flex space-x-3">
+      <button
+        onClick={onBack}
+        className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+      >
+        <ArrowLeft size={20} className="mr-1" /> Back
+      </button>
+      <button
+        onClick={onNext}
+        disabled={!agreeToTerms}
+        className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+      >
+        Accept & Continue
+      </button>
+    </div>
+  </div>
+);
+
+interface PaymentStepProps {
+  plans: Plan[];
+  selectedPlan: string;
+  isLoading: boolean;
+  error: string | null;
+  onBack: () => void;
+  onPay: () => void;
+}
+
+const PaymentStepView: React.FC<PaymentStepProps> = ({
+  plans,
+  selectedPlan,
+  isLoading,
+  error,
+  onBack,
+  onPay,
+}) => {
+  const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Complete Payment
+        </h2>
+        <p className="text-gray-600 text-sm">
+          Secure payment to activate your account
+        </p>
+      </div>
+
+      {selectedPlanDetails && (
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="flex justify-between items-center mb-2">
+            <span>{selectedPlanDetails.name}</span>
+            <span className="font-semibold">₹{selectedPlanDetails.amount}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+            <span>Setup fee</span>
+            <span>₹0</span>
+          </div>
+          <hr className="my-2" />
+          <div className="flex justify-between items-center font-semibold">
+            <span>Total</span>
+            <span>₹{selectedPlanDetails.amount}</span>
+          </div>
+        </div>
+      )}
+
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+      <div className="flex space-x-3">
+        <button
+          onClick={onBack}
+          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+        >
+          <ArrowLeft size={20} className="mr-1" /> Back
+        </button>
+        <button
+          onClick={onPay}
+          disabled={isLoading}
+          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
+        >
+          {isLoading
+            ? "Processing..."
+            : `Pay ₹${selectedPlanDetails?.amount || ""}`}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -243,514 +846,116 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  // Step 1: Register
-  const RegisterStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Create Your Account
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Join TripleEdge to start your investment journey
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email*
-          </label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => updateFormData("email", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            placeholder="Enter your email"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone*
-          </label>
-          <div className="flex">
-            <select className="px-3 py-2 border border-gray-300 rounded-l-lg bg-gray-50">
-              <option>🇮🇳 +91</option>
-            </select>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => updateFormData("phone", e.target.value)}
-              className="flex-1 px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              placeholder="Enter phone number"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password*
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={(e) => updateFormData("password", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 pr-10"
-              placeholder="Create password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2"
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm Password*
-          </label>
-          <input
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) => updateFormData("confirmPassword", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            placeholder="Confirm password"
-          />
-        </div>
-      </div>
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-      <button
-        onClick={handleRegister}
-        disabled={isLoading}
-        className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
-      >
-        {isLoading ? "Processing..." : "Get OTP →"}
-      </button>
-    </div>
-  );
-
-  // Step 2: Verify
-  const VerifyStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Enter OTP to verify
-        </h2>
-        <p className="text-gray-600 text-sm">
-          We have sent you a message with a 6-digit verification code on
-          <br />
-          {formData.email} & {formData.phone}
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex justify-center space-x-3">
-          {formData.otp.map((digit, index) => (
-            <input
-              key={index}
-              type="text"
-              name={`otp-${index}`}
-              value={digit}
-              onChange={(e) => handleOtpChange(index, e.target.value)}
-              className="w-12 h-12 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg font-semibold"
-              maxLength={1}
-            />
-          ))}
-        </div>
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Expire in 0:{otpTimer.toString().padStart(2, "0")}
-          </p>
-          <button
-            onClick={handleResendOtp}
-            disabled={isLoading || otpTimer > 0}
-            className="text-red-600 text-sm hover:underline mt-1 disabled:text-gray-400"
-          >
-            Didn't receive the OTP? Resend OTP
-          </button>
-        </div>
-      </div>
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-      <div className="flex space-x-3">
-        <button
-          onClick={prevStep}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft size={20} className="mr-1" /> Back
-        </button>
-        <button
-          onClick={handleVerifyOtp}
-          disabled={isLoading}
-          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center disabled:bg-gray-400"
-        >
-          {isLoading ? (
-            "Verifying..."
-          ) : (
-            <>
-              <Check size={20} className="mr-1" /> Verify OTP
-            </>
-          )}
-        </button>
-      </div>
-    </div>
-  );
-
-  // Step 3: Onboard
-  const OnboardStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Personal Information
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Please provide your basic details
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name*
-            </label>
-            <input
-              type="text"
-              value={formData.firstName}
-              onChange={(e) => updateFormData("firstName", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              placeholder="First name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name*
-            </label>
-            <input
-              type="text"
-              value={formData.lastName}
-              onChange={(e) => updateFormData("lastName", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              placeholder="Last name"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date of Birth*
-          </label>
-          <input
-            type="date"
-            value={formData.dateOfBirth}
-            onChange={(e) => updateFormData("dateOfBirth", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-          />
-        </div>
-      </div>
-
-      <div className="flex space-x-3">
-        <button
-          onClick={prevStep}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft size={20} className="mr-1" /> Back
-        </button>
-        <button
-          onClick={nextStep}
-          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  );
-
-  // Step 4: KYC
-  const KYCStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          KYC Verification
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Please provide your identity documents
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            PAN Card Number*
-          </label>
-          <input
-            type="text"
-            value={formData.panCard}
-            onChange={(e) =>
-              updateFormData("panCard", e.target.value.toUpperCase())
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            placeholder="ABCDE1234F"
-            maxLength={10}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Aadhar Card Number*
-          </label>
-          <input
-            type="text"
-            value={formData.aadharCard}
-            onChange={(e) => updateFormData("aadharCard", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            placeholder="1234 5678 9012"
-            maxLength={12}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Bank Account*
-            </label>
-            <input
-              type="text"
-              value={formData.bankAccount}
-              onChange={(e) => updateFormData("bankAccount", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              placeholder="Account number"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              IFSC Code*
-            </label>
-            <input
-              type="text"
-              value={formData.ifscCode}
-              onChange={(e) =>
-                updateFormData("ifscCode", e.target.value.toUpperCase())
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              placeholder="SBIN0001234"
-              maxLength={11}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex space-x-3">
-        <button
-          onClick={prevStep}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft size={20} className="mr-1" /> Back
-        </button>
-        <button
-          onClick={nextStep}
-          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  );
-
-  const PlansStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Choose Your Plan
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Select the investment plan that suits you best
-        </p>
-      </div>
-
-      {isLoading ? (
-        <p className="text-center">Loading plans...</p>
-      ) : (
-        <div className="space-y-3">
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`border rounded-lg p-4 cursor-pointer hover:border-red-500 ${formData.selectedPlan === plan.code ? "border-red-500 border-2" : ""}`}
-              onClick={() => updateFormData("selectedPlan", plan.code)}
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold">{plan.name}</h3>
-                <span className="text-red-600 font-bold">₹{plan.amount}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-      <div className="flex space-x-3">
-        <button
-          onClick={prevStep}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft size={20} className="mr-1" /> Back
-        </button>
-        <button
-          onClick={nextStep}
-          disabled={!formData.selectedPlan || isLoading}
-          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  );
-
-  // Step 7: Agreement
-  const AgreementStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Terms & Agreement
-        </h2>
-        <p className="text-gray-600 text-sm">
-          Please review and accept our terms
-        </p>
-      </div>
-
-      <div className="max-h-48 overflow-y-auto border rounded-lg p-4 text-sm text-gray-700">
-        <h3 className="font-semibold mb-2">Terms of Service</h3>
-        <p className="mb-4">
-          By using TripleEdge services, you agree to the following terms and
-          conditions...
-        </p>
-        <p className="mb-4">
-          1. Investment Risks: All investments carry risk of loss. Past
-          performance does not guarantee future results.
-        </p>
-        <p className="mb-4">
-          2. Service Agreement: You agree to pay applicable fees for the
-          services provided.
-        </p>
-        <p className="mb-4">
-          3. Privacy Policy: We will protect your personal information as
-          outlined in our privacy policy.
-        </p>
-      </div>
-
-      <label className="flex items-start">
-        <input
-          type="checkbox"
-          checked={formData.agreeToTerms}
-          onChange={(e) => updateFormData("agreeToTerms", e.target.checked)}
-          className="mt-1 mr-2"
-        />
-        <span className="text-sm text-gray-700">
-          I agree to the Terms of Service and Privacy Policy
-        </span>
-      </label>
-
-      <div className="flex space-x-3">
-        <button
-          onClick={prevStep}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft size={20} className="mr-1" /> Back
-        </button>
-        <button
-          onClick={nextStep}
-          disabled={!formData.agreeToTerms}
-          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          Accept & Continue
-        </button>
-      </div>
-    </div>
-  );
-
-  // Step 8: Payment
-  const PaymentStep = () => {
-    const selectedPlanDetails = plans.find(
-      (p) => p.code === formData.selectedPlan
-    );
-
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Complete Payment
-          </h2>
-          <p className="text-gray-600 text-sm">
-            Secure payment to activate your account
-          </p>
-        </div>
-
-        {selectedPlanDetails && (
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <div className="flex justify-between items-center mb-2">
-              <span>{selectedPlanDetails.name}</span>
-              <span className="font-semibold">
-                ₹{selectedPlanDetails.amount}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
-              <span>Setup fee</span>
-              <span>₹0</span>
-            </div>
-            <hr className="my-2" />
-            <div className="flex justify-between items-center font-semibold">
-              <span>Total</span>
-              <span>₹{selectedPlanDetails.amount}</span>
-            </div>
-          </div>
-        )}
-
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-        <div className="flex space-x-3">
-          <button
-            onClick={prevStep}
-            className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
-          >
-            <ArrowLeft size={20} className="mr-1" /> Back
-          </button>
-          <button
-            onClick={handlePayment}
-            disabled={isLoading}
-            className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
-          >
-            {isLoading
-              ? "Processing..."
-              : `Pay ₹${selectedPlanDetails?.amount || ""}`}
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <RegisterStep />;
+        return (
+          <RegisterStepView
+            formData={{
+              email: formData.email,
+              phone: formData.phone,
+              password: formData.password,
+              confirmPassword: formData.confirmPassword,
+            }}
+            showPassword={showPassword}
+            onTogglePassword={() => setShowPassword(!showPassword)}
+            updateFormData={updateFormData}
+            error={error}
+            isLoading={isLoading}
+            onRegister={handleRegister}
+          />
+        );
       case 2:
-        return <VerifyStep />;
+        return (
+          <VerifyStepView
+            otp={formData.otp}
+            otpTimer={otpTimer}
+            isLoading={isLoading}
+            error={error}
+            onBack={prevStep}
+            onVerify={handleVerifyOtp}
+            onResend={handleResendOtp}
+            onOtpChange={handleOtpChange}
+            email={formData.email}
+            phone={formData.phone}
+          />
+        );
       case 3:
-        return <OnboardStep />;
+        return (
+          <OnboardStepView
+            formData={{
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              dateOfBirth: formData.dateOfBirth,
+            }}
+            updateFormData={updateFormData}
+            onBack={prevStep}
+            onNext={nextStep}
+          />
+        );
       case 4:
-        return <KYCStep />;
+        return (
+          <KYCStepView
+            formData={{
+              panCard: formData.panCard,
+              aadharCard: formData.aadharCard,
+              bankAccount: formData.bankAccount,
+              ifscCode: formData.ifscCode,
+            }}
+            updateFormData={updateFormData}
+            onBack={prevStep}
+            onNext={nextStep}
+          />
+        );
       case 5:
-        return <PlansStep />;
+        return (
+          <PlansStepView
+            plans={plans}
+            selectedPlan={formData.selectedPlan}
+            updateFormData={updateFormData}
+            onBack={prevStep}
+            onNext={nextStep}
+            isLoading={isLoading}
+            error={error}
+          />
+        );
       case 6:
-        return <AgreementStep />;
+        return (
+          <AgreementStepView
+            agreeToTerms={formData.agreeToTerms}
+            updateFormData={updateFormData}
+            onBack={prevStep}
+            onNext={nextStep}
+          />
+        );
       case 7:
-        return <PaymentStep />;
+        return (
+          <PaymentStepView
+            plans={plans}
+            selectedPlan={formData.selectedPlan}
+            isLoading={isLoading}
+            error={error}
+            onBack={prevStep}
+            onPay={handlePayment}
+          />
+        );
       default:
-        return <RegisterStep />;
+        return (
+          <RegisterStepView
+            formData={{
+              email: formData.email,
+              phone: formData.phone,
+              password: formData.password,
+              confirmPassword: formData.confirmPassword,
+            }}
+            showPassword={showPassword}
+            onTogglePassword={() => setShowPassword(!showPassword)}
+            updateFormData={updateFormData}
+            error={error}
+            isLoading={isLoading}
+            onRegister={handleRegister}
+          />
+        );
     }
   };
 

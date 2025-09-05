@@ -101,6 +101,7 @@ export const createUserAfterOnboarding = async (userData: any) => {
 
 export const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+  console.log({ email, password });
 
   if (!email || !password) {
     return res
@@ -208,7 +209,10 @@ export const registerFromOnboarding = async (req: Request, res: Response) => {
     const userData = req.body;
 
     // createUserAfterOnboarding already validates required fields and checks duplicates
-    const newUser = await createUserAfterOnboarding(userData);
+    const newUser = (await createUserAfterOnboarding(userData)) as {
+      id: any;
+      email: any;
+    };
 
     // Optionally, auto-login user here by setting a cookie
     try {
