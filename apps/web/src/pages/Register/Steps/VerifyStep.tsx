@@ -22,7 +22,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     const otp = formData.otp.join("");
     try {
       await axiosInstance.post("/api/otp/verify", {
-        phone: formData.phone,
+        phone: "+91" + formData.phone,
         otp: otp,
       });
       nextStep();
@@ -56,7 +56,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     setIsLoading(true);
     try {
       await axiosInstance.post("/api/otp/send", {
-        phone: formData.phone,
+        phone: "+91" + formData.phone,
       });
       setOtpTimer(51); // Reset timer
     } catch (err: any) {

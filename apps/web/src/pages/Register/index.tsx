@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle, Shield, TrendingUp, Users, Star, BarChart3, Target } from "lucide-react";
+import { CheckCircle, Shield, TrendingUp, BarChart3, Target } from "lucide-react";
 import { SignUpCard } from "./SignUpCard";
 import SignUpForm from "./SignupForm";
 
@@ -40,20 +40,7 @@ export default function Register() {
     { number: "24/7", label: "Support" }
   ];
 
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "Portfolio Manager",
-      content: "Bastion's research has transformed how I approach investment decisions. The quality is exceptional.",
-      rating: 5
-    },
-    {
-      name: "Michael Rodriguez",
-      role: "Individual Investor",
-      content: "Finally, research that makes sense. The insights are clear and actionable.",
-      rating: 5
-    }
-  ];
+  // Removed testimonials and any mention of free trial or free features
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50">

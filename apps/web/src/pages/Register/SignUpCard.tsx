@@ -44,15 +44,15 @@ export function SignUpCard({ onSignUpClick }: SignUpCardProps) {
           <div className="space-y-3">
             <div className="flex items-center space-x-3 text-sm text-gray-700">
               <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <span>Free 7-day trial</span>
+              <span>Institutional-grade research</span>
             </div>
             <div className="flex items-center space-x-3 text-sm text-gray-700">
               <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <span>No credit card required</span>
+              <span>Comprehensive risk management</span>
             </div>
             <div className="flex items-center space-x-3 text-sm text-gray-700">
               <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <span>Cancel anytime</span>
+              <span>Personalized investment strategies</span>
             </div>
           </div>
 
@@ -65,7 +65,7 @@ export function SignUpCard({ onSignUpClick }: SignUpCardProps) {
               onClick={onSignUpClick} 
               className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              Get Started Free
+              Get Started
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </motion.div>
