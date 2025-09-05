@@ -11,6 +11,7 @@ import axiosInstance from "@/api/axios";
 import { Config } from "@/utils/config";
 import { toast } from "sonner";
 import { AppRoutes } from "@/routes";
+import { useLoader } from "@/contexts/LoaderContext";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -22,12 +23,22 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
+  const { start: showLoader, stop: hideLoader } = useLoader();
 
   useEffect(() => {
     if (isAuthenticated && isAdmin && !isLoading) {
       navigate(AppRoutes.adminDashboard(), { replace: true });
     }
   }, [isAuthenticated, isAdmin, isLoading, navigate]);
+
+  useEffect(() => {
+    if (isLoading) {
+      showLoader("Checking session...");
+    } else {
+      hideLoader();
+    }
+    return () => hideLoader();
+  }, [isLoading, showLoader, hideLoader]);
 
   const {
     register,
@@ -61,7 +72,6 @@ const AdminLogin = () => {
   };
 
   if (isLoading) {
-    // Add page loader.
     return <></>;
   }
 
