@@ -5,7 +5,6 @@ import MyAccountDropdown from "./MyAccountDropdown";
 
 const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
   const { user } = useAuth();
-  console.log(user, "check");
   return (
     <nav className="hidden md:flex items-center space-x-8">
       <Link
