@@ -39,7 +39,6 @@ export default function ContactPage() {
       alert("Please confirm you are not a robot.");
       return;
     }
-    console.log("Contact form submitted:", form);
     alert("Thanks. Your message has been sent.");
     setForm({
       name: "",

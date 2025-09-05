@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 
-// Brand colors
 const NAVY = "#1C2852";
 const MAROON = "#C00000";
 
@@ -48,7 +47,10 @@ export default function LandingPage() {
   return (
     <>
       <BackgroundShapes />
-      <div className="relative min-h-screen">
+      <div
+        className="relative min-h-screen"
+        developer-info={"1e4c65ec691efe38b034fc2fcbbd9824"}
+      >
         <div className="relative ">
           <div className="overflow-hidden" style={{ color: NAVY }}>
             <div className="h-full w-full flex flex-col max-w-6xl mx-auto px-6 py-5 relative">
