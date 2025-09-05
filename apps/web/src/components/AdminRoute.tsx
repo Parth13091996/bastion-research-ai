@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { AppRoutes } from "@/routes";
+import { AppRoutes } from "@/routes/app-routes";
 import { Navigate, Outlet } from "react-router-dom";
 
 const AdminRoute = () => {

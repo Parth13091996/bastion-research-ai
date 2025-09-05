@@ -10,8 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import axiosInstance from "@/api/axios";
 import { Config } from "@/utils/config";
 import { toast } from "sonner";
-import { AppRoutes } from "@/routes";
 import { useLoader } from "@/contexts/LoaderContext";
+import { AppRoutes } from "@/routes/app-routes";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -69,7 +69,8 @@ const AdminLogin = () => {
   };
 
   if (isLoading) return <></>;
-  if (shouldRedirect) return <Navigate to={AppRoutes.adminDashboard()} replace />;
+  if (shouldRedirect)
+    return <Navigate to={AppRoutes.adminDashboard()} replace />;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
