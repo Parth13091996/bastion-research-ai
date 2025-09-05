@@ -2,6 +2,7 @@ import Editor from "@/components/core/editor";
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
+import { AppRoutes } from "./app-routes";
 
 // Layouts
 const RootLayout = lazy(() => import("../layouts/RootLayout"));
@@ -73,46 +74,6 @@ const Webinar = lazy(() => import("../components/generic/Webinar"));
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );
-
-// Define App Routes
-export const AppRoutes = {
-  home: () => "/",
-  login: () => "/login",
-  register: () => "/register",
-  dashboard: () => "/dashboard",
-  contact: () => "/contact",
-  careerPage: () => "/careers",
-  singleCareerPage: () => "/careers/:slug",
-  refundPolicy: () => "/refund-policy",
-  privacyPolicy: () => "/privacy-policy",
-  termAndCondition: () => "/terms-and-conditions",
-  compliance: () => "/compliance",
-  bastionCore: () => "/bastion-core",
-  editProfile: () => "/edit-profile",
-  subscription: () => "/subscription",
-  spotlights: () => "/spotlights",
-  podcasts: () => "/podcasts",
-  about: () => "/about",
-  test: () => "/test",
-  newsletter: () => "/newsletters-archive",
-  webinar: () => "/webinars",
-  smartFrameworks: () => "/smart-frameworks",
-  adminLogin: () => "/admin/login",
-  adminDashboard: () => "/admin/dashboard",
-  adminManageMembers: () => "/admin/ar/members",
-  adminManagePlans: () => "/admin/ar/plans",
-  adminManageSubscriptions: () => "/admin/ar/subscriptions",
-  adminPaymentHistory: () => "/admin/ar/payments",
-  adminCouponManagement: () => "/admin/ar/coupons",
-  adminJobOpenings: () => "/admin/jobs/openings",
-  adminAddNewJob: () => "/admin/jobs/add",
-  adminApplications: () => "/admin/jobs/applications",
-  adminAllUsers: () => "/admin/users/all",
-  adminAddUser: () => "/admin/users/add",
-  adminProfile: () => "/admin/users/profile",
-  adminSettings: () => "/admin/settings",
-  editor: () => "/admin/editor",
-};
 
 export const routes: RouteObject[] = [
   {
