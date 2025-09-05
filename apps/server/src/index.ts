@@ -1,18 +1,18 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import authRoutes from "./routes/auth.routes";
-import digioRoutes from "./routes/digio.routes";
-import cashfreeRoutes from "./routes/cashfree.routes";
-import otpRoutes from "./routes/otp.routes";
 import cookieParser from "cookie-parser";
-// Routes
+// Route imports
 import userRoutes from "./routes/user.routes";
 import jobRoutes from "./routes/job.routes";
 import membershipRoutes from "./routes/membership.routes";
 import couponRoutes from "./routes/coupon.routes";
 import applicationRoutes from "./routes/application.routes";
 import adminRoutes from "./routes/admin.routes";
+import authRoutes from "./routes/auth.routes";
+import digioRoutes from "./routes/digio.routes";
+import cashfreeRoutes from "./routes/cashfree.routes";
+import otpRoutes from "./routes/otp.routes";
 
 dotenv.config();
 

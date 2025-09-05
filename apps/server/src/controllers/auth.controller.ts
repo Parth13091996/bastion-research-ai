@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { supabase } from "../config/supabase";
+import { config } from "../utils/config";
+import { supabase } from "../supabase";
 
 const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   const secret = process.env.JWT_SECRET;
@@ -56,9 +57,7 @@ export const createUserAfterOnboarding = async (userData: any) => {
     return existingUser[0];
   }
 
-  // Hash the password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await bcrypt.hash(password, config.saltRounds);
   const username =
     email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
 
@@ -101,7 +100,6 @@ export const createUserAfterOnboarding = async (userData: any) => {
 
 export const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log({ email, password });
 
   if (!email || !password) {
     return res
@@ -119,6 +117,7 @@ export const signIn = async (req: Request, res: Response) => {
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
+    console.log(password, user.password, "check response");
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {

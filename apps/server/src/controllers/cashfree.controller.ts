@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { Cashfree } from "cashfree-pg";
 import { createUserAfterOnboarding } from "./auth.controller";
-import { supabase } from "../config/supabase";
+import { supabase } from "../supabase/supabase";
 import crypto from "crypto";
 
 // Environment/config
@@ -97,8 +97,7 @@ export const listPlans = async (_req: Request, res: Response) => {
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const { plan, customer_id, customer_email, customer_phone } =
-      req.body;
+    const { plan, customer_id, customer_email, customer_phone } = req.body;
     if (!plan || !(plan in PLANS))
       return res.status(400).json({ message: "Invalid plan. Use 3m or 12m." });
     if (!customer_id)

@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
-import { supabase } from '../config/supabase';
+import { Request, Response } from "express";
+import { supabase } from "../supabase/supabase";
 
 export const getCoupons = async (req: Request, res: Response) => {
-  const { data, error } = await supabase.from('coupons').select('*');
+  const { data, error } = await supabase.from("coupons").select("*");
   if (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -10,8 +10,20 @@ export const getCoupons = async (req: Request, res: Response) => {
     return res.status(200).json(data);
   }
   const dummyData = [
-    { coupon_id: 1, coupon_code: 'SUMMER2024', discount_type: 'percentage', discount_value: 10, expiry_date: '2024-08-31' },
-    { coupon_id: 2, coupon_code: 'WELCOME10', discount_type: 'fixed', discount_value: 10, expiry_date: '2024-12-31' },
+    {
+      coupon_id: 1,
+      coupon_code: "SUMMER2024",
+      discount_type: "percentage",
+      discount_value: 10,
+      expiry_date: "2024-08-31",
+    },
+    {
+      coupon_id: 2,
+      coupon_code: "WELCOME10",
+      discount_type: "fixed",
+      discount_value: 10,
+      expiry_date: "2024-12-31",
+    },
   ];
   res.status(200).json(dummyData);
 };
@@ -19,7 +31,7 @@ export const getCoupons = async (req: Request, res: Response) => {
 export const createCoupon = async (req: Request, res: Response) => {
   const { coupon_code, discount_type, discount_value, expiry_date } = req.body;
   const { data, error } = await supabase
-    .from('coupons')
+    .from("coupons")
     .insert([{ coupon_code, discount_type, discount_value, expiry_date }])
     .select();
 
@@ -33,9 +45,9 @@ export const updateCoupon = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { coupon_code, discount_type, discount_value, expiry_date } = req.body;
   const { data, error } = await supabase
-    .from('coupons')
+    .from("coupons")
     .update({ coupon_code, discount_type, discount_value, expiry_date })
-    .eq('coupon_id', id)
+    .eq("coupon_id", id)
     .select();
 
   if (error) {
@@ -47,9 +59,9 @@ export const updateCoupon = async (req: Request, res: Response) => {
 export const deleteCoupon = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { data, error } = await supabase
-    .from('coupons')
+    .from("coupons")
     .delete()
-    .eq('coupon_id', id)
+    .eq("coupon_id", id)
     .select();
 
   if (error) {
