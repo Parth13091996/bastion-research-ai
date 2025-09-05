@@ -115,7 +115,6 @@ export const signIn = async (req: Request, res: Response) => {
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
-    console.log(password, user.password);
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -192,7 +191,6 @@ export const getUserSession = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log(user, "user");
     res.status(200).json({ user });
   } catch (error) {
     res.status(401).json({ message: "Not authenticated" });
