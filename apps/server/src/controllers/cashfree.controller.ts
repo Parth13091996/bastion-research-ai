@@ -105,9 +105,10 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
 
     const selected = PLANS[plan as "3m" | "12m"];
     const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
     const returnUrl =
       process.env.CASHFREE_RETURN_URL ||
-      "https://www.cashfree.com/devstudio/thankyou?order_id={order_id}";
+      `${frontendUrl}/payment/success?order_id={order_id}`;
 
     const request = {
       order_id: orderId,

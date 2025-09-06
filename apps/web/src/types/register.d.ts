@@ -1,5 +1,3 @@
-declare const Cashfree: any;
-
 type UpdateFormFn = (field: string, value: any) => void;
 
 interface OnboardingFormData {

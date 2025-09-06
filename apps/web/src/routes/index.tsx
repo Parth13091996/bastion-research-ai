@@ -28,6 +28,7 @@ const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
 const Compliance = lazy(() => import("../pages/Compliance"));
 const BastionCore = lazy(() => import("../pages/BastionCore"));
+const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
 const EditProfile = lazy(() => import("../pages/EditProfile"));
 const Subscription = lazy(() => import("../pages/Subscription"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
@@ -100,6 +101,7 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
       { path: AppRoutes.webinar(), element: <Webinar /> },
       { path: AppRoutes.smartFrameworks(), element: <SmartFrameworks /> },
+      { path: AppRoutes.paymentSuccess(), element: <PaymentSuccess /> },
       {
         element: <ProtectedRoute />,
         children: [
