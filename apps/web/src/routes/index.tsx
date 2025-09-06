@@ -17,6 +17,8 @@ const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
 const Home = lazy(() => import("../pages/Home"));
 const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
+const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/ResetPassword"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const Contact = lazy(() => import("../pages/Contact"));
 const CareerPage = lazy(() => import("../pages/Careers"));
@@ -81,6 +83,8 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.home(), element: <Home /> },
       { path: AppRoutes.login(), element: <Login /> },
       { path: AppRoutes.register(), element: <Register /> },
+      { path: AppRoutes.forgotPassword(), element: <ForgotPassword /> },
+      { path: AppRoutes.resetPassword(), element: <ResetPassword /> },
       { path: AppRoutes.contact(), element: <Contact /> },
       { path: AppRoutes.careerPage(), element: <CareerPage /> },
       { path: AppRoutes.singleCareerPage(), element: <SingleCareerPage /> },

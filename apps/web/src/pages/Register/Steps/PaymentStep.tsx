@@ -47,6 +47,9 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
               );
               // Clear local storage of onboarding data
               localStorage.removeItem("onboardingFormData");
+              localStorage.removeItem("onboardingCurrentStep");
+              localStorage.removeItem("onboardingOtpTimer");
+              localStorage.setItem("onboardingOpen", "false");
               onClose();
             } catch (createErr: any) {
               const msg =
