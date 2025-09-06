@@ -2,6 +2,8 @@ export const AppRoutes = {
   home: () => "/",
   login: () => "/login",
   register: () => "/register",
+  forgotPassword: () => "/forgot-password",
+  resetPassword: () => "/reset-password",
   dashboard: () => "/dashboard",
   contact: () => "/contact",
   careerPage: () => "/careers",
@@ -38,4 +40,9 @@ export const AppRoutes = {
   editor: () => "/admin/editor",
 };
 
-export const AuthRoutes = [AppRoutes.login(), AppRoutes.register()];
+export const AuthRoutes = [
+  AppRoutes.login(),
+  AppRoutes.register(),
+  AppRoutes.forgotPassword(),
+  AppRoutes.resetPassword(),
+];

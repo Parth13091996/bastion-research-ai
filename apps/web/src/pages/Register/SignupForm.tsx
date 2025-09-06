@@ -36,10 +36,24 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     const formDataFromStorage = localStorage.getItem("onboardingFormData");
+    const stepFromStorage = localStorage.getItem("onboardingCurrentStep");
+    const otpTimerFromStorage = localStorage.getItem("onboardingOtpTimer");
     if (formDataFromStorage) {
       try {
         setFormData(JSON.parse(formDataFromStorage));
       } catch {}
+    }
+    if (stepFromStorage) {
+      const step = parseInt(stepFromStorage, 10);
+      if (!Number.isNaN(step) && step >= 1 && step <= 7) {
+        setCurrentStep(step);
+      }
+    }
+    if (otpTimerFromStorage) {
+      const t = parseInt(otpTimerFromStorage, 10);
+      if (!Number.isNaN(t) && t >= 0) {
+        setOtpTimer(t);
+      }
     }
   }, []);
 
@@ -60,14 +74,22 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const nextStep = () => {
     setError(null);
     if (currentStep < 8) {
-      setCurrentStep(currentStep + 1);
+      const next = currentStep + 1;
+      setCurrentStep(next);
+      try {
+        localStorage.setItem("onboardingCurrentStep", String(next));
+      } catch {}
     }
   };
 
   const prevStep = () => {
     setError(null);
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      const prev = currentStep - 1;
+      setCurrentStep(prev);
+      try {
+        localStorage.setItem("onboardingCurrentStep", String(prev));
+      } catch {}
     }
   };
 
@@ -87,6 +109,19 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     }
     return () => clearInterval(timer);
   }, [currentStep, otpTimer]);
+
+  // Persist current step and OTP timer
+  useEffect(() => {
+    try {
+      localStorage.setItem("onboardingCurrentStep", String(currentStep));
+    } catch {}
+  }, [currentStep]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("onboardingOtpTimer", String(otpTimer));
+    } catch {}
+  }, [otpTimer]);
 
   useEffect(() => {
     const fetchPlans = async () => {

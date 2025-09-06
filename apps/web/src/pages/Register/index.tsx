@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, Shield, TrendingUp, BarChart3, Target } from "lucide-react";
 import { SignUpCard } from "./SignUpCard";
@@ -9,6 +9,17 @@ const MAROON = "#C00000";
 
 export default function Register() {
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+
+  // Restore open state if user was mid-onboarding when they refreshed
+  useEffect(() => {
+    try {
+      const wasOpen = localStorage.getItem("onboardingOpen");
+      const step = parseInt(localStorage.getItem("onboardingCurrentStep") || "1", 10);
+      if (wasOpen === "true" || (step && step > 1)) {
+        setIsSignUpOpen(true);
+      }
+    } catch {}
+  }, []);
 
   const features = [
     {
@@ -100,7 +111,10 @@ export default function Register() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
-                <SignUpCard onSignUpClick={() => setIsSignUpOpen(true)} />
+                <SignUpCard onSignUpClick={() => {
+                  try { localStorage.setItem("onboardingOpen", "true"); } catch {}
+                  setIsSignUpOpen(true);
+                }} />
               </motion.div>
             </motion.div>
 
@@ -163,7 +177,10 @@ export default function Register() {
       {isSignUpOpen && (
         <SignUpForm
           isOpen={isSignUpOpen}
-          onClose={() => setIsSignUpOpen(false)}
+          onClose={() => {
+            try { localStorage.setItem("onboardingOpen", "false"); } catch {}
+            setIsSignUpOpen(false);
+          }}
         />
       )}
     </div>
