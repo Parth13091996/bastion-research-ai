@@ -1,5 +1,6 @@
 import axiosInstance from "@/api/axios";
 import { ArrowLeft } from "lucide-react";
+import { load } from "@cashfreepayments/cashfree-js";
 
 const PaymentStep: React.FC<PaymentStepProps> = ({
   plans,
@@ -25,40 +26,18 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       });
 
       const { payment_session_id } = orderResponse.data.order;
-      const cashfree = new Cashfree(payment_session_id);
 
-      cashfree
-        .checkout({
-          paymentSessionId: payment_session_id,
-          returnUrl: `http://localhost:5173/`, // This can be a proper success page
-        })
-        .then(async (result: any) => {
-          if (result.error) {
-            setError(result.error.message);
-            setIsLoading(false);
-            return;
-          }
-          if (result.paymentDetails.paymentStatus === "SUCCESS") {
-            try {
-              // Finalize onboarding by creating the user
-              await axiosInstance.post("/api/auth/onboard", formData);
-              alert(
-                "Payment successful! Welcome to TripleEdge! Your account has been created."
-              );
-              // Clear local storage of onboarding data
-              localStorage.removeItem("onboardingFormData");
-              localStorage.removeItem("onboardingCurrentStep");
-              localStorage.removeItem("onboardingOtpTimer");
-              localStorage.setItem("onboardingOpen", "false");
-              onClose();
-            } catch (createErr: any) {
-              const msg =
-                createErr?.response?.data?.message ||
-                "Payment done, but account creation failed. Please contact support.";
-              setError(msg);
-            }
-          }
-        });
+      // Persist a flag so success page knows to finalize onboarding
+      try {
+        localStorage.setItem("onboardingPending", "true");
+      } catch {}
+
+      // Initialize Cashfree SDK and redirect to hosted checkout
+      const cashfree = await load({ mode: "sandbox" });
+      await cashfree.checkout({
+        paymentSessionId: payment_session_id,
+        redirectTarget: "_self",
+      });
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "An unexpected error occurred.";

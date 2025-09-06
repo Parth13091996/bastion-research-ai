@@ -2,10 +2,8 @@
 -- PostgreSQL database dump
 --
 
-\restrict KO8KhoborbjCBFJ4qEG9V2iUslQzHiWk49QQJpxQLmedbNyhoc1wPIHKcM0gj3J
-
 -- Dumped from database version 17.4
--- Dumped by pg_dump version 17.6
+-- Dumped by pg_dump version 17.5
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -244,7 +242,7 @@ CREATE TYPE public.user_role AS ENUM (
     'admin',
     'employee',
     'core_subscriber',
-    'ipo_Subscriber',
+    'ipo_subscriber',
     'research_ally_subscriber'
 );
 
@@ -2852,7 +2850,8 @@ CREATE TABLE public.users (
     aadhar_card_number character varying(255),
     bank_account_number character varying(255),
     ifsc_code character varying(255),
-    status character varying(50) DEFAULT 'pending'::character varying
+    status character varying(50) DEFAULT 'pending'::character varying,
+    role public.user_role
 );
 
 
@@ -3114,6 +3113,503 @@ ALTER TABLE ONLY public.otps ALTER COLUMN id SET DEFAULT nextval('public.otps_id
 --
 
 ALTER TABLE ONLY public.subscriptions ALTER COLUMN id SET DEFAULT nextval('public.subscriptions_id_seq'::regclass);
+
+
+--
+-- Data for Name: audit_log_entries; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.audit_log_entries (instance_id, id, payload, created_at, ip_address) FROM stdin;
+\.
+
+
+--
+-- Data for Name: flow_state; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.flow_state (id, user_id, auth_code, code_challenge_method, code_challenge, provider_type, provider_access_token, provider_refresh_token, created_at, updated_at, authentication_method, auth_code_issued_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: identities; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at, id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: instances; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.instances (id, uuid, raw_base_config, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_amr_claims; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.mfa_amr_claims (session_id, created_at, updated_at, authentication_method, id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_challenges; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.mfa_challenges (id, factor_id, created_at, verified_at, ip_address, otp_code, web_authn_session_data) FROM stdin;
+\.
+
+
+--
+-- Data for Name: mfa_factors; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret, phone, last_challenged_at, web_authn_credential, web_authn_aaguid) FROM stdin;
+\.
+
+
+--
+-- Data for Name: one_time_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.one_time_tokens (id, user_id, token_type, token_hash, relates_to, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: refresh_tokens; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.refresh_tokens (instance_id, id, token, user_id, revoked, created_at, updated_at, parent, session_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: saml_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.saml_providers (id, sso_provider_id, entity_id, metadata_xml, metadata_url, attribute_mapping, created_at, updated_at, name_id_format) FROM stdin;
+\.
+
+
+--
+-- Data for Name: saml_relay_states; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.saml_relay_states (id, sso_provider_id, request_id, for_email, redirect_to, created_at, updated_at, flow_state_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: schema_migrations; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.schema_migrations (version) FROM stdin;
+20171026211738
+20171026211808
+20171026211834
+20180103212743
+20180108183307
+20180119214651
+20180125194653
+00
+20210710035447
+20210722035447
+20210730183235
+20210909172000
+20210927181326
+20211122151130
+20211124214934
+20211202183645
+20220114185221
+20220114185340
+20220224000811
+20220323170000
+20220429102000
+20220531120530
+20220614074223
+20220811173540
+20221003041349
+20221003041400
+20221011041400
+20221020193600
+20221021073300
+20221021082433
+20221027105023
+20221114143122
+20221114143410
+20221125140132
+20221208132122
+20221215195500
+20221215195800
+20221215195900
+20230116124310
+20230116124412
+20230131181311
+20230322519590
+20230402418590
+20230411005111
+20230508135423
+20230523124323
+20230818113222
+20230914180801
+20231027141322
+20231114161723
+20231117164230
+20240115144230
+20240214120130
+20240306115329
+20240314092811
+20240427152123
+20240612123726
+20240729123726
+20240802193726
+20240806073726
+20241009103726
+\.
+
+
+--
+-- Data for Name: sessions; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.sessions (id, user_id, created_at, updated_at, factor_id, aal, not_after, refreshed_at, user_agent, ip, tag) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sso_domains; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.sso_domains (id, sso_provider_id, domain, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: sso_providers; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.sso_providers (id, resource_id, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: auth; Owner: supabase_auth_admin
+--
+
+COPY auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, invited_at, confirmation_token, confirmation_sent_at, recovery_token, recovery_sent_at, email_change_token_new, email_change, email_change_sent_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data, is_super_admin, created_at, updated_at, phone, phone_confirmed_at, phone_change, phone_change_token, phone_change_sent_at, email_change_token_current, email_change_confirm_status, banned_until, reauthentication_token, reauthentication_sent_at, is_sso_user, deleted_at, is_anonymous) FROM stdin;
+\.
+
+
+--
+-- Data for Name: digio_documents; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.digio_documents (id, user_id, document_id, status, raw_response, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: job_openings; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.job_openings (job_title, job_id, author, applications, expiry, views, conversion) FROM stdin;
+Software Engineer	1	Admin	10	2024-12-31	100	10.00
+Product Manager	2	Admin	5	2024-11-30	50	10.00
+UX Designer	3	Admin	2	2024-10-31	20	10.00
+\.
+
+
+--
+-- Data for Name: membership_plans; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.membership_plans (plan_id, plan_name, plan_type, members, wp_role, price_amount, currency, duration_months) FROM stdin;
+5	Freemium	Free	163	ARMember	0.00	INR	\N
+4	Bastion Research Core	Paid	5	ARMember	4000.00	INR	3
+2	Annual Plan	Paid	49	ARMember	15890.00	INR	12
+\.
+
+
+--
+-- Data for Name: onboarding_sessions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.onboarding_sessions (id, session_data, status, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: otps; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.otps (id, email, phone, otp, otp_expires_at, created_at, user_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: payment_history; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.payment_history (transaction_id, invoice_id, payment_gateway, payment_type, payer_email, transaction_status, user_id, plan_id) FROM stdin;
+txn_123	inv_123	Stripe	Card	john.doe@example.com	Completed	\N	\N
+txn_456	inv_456	PayPal	PayPal	jane.smith@example.com	Completed	\N	\N
+\.
+
+
+--
+-- Data for Name: subscriptions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.subscriptions (id, membership_id, name, start_date, expire_next_renewal, amount, currency, payment_type, transaction_id, status, created_at, user_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (id, username, first_name, last_name, phone, email, address_1, address_2, pan_card_number, state, city, pin_code, date_of_birth, gst_number, company, created_at, updated_at, password, "isPremium", aadhar_card_number, bank_account_number, ifsc_code, status, role) FROM stdin;
+85b9449c-9086-4aa1-9a00-0044d56a6cb6	admin_user	John	Doe	9876543210	admin@gmail.com	123 Main Street	\N	ABCDE1234F	Karnataka	Bangalore	560001	1990-01-01	\N	\N	2025-09-05 06:23:56.45874+00	2025-09-05 07:08:55.163149+00	$2a$12$5/Q.joHQLeL1TEP6iIcyI.k49p3d.u8aoAIse9r6/2QLdYnVsk1YK	f	\N	\N	\N	pending	admin
+cc4eaee3-9c68-42d6-91b8-b4c6306eced0	jane_smith	Jane	Smith	9876543211	jane.smith@example.com	456 Elm Street	\N	XYZAB5678C	Karnataka	Bangalore	560002	1995-02-15	\N	\N	2025-09-05 16:53:13.529848+00	2025-09-06 12:01:01.286351+00	$2a$12$O1Yd7nr467BI7gkSWPriD.qtKEQ3ggO9QIAwClG8dpglK6Hee1DLi	f	\N	\N	\N	pending	core_subscriber
+\.
+
+
+--
+-- Data for Name: schema_migrations; Type: TABLE DATA; Schema: realtime; Owner: supabase_admin
+--
+
+COPY realtime.schema_migrations (version, inserted_at) FROM stdin;
+20211116024918	2025-07-04 07:11:06
+20211116045059	2025-07-04 07:11:07
+20211116050929	2025-07-04 07:11:08
+20211116051442	2025-07-04 07:11:09
+20211116212300	2025-07-04 07:11:09
+20211116213355	2025-07-04 07:11:10
+20211116213934	2025-07-04 07:11:11
+20211116214523	2025-07-04 07:11:11
+20211122062447	2025-07-04 07:11:12
+20211124070109	2025-07-04 07:11:13
+20211202204204	2025-07-04 07:11:13
+20211202204605	2025-07-04 07:11:14
+20211210212804	2025-07-04 07:11:16
+20211228014915	2025-07-04 07:11:16
+20220107221237	2025-07-04 07:11:17
+20220228202821	2025-07-04 07:11:18
+20220312004840	2025-07-04 07:11:18
+20220603231003	2025-07-04 07:11:19
+20220603232444	2025-07-04 07:11:20
+20220615214548	2025-07-04 07:11:21
+20220712093339	2025-07-04 07:11:21
+20220908172859	2025-07-04 07:11:22
+20220916233421	2025-07-04 07:11:22
+20230119133233	2025-07-04 07:11:23
+20230128025114	2025-07-04 07:11:24
+20230128025212	2025-07-04 07:11:25
+20230227211149	2025-07-04 07:11:25
+20230228184745	2025-07-04 07:11:26
+20230308225145	2025-07-04 07:11:26
+20230328144023	2025-07-04 07:11:27
+20231018144023	2025-07-04 07:11:28
+20231204144023	2025-07-04 07:11:29
+20231204144024	2025-07-04 07:11:29
+20231204144025	2025-07-04 07:11:30
+20240108234812	2025-07-04 07:11:31
+20240109165339	2025-07-04 07:11:31
+20240227174441	2025-07-04 07:11:32
+20240311171622	2025-07-04 07:11:33
+20240321100241	2025-07-04 07:11:34
+20240401105812	2025-07-04 07:11:36
+20240418121054	2025-07-04 07:11:37
+20240523004032	2025-07-04 07:11:39
+20240618124746	2025-07-04 07:11:40
+20240801235015	2025-07-04 07:11:40
+20240805133720	2025-07-04 07:11:41
+20240827160934	2025-07-04 07:11:42
+20240919163303	2025-07-04 07:11:43
+20240919163305	2025-07-04 07:11:43
+20241019105805	2025-07-04 07:11:44
+20241030150047	2025-07-04 07:11:46
+20241108114728	2025-07-04 07:11:47
+20241121104152	2025-07-04 07:11:48
+20241130184212	2025-07-04 07:11:48
+20241220035512	2025-07-04 07:11:49
+20241220123912	2025-07-04 07:11:50
+20241224161212	2025-07-04 07:11:50
+20250107150512	2025-07-04 07:11:51
+20250110162412	2025-07-04 07:11:51
+20250123174212	2025-07-04 07:11:52
+20250128220012	2025-07-04 07:11:53
+20250506224012	2025-07-04 07:11:53
+20250523164012	2025-07-04 07:11:54
+20250714121412	2025-07-18 13:19:44
+\.
+
+
+--
+-- Data for Name: subscription; Type: TABLE DATA; Schema: realtime; Owner: supabase_admin
+--
+
+COPY realtime.subscription (id, subscription_id, entity, filters, claims, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: buckets; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY storage.buckets (id, name, owner, created_at, updated_at, public, avif_autodetection, file_size_limit, allowed_mime_types, owner_id, type) FROM stdin;
+\.
+
+
+--
+-- Data for Name: buckets_analytics; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY storage.buckets_analytics (id, type, format, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: migrations; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY storage.migrations (id, name, hash, executed_at) FROM stdin;
+0	create-migrations-table	e18db593bcde2aca2a408c4d1100f6abba2195df	2025-07-04 07:11:05.327096
+1	initialmigration	6ab16121fbaa08bbd11b712d05f358f9b555d777	2025-07-04 07:11:05.352832
+2	storage-schema	5c7968fd083fcea04050c1b7f6253c9771b99011	2025-07-04 07:11:05.359745
+3	pathtoken-column	2cb1b0004b817b29d5b0a971af16bafeede4b70d	2025-07-04 07:11:05.383706
+4	add-migrations-rls	427c5b63fe1c5937495d9c635c263ee7a5905058	2025-07-04 07:11:05.404208
+5	add-size-functions	79e081a1455b63666c1294a440f8ad4b1e6a7f84	2025-07-04 07:11:05.413536
+6	change-column-name-in-get-size	f93f62afdf6613ee5e7e815b30d02dc990201044	2025-07-04 07:11:05.433835
+7	add-rls-to-buckets	e7e7f86adbc51049f341dfe8d30256c1abca17aa	2025-07-04 07:11:05.456532
+8	add-public-to-buckets	fd670db39ed65f9d08b01db09d6202503ca2bab3	2025-07-04 07:11:05.461606
+9	fix-search-function	3a0af29f42e35a4d101c259ed955b67e1bee6825	2025-07-04 07:11:05.482762
+10	search-files-search-function	68dc14822daad0ffac3746a502234f486182ef6e	2025-07-04 07:11:05.486823
+11	add-trigger-to-auto-update-updated_at-column	7425bdb14366d1739fa8a18c83100636d74dcaa2	2025-07-04 07:11:05.490033
+12	add-automatic-avif-detection-flag	8e92e1266eb29518b6a4c5313ab8f29dd0d08df9	2025-07-04 07:11:05.495903
+13	add-bucket-custom-limits	cce962054138135cd9a8c4bcd531598684b25e7d	2025-07-04 07:11:05.499001
+14	use-bytes-for-max-size	941c41b346f9802b411f06f30e972ad4744dad27	2025-07-04 07:11:05.502748
+15	add-can-insert-object-function	934146bc38ead475f4ef4b555c524ee5d66799e5	2025-07-04 07:11:05.544358
+16	add-version	76debf38d3fd07dcfc747ca49096457d95b1221b	2025-07-04 07:11:05.565921
+17	drop-owner-foreign-key	f1cbb288f1b7a4c1eb8c38504b80ae2a0153d101	2025-07-04 07:11:05.616323
+18	add_owner_id_column_deprecate_owner	e7a511b379110b08e2f214be852c35414749fe66	2025-07-04 07:11:05.640301
+19	alter-default-value-objects-id	02e5e22a78626187e00d173dc45f58fa66a4f043	2025-07-04 07:11:05.669279
+20	list-objects-with-delimiter	cd694ae708e51ba82bf012bba00caf4f3b6393b7	2025-07-04 07:11:05.758617
+21	s3-multipart-uploads	8c804d4a566c40cd1e4cc5b3725a664a9303657f	2025-07-04 07:11:05.863704
+22	s3-multipart-uploads-big-ints	9737dc258d2397953c9953d9b86920b8be0cdb73	2025-07-04 07:11:05.894047
+23	optimize-search-function	9d7e604cddc4b56a5422dc68c9313f4a1b6f132c	2025-07-04 07:11:05.905012
+24	operation-function	8312e37c2bf9e76bbe841aa5fda889206d2bf8aa	2025-07-04 07:11:05.909203
+25	custom-metadata	d974c6057c3db1c1f847afa0e291e6165693b990	2025-07-04 07:11:05.914288
+26	objects-prefixes	ef3f7871121cdc47a65308e6702519e853422ae2	2025-08-30 14:20:23.50765
+27	search-v2	33b8f2a7ae53105f028e13e9fcda9dc4f356b4a2	2025-08-30 14:20:23.716077
+28	object-bucket-name-sorting	ba85ec41b62c6a30a3f136788227ee47f311c436	2025-08-30 14:20:23.80482
+29	create-prefixes	a7b1a22c0dc3ab630e3055bfec7ce7d2045c5b7b	2025-08-30 14:20:23.814977
+30	update-object-levels	6c6f6cc9430d570f26284a24cf7b210599032db7	2025-08-30 14:20:23.820696
+31	objects-level-index	33f1fef7ec7fea08bb892222f4f0f5d79bab5eb8	2025-08-30 14:20:23.908247
+32	backward-compatible-index-on-objects	2d51eeb437a96868b36fcdfb1ddefdf13bef1647	2025-08-30 14:20:24.508315
+33	backward-compatible-index-on-prefixes	fe473390e1b8c407434c0e470655945b110507bf	2025-08-30 14:20:24.610677
+34	optimize-search-function-v1	82b0e469a00e8ebce495e29bfa70a0797f7ebd2c	2025-08-30 14:20:24.615468
+35	add-insert-trigger-prefixes	63bb9fd05deb3dc5e9fa66c83e82b152f0caf589	2025-08-30 14:20:24.714293
+36	optimise-existing-functions	81cf92eb0c36612865a18016a38496c530443899	2025-08-30 14:20:24.718709
+37	add-bucket-name-length-trigger	3944135b4e3e8b22d6d4cbb568fe3b0b51df15c1	2025-08-30 14:20:24.810303
+38	iceberg-catalog-flag-on-buckets	19a8bd89d5dfa69af7f222a46c726b7c41e462c5	2025-08-30 14:20:24.816785
+\.
+
+
+--
+-- Data for Name: objects; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY storage.objects (id, bucket_id, name, owner, created_at, updated_at, last_accessed_at, metadata, version, owner_id, user_metadata, level) FROM stdin;
+\.
+
+
+--
+-- Data for Name: prefixes; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY storage.prefixes (bucket_id, name, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: s3_multipart_uploads; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY storage.s3_multipart_uploads (id, in_progress_size, upload_signature, bucket_id, key, version, owner_id, created_at, user_metadata) FROM stdin;
+\.
+
+
+--
+-- Data for Name: s3_multipart_uploads_parts; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
+--
+
+COPY storage.s3_multipart_uploads_parts (id, upload_id, size, part_number, bucket_id, key, etag, owner_id, version, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: schema_migrations; Type: TABLE DATA; Schema: supabase_migrations; Owner: postgres
+--
+
+COPY supabase_migrations.schema_migrations (version, statements, name, created_by, idempotency_key) FROM stdin;
+20250725045708	{"-- Create users table with all required fields\nCREATE TABLE public.users (\n  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,\n  clerk_user_id TEXT UNIQUE,\n  username TEXT UNIQUE NOT NULL,\n  first_name TEXT NOT NULL,\n  last_name TEXT NOT NULL,\n  phone TEXT NOT NULL,\n  email TEXT UNIQUE NOT NULL,\n  address_1 TEXT NOT NULL,\n  address_2 TEXT,\n  pan_card_number TEXT NOT NULL,\n  state TEXT NOT NULL,\n  city TEXT NOT NULL,\n  pin_code TEXT NOT NULL,\n  date_of_birth DATE NOT NULL,\n  gst_number TEXT,\n  company TEXT,\n  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),\n  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()\n);\n\n-- Enable Row Level Security\nALTER TABLE public.users ENABLE ROW LEVEL SECURITY;\n\n-- Create policies for user access\nCREATE POLICY \\"Users can view their own data\\" \nON public.users \nFOR SELECT \nUSING (clerk_user_id = auth.jwt() ->> 'sub');\n\nCREATE POLICY \\"Users can insert their own data\\" \nON public.users \nFOR INSERT \nWITH CHECK (clerk_user_id = auth.jwt() ->> 'sub');\n\nCREATE POLICY \\"Users can update their own data\\" \nON public.users \nFOR UPDATE \nUSING (clerk_user_id = auth.jwt() ->> 'sub');\n\n-- Create function to update timestamps\nCREATE OR REPLACE FUNCTION public.update_updated_at_column()\nRETURNS TRIGGER AS $$\nBEGIN\n  NEW.updated_at = now();\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql;\n\n-- Create trigger for automatic timestamp updates\nCREATE TRIGGER update_users_updated_at\n  BEFORE UPDATE ON public.users\n  FOR EACH ROW\n  EXECUTE FUNCTION public.update_updated_at_column();"}		nishumurmu017@gmail.com	\N
+\.
+
+
+--
+-- Data for Name: seed_files; Type: TABLE DATA; Schema: supabase_migrations; Owner: postgres
+--
+
+COPY supabase_migrations.seed_files (path, hash) FROM stdin;
+\.
+
+
+--
+-- Data for Name: secrets; Type: TABLE DATA; Schema: vault; Owner: supabase_admin
+--
+
+COPY vault.secrets (id, name, description, secret, key_id, nonce, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Name: refresh_tokens_id_seq; Type: SEQUENCE SET; Schema: auth; Owner: supabase_auth_admin
+--
+
+SELECT pg_catalog.setval('auth.refresh_tokens_id_seq', 1, false);
+
+
+--
+-- Name: digio_documents_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.digio_documents_id_seq', 10, true);
+
+
+--
+-- Name: otps_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.otps_id_seq', 4, true);
+
+
+--
+-- Name: subscriptions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.subscriptions_id_seq', 2, true);
+
+
+--
+-- Name: subscription_id_seq; Type: SEQUENCE SET; Schema: realtime; Owner: supabase_admin
+--
+
+SELECT pg_catalog.setval('realtime.subscription_id_seq', 1, false);
 
 
 --
@@ -5726,6 +6222,4 @@ ALTER EVENT TRIGGER pgrst_drop_watch OWNER TO supabase_admin;
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict KO8KhoborbjCBFJ4qEG9V2iUslQzHiWk49QQJpxQLmedbNyhoc1wPIHKcM0gj3J
 

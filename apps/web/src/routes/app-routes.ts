@@ -22,6 +22,7 @@ export const AppRoutes = {
   newsletter: () => "/newsletters-archive",
   webinar: () => "/webinars",
   smartFrameworks: () => "/smart-frameworks",
+  paymentSuccess: () => "/payment/success",
   admin: () => "/admin",
   adminLogin: () => "/admin/login",
   adminDashboard: () => "/admin/dashboard",
