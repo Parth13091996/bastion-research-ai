@@ -12,7 +12,7 @@ const AllUsers = () => {
     queryKey: ['users'],
     queryFn: () => axiosInstance.get('/api/users').then((res) => res.data),
   });
-
+  
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) => axiosInstance.put(`/api/users/${payload.id}`, payload.body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),

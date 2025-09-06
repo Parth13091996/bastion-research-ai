@@ -76,7 +76,7 @@ export const createUser = async (req: Request, res: Response) => {
     pin_code,
     date_of_birth,
     gst_number,
-    company_name,
+    company,
     status,
   } = req.body;
 
@@ -100,7 +100,8 @@ export const createUser = async (req: Request, res: Response) => {
         first_name,
         last_name,
         password: hashedPassword,
-        role: role || "user",
+        // user_role enum in DB, default to 'employee' if not provided
+        role: role || "employee",
         phone,
         pan_card_number,
         address_1,
@@ -110,7 +111,7 @@ export const createUser = async (req: Request, res: Response) => {
         pin_code,
         date_of_birth: dob,
         gst_number,
-        company_name,
+        company,
         status: status || "active",
       },
     ])
