@@ -1,16 +1,14 @@
-import { Request, Response } from "express";
-import axios from "axios";
-import { supabase } from "../supabase";
 import {
-  KraPanStatusRequest,
-  KraPanStatusResponse,
-  KraDownloadPanRequest,
-  KraDownloadPanResponse,
-  KraRegistrationRequest,
-  KraRegistrationResponse,
-  KraCommonRegistrationRequest,
-  KraAuditLogResponse
+    KraDownloadPanRequest,
+    KraDownloadPanResponse,
+    KraPanStatusRequest,
+    KraPanStatusResponse,
+    KraRegistrationRequest,
+    KraRegistrationResponse
 } from "@repo/types";
+import axios from "axios";
+import { Request, Response } from "express";
+import { supabase } from "../supabase";
 
 const DIGIO_BASE_URL = process.env.DIGIO_BASE_URL || "https://ext.digio.in:444";
 const DIGIO_CLIENT_ID = process.env.DIGIO_CLIENT_ID;
