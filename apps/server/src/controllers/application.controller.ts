@@ -29,10 +29,20 @@ export const getApplications = async (req: Request, res: Response) => {
 };
 
 export const createApplication = async (req: Request, res: Response) => {
-  const { job_id, applicant_name, status } = req.body;
+  const {
+    job_id,
+    applicant_name,
+    email,
+    phone,
+    cover_letter,
+    resume_url,
+    status = "Pending",
+  } = req.body ?? {};
   const { data, error } = await supabase
     .from("applications")
-    .insert([{ job_id, applicant_name, status }])
+    .insert([
+      { job_id, applicant_name, email, phone, cover_letter, resume_url, status },
+    ])
     .select();
 
   if (error) {

@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { load } from "@cashfreepayments/cashfree-js";
 import { Button } from '@/components/ui/button';
@@ -11,18 +11,27 @@ interface OrderResponse {
 
 const CashfreePayment = () => {
   const { user } = useAuth();
+  const { data: plansData } = useQuery({
+    queryKey: ['cashfree-plans'],
+    queryFn: () => axiosInstance.get('/api/cashfree/plans').then(res => res.data?.plans || []),
+  });
 
   let cashfree;
   const mutation = useMutation<OrderResponse, Error, void>({
-    mutationFn: () =>
-      axiosInstance
+    mutationFn: () => {
+      const plans: any[] = plansData || [];
+      const firstPaid = plans.find((p: any) => (p?.amount || 0) > 0) || plans[0];
+      if (!firstPaid) throw new Error('No plans available');
+      return axiosInstance
         .post('/api/cashfree/orders', {
-          plan: '3m', // This should be dynamic in a real application
+          plan: firstPaid.code, // now dynamic (plan_id as string)
           customer_id: user?.id,
           customer_email: user?.email,
           customer_phone: '9876543210', // This should be dynamic
+          source: 'dashboard',
         })
-        .then((res) => res.data),
+        .then((res) => res.data);
+    },
     onSuccess: async(data: any) => {
       var initializeSDK = async function () {
         cashfree = await load({

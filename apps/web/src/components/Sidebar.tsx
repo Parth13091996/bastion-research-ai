@@ -17,22 +17,23 @@ import {
   Calendar,
   ClipboardList,
 } from "lucide-react";
+import { AppRoutes } from "../routes/app-routes";
 
 const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
+  { name: "Dashboard", icon: LayoutDashboard, path: AppRoutes.adminDashboard() },
   {
     name: "AR Members",
     icon: Users,
     subItems: [
-      { name: "Manage Members", icon: Contact, path: "/admin/ar/members" },
-      { name: "Manage Plans", icon: FileText, path: "/admin/ar/plans" },
+      { name: "Manage Members", icon: Contact, path: AppRoutes.adminManageMembers() },
+      { name: "Manage Plans", icon: FileText, path: AppRoutes.adminManagePlans() },
       {
         name: "Manage Subscriptions",
         icon: Calendar,
-        path: "/admin/ar/subscriptions",
+        path: AppRoutes.adminManageSubscriptions(),
       },
-      { name: "Payment History", icon: CreditCard, path: "/admin/ar/payments" },
-      { name: "Coupon Management", icon: Gift, path: "/admin/ar/coupons" },
+      { name: "Payment History", icon: CreditCard, path: AppRoutes.adminPaymentHistory() },
+      { name: "Coupon Management", icon: Gift, path: AppRoutes.adminCouponManagement() },
     ],
   },
   {
@@ -42,13 +43,13 @@ const navItems = [
       {
         name: "Job Openings",
         icon: ClipboardList,
-        path: "/admin/jobs/openings",
+        path: AppRoutes.adminJobOpenings(),
       },
-      { name: "Add new Job", icon: UserPlus, path: "/admin/jobs/add" },
+      { name: "Add new Job", icon: UserPlus, path: AppRoutes.adminAddNewJob() },
       {
         name: "Applications",
         icon: FileText,
-        path: "/admin/jobs/applications",
+        path: AppRoutes.adminApplications(),
       },
     ],
   },
@@ -56,12 +57,12 @@ const navItems = [
     name: "Users",
     icon: Users,
     subItems: [
-      { name: "All Users", icon: Users, path: "/admin/users/all" },
-      { name: "Add User", icon: UserPlus, path: "/admin/users/add" },
-      { name: "Profile", icon: Contact, path: "/admin/users/profile" },
+      { name: "All Users", icon: Users, path: AppRoutes.adminAllUsers() },
+      { name: "Add User", icon: UserPlus, path: AppRoutes.adminAddUser() },
+      { name: "Profile", icon: Contact, path: AppRoutes.adminProfile() },
     ],
   },
-  { name: "Settings", icon: Settings, path: "/admin/settings" },
+  { name: "Settings", icon: Settings, path: AppRoutes.adminSettings() },
 ];
 
 const Sidebar = () => {

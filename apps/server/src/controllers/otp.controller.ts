@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import twilio from "twilio";
+import { config } from "../utils/config";
 
 // Initialize Twilio Client
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -36,10 +37,10 @@ export const sendOtp = async (req: Request, res: Response) => {
   try {
     // 1. Generate OTP and expiration
     const otp = generateOtp();
-    const otp_expires_at = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    const expiresAt = Date.now() + config.OtpTtlMs;
 
     // 2. Save OTP in-memory store for the phone
-    otpStore.set(phone, { otp, expiresAt: otp_expires_at.getTime() });
+    otpStore.set(phone, { otp, expiresAt });
 
     // 3. Send the OTP via Twilio
     try {
@@ -48,7 +49,7 @@ export const sendOtp = async (req: Request, res: Response) => {
         from: twilioFromNumber,
         to: phone,
       });
-      res.status(200).json({ message: "OTP sent successfully." });
+      res.status(200).json({ message: "OTP sent successfully.", expiresAt });
     } catch (twilioError) {
       console.error("Twilio sending error:", twilioError);
       res.status(500).json({ message: "Failed to send OTP." });

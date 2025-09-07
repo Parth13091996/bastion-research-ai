@@ -1,14 +1,26 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { AppRoutes } from "@/routes/app-routes";
 
 const MyAccountDropdown = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+    setIsDropdownOpen((prev) => !prev);
   };
 
-  const handleOptionClick = (e) => {
+  const handleOptionClick = () => {
     setIsDropdownOpen(false);
+  };
+
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    setIsDropdownOpen(false);
+    await logout();
+    navigate(AppRoutes.login());
   };
 
   return (
@@ -19,6 +31,8 @@ const MyAccountDropdown = () => {
         className="flex items-center text-red-600 font-medium hover:text-red-800 transition-colors focus:outline-none"
         aria-haspopup="true"
         aria-expanded={isDropdownOpen}
+        id="my-account-button"
+        type="button"
       >
         My Account
         <svg
@@ -45,46 +59,38 @@ const MyAccountDropdown = () => {
           aria-orientation="vertical"
           aria-labelledby="my-account-button"
         >
-          <a
-            href="/edit-profile"
+          <Link
+            to="/edit-profile"
             onClick={handleOptionClick}
             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors"
             role="menuitem"
           >
             Edit Profile
-          </a>
-          <a
-            href="/subscription"
+          </Link>
+          <Link
+            to="/subscription"
             onClick={handleOptionClick}
             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors"
             role="menuitem"
           >
             Show Subscription
-          </a>
-          <a
-            href="/transaction-history"
+          </Link>
+          <Link
+            to="/transaction-history"
             onClick={handleOptionClick}
             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors"
             role="menuitem"
           >
             Transaction History
-          </a>
-          <a
-            href="/close-account"
-            onClick={handleOptionClick}
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors"
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors"
             role="menuitem"
-          >
-            Close Account
-          </a>
-          <a
-            href="/logout"
-            onClick={handleOptionClick}
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors"
-            role="menuitem"
+            type="button"
           >
             Logout
-          </a>
+          </button>
         </div>
       )}
     </div>

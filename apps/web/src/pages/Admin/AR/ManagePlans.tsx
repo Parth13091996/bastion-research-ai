@@ -7,30 +7,16 @@ import axiosInstance from "@/api/axios";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "../../../styles/ag-grid-custom.css";
+import EditRowModal from "@/components/admin/EditRowModal";
 
 // Replaced static data with API-driven content
 
-const ActionsRenderer = (params: any) => {
-  const current = params.data;
-  const onEdit = () => {
-    const plan_name = window.prompt('Plan Name', current.plan_name) ?? current.plan_name;
-    const plan_type = window.prompt('Plan Type (Subscription/Free)', current.plan_type) ?? current.plan_type;
-    const price_amount = Number(window.prompt('Price Amount', String(current.price_amount)) ?? current.price_amount);
-    const currency = window.prompt('Currency', current.currency) ?? current.currency;
-    const duration_months = Number(window.prompt('Duration (months)', String(current.duration_months)) ?? current.duration_months);
-    const wp_role = window.prompt('WP Role', current.wp_role) ?? current.wp_role;
-    params.context?.updatePlan?.(current.plan_id, { plan_name, plan_type, price_amount, currency, duration_months, wp_role });
-  };
-  const onDelete = () => {
-    if (window.confirm('Delete this plan?')) params.context?.deletePlan?.(current.plan_id);
-  };
-  return (
-    <div className="flex items-center space-x-2">
-      <button onClick={onEdit} className="p-2 text-gray-600 hover:text-blue-600" title="Edit"><Edit2 size={14} /></button>
-      <button onClick={onDelete} className="p-2 text-gray-600 hover:text-red-600" title="Delete"><Trash2 size={14} /></button>
-    </div>
-  );
-};
+const ActionsRenderer = (params: any) => (
+  <div className="flex items-center space-x-2">
+    <button onClick={() => params.context?.openEdit?.(params.data)} className="p-2 text-gray-600 hover:text-blue-600" title="Edit"><Edit2 size={14} /></button>
+    <button onClick={() => params.context?.deletePlan?.(params.data.plan_id)} className="p-2 text-gray-600 hover:text-red-600" title="Delete"><Trash2 size={14} /></button>
+  </div>
+);
 
 const PlanTypeRenderer = (params: any) => {
   return (
@@ -57,6 +43,21 @@ const MembershipPlans = () => {
   };
   const updatePlan = (id: number | string, body: any) => updateMutation.mutate({ id, body });
   const deletePlan = (id: number | string) => deleteMutation.mutate(id);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editRow, setEditRow] = useState<any | null>(null);
+  const openEdit = (row: any) => { setEditRow(row); setEditOpen(true); };
+  const saveEdit = (values: any) => {
+    if (!editRow) return;
+    updatePlan(editRow.plan_id, {
+      plan_name: values.plan_name,
+      plan_type: values.plan_type,
+      price_amount: Number(values.price_amount),
+      currency: values.currency,
+      duration_months: Number(values.duration_months),
+      wp_role: values.wp_role,
+    });
+    setEditOpen(false);
+  };
   const [searchTerm, setSearchTerm] = useState("");
   const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
@@ -157,10 +158,26 @@ const MembershipPlans = () => {
             }}
             pagination={true}
             paginationPageSize={10}
-            onGridReady={onGridReady}
-            context={{ updatePlan, deletePlan }}
+          onGridReady={onGridReady}
+            context={{ openEdit, deletePlan }}
           />
         </div>
+        <EditRowModal
+          open={editOpen}
+          title="Edit Plan"
+          fields={[
+            { name: 'plan_name', label: 'Plan Name' },
+            { name: 'plan_type', label: 'Plan Type' },
+            { name: 'price_amount', label: 'Price Amount', type: 'number' },
+            { name: 'currency', label: 'Currency' },
+            { name: 'duration_months', label: 'Duration (months)', type: 'number' },
+            { name: 'wp_role', label: 'WP Role' },
+          ]}
+          initialValues={editRow}
+          onClose={() => setEditOpen(false)}
+          onSave={saveEdit}
+          saving={updateMutation.isPending}
+        />
       </div>
     </div>
   );

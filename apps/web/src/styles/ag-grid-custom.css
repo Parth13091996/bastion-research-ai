@@ -10,9 +10,12 @@
     /* Row Styles */
     --ag-row-hover-color: #f1f3f5;
 
-    /* Font Styles */
+    /* Font & Sizing */
     --ag-font-family: 'Inter', sans-serif;
     --ag-font-size: 14px;
+    --ag-grid-size: 8px; /* increase paddings */
+    --ag-row-height: 44px; /* taller rows */
+    --ag-header-height: 48px; /* taller header */
 
     /* Border Styles */
     --ag-border-color: #dee2e6;

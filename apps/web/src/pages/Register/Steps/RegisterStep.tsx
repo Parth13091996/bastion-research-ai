@@ -22,7 +22,7 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     try {
       // Data is already updated in the session via useEffect
       await axiosInstance.post("/api/otp/send", {
-        phone: formData.phone,
+        phone: "+91" + formData.phone,
       });
       nextStep();
     } catch (err: any) {

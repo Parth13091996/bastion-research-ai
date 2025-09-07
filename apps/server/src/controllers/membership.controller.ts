@@ -106,6 +106,27 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
   res.status(200).json(dummyData);
 };
 
+export const getMyPaymentHistory = async (req: Request, res: Response) => {
+  try {
+    const user: any = (req as any).user;
+    if (!user?.id) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const { data, error } = await supabase
+      .from("payment_history")
+      .select("*")
+      .eq("user_id", user.id as string);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(200).json(data || []);
+  } catch (err: any) {
+    return res.status(500).json({ error: err?.message || "Server error" });
+  }
+};
+
 export const createMembershipPlan = async (req: Request, res: Response) => {
   const {
     plan_name,

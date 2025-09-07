@@ -33,6 +33,9 @@ const ManagePlans = () => {
         <AgGridReact
           rowData={rowData}
           columnDefs={columnDefs}
+          defaultColDef={{ sortable: true, filter: true, resizable: true }}
+          pagination={true}
+          paginationPageSize={10}
         />
       </div>
     </div>

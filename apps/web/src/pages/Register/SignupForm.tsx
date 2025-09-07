@@ -28,17 +28,32 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     agreeToTerms: false,
     selectedPlan: "",
   });
-  const [otpTimer, setOtpTimer] = useState(51);
+  // OTP countdown timer in seconds (10 minutes)
+  const [otpTimer, setOtpTimer] = useState(600);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
 
   useEffect(() => {
     const formDataFromStorage = localStorage.getItem("onboardingFormData");
+    const stepFromStorage = localStorage.getItem("onboardingCurrentStep");
+    const otpTimerFromStorage = localStorage.getItem("onboardingOtpTimer");
     if (formDataFromStorage) {
       try {
         setFormData(JSON.parse(formDataFromStorage));
       } catch {}
+    }
+    if (stepFromStorage) {
+      const step = parseInt(stepFromStorage, 10);
+      if (!Number.isNaN(step) && step >= 1 && step <= 7) {
+        setCurrentStep(step);
+      }
+    }
+    if (otpTimerFromStorage) {
+      const t = parseInt(otpTimerFromStorage, 10);
+      if (!Number.isNaN(t) && t >= 0) {
+        setOtpTimer(t);
+      }
     }
   }, []);
 
@@ -59,14 +74,22 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const nextStep = () => {
     setError(null);
     if (currentStep < 8) {
-      setCurrentStep(currentStep + 1);
+      const next = currentStep + 1;
+      setCurrentStep(next);
+      try {
+        localStorage.setItem("onboardingCurrentStep", String(next));
+      } catch {}
     }
   };
 
   const prevStep = () => {
     setError(null);
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      const prev = currentStep - 1;
+      setCurrentStep(prev);
+      try {
+        localStorage.setItem("onboardingCurrentStep", String(prev));
+      } catch {}
     }
   };
 
@@ -79,7 +102,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     let timer: NodeJS.Timeout;
     if (currentStep === 2 && otpTimer > 0) {
       timer = setInterval(() => {
-        setOtpTimer((prev) => prev - 1);
+        setOtpTimer((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     } else if (otpTimer === 0) {
       // Handle timer expiration
@@ -87,13 +110,28 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     return () => clearInterval(timer);
   }, [currentStep, otpTimer]);
 
+  // Persist current step and OTP timer
+  useEffect(() => {
+    try {
+      localStorage.setItem("onboardingCurrentStep", String(currentStep));
+    } catch {}
+  }, [currentStep]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("onboardingOtpTimer", String(otpTimer));
+    } catch {}
+  }, [otpTimer]);
+
   useEffect(() => {
     const fetchPlans = async () => {
       if (currentStep === 5) {
         setIsLoading(true);
         try {
           const response = await axiosInstance.get("/api/cashfree/plans");
-          setPlans(response.data.plans);
+          const apiPlans: Plan[] = response.data.plans || [];
+          const freePlan: Plan = { code: "free", name: "Freemium", amount: 0, currency: "INR" };
+          setPlans([freePlan, ...apiPlans]);
         } catch (err: any) {
           setError(err.response?.data?.message || "Failed to fetch plans.");
         } finally {

@@ -1,60 +1,34 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Search, MapPin, Clock, Home } from "lucide-react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
-
-const jobs = [
-  {
-    id: 1,
-    title: "Research Analyst Trainee",
-    type: "Full Time",
-    location: "Office",
-    link: "/careers/research-analyst-trainee",
-  },
-  {
-    id: 2,
-    title: "Freelance Python Developer",
-    type: "Part Time",
-    location: "Work From Home",
-    link: "/careers/freelance-python-developer",
-  },
-  {
-    id: 3,
-    title: "UI/UX Designer",
-    type: "Contract",
-    location: "Hybrid",
-    link: "/careers/ui-ux-designer",
-  },
-  {
-    id: 4,
-    title: "Frontend Developer",
-    type: "Full Time",
-    location: "Hybrid",
-    link: "/careers/frontend-developer",
-  },
-  {
-    id: 5,
-    title: "Data Engineer Intern",
-    type: "Part Time",
-    location: "Office",
-    link: "/careers/data-engineer-intern",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import axiosInstance from "@/api/axios";
 
 const CareerPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [jobType, setJobType] = useState("All");
   const [jobLocation, setJobLocation] = useState("All");
 
-  // Filtering Logic
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = job.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesType = jobType === "All" || job.type === jobType;
-    const matchesLocation =
-      jobLocation === "All" || job.location === jobLocation;
-    return matchesSearch && matchesType && matchesLocation;
+  const { data: jobs, isLoading } = useQuery({
+    queryKey: ["public-jobs"],
+    queryFn: () => axiosInstance.get("/api/jobs").then((r) => r.data),
   });
+
+  // Filtering Logic
+  const filteredJobs = useMemo(() => {
+    if (!jobs) return [] as any[];
+    return jobs.filter((job: any) => {
+      const title = (job.job_title || '').toLowerCase();
+      const type = (job.job_type || '').toLowerCase().replace(/[-\s]/g, '');
+      const location = (job.location || '').toLowerCase();
+      const selectedType = jobType.toLowerCase().replace(/[-\s]/g, '');
+      const matchesSearch = title.includes(searchQuery.toLowerCase());
+      const matchesType = jobType === "All" || type === selectedType;
+      const matchesLocation =
+        jobLocation === "All" || location === jobLocation.toLowerCase();
+      return matchesSearch && matchesType && matchesLocation;
+    });
+  }, [jobs, searchQuery, jobType, jobLocation]);
 
   return (
     <div className="min-h-50vh bg-gray-50 p-8">
@@ -105,33 +79,35 @@ const CareerPage = () => {
 
         {/* Job Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-50%">
-          {filteredJobs.length > 0 ? (
-            filteredJobs.map((job) => (
+          {isLoading ? (
+            <p className="text-gray-500">Loading jobs...</p>
+          ) : filteredJobs.length > 0 ? (
+            filteredJobs.map((job: any) => (
               <div
-                key={job.id}
+                key={job.job_id}
                 className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
               >
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {job.title}
+                  {job.job_title}
                 </h3>
 
                 <div className="flex flex-wrap items-center gap-4 mb-4">
                   <div className="flex items-center text-gray-600">
                     <Clock className="w-4 h-4 mr-2" />
-                    <span>{job.type}</span>
+                    <span>{job.job_type || job.commitment || '—'}</span>
                   </div>
                   <div className="flex items-center text-gray-600">
-                    {job.location === "Office" ? (
+                    {job.location?.toLowerCase() === "office" ? (
                       <MapPin className="w-4 h-4 mr-2" />
                     ) : (
                       <Home className="w-4 h-4 mr-2" />
                     )}
-                    <span>{job.location}</span>
+                    <span>{job.location || '—'}</span>
                   </div>
                 </div>
 
                 <button className="text-red-500 hover:text-red-600 font-medium">
-                  <a href={job.link}> More Details →</a>
+                  <a href={`/careers/${job.job_id}`}> More Details →</a>
                 </button>
               </div>
             ))

@@ -1,15 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import BackgroundShapes from "../../components/generic/framer-motion.tsx";
+import {
+  Search,
+  MapPin,
+  Clock,
+  Home,
+  Mail,
+  Phone,
+  User,
+  MessageSquare,
+} from "lucide-react";
+import axiosInstance from "@/api/axios";
 
-const BastionJobPage = () => {
+const SingleCareer = () => {
+  const params = useParams();
+  const [careerData, setCareerData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Form state
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    coverLetter: '',
-    resume: null,
-    agreeToTerms: false
+    name: "",
+    mobile: "",
+    email: "",
+    message: "",
   });
 
+  // Fetch dynamic job by ID from backend
+  useEffect(() => {
+    const fetchCareerData = async () => {
+      try {
+        setLoading(true);
+        const id = params.slug as string;
+        const res = await axiosInstance.get(`/api/jobs/${id}`);
+        const data = res.data;
+        setCareerData(data);
+      } catch (err) {
+        setError("Failed to load career details");
+        console.error("Error fetching career data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (params.slug) fetchCareerData();
+  }, [params.slug]);
+
+  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     setFormData(prev => ({
@@ -20,105 +57,160 @@ const BastionJobPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Application submitted successfully!');
+    try {
+      // Replace with your actual form submission API
+      const id = Number(params.slug);
+      await axiosInstance.post('/api/applications', {
+        job_id: id,
+        applicant_name: formData.name,
+        email: formData.email,
+        phone: formData.mobile,
+        cover_letter: formData.message,
+      });
+      alert("Application submitted successfully!");
+
+      // Reset form
+      setFormData({
+        name: "",
+        mobile: "",
+        email: "",
+        message: "",
+      });
+    } catch (err) {
+      console.error("Form submission error:", err);
+      alert("Failed to submit application. Please try again.");
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Research Analyst Trainee</h1>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Error Loading Career Details
+          </h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!careerData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Career Not Found
+          </h2>
+          <p className="text-gray-600">
+            The requested position could not be found.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Job Details */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="border-b border-gray-200 pb-4 mb-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Research Analyst Trainee – Indian Equities (Full-Time | Surat)
-                </h2>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div><span className="font-medium">Team:</span> Core Research</div>
-                  <div><span className="font-medium">Experience:</span> 0-1 year</div>
-                  <div><span className="font-medium">Commitment:</span> Full-time</div>
+            {/* Header */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    {careerData.job_title}
+                  </h1>
+                  {careerData.team && (
+                    <p className="text-lg text-blue-600 font-semibold">Team: {careerData.team}</p>
+                  )}
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <p className="text-gray-700 mb-4">
-                    We're looking for a Research Analyst Trainee to join our core research team at <span className="font-medium">Bastion Research</span> — the team behind deep-dive equity research that cuts through the noise.
-                  </p>
-                  <p className="text-gray-700">
-                    If you're obsessed with businesses, balance-sheets, and boring-but-beautiful footnotes, keep reading.
-                  </p>
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  {careerData.location || '—'}
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What You'll Do</h3>
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Assist in researching and writing equity reports on Indian listed companies.
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Analyse financial statements, investor presentations, and earnings calls.
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Maintain models, trackers, and company-specific data.
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Support senior analysts with prep work and background research.
-                    </li>
-                  </ul>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  {careerData.experience || '—'}
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What We're Looking For</h3>
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Strong interest in listed Indian equities.
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Comfortable with Microsoft Tools and basic accounting/valuation concepts.
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Ability to read and interpret annual reports without falling asleep.
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Curious mindset, willingness to learn, and a healthy disrespect for jargon.
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Clear written communication — if you can explain P&L dynamics in plain English, you're already ahead.
-                    </li>
-                  </ul>
+                <div className="flex items-center gap-1">
+                  <Home className="w-4 h-4" />
+                  {careerData.job_type || careerData.commitment || '—'}
                 </div>
+              </div>
+            </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Good To Have (But Not Mandatory)</h3>
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Experience with basic financial modelling.
+            {/* Job Description */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Job Description
+              </h2>
+              <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {careerData.description}
+              </div>
+            </div>
+
+            {/* What You'll Do */}
+            {careerData.responsibilities && careerData.responsibilities.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  What You'll Do
+                </h2>
+                <ul className="space-y-3">
+                  {careerData.responsibilities.map((responsibility: string, index: number) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-gray-700"
+                    >
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>{responsibility}</span>
                     </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Exposure to Screener.in, Tijori, Trendlyne, or similar tools.
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* What We're Looking For */}
+            {careerData.requirements && careerData.requirements.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  What We're Looking For
+                </h2>
+                <ul className="space-y-3">
+                  {careerData.requirements.map((requirement: string, index: number) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-gray-700"
+                    >
+                      <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>{requirement}</span>
                     </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      Knowledge of sectors like Pharma, Chemicals, BFSI, etc. is a bonus.
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* What We Offer */}
+            {(careerData.benefits || careerData.whatWeOffer) && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  What We Offer
+                </h2>
+                <ul className="space-y-3">
+                  {(careerData.benefits || careerData.whatWeOffer).map((offer: string, index: number) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-gray-700"
+                    >
+                      <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                      <span>{offer}</span>
                     </li>
                   </ul>
                 </div>

@@ -13,11 +13,12 @@ import authRoutes from "./routes/auth.routes";
 import digioRoutes from "./routes/digio.routes";
 import cashfreeRoutes from "./routes/cashfree.routes";
 import otpRoutes from "./routes/otp.routes";
+import kraRoutes from "./routes/kra.routes";
 
 dotenv.config();
 
 const app: Express = express();
-const port = process.env.PORT || 3003;
+const port = process.env.PORT || 3001;
 
 // Middleware
 app.use(
@@ -46,6 +47,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/digio", digioRoutes);
 app.use("/api/cashfree", cashfreeRoutes);
 app.use("/api/otp", otpRoutes);
+app.use("/api/kra", kraRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api", userRoutes);
 app.use("/api", jobRoutes);

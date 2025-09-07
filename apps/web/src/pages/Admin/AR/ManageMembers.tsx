@@ -13,6 +13,7 @@ import axiosInstance from "@/api/axios";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "../../../styles/ag-grid-custom.css";
+import EditRowModal from "@/components/admin/EditRowModal";
 
 // Static mock data removed; using API instead
 
@@ -33,25 +34,12 @@ const StatusBadgeRenderer = (params: any) => (
   </span>
 );
 
-const ActionsRenderer = (params: any) => {
-  const current = params.data;
-  const onEdit = () => {
-    const username = window.prompt('Username', current.username) ?? current.username;
-    const email = window.prompt('Email', current.email) ?? current.email;
-    const first_name = window.prompt('First Name', current.first_name) ?? current.first_name;
-    const last_name = window.prompt('Last Name', current.last_name) ?? current.last_name;
-    params.context?.updateUser?.(current.id, { username, email, first_name, last_name });
-  };
-  const onDelete = () => {
-    if (window.confirm('Delete this member?')) params.context?.deleteUser?.(current.id);
-  };
-  return (
-    <div className="flex items-center space-x-1">
-      <button className="p-1 text-gray-600 hover:text-blue-600 rounded" title="Edit" onClick={onEdit}><Edit size={16} /></button>
-      <button className="p-1 text-gray-600 hover:text-red-600 rounded" title="Delete" onClick={onDelete}><Trash2 size={16} /></button>
-    </div>
-  );
-};
+const ActionsRenderer = (params: any) => (
+  <div className="flex items-center space-x-1">
+    <button className="p-1 text-gray-600 hover:text-blue-600 rounded" title="Edit" onClick={() => params.context?.openEdit?.(params.data)}><Edit size={16} /></button>
+    <button className="p-1 text-gray-600 hover:text-red-600 rounded" title="Delete" onClick={() => params.context?.deleteUser?.(params.data.id)}><Trash2 size={16} /></button>
+  </div>
+);
 
 import AddMemberModal from "../../../components/admin/AddMemberModal";
 
@@ -85,6 +73,14 @@ const MemberManagementDashboard = () => {
     { headerName: "Last Name", field: "last_name", flex: 1 },
     { headerName: "Actions", field: "actions", cellRenderer: ActionsRenderer, width: 120, sortable: false, filter: false },
   ]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editRow, setEditRow] = useState<any | null>(null);
+  const openEdit = (row: any) => { setEditRow(row); setEditOpen(true); };
+  const saveEdit = (values: any) => {
+    if (!editRow) return;
+    updateMutation.mutate({ id: editRow.id, body: { username: values.username, email: values.email, first_name: values.first_name, last_name: values.last_name } });
+    setEditOpen(false);
+  };
   const updateUser = (id: string, body: any) => updateMutation.mutate({ id, body });
   const deleteUser = (id: string) => deleteMutation.mutate(id);
 
@@ -178,10 +174,10 @@ const MemberManagementDashboard = () => {
             }}
             pagination={true}
             paginationPageSize={10}
-            onGridReady={onGridReady}
-            rowSelection="multiple"
-            suppressRowClickSelection={true}
-            context={{ updateUser, deleteUser }}
+          onGridReady={onGridReady}
+          rowSelection="multiple"
+          suppressRowClickSelection={true}
+            context={{ openEdit, deleteUser }}
           />
         </div>
 
@@ -201,6 +197,20 @@ const MemberManagementDashboard = () => {
             </div>
         </div>
       </div>
+      <EditRowModal
+        open={editOpen}
+        title="Edit Member"
+        fields={[
+          { name: 'username', label: 'Username' },
+          { name: 'email', label: 'Email', type: 'email' },
+          { name: 'first_name', label: 'First Name' },
+          { name: 'last_name', label: 'Last Name' },
+        ]}
+        initialValues={editRow}
+        onClose={() => setEditOpen(false)}
+        onSave={saveEdit}
+        saving={updateMutation.isPending}
+      />
     </div>
   );
 };

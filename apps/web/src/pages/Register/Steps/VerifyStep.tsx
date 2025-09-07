@@ -22,7 +22,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     const otp = formData.otp.join("");
     try {
       await axiosInstance.post("/api/otp/verify", {
-        phone: formData.phone,
+        phone: "+91" + formData.phone,
         otp: otp,
       });
       nextStep();
@@ -56,9 +56,9 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     setIsLoading(true);
     try {
       await axiosInstance.post("/api/otp/send", {
-        phone: formData.phone,
+        phone: "+91" + formData.phone,
       });
-      setOtpTimer(51); // Reset timer
+      setOtpTimer(600); // Reset timer to 10 minutes
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "An unexpected error occurred.";
@@ -98,7 +98,13 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Expire in 0:{otpTimer.toString().padStart(2, "0")}
+            {(() => {
+              const minutes = Math.floor(otpTimer / 60);
+              const seconds = otpTimer % 60;
+              return `Expire in ${minutes.toString().padStart(1, "0")}:${seconds
+                .toString()
+                .padStart(2, "0")}`;
+            })()}
           </p>
           <button
             onClick={handleResendOtp}

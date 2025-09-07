@@ -8,16 +8,19 @@ import {
   deleteSubscription,
   getMembershipPlans,
   getPaymentHistory,
+  getMyPaymentHistory,
   getSubscriptions,
   updateMembershipPlan,
   updateSubscription,
 } from "../controllers/membership.controller";
+import { protect } from "../middleware/auth.middleware";
 
 const router = Router();
 
 router.get("/membership-plans", getMembershipPlans);
 router.get("/subscriptions", getSubscriptions);
 router.get("/payment-history", getPaymentHistory);
+router.get("/payment-history/me", protect, getMyPaymentHistory);
 
 router.post("/membership-plans", createMembershipPlan);
 router.put("/membership-plans/:id", updateMembershipPlan);

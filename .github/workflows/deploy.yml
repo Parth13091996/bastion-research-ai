@@ -1,4 +1,4 @@
-name: Vercel CI/CD
+name: Web + Server CI/CD
 
 on:
   push:
@@ -6,9 +6,8 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,25 +15,33 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.4.1 # Pin a specific version for stability
+          version: 10.4.1
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "pnpm" # Cache pnpm dependencies for faster builds
+          cache: "pnpm"
 
       - name: Verify pnpm installation
         run: |
           echo "Checking pnpm installation..."
-          pnpm --version || { echo "pnpm not found"; exit 1; } # Fail explicitly if pnpm is not found
+          pnpm --version || { echo "pnpm not found"; exit 1; }
           echo "pnpm installed successfully"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile # Respect pnpm-lock.yaml
+        run: pnpm install --frozen-lockfile
 
       - name: Build project
-        run: pnpm run build # Assumes Turborepo build script for web and server
+        run: pnpm run build
+
+  deploy-web-vercel:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -43,3 +50,15 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: "--prod"
+
+  deploy-server-render:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ secrets.RENDER_SERVER_DEPLOY_HOOK != '' }}
+    steps:
+      - name: Trigger Render deploy (Server)
+        env:
+          RENDER_SERVER_DEPLOY_HOOK: ${{ secrets.RENDER_SERVER_DEPLOY_HOOK }}
+        run: |
+          echo "Triggering Render deployment for backend via deploy hook..."
+          curl -fsSL -X POST "$RENDER_SERVER_DEPLOY_HOOK" && echo "Render deploy triggered." || { echo "Failed to trigger Render deploy"; exit 1; }

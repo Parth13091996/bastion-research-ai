@@ -46,11 +46,51 @@ export const getJobById = async (req: Request, res: Response) => {
 };
 
 export const createJob = async (req: Request, res: Response) => {
-  const { job_title, author, expiry } = req.body;
+  const {
+    job_title,
+    author,
+    expiry,
+    team,
+    experience,
+    commitment,
+    job_type,
+    location,
+    description,
+    responsibilities,
+    requirements,
+    good_to_have,
+    benefits,
+  } = req.body ?? {};
+
+  const toList = (val: any) =>
+    Array.isArray(val)
+      ? val
+      : typeof val === "string"
+      ? val
+          .split(/\r?\n/)
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : [];
+
+  const payload: any = {
+    job_title,
+    author,
+    expiry,
+    team,
+    experience,
+    commitment,
+    job_type,
+    location,
+    description,
+    responsibilities: toList(responsibilities),
+    requirements: toList(requirements),
+    good_to_have: toList(good_to_have),
+    benefits: toList(benefits),
+  };
 
   const { data, error } = await supabase
     .from("job_openings")
-    .insert([{ job_title, author, expiry }])
+    .insert([payload])
     .select();
 
   if (error) {
@@ -61,10 +101,54 @@ export const createJob = async (req: Request, res: Response) => {
 
 export const updateJob = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { job_title, author, expiry } = req.body;
+  const {
+    job_title,
+    author,
+    expiry,
+    team,
+    experience,
+    commitment,
+    job_type,
+    location,
+    description,
+    responsibilities,
+    requirements,
+    good_to_have,
+    benefits,
+  } = req.body ?? {};
+
+  const toList = (val: any) =>
+    Array.isArray(val)
+      ? val
+      : typeof val === "string"
+      ? val
+          .split(/\r?\n/)
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : undefined; // If not provided, don't send
+
+  const updatePayload: any = {};
+  if (job_title !== undefined) updatePayload.job_title = job_title;
+  if (author !== undefined) updatePayload.author = author;
+  if (expiry !== undefined) updatePayload.expiry = expiry;
+  if (team !== undefined) updatePayload.team = team;
+  if (experience !== undefined) updatePayload.experience = experience;
+  if (commitment !== undefined) updatePayload.commitment = commitment;
+  if (job_type !== undefined) updatePayload.job_type = job_type;
+  if (location !== undefined) updatePayload.location = location;
+  if (description !== undefined) updatePayload.description = description;
+  const r1 = toList(responsibilities);
+  if (r1 !== undefined) updatePayload.responsibilities = r1;
+  const r2 = toList(requirements);
+  if (r2 !== undefined) updatePayload.requirements = r2;
+  const r3 = toList(good_to_have);
+  if (r3 !== undefined) updatePayload.good_to_have = r3;
+  const r4 = toList(benefits);
+  if (r4 !== undefined) updatePayload.benefits = r4;
+
   const { data, error } = await supabase
     .from("job_openings")
-    .update({ job_title, author, expiry })
+    .update(updatePayload)
     .eq("job_id", id)
     .select();
 

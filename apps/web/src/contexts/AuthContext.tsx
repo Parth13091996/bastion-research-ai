@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axios";
+import { queryKeys } from "@/api/queryKeys";
 import { Config } from "@/utils/config";
 import { User } from "@repo/types";
 import { useQuery } from "@tanstack/react-query";
@@ -32,11 +33,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading: isQueryLoading,
     refetch,
   } = useQuery({
-    queryKey: ["auth-session"],
+    queryKey: [queryKeys.auth_session],
     queryFn: async () => (await axiosInstance.get("/api/auth/session")).data,
     staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
-    gcTime: 10 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
-    retry: 1,
+    gcTime: 60 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
   });
 
   useEffect(() => {

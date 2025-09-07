@@ -1,5 +1,8 @@
 import axiosInstance from "@/api/axios";
 import { ArrowLeft } from "lucide-react";
+import { load } from "@cashfreepayments/cashfree-js";
+import { useNavigate } from "react-router-dom";
+import { AppRoutes } from "@/routes/app-routes";
 
 const PaymentStep: React.FC<PaymentStepProps> = ({
   plans,
@@ -13,49 +16,45 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   setIsLoading,
 }) => {
   const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
+  const navigate = useNavigate();
   const handlePayment = async () => {
     setError(null);
     setIsLoading(true);
     try {
+      if (selectedPlanDetails?.code === "free") {
+        // Directly onboard without payment
+        await axiosInstance.post("/api/auth/onboard", formData);
+        try {
+          localStorage.removeItem("onboardingFormData");
+          localStorage.removeItem("onboardingCurrentStep");
+          localStorage.removeItem("onboardingOtpTimer");
+          localStorage.removeItem("onboardingPending");
+          localStorage.setItem("onboardingOpen", "false");
+        } catch {}
+        navigate(AppRoutes.login(), { replace: true });
+        return;
+      }
       const orderResponse = await axiosInstance.post("/api/cashfree/orders", {
         plan: formData.selectedPlan,
         customer_id: formData.email,
         customer_email: formData.email,
         customer_phone: formData.phone,
+        source: "register",
       });
 
       const { payment_session_id } = orderResponse.data.order;
-      const cashfree = new Cashfree(payment_session_id);
 
-      cashfree
-        .checkout({
-          paymentSessionId: payment_session_id,
-          returnUrl: `http://localhost:5173/`, // This can be a proper success page
-        })
-        .then(async (result: any) => {
-          if (result.error) {
-            setError(result.error.message);
-            setIsLoading(false);
-            return;
-          }
-          if (result.paymentDetails.paymentStatus === "SUCCESS") {
-            try {
-              // Finalize onboarding by creating the user
-              await axiosInstance.post("/api/auth/onboard", formData);
-              alert(
-                "Payment successful! Welcome to TripleEdge! Your account has been created."
-              );
-              // Clear local storage of onboarding data
-              localStorage.removeItem("onboardingFormData");
-              onClose();
-            } catch (createErr: any) {
-              const msg =
-                createErr?.response?.data?.message ||
-                "Payment done, but account creation failed. Please contact support.";
-              setError(msg);
-            }
-          }
-        });
+      // Persist a flag so success page knows to finalize onboarding
+      try {
+        localStorage.setItem("onboardingPending", "true");
+      } catch {}
+
+      // Initialize Cashfree SDK and redirect to hosted checkout
+      const cashfree = await load({ mode: "sandbox" });
+      await cashfree.checkout({
+        paymentSessionId: payment_session_id,
+        redirectTarget: "_self",
+      });
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "An unexpected error occurred.";
@@ -108,6 +107,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         >
           {isLoading
             ? "Processing..."
+            : selectedPlanDetails?.code === "free"
+            ? "Complete Signup"
             : `Pay ₹${selectedPlanDetails?.amount || ""}`}
         </button>
       </div>

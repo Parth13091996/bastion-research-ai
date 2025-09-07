@@ -76,7 +76,7 @@ export const createUser = async (req: Request, res: Response) => {
     pin_code,
     date_of_birth,
     gst_number,
-    company_name,
+    company,
     status,
   } = req.body;
 
@@ -100,7 +100,8 @@ export const createUser = async (req: Request, res: Response) => {
         first_name,
         last_name,
         password: hashedPassword,
-        role: role || "user",
+        // user_role enum in DB, default to 'employee' if not provided
+        role: role || "employee",
         phone,
         pan_card_number,
         address_1,
@@ -110,7 +111,7 @@ export const createUser = async (req: Request, res: Response) => {
         pin_code,
         date_of_birth: dob,
         gst_number,
-        company_name,
+        company,
         status: status || "active",
       },
     ])
@@ -141,17 +142,57 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { username, email, first_name, last_name } = req.body;
-  const { data, error } = await supabase
-    .from("users")
-    .update({ username, email, first_name, last_name })
-    .eq("id", id)
-    .select();
 
-  if (error) {
-    return res.status(500).json({ error: error.message });
+  // Whitelist of updatable fields
+  const allowedFields = [
+    "username",
+    "email",
+    "first_name",
+    "last_name",
+    "phone",
+    "address_1",
+    "address_2",
+    "state",
+    "city",
+    "pin_code",
+    "date_of_birth",
+    "gst_number",
+    "company",
+    "pan_card_number",
+  ] as const;
+
+  const body = req.body ?? {};
+
+  // Build update payload with only provided fields
+  const updatePayload: Record<string, any> = {};
+  for (const key of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(body, key)) {
+      updatePayload[key] = body[key];
+    }
   }
-  res.status(200).json(data);
+
+  // Normalize date_of_birth if present (expecting YYYY-MM-DD)
+  if (typeof updatePayload.date_of_birth === "string") {
+    // If it contains a time portion, trim to date only
+    const dob = updatePayload.date_of_birth.split("T")[0];
+    updatePayload.date_of_birth = dob;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .update(updatePayload)
+      .eq("id", id)
+      .select();
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e?.message || "Failed to update user" });
+  }
 };
 
 export const deleteUser = async (req: Request, res: Response) => {

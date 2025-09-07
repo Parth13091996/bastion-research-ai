@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { AppRoutes } from "@/routes/app-routes";
 import { useNavigate } from "react-router-dom";
 
 const AdminHeader = () => {
@@ -7,7 +8,7 @@ const AdminHeader = () => {
   const { logout } = useAuth();
 
   const homeRedirect = () => {
-    navigate("/");
+    navigate(AppRoutes.home());
   };
   return (
     <header className="bg-gray-800 text-white shadow-md">

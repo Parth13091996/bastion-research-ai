@@ -1,6 +1,6 @@
 import Editor from "@/components/core/editor";
 import { lazy } from "react";
-import type { RouteObject } from "react-router-dom";
+import { Navigate, type RouteObject } from "react-router-dom";
 import { AppRoutes } from "./app-routes";
 
 // Layouts
@@ -17,6 +17,8 @@ const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
 const Home = lazy(() => import("../pages/Home"));
 const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
+const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/ResetPassword"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const Contact = lazy(() => import("../pages/Contact"));
 const CareerPage = lazy(() => import("../pages/Careers"));
@@ -26,8 +28,10 @@ const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
 const Compliance = lazy(() => import("../pages/Compliance"));
 const BastionCore = lazy(() => import("../pages/BastionCore"));
+const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
 const EditProfile = lazy(() => import("../pages/EditProfile"));
 const Subscription = lazy(() => import("../pages/Subscription"));
+const TransactionHistory = lazy(() => import("../pages/TransactionHistory"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
 const About = lazy(() => import("../pages/About"));
 const NotFound = lazy(() => import("../pages/NotFound"));
@@ -81,6 +85,8 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.home(), element: <Home /> },
       { path: AppRoutes.login(), element: <Login /> },
       { path: AppRoutes.register(), element: <Register /> },
+      { path: AppRoutes.forgotPassword(), element: <ForgotPassword /> },
+      { path: AppRoutes.resetPassword(), element: <ResetPassword /> },
       { path: AppRoutes.contact(), element: <Contact /> },
       { path: AppRoutes.careerPage(), element: <CareerPage /> },
       { path: AppRoutes.singleCareerPage(), element: <SingleCareerPage /> },
@@ -96,25 +102,32 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
       { path: AppRoutes.webinar(), element: <Webinar /> },
       { path: AppRoutes.smartFrameworks(), element: <SmartFrameworks /> },
+      { path: AppRoutes.paymentSuccess(), element: <PaymentSuccess /> },
       {
         element: <ProtectedRoute />,
         children: [
           { path: AppRoutes.dashboard(), element: <Dashboard /> },
           { path: AppRoutes.editProfile(), element: <EditProfile /> },
           { path: AppRoutes.subscription(), element: <Subscription /> },
+          { path: AppRoutes.transactionHistory(), element: <TransactionHistory /> },
         ],
       },
     ],
   },
   {
+    element: <AdminLogin />,
+    path: AppRoutes.adminLogin(),
+  },
+  {
     element: <AdminLayout />,
+    path: AppRoutes.admin(),
     children: [
       {
         element: <AdminRoute />,
         children: [
           {
-            path: AppRoutes.adminLogin(),
-            element: <AdminLogin />,
+            index: true,
+            element: <Navigate to={AppRoutes.adminDashboard()} replace />,
           },
           {
             path: AppRoutes.adminDashboard(),

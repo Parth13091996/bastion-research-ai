@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { config } from "../utils/config";
 import { supabase } from "../supabase";
+import crypto from "crypto";
+import sendEmail from "../utils/email";
 
 const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   const secret = process.env.JWT_SECRET;
@@ -98,7 +100,7 @@ export const createUserAfterOnboarding = async (userData: any) => {
 // --- Standard Authentication ---
 
 export const signIn = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password, isAdminLogin } = req.body;
 
   if (!email || !password) {
     return res
@@ -112,7 +114,6 @@ export const signIn = async (req: Request, res: Response) => {
       .select("*")
       .eq("email", email)
       .single();
-
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -120,6 +121,12 @@ export const signIn = async (req: Request, res: Response) => {
 
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials." });
+    }
+
+    if (!isAdminLogin && user.role === config.roles.admin) {
+      return res
+        .status(401)
+        .json({ message: "You can't login with admin credentials." });
     }
 
     const token = generateToken(user.id, user.email);
@@ -154,11 +161,102 @@ export const forgotPassword = async (req: Request, res: Response) => {
       .status(400)
       .json({ message: "Please provide an email address." });
   }
+  try {
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, email, password")
+      .eq("email", email)
+      .single();
 
-  res.status(200).json({
-    message:
-      "If an account with this email exists, a password reset link has been sent.",
-  });
+    // Always respond success even if not found to prevent user enumeration
+    if (!user || error) {
+      return res.status(200).json({
+        message:
+          "User doesn't exists for this email, Please create one.",
+        sentStatus: 'failed'
+      });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error("JWT_SECRET not set");
+
+    // password version tag so token invalidates after password change
+    const pwdTag = crypto.createHash("sha256").update(user.password || "").digest("hex");
+    const token = jwt.sign(
+      { sub: user.id, email: user.email, type: "pwd_reset", pv: pwdTag },
+      secret,
+      { expiresIn: "15m" }
+    );
+
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}`;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your Bastion Research password",
+        text: `We received a request to reset your password.\n\nUse the link below to set a new password. This link expires in 15 minutes.\n\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`,
+        html: `<p>We received a request to reset your password.</p><p>Use the link below to set a new password. This link expires in <strong>15 minutes</strong>.</p><p><a href="${resetUrl}">Reset your password</a></p><p>If you didn't request this, you can safely ignore this email.</p>`,
+      });
+    } catch (e) {
+      // Log but do not expose details
+      console.error("Failed to send reset email", e);
+    }
+
+    return res.status(200).json({
+      message:
+        "If an account with this email exists, a password reset link has been sent.",
+    });
+  } catch (e) {
+    return res.status(200).json({
+      message:
+        "If an account with this email exists, a password reset link has been sent.",
+    });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token, password } = req.body as { token?: string; password?: string };
+  if (!token || !password || password.length < 6) {
+    return res.status(400).json({ message: "Invalid token or password too short" });
+  }
+  try {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error("JWT_SECRET not set");
+    const decoded = jwt.verify(token, secret) as any;
+    if (!decoded || decoded.type !== "pwd_reset" || !decoded.sub) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, email, password")
+      .eq("id", decoded.sub)
+      .single();
+    if (error || !user) {
+      return res.status(400).json({ message: "Invalid reset token" });
+    }
+
+    // Ensure token not reused after password change
+    const pwdTag = crypto.createHash("sha256").update(user.password || "").digest("hex");
+    if (pwdTag !== decoded.pv) {
+      return res.status(400).json({ message: "Reset link is no longer valid" });
+    }
+
+    const hashed = await bcrypt.hash(password, config.saltRounds);
+    const { error: updError } = await supabase
+      .from("users")
+      .update({ password: hashed, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (updError) {
+      console.error("Failed to update password", updError);
+      return res.status(500).json({ message: "Failed to update password" });
+    }
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (e) {
+    return res.status(400).json({ message: "Invalid or expired reset token" });
+  }
 };
 
 export const getUserSession = async (req: Request, res: Response) => {
@@ -176,7 +274,9 @@ export const getUserSession = async (req: Request, res: Response) => {
 
     const { data: user, error } = await supabase
       .from("users")
-      .select("*")
+      .select(
+        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, isPremium, status, role`
+      )
       .eq("id", decoded.id)
       .single();
 

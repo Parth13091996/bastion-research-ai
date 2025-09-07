@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import FormData from "form-data";
+import crypto from "crypto";
 import { supabase } from "../supabase";
 
 const DIGIO_BASE_URL = process.env.DIGIO_BASE_URL || "https://ext.digio.in:444";
@@ -417,29 +418,114 @@ export const cancelSignatureRequest = async (req: Request, res: Response) => {
 // POST /api/digio/webhook
 export const digioWebhook = async (req: Request, res: Response) => {
   try {
-    const event = req.body;
-    // Basic upsert of status if table exists using Supabase
-    try {
-      const documentId = event?.document_id || event?.id;
-      const statusVal = event?.status || event?.event;
-      const raw_response = event ? JSON.stringify(event) : null;
+    const rawBody = (req as any).rawBody as string | undefined;
+    const body = req.body as any;
 
-      await supabase.from("digio_documents").upsert(
-        [
-          {
-            identifier: "unknown",
-            document_id: documentId,
-            status: statusVal,
-            raw_response,
-          },
-        ],
-        //@ts-ignore
-        { onConflict: ["document_id"] }
-      );
-      // Ignore error if table not present or upsert fails
-    } catch {}
+    // Optional HMAC verification (enable by setting DIGIO_WEBHOOK_SECRET)
+    const secret = process.env.DIGIO_WEBHOOK_SECRET;
+    const requireSig = (process.env.DIGIO_WEBHOOK_REQUIRE_SIGNATURE || "false")
+      .toString()
+      .toLowerCase() === "true";
+
+    const headers = Object.fromEntries(
+      Object.entries(req.headers).map(([k, v]) => [k.toLowerCase(), v])
+    ) as Record<string, string | string[]>;
+
+    const signatureHeaderKey = [
+      "x-digio-signature",
+      "x-digio-signature-v2",
+      "x-webhook-signature",
+      "x-signature",
+      "x-digio-hmac",
+    ].find((k) => headers[k] !== undefined);
+
+    const timestampHeaderKey = [
+      "x-digio-timestamp",
+      "x-webhook-timestamp",
+    ].find((k) => headers[k] !== undefined);
+
+    const signatureHeader = signatureHeaderKey
+      ? (headers[signatureHeaderKey] as string)
+      : undefined;
+    const timestampHeader = timestampHeaderKey
+      ? (headers[timestampHeaderKey] as string)
+      : undefined;
+
+    if (secret) {
+      if (!rawBody) {
+        return res.status(400).json({ message: "Missing rawBody for HMAC" });
+      }
+      if (!signatureHeader) {
+        if (requireSig) {
+          return res
+            .status(401)
+            .json({ message: "Missing webhook signature header" });
+        }
+      } else {
+        // Try a few common constructions that providers use
+        const candidates: string[] = [];
+        const h = (data: string, enc: "hex" | "base64") =>
+          crypto.createHmac("sha256", secret).update(data).digest(enc);
+        candidates.push(h(rawBody, "base64"));
+        candidates.push(h(rawBody, "hex"));
+        if (timestampHeader) {
+          candidates.push(h(`${timestampHeader}${rawBody}`, "base64"));
+          candidates.push(h(`${timestampHeader}${rawBody}`, "hex"));
+        }
+        const matched = candidates.some((c) => {
+          try {
+            const a = Buffer.from(c);
+            const b = Buffer.from(signatureHeader as string);
+            if (a.length !== b.length) return false;
+            return crypto.timingSafeEqual(a, b);
+          } catch {
+            return c === signatureHeader;
+          }
+        });
+        if (!matched) {
+          if (requireSig) {
+            return res.status(401).json({ message: "Invalid webhook signature" });
+          }
+        }
+      }
+    }
+
+    const event = body;
+
+    // Normalize fields from Digio style payloads
+    const documentId =
+      event?.document_id || event?.id || event?.data?.document_id || null;
+    const eventType =
+      event?.event || event?.type || event?.status || event?.data?.event;
+
+    // Update digio_documents status if the table exists and a row is present
+    try {
+      if (documentId) {
+        const statusMap: Record<string, string> = {
+          "doc.signed": "signed",
+          "doc.sign.rejected": "rejected",
+          "doc.sign.failed": "failed",
+          "esign.v3.sign.failed": "failed",
+          "esign.v3.sign.pending": "pending",
+        };
+        const normalized = statusMap[eventType] || String(eventType || "");
+        const raw_response = JSON.stringify(event);
+
+        // Attempt to update existing row by document_id
+        await supabase
+          .from("digio_documents")
+          .update({ status: normalized, raw_response })
+          .eq("document_id", documentId);
+      }
+    } catch {
+      // Table may not exist or update may fail due to schema; ignore safely
+    }
+
+    // Always acknowledge quickly (Digio expects 200 within 10s)
     return res.status(200).json({ received: true });
   } catch (error) {
+    // Acknowledge to prevent retries storm; log locally
+    console.error("Digio webhook handler error:", error);
     return res.status(200).json({ received: true });
   }
 };
