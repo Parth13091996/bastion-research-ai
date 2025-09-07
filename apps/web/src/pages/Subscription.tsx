@@ -66,9 +66,10 @@ const Subscription = () => {
   }, [])
 
   const allPlans = useMemo(() => {
+    const freePlan: ApiPlan = { code: 'free', name: 'Freemium', amount: 0, currency: 'INR' }
     // Highlight 12m as popular if present
     // 3m is a limited lifetime-availability offer per spec
-    return [...plans]
+    return [freePlan, ...plans]
   }, [plans])
 
   const isCurrentPlan = (code: string) => code === currentPlanCode
