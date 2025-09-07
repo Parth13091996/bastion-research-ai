@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { supabase } from "../config/supabase";
-import { User } from "@repo/types";
+import { config } from "../utils/config";
+import { supabase } from "../supabase";
 
 const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   const secret = process.env.JWT_SECRET;
@@ -12,146 +12,92 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   return jwt.sign({ id, email }, secret, { expiresIn: expiresIn as any });
 };
 
-const generateTemporaryToken = (payload: object) => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("JWT_SECRET is not defined.");
+// This function will be called internally after successful payment.
+export const createUserAfterOnboarding = async (userData: any) => {
+  const {
+    email,
+    phone,
+    password,
+    firstName,
+    lastName,
+    panCard,
+    dateOfBirth,
+    aadharCard,
+    bankAccount,
+    ifscCode,
+  } = userData;
+
+  // Basic validation
+  if (
+    !email ||
+    !phone ||
+    !password ||
+    !firstName ||
+    !lastName ||
+    !panCard ||
+    !dateOfBirth
+  ) {
+    console.error("Validation failed for userData:", userData);
+    throw new Error("Missing required fields for user creation.");
   }
-  // This token is short-lived, just for completing the profile.
-  return jwt.sign(payload, secret, { expiresIn: "15m" });
+
+  // Check if user already exists
+  const { data: existingUser, error: existingUserError } = await supabase
+    .from("users")
+    .select("email, phone")
+    .or(`email.eq.${email},phone.eq.${phone}`);
+
+  if (existingUserError) {
+    console.error("Error checking for existing user:", existingUserError);
+    throw existingUserError;
+  }
+
+  if (existingUser && existingUser.length > 0) {
+    console.warn(`Attempted to create a user that already exists: ${email}`);
+    return existingUser[0];
+  }
+
+  const hashedPassword = await bcrypt.hash(password, config.saltRounds);
+  const username =
+    email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
+
+  // Create the user
+  const { data: newUser, error: insertError } = await supabase
+    .from("users")
+    .insert({
+      email,
+      phone,
+      password: hashedPassword,
+      username,
+      first_name: firstName,
+      last_name: lastName,
+      pan_card_number: panCard,
+      date_of_birth: dateOfBirth,
+      aadhar_card_number: aadharCard,
+      bank_account_number: bankAccount,
+      ifsc_code: ifscCode,
+      status: "active",
+      isPremium: true,
+    })
+    .select("id, email")
+    .single();
+
+  if (insertError) {
+    console.error("Error inserting new user:", insertError);
+    throw insertError;
+  }
+  if (!newUser) {
+    throw new Error(
+      "User not created after onboarding, but no error was thrown."
+    );
+  }
+
+  return newUser;
 };
 
 // --- Standard Authentication ---
 
-export const register = async (req: Request, res: Response) => {
-  const { email, phone, password } = req.body;
-
-  if (!email || !phone || !password) {
-    return res
-      .status(400)
-      .json({ message: "Email, phone, and password are required." });
-  }
-
-  try {
-    const { data: existingUser, error: existingUserError } = await supabase
-      .from("users")
-      .select("email, phone")
-      .or(`email.eq.${email},phone.eq.${phone}`);
-
-    if (existingUserError) throw existingUserError;
-
-    if (existingUser && existingUser.length > 0) {
-      return res
-        .status(409)
-        .json({
-          message: "User with this email or phone number already exists.",
-        });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const username = email.split("@")[0];
-
-    const { data: newUser, error: insertError } = await supabase
-      .from("users")
-      .insert({
-        email,
-        phone,
-        password: hashedPassword,
-        username: username,
-      })
-      .select("id, email, phone")
-      .single();
-
-    if (insertError) throw insertError;
-    if (!newUser) throw new Error("User not created");
-
-    res.status(201).json({
-      message: "User registered successfully. Please verify your OTP.",
-      user: { id: newUser.id, email: newUser.email },
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({ message: "Server error during registration." });
-  }
-};
-
-export const completeProfile = async (req: Request, res: Response) => {
-  const {
-    email,
-    first_name,
-    last_name,
-    pan_card_number,
-    date_of_birth,
-    aadhar_card_number,
-    bank_account_number,
-    ifsc_code,
-  } = req.body;
-
-  if (
-    !email ||
-    !first_name ||
-    !last_name ||
-    !pan_card_number ||
-    !date_of_birth
-  ) {
-    return res
-      .status(400)
-      .json({ message: "Please provide all required fields." });
-  }
-
-  try {
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select("id")
-      .eq("email", email)
-      .single();
-
-    if (userError || !user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    const { data: updatedUser, error: updateError } = await supabase
-      .from("users")
-      .update({
-        first_name,
-        last_name,
-        pan_card_number,
-        date_of_birth,
-        aadhar_card_number,
-        bank_account_number,
-        ifsc_code,
-        status: "active",
-      })
-      .eq("id", user.id)
-      .select("id, username, email")
-      .single();
-
-    if (updateError) throw updateError;
-    if (!updatedUser) throw new Error("User profile not completed");
-
-    const token = generateToken(updatedUser.id, updatedUser.email);
-
-    res.status(200).json({
-      message: "User profile completed successfully",
-      token,
-      user: {
-        id: updatedUser.id,
-        username: updatedUser.email,
-        email: updatedUser.email,
-      },
-    });
-  } catch (error) {
-    console.error("Complete profile error:", error);
-    res
-      .status(500)
-      .json({ message: "Server error during profile completion." });
-  }
-};
-
 export const signIn = async (req: Request, res: Response) => {
-  // ... (keeping existing signIn function as it is correct)
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -161,18 +107,16 @@ export const signIn = async (req: Request, res: Response) => {
   }
 
   try {
-
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
       .eq("email", email)
       .single();
 
-      if (error || !user) {
-        return res.status(404).json({ message: "User not found." });
-      }
-      // const isMatch = await bcrypt.compare(password, user.password);
-      const isMatch = password === user.password
+    if (error || !user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials." });
@@ -203,7 +147,6 @@ export const signIn = async (req: Request, res: Response) => {
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {
-  // ... (keeping existing forgotPassword function)
   const { email } = req.body;
 
   if (!email) {
@@ -212,18 +155,15 @@ export const forgotPassword = async (req: Request, res: Response) => {
       .json({ message: "Please provide an email address." });
   }
 
-  console.log(`Password reset requested for: ${email}`);
   res.status(200).json({
     message:
       "If an account with this email exists, a password reset link has been sent.",
   });
 };
 
-
-export const getMe = async (req: Request, res: Response) => {
+export const getUserSession = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.token;
-    console.log({ token });
 
     if (!token) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -236,7 +176,7 @@ export const getMe = async (req: Request, res: Response) => {
 
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, username, email, role") // Make sure to select the 'role'
+      .select("*")
       .eq("id", decoded.id)
       .single();
 
@@ -256,4 +196,39 @@ export const logout = (req: Request, res: Response) => {
     expires: new Date(0),
   });
   res.status(200).json({ message: "Logged out successfully" });
+};
+
+// Endpoint to finalize onboarding and create the user after payment success
+export const registerFromOnboarding = async (req: Request, res: Response) => {
+  try {
+    const userData = req.body;
+
+    // createUserAfterOnboarding already validates required fields and checks duplicates
+    const newUser = (await createUserAfterOnboarding(userData)) as {
+      id: any;
+      email: any;
+    };
+
+    // Optionally, auto-login user here by setting a cookie
+    try {
+      const token = generateToken(newUser.id, newUser.email);
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+    } catch {}
+
+    return res.status(201).json({
+      message: "User created successfully",
+      user: newUser,
+    });
+  } catch (error: any) {
+    console.error("Onboarding finalize error:", error);
+    return res.status(400).json({
+      message: "Failed to create user from onboarding data",
+      error: error?.message,
+    });
+  }
 };

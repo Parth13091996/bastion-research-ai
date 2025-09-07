@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { Cashfree } from "cashfree-pg";
+import crypto from "crypto";
 
 // Environment/config
 const CF_APP_ID = process.env.CASHFREE_APP_ID;
@@ -138,6 +139,47 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
           : undefined,
     };
     return res.status(status).json(payload);
+  }
+};
+
+export const handleCashfreeWebhook = async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers["x-webhook-signature"] as string;
+    const timestamp = req.headers["x-webhook-timestamp"] as string;
+    const rawBody = (req as any).rawBody;
+
+    if (!signature || !timestamp || !rawBody) {
+      return res
+        .status(400)
+        .json({ message: "Missing webhook signature or timestamp." });
+    }
+
+    const secret = process.env.CASHFREE_SECRET;
+    if (!secret) {
+      throw new Error("CASHFREE_SECRET is not configured.");
+    }
+
+    const dataToVerify = `${timestamp}${rawBody}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(dataToVerify)
+      .digest("base64");
+
+    if (signature !== expectedSignature) {
+      return res.status(401).json({ message: "Invalid webhook signature." });
+    }
+
+    // Signature is valid, process the event
+    const event = JSON.parse(rawBody);
+    // We no longer depend on onboarding_sessions here. If required,
+    // client will finalize onboarding after payment success.
+
+    res.status(200).json({ message: "Webhook received successfully." });
+  } catch (error: any) {
+    console.error("Error handling Cashfree webhook:", error);
+    res
+      .status(500)
+      .json({ message: "Error handling webhook.", error: error.message });
   }
 };
 

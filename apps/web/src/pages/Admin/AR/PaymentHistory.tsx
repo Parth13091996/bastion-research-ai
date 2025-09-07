@@ -2,6 +2,8 @@ import React, { useState, useMemo } from "react";
 import { Eye, FileText, Trash2, Plus } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axiosInstance from "@/api/axios";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "../../../styles/ag-grid-custom.css";
@@ -24,28 +26,44 @@ const StatusBadge = ({ value }: { value: string }) => {
     return <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(value)}`}>{value}</span>;
 };
 
-const RowActions = ({ data }: { data: any }) => (
+const RowActions = ({ data, onDelete }: { data: any, onDelete: (id: string) => void }) => (
     <div className="flex space-x-2">
         <button className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => console.log("View Invoice", data.invoice_id)}><FileText size={14} /></button>
         <button className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => console.log("View Details", data.transaction_id)}><Eye size={14} /></button>
-        <button className="p-1 bg-red-500 text-white rounded hover:bg-red-600" onClick={() => console.log("Delete", data.transaction_id)}><Trash2 size={14} /></button>
+        <button className="p-1 bg-red-500 text-white rounded hover:bg-red-600" onClick={() => onDelete(data.transaction_id)}><Trash2 size={14} /></button>
     </div>
 );
 
 const PaymentHistory = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [filters, setFilters] = useState({ gateway: "All", paymentType: "All", status: "All" });
+    const queryClient = useQueryClient();
+    const { data } = useQuery({
+        queryKey: ['payment-history'],
+        queryFn: () => axiosInstance.get('/api/payment-history').then(res => res.data)
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => axiosInstance.delete(`/api/payment-history/${id}`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payment-history'] })
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (body: any) => axiosInstance.post('/api/payment-history', body),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payment-history'] })
+    });
 
     const filteredData = useMemo(() => {
-        return mockData.filter((item) => {
+        const rows = data || [];
+        return rows.filter((item: any) => {
             const lowerCaseSearchQuery = searchQuery.toLowerCase();
-            const matchesSearch = searchQuery === "" || Object.values(item).some((value) => value?.toString().toLowerCase().includes(lowerCaseSearchQuery));
+            const matchesSearch = searchQuery === "" || Object.values(item).some((value: any) => value?.toString().toLowerCase().includes(lowerCaseSearchQuery));
             const matchesGateway = filters.gateway === "All" || item.payment_gateway === filters.gateway;
             const matchesPaymentType = filters.paymentType === "All" || item.payment_type === filters.paymentType;
             const matchesStatus = filters.status === "All" || item.transaction_status === filters.status;
             return matchesSearch && matchesGateway && matchesPaymentType && matchesStatus;
         });
-    }, [searchQuery, filters]);
+    }, [searchQuery, filters, data]);
 
     const colDefs: ColDef[] = [
         { headerName: "Transaction ID", field: "transaction_id" },
@@ -59,7 +77,7 @@ const PaymentHistory = () => {
         { headerName: "Status", field: "transaction_status", cellRenderer: StatusBadge },
         { headerName: "Date", field: "payment_date" },
         { headerName: "Amount", field: "amount" },
-        { headerName: "Actions", cellRenderer: RowActions, filter: false, sortable: false },
+        { headerName: "Actions", filter: false, sortable: false, cellRenderer: (params: any) => <RowActions data={params.data} onDelete={(id) => deleteMutation.mutate(id)} /> },
     ];
 
     return (
@@ -68,9 +86,21 @@ const PaymentHistory = () => {
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Payment History</h1>
-                        <p className="text-sm text-gray-600 mt-1">Showing {filteredData.length} of {mockData.length} transactions</p>
+                        <p className="text-sm text-gray-600 mt-1">Showing {filteredData.length} transactions</p>
                     </div>
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2" onClick={() => {
+                        const transaction_id = prompt('Transaction ID') || '';
+                        const invoice_id = prompt('Invoice ID') || '';
+                        const user_id = prompt('User ID (UUID)') || '';
+                        const plan_id = Number(prompt('Plan ID') || '');
+                        const payment_gateway = prompt('Gateway') || '';
+                        const payment_type = prompt('Type') || '';
+                        const payer_email = prompt('Payer Email') || '';
+                        const transaction_status = prompt('Status') || 'Completed';
+                        const payment_date = prompt('Payment Date (YYYY-MM-DD)') || '';
+                        const amount = Number(prompt('Amount') || '0');
+                        createMutation.mutate({ transaction_id, invoice_id, user_id, plan_id, payment_gateway, payment_type, payer_email, transaction_status, payment_date, amount });
+                    }}>
                         <Plus size={16} /><span>Add Manual Payment</span>
                     </button>
                 </div>
@@ -104,3 +134,4 @@ const PaymentHistory = () => {
 };
 
 export default PaymentHistory;
+

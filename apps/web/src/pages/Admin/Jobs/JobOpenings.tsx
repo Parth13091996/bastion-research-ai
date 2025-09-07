@@ -1,124 +1,68 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Plus, Filter, ChevronDown, Eye, Edit, Trash2, Download } from 'lucide-react';
-
-// Mock data
-const mockJobData = [
-  {
-    job_id: '13040',
-    job_title: 'Research Analyst Trainee',
-    author: 'admin',
-    applications: 58,
-    expiry: '—',
-    views: 555,
-    conversion: '10.45%',
-    status: 'Active',
-    seo_score: 85,
-    readability_score: 92
-  },
-  {
-    job_id: '12923',
-    job_title: 'Freelance Python Developer',
-    author: 'admin',
-    applications: 6,
-    expiry: '—',
-    views: 357,
-    conversion: '1.68%',
-    status: 'Active',
-    seo_score: 78,
-    readability_score: 88
-  },
-  {
-    job_id: '12856',
-    job_title: 'Senior Frontend Developer',
-    author: 'admin',
-    applications: 23,
-    expiry: 'Dec 31, 2024',
-    views: 892,
-    conversion: '2.58%',
-    status: 'Active',
-    seo_score: 91,
-    readability_score: 85
-  },
-  {
-    job_id: '12742',
-    job_title: 'Data Science Intern',
-    author: 'admin',
-    applications: 41,
-    expiry: 'Jan 15, 2025',
-    views: 673,
-    conversion: '6.09%',
-    status: 'Draft',
-    seo_score: 72,
-    readability_score: 90
-  }
-];
+import { AgGridReact } from 'ag-grid-react';
+import { ColDef } from 'ag-grid-community';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '@/api/axios';
+import { Edit, Trash2 } from 'lucide-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 const JobOpenings = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedJobs, setSelectedJobs] = useState(new Set());
-  const [statusFilter, setStatusFilter] = useState('All Status');
-  const [seoFilter, setSeoFilter] = useState('All SEO Scores');
-  const [readabilityFilter, setReadabilityFilter] = useState('All Readability Scores');
-  const [bulkAction, setBulkAction] = useState('Bulk actions');
+  const queryClient = useQueryClient();
+  const { data: rowData, isLoading } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => axiosInstance.get('/api/jobs').then((res) => res.data),
+  });
 
-  // Filter and search logic
-  const filteredJobs = useMemo(() => {
-    return mockJobData.filter(job => {
-      const matchesSearch =
-        job.job_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.job_id.includes(searchTerm);
+  const deleteMutation = useMutation({
+    mutationFn: (id: number | string) => axiosInstance.delete(`/api/jobs/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobs'] }),
+  });
 
-      const matchesStatus = statusFilter === 'All Status' || job.status === statusFilter;
+  const updateMutation = useMutation({
+    mutationFn: (payload: { id: number | string; job_title: string; author: string; expiry: string }) =>
+      axiosInstance.put(`/api/jobs/${payload.id}`, {
+        job_title: payload.job_title,
+        author: payload.author,
+        expiry: payload.expiry,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobs'] }),
+  });
 
-      const matchesSeo =
-        seoFilter === 'All SEO Scores' ||
-        (seoFilter === 'Excellent (90+)' && job.seo_score >= 90) ||
-        (seoFilter === 'Good (80-89)' && job.seo_score >= 80 && job.seo_score <= 89) ||
-        (seoFilter === 'Fair (70-79)' && job.seo_score >= 70 && job.seo_score <= 79) ||
-        (seoFilter === 'Poor (<70)' && job.seo_score < 70);
-
-      const matchesReadability =
-        readabilityFilter === 'All Readability Scores' ||
-        (readabilityFilter === 'Excellent (90+)' && job.readability_score >= 90) ||
-        (readabilityFilter === 'Good (80-89)' && job.readability_score >= 80 && job.readability_score <= 89) ||
-        (readabilityFilter === 'Fair (70-79)' && job.readability_score >= 70 && job.readability_score <= 79) ||
-        (readabilityFilter === 'Poor (<70)' && job.readability_score < 70);
-
-      return matchesSearch && matchesStatus && matchesSeo && matchesReadability;
-    });
-  }, [searchTerm, statusFilter, seoFilter, readabilityFilter]);
-
-  const handleSelectAll = () => {
-    if (selectedJobs.size === filteredJobs.length) {
-      setSelectedJobs(new Set());
-    } else {
-      setSelectedJobs(new Set(filteredJobs.map(job => job.job_id)));
-    }
+  const ActionsRenderer = (params: any) => {
+    const onEdit = () => {
+      const current = params.data;
+      const job_title = window.prompt('Job Title', current.job_title) ?? current.job_title;
+      const author = window.prompt('Author', current.author) ?? current.author;
+      const expiry = window.prompt('Expiry (YYYY-MM-DD)', current.expiry) ?? current.expiry;
+      updateMutation.mutate({ id: current.job_id, job_title, author, expiry });
+    };
+    const onDelete = () => {
+      if (window.confirm('Delete this job?')) {
+        deleteMutation.mutate(params.data.job_id);
+      }
+    };
+    return (
+      <div className="flex gap-2">
+        <button className="p-1 text-gray-600 hover:text-blue-600" onClick={onEdit} title="Edit"><Edit size={16} /></button>
+        <button className="p-1 text-gray-600 hover:text-red-600" onClick={onDelete} title="Delete"><Trash2 size={16} /></button>
+      </div>
+    );
   };
 
-  const handleSelectJob = (jobId) => {
-    const newSelected = new Set(selectedJobs);
-    if (newSelected.has(jobId)) {
-      newSelected.delete(jobId);
-    } else {
-      newSelected.add(jobId);
-    }
-    setSelectedJobs(newSelected);
-  };
+  const columnDefs: ColDef[] = [
+    { headerName: 'Job ID', field: 'job_id' },
+    { headerName: 'Job Title', field: 'job_title' },
+    { headerName: 'Author', field: 'author' },
+    { headerName: 'Applications', field: 'applications' },
+    { headerName: 'Expiry', field: 'expiry' },
+    { headerName: 'Views', field: 'views' },
+    { headerName: 'Conversion', field: 'conversion' },
+    { headerName: 'Actions', field: 'actions', cellRenderer: ActionsRenderer, sortable: false, filter: false, width: 120 },
+  ];
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active':
-        return 'bg-green-100 text-green-800';
-      case 'Draft':
-        return 'bg-gray-100 text-gray-800';
-      case 'Expired':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef, GridReadyEvent, GridApi } from 'ag-grid-community';
-import { Search, Edit, Trash2, Eye, Key, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { ColDef } from 'ag-grid-community';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '@/api/axios';
+import { Edit, Trash2 } from 'lucide-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
@@ -73,92 +75,52 @@ const EmailCellRenderer = ({ data }) => (
 );
 
 const AllUsers = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('all');
-  const [bulkAction, setBulkAction] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [gridApi, setGridApi] = useState<GridApi>();
+  const queryClient = useQueryClient();
+  const { data: rowData, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => axiosInstance.get('/api/users').then((res) => res.data),
+  });
 
-  const itemsPerPage = 20;
+  const updateMutation = useMutation({
+    mutationFn: (payload: { id: string; body: any }) => axiosInstance.put(`/api/users/${payload.id}`, payload.body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  });
 
-  // Filter users based on search term and role
-  const filteredUsers = useMemo(() => {
-    return sampleUsers.filter(user => {
-      const matchesSearch = searchTerm === '' || 
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesRole = selectedRole === 'all' || user.role.toLowerCase() === selectedRole.toLowerCase();
-      
-      return matchesSearch && matchesRole;
-    });
-  }, [searchTerm, selectedRole]);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => axiosInstance.delete(`/api/users/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  });
 
-  // Paginated users
-  const paginatedUsers = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredUsers, currentPage]);
-
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const ActionsRenderer = (params: any) => {
+    const current = params.data;
+    const onEdit = () => {
+      const username = window.prompt('Username', current.username) ?? current.username;
+      const email = window.prompt('Email', current.email) ?? current.email;
+      const first_name = window.prompt('First Name', current.first_name) ?? current.first_name;
+      const last_name = window.prompt('Last Name', current.last_name) ?? current.last_name;
+      updateMutation.mutate({ id: current.id, body: { username, email, first_name, last_name } });
+    };
+    const onDelete = () => {
+      if (window.confirm('Delete this user?')) deleteMutation.mutate(current.id);
+    };
+    return (
+      <div className="flex gap-2">
+        <button className="p-1 text-gray-600 hover:text-blue-600" onClick={onEdit} title="Edit"><Edit size={16} /></button>
+        <button className="p-1 text-gray-600 hover:text-red-600" onClick={onDelete} title="Delete"><Trash2 size={16} /></button>
+      </div>
+    );
+  };
 
   const columnDefs: ColDef[] = [
-    {
-      headerName: '',
-      field: 'select',
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
-      width: 50,
-      pinned: 'left',
-    },
-    {
-      headerName: 'Username',
-      field: 'username',
-      cellRenderer: UsernameCellRenderer,
-      flex: 1,
-      minWidth: 200,
-    },
-    {
-      headerName: 'Name',
-      field: 'name',
-      flex: 1,
-      minWidth: 150,
-    },
-    {
-      headerName: 'Email',
-      field: 'email',
-      cellRenderer: EmailCellRenderer,
-      flex: 1,
-      minWidth: 200,
-    },
-    {
-      headerName: 'Role',
-      field: 'role',
-      width: 120,
-    },
-    {
-      headerName: 'Posts',
-      field: 'posts',
-      width: 80,
-      cellClass: 'text-center',
-    },
-    {
-      headerName: 'WordPress.com Account',
-      field: 'wpAccount',
-      width: 150,
-      cellRenderer: ({ value }) => value ? '✓' : '—',
-      cellClass: 'text-center',
-    },
-    {
-      headerName: 'Actions',
-      field: 'actions',
-      cellRenderer: ActionsCellRenderer,
-      width: 120,
-      sortable: false,
-      filter: false,
-    },
+    { headerName: 'ID', field: 'id' },
+    { headerName: 'Username', field: 'username' },
+    { headerName: 'First Name', field: 'first_name' },
+    { headerName: 'Last Name', field: 'last_name' },
+    { headerName: 'Email', field: 'email' },
+    { headerName: 'Role', field: 'role' },
+    { headerName: 'Premium', field: 'isPremium' },
+    { headerName: 'OAuth', field: 'cameFromOAuth' },
+    { headerName: 'Actions', cellRenderer: ActionsRenderer, sortable: false, filter: false, width: 120 },
   ];
 
   const onGridReady = useCallback((params: GridReadyEvent) => {

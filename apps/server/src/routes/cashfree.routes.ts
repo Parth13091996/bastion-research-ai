@@ -1,16 +1,23 @@
-import { Router } from 'express'
-import { listPlans, createOrderForPlan, getOrder, } from '../controllers/cashfree.controller'
+import { Router } from "express";
+import {
+  listPlans,
+  createOrderForPlan,
+  getOrder,
+  handleCashfreeWebhook,
+} from "../controllers/cashfree.controller";
 
-const router = Router()
+const router = Router();
 
 // Plans
-router.get('/plans', listPlans)
+router.get("/plans", listPlans);
 
 // Create order for selected plan
-router.post('/orders', createOrderForPlan)
+router.post("/orders", createOrderForPlan);
 
 // Fetch order status
-router.get('/orders/:orderId', getOrder)
+router.get("/orders/:orderId", getOrder);
 
-export default router
+// Webhook handler
+router.post("/webhook", handleCashfreeWebhook);
 
+export default router;
