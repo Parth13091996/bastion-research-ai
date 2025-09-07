@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Sparkles, ChevronDown, CheckCircle2 } from "lucide-react";
-import Testimonial from "../components/generic/Testimonial.tsx";
-import Lottie from "lottie-react";
-import priceTag from "../files/price-core.json";
+import { ChevronDown } from "lucide-react";
+import React, { useState } from "react";
 import BackgroundShapes from "../components/generic/framer-motion.tsx";
+import Testimonial from "../components/generic/Testimonial.tsx";
 
 // Brand Colors
 const COLORS = {
@@ -21,7 +19,7 @@ function TypingLoop({ phrases, typingSpeed = 30, pauseTime = 2000 }) {
   const [index, setIndex] = React.useState(0);
   const [charIndex, setCharIndex] = React.useState(0);
   const [deleting, setDeleting] = React.useState(false);
-
+  
   React.useEffect(() => {
     let timer;
 
