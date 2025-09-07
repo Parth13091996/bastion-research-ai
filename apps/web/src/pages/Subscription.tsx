@@ -84,6 +84,7 @@ const Subscription = () => {
         customer_id: user?.id,
         customer_email: user?.email,
         customer_phone: user?.phone,
+        source: 'subscription',
       })
 
       const cashfree = await load({ mode: 'sandbox' })

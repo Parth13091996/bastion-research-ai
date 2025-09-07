@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { Cashfree } from "cashfree-pg";
 import crypto from "crypto";
+import { supabase } from "../supabase";
 
 // Environment/config
 const CF_APP_ID = process.env.CASHFREE_APP_ID;
@@ -74,41 +75,76 @@ const pgFetchOrder = async (orderId: string) => {
   }
 };
 
-const PLANS = {
-  "3m": {
-    code: "3m",
-    name: "3 Months Plan (lifetime availability)",
-    amount: Number(process.env.CASHFREE_PLAN_3M_AMOUNT || 1),
-    currency: "INR",
-  },
-  "12m": {
-    code: "12m",
-    name: "12 Months Plan",
-    amount: Number(process.env.CASHFREE_PLAN_12M_AMOUNT || 2),
-    currency: "INR",
-  },
-} as const;
+type PublicPlan = { code: string; name: string; amount: number; currency: string };
 
 export const listPlans = async (_req: Request, res: Response) => {
-  return res.status(200).json({ plans: Object.values(PLANS) });
+  try {
+    const { data, error } = await supabase
+      .from("membership_plans")
+      .select("plan_id, plan_name, price_amount, currency");
+
+    if (error) {
+      return res.status(500).json({ message: error.message });
+    }
+
+    const plans: PublicPlan[] = (data || [])
+      .filter((p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0)
+      .map((p: any) => ({
+        code: String(p.plan_id),
+        name: p.plan_name,
+        amount: p.price_amount,
+        currency: p.currency || "INR",
+      }));
+
+    return res.status(200).json({ plans });
+  } catch (err: any) {
+    return res.status(500).json({ message: err?.message || "Failed to fetch plans" });
+  }
 };
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const { plan, customer_id, customer_email, customer_phone } = req.body;
-    if (!plan || !(plan in PLANS))
-      return res.status(400).json({ message: "Invalid plan. Use 3m or 12m." });
+    const { plan, customer_id, customer_email, customer_phone, source } = req.body;
+    if (!plan)
+      return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
       return res.status(400).json({ message: "customer_id is required" });
     if (!customer_phone)
       return res.status(400).json({ message: "customer_phone is required" });
 
-    const selected = PLANS[plan as "3m" | "12m"];
+    // Resolve plan from DB; treat provided plan as plan_id (string or number)
+    const planId = Number(plan);
+    if (Number.isNaN(planId)) {
+      return res.status(400).json({ message: "Invalid plan identifier" });
+    }
+
+    const { data: planRows, error } = await supabase
+      .from("membership_plans")
+      .select("plan_id, plan_name, price_amount, currency")
+      .eq("plan_id", planId)
+      .limit(1);
+
+    if (error) return res.status(500).json({ message: error.message });
+    const planRow = planRows?.[0];
+    if (!planRow) return res.status(404).json({ message: "Plan not found" });
+
+    const selected: PublicPlan = {
+      code: String(planRow.plan_id),
+      name: planRow.plan_name,
+      amount: planRow.price_amount,
+      currency: planRow.currency || "INR",
+    };
     const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
-    const returnUrl =
+    // Build return URL with optional context so client can branch behavior
+    let returnUrl =
       process.env.CASHFREE_RETURN_URL ||
       `${frontendUrl}/payment/success?order_id={order_id}`;
+    if (source) {
+      const hasQuery = returnUrl.includes("?");
+      const sep = hasQuery ? "&" : "?";
+      returnUrl = `${returnUrl}${sep}src=${encodeURIComponent(String(source))}`;
+    }
 
     const request = {
       order_id: orderId,

@@ -39,6 +39,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         customer_id: formData.email,
         customer_email: formData.email,
         customer_phone: formData.phone,
+        source: "register",
       });
 
       const { payment_session_id } = orderResponse.data.order;

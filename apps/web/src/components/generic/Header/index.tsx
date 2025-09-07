@@ -1,27 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import DesktopNav from "./DesktopNav";
-import MobileNav from "./MobileNav";
 import Drawer from "./Drawer";
+import MobileNav from "./MobileNav";
 
 // Main Header Component
 const Header = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  const toggleDrawer = () => {
-    setIsDrawerOpen(!isDrawerOpen);
-    if (!isDrawerOpen) {
-      setOpenSubmenu(null);
-    }
-  };
-  const toggleSubmenu = (menuName) => {
-    setOpenSubmenu(openSubmenu === menuName ? null : menuName);
-  };
-
   // Detect scroll for shadow effect
   useEffect(() => {
     const handleScroll = () => {

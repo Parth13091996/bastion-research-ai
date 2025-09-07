@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { HiX, HiOutlineUser } from "react-icons/hi";
 import {
@@ -13,6 +14,37 @@ const Drawer = ({
   isProfileOpen,
   setIsProfileOpen,
 }) => {
+  const navDrawerRef = useRef<HTMLDivElement | null>(null);
+  const profileDrawerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const targetNode = event.target as Node | null;
+
+      if (isNavOpen && navDrawerRef.current && targetNode && !navDrawerRef.current.contains(targetNode)) {
+        setIsNavOpen(false);
+      }
+      if (
+        isProfileOpen &&
+        profileDrawerRef.current &&
+        targetNode &&
+        !profileDrawerRef.current.contains(targetNode)
+      ) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    if (isNavOpen || isProfileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isNavOpen, isProfileOpen, setIsNavOpen, setIsProfileOpen]);
+
   const DrawerFooter = () => (
     <div className="w-full border-t shadow-[0_-2px_6px_rgba(0,0,0,0.1)] p-4 flex justify-center space-x-4">
       <a
@@ -60,7 +92,7 @@ const Drawer = ({
             onClick={() => setIsNavOpen(false)}
           ></div>
 
-          <div className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right">
+          <div ref={navDrawerRef} className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right">
             {/* Content */}
             <div className="flex-1 p-6 flex flex-col space-y-4 overflow-y-auto">
               <button
@@ -119,7 +151,7 @@ const Drawer = ({
             onClick={() => setIsProfileOpen(false)}
           ></div>
 
-          <div className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right">
+          <div ref={profileDrawerRef} className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right">
             {/* Content */}
             <div className="flex-1 p-6 flex flex-col space-y-4 overflow-y-auto">
               <button
