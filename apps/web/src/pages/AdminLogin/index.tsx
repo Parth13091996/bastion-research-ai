@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import axiosInstance from "@/api/axios";
 import { Config } from "@/utils/config";
 import { toast } from "sonner";
-import { useLoader } from "@/contexts/LoaderContext";
+import Loader from "@/components/generic/Loader";
 import { AppRoutes } from "@/routes/app-routes";
 import { queryKeys } from "@/api/queryKeys";
 
@@ -24,20 +23,11 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
-  const { start: showLoader, stop: hideLoader } = useLoader();
   const queryClient = useQueryClient();
 
   // Redirect immediately during render once auth is known
   const shouldRedirect = !isLoading && isAuthenticated && isAdmin;
 
-  useEffect(() => {
-    if (isLoading) {
-      showLoader("Checking session...");
-    } else {
-      hideLoader();
-    }
-    return () => hideLoader();
-  }, [isLoading, showLoader, hideLoader]);
 
   const {
     register,
@@ -69,16 +59,24 @@ const AdminLogin = () => {
     },
   });
 
+  // Page-level loader, no context
+  const loaderOpen = isLoading || mutation.isPending;
+  const loaderMessage = isLoading
+    ? "Checking session..."
+    : mutation.isPending
+    ? "Logging in..."
+    : undefined;
+
   const onSubmit = (data: LoginFormValues) => {
     mutation.mutate(data);
   };
 
-  if (isLoading) return <></>;
   if (shouldRedirect)
     return <Navigate to={AppRoutes.adminDashboard()} replace />;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Loader open={loaderOpen} message={loaderMessage} />
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center text-gray-800">
           Admin Login
