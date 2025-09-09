@@ -9,6 +9,7 @@ import membershipRoutes from "./routes/membership.routes";
 import couponRoutes from "./routes/coupon.routes";
 import applicationRoutes from "./routes/application.routes";
 import adminRoutes from "./routes/admin.routes";
+import analyticsRoutes from "./routes/analytics.routes";
 import authRoutes from "./routes/auth.routes";
 import digioRoutes from "./routes/digio.routes";
 import cashfreeRoutes from "./routes/cashfree.routes";
@@ -53,6 +54,7 @@ app.use("/api", userRoutes);
 app.use("/api", jobRoutes);
 app.use("/api", applicationRoutes);
 app.use("/api", membershipRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Root endpoint
 app.get("/", (req: Request, res: Response) => {

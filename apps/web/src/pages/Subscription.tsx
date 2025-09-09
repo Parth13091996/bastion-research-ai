@@ -6,6 +6,7 @@ import { Check, Loader2, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import axiosInstance from '@/api/axios'
 import { useAuth } from '@/contexts/AuthContext'
+import { useLoader } from '@/hooks/useLoader'
 import { load } from '@cashfreepayments/cashfree-js'
 
 type ApiPlan = {
@@ -39,6 +40,7 @@ const planFeatures: Record<string, string[]> = {
 
 const Subscription = () => {
   const { user } = useAuth()
+  const loader = useLoader()
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,9 +68,10 @@ const Subscription = () => {
   }, [])
 
   const allPlans = useMemo(() => {
+    const freePlan: ApiPlan = { code: 'free', name: 'Freemium', amount: 0, currency: 'INR' }
     // Highlight 12m as popular if present
     // 3m is a limited lifetime-availability offer per spec
-    return [...plans]
+    return [freePlan, ...plans]
   }, [plans])
 
   const isCurrentPlan = (code: string) => code === currentPlanCode
@@ -78,13 +81,15 @@ const Subscription = () => {
     if (code === 'free') return // No checkout for free
     try {
       setCheckingOut(code)
-      const resp = await axiosInstance.post('/api/cashfree/orders', {
-        plan: code,
-        customer_id: user?.id,
-        customer_email: user?.email,
-        customer_phone: user?.phone,
-        source: 'subscription',
-      })
+      const resp = await loader.withLoader(
+        axiosInstance.post('/api/cashfree/orders', {
+          plan: code,
+          customer_id: user?.id,
+          customer_email: user?.email,
+          customer_phone: user?.phone,
+          source: 'subscription',
+        }),
+        'Processing payment...');
 
       const cashfree = await load({ mode: 'sandbox' })
       const paymentSessionId = resp?.data?.order?.payment_session_id

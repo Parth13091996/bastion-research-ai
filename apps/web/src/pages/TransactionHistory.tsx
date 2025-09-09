@@ -3,9 +3,6 @@ import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import "../styles/ag-grid-custom.css";
 
 type PaymentRow = {
   transaction_id: string;
@@ -125,6 +122,7 @@ const TransactionHistory: React.FC = () => {
         </div>
         <div className="ag-theme-alpine" style={{ height: 520, width: "100%" }}>
           <AgGridReact
+            theme="legacy"
             rowData={filtered}
             columnDefs={colDefs}
             defaultColDef={{
@@ -136,6 +134,7 @@ const TransactionHistory: React.FC = () => {
             }}
             pagination={true}
             paginationPageSize={10}
+            paginationPageSizeSelector={[10, 25, 50, 100]}
             overlayLoadingTemplate={
               '<span class="ag-overlay-loading-center">Loading...</span>'
             }

@@ -23,8 +23,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     dateOfBirth: "",
     panCard: "",
     aadharCard: "",
-    bankAccount: "",
-    ifscCode: "",
     agreeToTerms: false,
     selectedPlan: "",
   });
@@ -61,8 +59,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     { id: 1, name: "Register", icon: "👤" },
     { id: 2, name: "Verify", icon: "✓" },
     { id: 3, name: "Onboard", icon: "📋" },
-    { id: 4, name: "KYC", icon: "🆔" },
-    { id: 5, name: "Plans", icon: "📋" },
+    { id: 4, name: "Plans", icon: "📋" },
+    { id: 5, name: "KYC", icon: "🆔" },
     { id: 6, name: "Agreement", icon: "📄" },
     { id: 7, name: "Payment", icon: "💳" },
   ];
@@ -125,7 +123,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     const fetchPlans = async () => {
-      if (currentStep === 5) {
+      if (currentStep === 4) {
         setIsLoading(true);
         try {
           const response = await axiosInstance.get("/api/cashfree/plans");
@@ -198,20 +196,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         );
       case 4:
         return (
-          <KYCStep
-            formData={{
-              panCard: formData.panCard,
-              aadharCard: formData.aadharCard,
-              bankAccount: formData.bankAccount,
-              ifscCode: formData.ifscCode,
-            }}
-            onBack={prevStep}
-            onNext={nextStep}
-            updateFormData={updateFormData}
-          />
-        );
-      case 5:
-        return (
           <PlansStep
             plans={plans}
             error={error}
@@ -222,10 +206,23 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             updateFormData={updateFormData}
           />
         );
+      case 5:
+        return (
+          <KYCStep
+            formData={{
+              panCard: formData.panCard,
+              aadharCard: formData.aadharCard,
+            }}
+            onBack={prevStep}
+            onNext={nextStep}
+            updateFormData={updateFormData}
+          />
+        );
       case 6:
         return (
           <AgreementStep
             agreeToTerms={formData.agreeToTerms}
+            formData={{ email: formData.email, phone: formData.phone }}
             onBack={prevStep}
             onNext={nextStep}
             updateFormData={updateFormData}

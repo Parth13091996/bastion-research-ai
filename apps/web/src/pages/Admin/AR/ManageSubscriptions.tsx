@@ -2,9 +2,6 @@ import React, { useState, useMemo } from "react";
 import { Search, Plus, Eye, FileText, Trash2, X } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import "../../../styles/ag-grid-custom.css";
 
 // Mock Data
 const subscriptionsData = [
@@ -28,6 +25,7 @@ const SubscriptionGrid = ({ rowData, columnDefs }: { rowData: any[], columnDefs:
     return (
         <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
             <AgGridReact
+                theme="legacy"
                 rowData={rowData}
                 columnDefs={columnDefs}
                 defaultColDef={{
@@ -38,6 +36,7 @@ const SubscriptionGrid = ({ rowData, columnDefs }: { rowData: any[], columnDefs:
                 }}
                 pagination={true}
                 paginationPageSize={10}
+                paginationPageSizeSelector={[10, 25, 50, 100]}
             />
         </div>
     );

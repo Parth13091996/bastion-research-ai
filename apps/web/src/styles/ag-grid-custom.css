@@ -1,4 +1,4 @@
-/* AG-Grid Custom Theme */
+/* AG-Grid Custom Theme - Enhanced for Better UI */
 
 .ag-theme-alpine {
     /* Header Styles */
@@ -9,38 +9,135 @@
 
     /* Row Styles */
     --ag-row-hover-color: #f1f3f5;
+    --ag-odd-row-background-color: #ffffff;
+    --ag-even-row-background-color: #fafbfc;
 
-    /* Font & Sizing */
-    --ag-font-family: 'Inter', sans-serif;
+    /* Font & Sizing - Enhanced for better readability */
+    --ag-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --ag-font-size: 14px;
-    --ag-grid-size: 8px; /* increase paddings */
-    --ag-row-height: 44px; /* taller rows */
-    --ag-header-height: 48px; /* taller header */
+    --ag-grid-size: 12px; /* increased padding */
+    --ag-row-height: 52px; /* taller rows for better spacing */
+    --ag-header-height: 56px; /* taller header */
 
     /* Border Styles */
-    --ag-border-color: #dee2e6;
-    --ag-row-border-color: #e9ecef;
+    --ag-border-color: #e1e5e9;
+    --ag-row-border-color: #f1f3f5;
 
     /* Icon Styles */
     --ag-icon-size: 16px;
+
+    /* Selection Colors */
+    --ag-range-selection-background-color: rgba(59, 130, 246, 0.1);
+    --ag-selected-row-background-color: rgba(59, 130, 246, 0.05);
 }
 
-/* Customizations for a more modern look */
+/* Enhanced Grid Container */
+.ag-theme-alpine {
+    border-radius: 8px;
+    border: 1px solid var(--ag-border-color);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Header Enhancements */
 .ag-theme-alpine .ag-header {
-    border-bottom: 1px solid var(--ag-border-color);
+    border-bottom: 2px solid var(--ag-border-color);
     font-weight: 600;
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
 }
 
 .ag-theme-alpine .ag-header-cell {
-    padding: 0 16px;
+    padding: 0 20px;
+    font-weight: 600;
+    color: #374151;
+    border-right: 1px solid #e5e7eb;
 }
 
+.ag-theme-alpine .ag-header-cell:last-child {
+    border-right: none;
+}
+
+/* Cell Enhancements */
 .ag-theme-alpine .ag-cell {
-    padding: 0 16px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
+    line-height: 1.5;
+    color: #374151;
+    border-right: 1px solid #f3f4f6;
 }
 
+.ag-theme-alpine .ag-cell:last-child {
+    border-right: none;
+}
+
+/* Row Enhancements */
 .ag-theme-alpine .ag-row {
     border-bottom: 1px solid var(--ag-row-border-color);
+    transition: background-color 0.15s ease-in-out;
+}
+
+.ag-theme-alpine .ag-row:hover {
+    background-color: #f9fafb !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Pagination Styles */
+.ag-theme-alpine .ag-paging-panel {
+    border-top: 1px solid var(--ag-border-color);
+    background-color: #f8f9fa;
+    padding: 16px 20px;
+}
+
+.ag-theme-alpine .ag-paging-button {
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin: 0 2px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.ag-theme-alpine .ag-paging-button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.ag-theme-alpine .ag-paging-button.ag-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Filter and Menu Styles */
+.ag-theme-alpine .ag-filter-toolpanel,
+.ag-theme-alpine .ag-menu {
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--ag-border-color);
+}
+
+/* Checkbox Styles */
+.ag-theme-alpine .ag-checkbox-input {
+    width: 16px;
+    height: 16px;
+}
+
+/* Loading Overlay */
+.ag-theme-alpine .ag-overlay-loading-wrapper {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ag-theme-alpine {
+        --ag-font-size: 13px;
+        --ag-row-height: 48px;
+        --ag-header-height: 52px;
+        --ag-grid-size: 10px;
+    }
+    
+    .ag-theme-alpine .ag-cell,
+    .ag-theme-alpine .ag-header-cell {
+        padding: 0 12px;
+    }
 }

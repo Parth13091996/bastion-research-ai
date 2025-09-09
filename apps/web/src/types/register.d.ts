@@ -11,10 +11,10 @@ interface OnboardingFormData {
   dateOfBirth: string;
   panCard: string;
   aadharCard: string;
-  bankAccount: string;
-  ifscCode: string;
   agreeToTerms: boolean;
   selectedPlan: string;
+  // Optional: store digio document id after initiating eSign
+  digioDocId?: string;
 }
 
 interface SignUpFormProps {
@@ -73,8 +73,6 @@ interface KYCStepProps {
   formData: {
     panCard: string;
     aadharCard: string;
-    bankAccount: string;
-    ifscCode: string;
   };
   updateFormData: UpdateFormFn;
   onBack: () => void;
@@ -96,6 +94,8 @@ interface AgreementStepProps {
   updateFormData: UpdateFormFn;
   onBack: () => void;
   onNext: () => void;
+  // Access to identifier for Digio (email/phone)
+  formData?: { email: string; phone: string };
 }
 
 interface PaymentStepProps {

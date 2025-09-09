@@ -75,7 +75,12 @@ const pgFetchOrder = async (orderId: string) => {
   }
 };
 
-type PublicPlan = { code: string; name: string; amount: number; currency: string };
+type PublicPlan = {
+  code: string;
+  name: string;
+  amount: number;
+  currency: string;
+};
 
 export const listPlans = async (_req: Request, res: Response) => {
   try {
@@ -88,7 +93,9 @@ export const listPlans = async (_req: Request, res: Response) => {
     }
 
     const plans: PublicPlan[] = (data || [])
-      .filter((p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0)
+      .filter(
+        (p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0
+      )
       .map((p: any) => ({
         code: String(p.plan_id),
         name: p.plan_name,
@@ -98,15 +105,17 @@ export const listPlans = async (_req: Request, res: Response) => {
 
     return res.status(200).json({ plans });
   } catch (err: any) {
-    return res.status(500).json({ message: err?.message || "Failed to fetch plans" });
+    return res
+      .status(500)
+      .json({ message: err?.message || "Failed to fetch plans" });
   }
 };
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const { plan, customer_id, customer_email, customer_phone, source } = req.body;
-    if (!plan)
-      return res.status(400).json({ message: "plan is required" });
+    const { plan, customer_id, customer_email, customer_phone, source } =
+      req.body;
+    if (!plan) return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
       return res.status(400).json({ message: "customer_id is required" });
     if (!customer_phone)
@@ -135,7 +144,9 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       currency: planRow.currency || "INR",
     };
     const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+    const frontendUrl = (
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    ).replace(/\/$/, "");
     // Build return URL with optional context so client can branch behavior
     let returnUrl =
       process.env.CASHFREE_RETURN_URL ||

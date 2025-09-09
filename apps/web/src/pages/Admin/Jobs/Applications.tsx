@@ -6,8 +6,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Edit, Trash2, Plus } from 'lucide-react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
 import EditRowModal from '@/components/admin/EditRowModal';
 
 const Applications = () => {
@@ -126,11 +124,13 @@ const Applications = () => {
       </div>
       <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
         <AgGridReact
+          theme="legacy"
           rowData={rowData}
           columnDefs={columnDefs}
           defaultColDef={{ sortable: true, filter: true, resizable: true }}
           pagination={true}
           paginationPageSize={10}
+          paginationPageSizeSelector={[10, 25, 50, 100]}
           context={{ openEdit, deleteApplication }}
         />
       </div>

@@ -2,8 +2,6 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
 
 const CouponManagement = () => {
   const { data: rowData, isLoading } = useQuery({
@@ -28,11 +26,13 @@ const CouponManagement = () => {
       <h1 className="text-2xl font-bold mb-4">Coupon Management</h1>
       <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
         <AgGridReact
+          theme="legacy"
           rowData={rowData}
           columnDefs={columnDefs}
           defaultColDef={{ sortable: true, filter: true, resizable: true }}
           pagination={true}
           paginationPageSize={10}
+          paginationPageSizeSelector={[10, 25, 50, 100]}
         />
       </div>
     </div>

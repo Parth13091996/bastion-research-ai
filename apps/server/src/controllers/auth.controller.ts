@@ -25,8 +25,6 @@ export const createUserAfterOnboarding = async (userData: any) => {
     panCard,
     dateOfBirth,
     aadharCard,
-    bankAccount,
-    ifscCode,
   } = userData;
 
   // Basic validation
@@ -76,8 +74,6 @@ export const createUserAfterOnboarding = async (userData: any) => {
       pan_card_number: panCard,
       date_of_birth: dateOfBirth,
       aadhar_card_number: aadharCard,
-      bank_account_number: bankAccount,
-      ifsc_code: ifscCode,
       status: "active",
       isPremium: true,
     })
@@ -171,9 +167,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
     // Always respond success even if not found to prevent user enumeration
     if (!user || error) {
       return res.status(200).json({
-        message:
-          "User doesn't exists for this email, Please create one.",
-        sentStatus: 'failed'
+        message: "User doesn't exists for this email, Please create one.",
+        sentStatus: "failed",
       });
     }
 
@@ -181,7 +176,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
     if (!secret) throw new Error("JWT_SECRET not set");
 
     // password version tag so token invalidates after password change
-    const pwdTag = crypto.createHash("sha256").update(user.password || "").digest("hex");
+    const pwdTag = crypto
+      .createHash("sha256")
+      .update(user.password || "")
+      .digest("hex");
     const token = jwt.sign(
       { sub: user.id, email: user.email, type: "pwd_reset", pv: pwdTag },
       secret,
@@ -218,14 +216,18 @@ export const forgotPassword = async (req: Request, res: Response) => {
 export const resetPassword = async (req: Request, res: Response) => {
   const { token, password } = req.body as { token?: string; password?: string };
   if (!token || !password || password.length < 6) {
-    return res.status(400).json({ message: "Invalid token or password too short" });
+    return res
+      .status(400)
+      .json({ message: "Invalid token or password too short" });
   }
   try {
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error("JWT_SECRET not set");
     const decoded = jwt.verify(token, secret) as any;
     if (!decoded || decoded.type !== "pwd_reset" || !decoded.sub) {
-      return res.status(400).json({ message: "Invalid or expired reset token" });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
     }
 
     const { data: user, error } = await supabase
@@ -238,7 +240,10 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     // Ensure token not reused after password change
-    const pwdTag = crypto.createHash("sha256").update(user.password || "").digest("hex");
+    const pwdTag = crypto
+      .createHash("sha256")
+      .update(user.password || "")
+      .digest("hex");
     if (pwdTag !== decoded.pv) {
       return res.status(400).json({ message: "Reset link is no longer valid" });
     }

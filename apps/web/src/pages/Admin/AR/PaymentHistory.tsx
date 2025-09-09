@@ -4,9 +4,6 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import "../../../styles/ag-grid-custom.css";
 
 const mockData = [
     { transaction_id: "pay_MKJVgrVkAGQ", invoice_id: "BB-266", user_id: "shreyadhiruobhavyalit@gmail.com", user_email: "shreyadhiruobhavyalit@gmail.com", membership: "Annual Plan", payment_gateway: "Manual", payment_type: "One Time", payer_email: "Paid by admin", transaction_status: "Success", payment_date: "2025-08-27", amount: "₹750.30" },
@@ -116,6 +113,7 @@ const PaymentHistory = () => {
                 </div>
                 <div className="ag-theme-alpine" style={{ height: 600, width: "100%" }}>
                     <AgGridReact
+                        theme="legacy"
                         rowData={filteredData}
                         columnDefs={colDefs}
                         defaultColDef={{
@@ -126,6 +124,7 @@ const PaymentHistory = () => {
                         }}
                         pagination={true}
                         paginationPageSize={10}
+                        paginationPageSizeSelector={[10, 25, 50, 100]}
                     />
                 </div>
             </div>
