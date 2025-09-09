@@ -60,7 +60,7 @@ const MemberManagementDashboard = () => {
   });
 
   const [colDefs] = useState<ColDef[]>([
-    { headerName: "", field: "select", checkboxSelection: true, headerCheckboxSelection: true, width: 50 },
+    { headerName: "", field: "select", width: 50 },
     { headerName: "Avatar", field: "avatar", cellRenderer: AvatarRenderer, width: 80, sortable: false, filter: false },
     { headerName: "Username", field: "username", flex: 2 },
     { headerName: "Email Address", field: "email", flex: 3 },
@@ -82,11 +82,11 @@ const MemberManagementDashboard = () => {
   const deleteUser = (id: string) => deleteMutation.mutate(id);
 
   const onGridReady = (params: GridReadyEvent) => {
-    gridRef.current = params;
+    // Store the API reference directly
   };
 
   useEffect(() => {
-    if (gridRef.current?.api) {
+    if (gridRef.current) {
       const statusFilter = selectedStatus !== "Select Status" ? {
         status: { filterType: 'text', type: 'equals', filter: selectedStatus }
       } : null;
@@ -97,14 +97,14 @@ const MemberManagementDashboard = () => {
   }, [selectedStatus]);
 
   useEffect(() => {
-    if (gridRef.current?.api) {
-      gridRef.current.api.setQuickFilter(searchTerm);
+    if (gridRef.current) {
+      gridRef.current.api.setGridOption('quickFilterText', searchTerm);
     }
   }, [searchTerm]);
 
   const onPageSizeChanged = (newPageSize: number) => {
-    if(gridRef.current?.api){
-        gridRef.current.api.paginationSetPageSize(newPageSize);
+    if(gridRef.current){
+        gridRef.current.api.setGridOption('paginationPageSize', newPageSize);
     }
   };
 
@@ -164,6 +164,7 @@ const MemberManagementDashboard = () => {
             ref={gridRef}
             rowData={rowData}
             columnDefs={colDefs}
+            theme="legacy"
             defaultColDef={{
               sortable: true,
               filter: true,
@@ -171,9 +172,14 @@ const MemberManagementDashboard = () => {
             }}
             pagination={true}
             paginationPageSize={10}
-          onGridReady={onGridReady}
-          rowSelection="multiple"
-          suppressRowClickSelection={true}
+            paginationPageSizeSelector={[10, 25, 50, 100]}
+            onGridReady={onGridReady}
+            rowSelection={{
+              mode: 'multiRow',
+              checkboxes: true,
+              headerCheckbox: true,
+              enableClickSelection: false
+            }}
             context={{ openEdit, deleteUser }}
           />
         </div>

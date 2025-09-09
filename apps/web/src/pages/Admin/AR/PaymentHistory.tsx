@@ -113,6 +113,7 @@ const PaymentHistory = () => {
                 </div>
                 <div className="ag-theme-alpine" style={{ height: 600, width: "100%" }}>
                     <AgGridReact
+                        theme="legacy"
                         rowData={filteredData}
                         columnDefs={colDefs}
                         defaultColDef={{
@@ -123,6 +124,7 @@ const PaymentHistory = () => {
                         }}
                         pagination={true}
                         paginationPageSize={10}
+                        paginationPageSizeSelector={[10, 25, 50, 100]}
                     />
                 </div>
             </div>

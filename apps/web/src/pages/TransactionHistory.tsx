@@ -122,6 +122,7 @@ const TransactionHistory: React.FC = () => {
         </div>
         <div className="ag-theme-alpine" style={{ height: 520, width: "100%" }}>
           <AgGridReact
+            theme="legacy"
             rowData={filtered}
             columnDefs={colDefs}
             defaultColDef={{
@@ -133,6 +134,7 @@ const TransactionHistory: React.FC = () => {
             }}
             pagination={true}
             paginationPageSize={10}
+            paginationPageSizeSelector={[10, 25, 50, 100]}
             overlayLoadingTemplate={
               '<span class="ag-overlay-loading-center">Loading...</span>'
             }

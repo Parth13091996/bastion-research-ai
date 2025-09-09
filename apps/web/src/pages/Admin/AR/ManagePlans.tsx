@@ -90,7 +90,7 @@ const MembershipPlans = () => {
 
   useEffect(() => {
     if (gridRef.current?.api) {
-      gridRef.current.api.setQuickFilter(searchTerm);
+      gridRef.current.api.setGridOption('quickFilterText', searchTerm);
     }
   }, [searchTerm]);
 
@@ -144,6 +144,7 @@ const MembershipPlans = () => {
 
         <div className="p-1 ag-theme-alpine" style={{ height: 400, width: "100%" }}>
           <AgGridReact
+            theme="legacy"
             ref={gridRef}
             rowData={plans}
             columnDefs={colDefs}
@@ -155,6 +156,7 @@ const MembershipPlans = () => {
             }}
             pagination={true}
             paginationPageSize={10}
+            paginationPageSizeSelector={[10, 25, 50, 100]}
           onGridReady={onGridReady}
             context={{ openEdit, deletePlan }}
           />

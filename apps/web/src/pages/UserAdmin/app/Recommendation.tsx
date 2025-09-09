@@ -29,11 +29,13 @@ const ManagePlans = () => {
       <h1 className="text-2xl font-bold mb-4">Manage Plans</h1>
       <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
         <AgGridReact
+          theme="legacy"
           rowData={rowData}
           columnDefs={columnDefs}
           defaultColDef={{ sortable: true, filter: true, resizable: true }}
           pagination={true}
           paginationPageSize={10}
+          paginationPageSizeSelector={[10, 25, 50, 100]}
         />
       </div>
     </div>
