@@ -1,24 +1,22 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useLoaderStore } from "@/stores/loaderStore";
 
-type LoaderProps = {
-  open: boolean;
-  message?: string;
-};
+const Loader = () => {
+  const { isLoading, message } = useLoaderStore();
 
-const Loader = ({ open, message }: LoaderProps) => {
   // Prevent body scroll when loader is open
   useEffect(() => {
-    if (open) {
+    if (isLoading) {
       const original = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = original;
       };
     }
-  }, [open]);
+  }, [isLoading]);
 
-  if (!open) return null;
+  if (!isLoading) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50">

@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import axiosInstance from "@/api/axios";
-import Loader from "@/components/generic/Loader";
+import { useLoader } from "@/hooks/useLoader";
 import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
 import { useForm } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useEffect } from "react";
 import * as z from "zod";
 
 const loginSchema = z.object({
@@ -23,6 +24,7 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
   const queryClient = useQueryClient();
+  const loader = useLoader();
 
   // Redirect immediately during render once auth is known
   const shouldRedirect = !isLoading && isAuthenticated && isAdmin;
@@ -41,9 +43,12 @@ const AdminLogin = () => {
     LoginFormValues
   >({
     mutationFn: (data) =>
-      axiosInstance
-        .post("/api/auth/signin", { ...data, isAdminLogin: true })
-        .then((res) => res.data),
+      loader.withLoader(
+        axiosInstance
+          .post("/api/auth/signin", { ...data, isAdminLogin: true })
+          .then((res) => res.data),
+        "Logging in..."
+      ),
     onSuccess: (data: any) => {
       if (data.user?.role === Config.roles.admin) {
         toast.success("Admin logged in successfully");
@@ -56,13 +61,14 @@ const AdminLogin = () => {
     },
   });
 
-  // Page-level loader, no context
-  const loaderOpen = isLoading || mutation.isPending;
-  const loaderMessage = isLoading
-    ? "Checking session..."
-    : mutation.isPending
-      ? "Logging in..."
-      : undefined;
+  // Show loader for auth checking
+  useEffect(() => {
+    if (isLoading) {
+      loader.start("Checking session...");
+    } else {
+      loader.stop();
+    }
+  }, [isLoading, loader]);
 
   const onSubmit = (data: LoginFormValues) => {
     mutation.mutate(data);
@@ -73,7 +79,6 @@ const AdminLogin = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Loader open={loaderOpen} message={loaderMessage} />
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center text-gray-800">
           Admin Login

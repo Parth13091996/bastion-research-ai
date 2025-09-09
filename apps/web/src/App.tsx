@@ -3,6 +3,7 @@ import { Toaster } from "./components/ui/sonner";
 import { routes } from "./routes";
 import ModalsLayout from "./layouts/ModalsLayout";
 import RouteAnalytics from "./components/RouteAnalytics";
+import Loader from "./components/generic/Loader";
 
 const AppRoutes = () => {
   const element = useRoutes(routes);
@@ -15,6 +16,7 @@ function App() {
       <RouteAnalytics />
       <AppRoutes />
       <ModalsLayout />
+      <Loader />
       <Toaster />
     </Router>
   );
