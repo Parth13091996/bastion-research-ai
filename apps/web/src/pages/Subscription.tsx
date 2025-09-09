@@ -11,9 +11,10 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoader } from "@/hooks/useLoader";
 import { load } from "@cashfreepayments/cashfree-js";
-import { Check, Loader2, Sparkles } from "lucide-react";
+import { Check, Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 type ApiPlan = {
   code: string;
@@ -49,17 +50,16 @@ const planFeatures: Record<string, string[]> = {
 };
 
 const Subscription = () => {
-  const { user } = useAuth();
+  const { user, subscription, isSubscriptionLoading, refetchSubscription } = useAuth();
   const loader = useLoader();
-  const [searchParams] = useSearchParams();
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<ApiPlan[]>([]);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
 
-  // In absence of a user subscription API, assume Free unless we later store it
-  const [currentPlanCode] = useState<string>("free");
+  // Get current plan from subscription data
+  const currentPlanCode = subscription?.currentPlan || "free";
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -75,21 +75,8 @@ const Subscription = () => {
         setIsLoading(false);
       }
     };
-
-    const orderId = searchParams.get("order_id");
-    if (orderId) {
-      async function fetchOrderDetails() {
-        console.log({ orderId });
-        const response = await axiosInstance.get(
-          `/api/cashfree/orders/${orderId}`
-        );
-        console.log({ response });
-      }
-      fetchOrderDetails();
-      return;
-    }
     fetchPlans();
-  }, [searchParams]);
+  }, []);
 
   const isCurrentPlan = (code: string) => code === currentPlanCode;
 
@@ -125,6 +112,15 @@ const Subscription = () => {
     }
   };
 
+  const handleRefreshSubscription = async () => {
+    try {
+      await refetchSubscription();
+      toast.success("Subscription status updated");
+    } catch (e: any) {
+      toast.error("Failed to refresh subscription status");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 p-6">
       <div className="max-w-6xl mx-auto">
@@ -137,9 +133,20 @@ const Subscription = () => {
               Choose the plan that fits you best
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link to="/dashboard">Back to Dashboard</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleRefreshSubscription}
+              variant="outline" 
+              size="sm"
+              disabled={isSubscriptionLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isSubscriptionLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/dashboard">Back to Dashboard</Link>
+            </Button>
+          </div>
         </div>
 
         {/* Current Plan */}
@@ -149,22 +156,43 @@ const Subscription = () => {
             <CardDescription>Your active membership</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">
-                  {isCurrentPlan("free")
-                    ? "Freemium"
-                    : currentPlanCode.toUpperCase()}{" "}
-                  Plan
-                </h3>
-                <p className="text-muted-foreground">
-                  {isCurrentPlan("free")
-                    ? "Limited access to public content"
-                    : "Active paid subscription"}
-                </p>
+            {isSubscriptionLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading subscription...
               </div>
-              <Badge variant="default">Active</Badge>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      {subscription?.subscription?.name || 
+                       (isCurrentPlan("free") ? "Freemium" : currentPlanCode.toUpperCase())}{" "}
+                      Plan
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {isCurrentPlan("free")
+                        ? "Limited access to public content"
+                        : subscription?.isPremium 
+                          ? "Active paid subscription"
+                          : "Subscription pending"}
+                    </p>
+                  </div>
+                  <Badge variant={subscription?.isPremium ? "default" : "secondary"}>
+                    {subscription?.isPremium ? "Active" : "Pending"}
+                  </Badge>
+                </div>
+                
+                {subscription?.subscription && (
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>Amount: {formatINR(subscription.subscription.amount)}</p>
+                    <p>Started: {new Date(subscription.subscription.startDate).toLocaleDateString()}</p>
+                    {subscription.subscription.expireDate && (
+                      <p>Expires: {new Date(subscription.subscription.expireDate).toLocaleDateString()}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

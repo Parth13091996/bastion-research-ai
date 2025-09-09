@@ -4,7 +4,9 @@ import {
   createOrderForPlan,
   getOrder,
   handleCashfreeWebhook,
+  getUserSubscription,
 } from "../controllers/cashfree.controller";
+import { protect } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -16,6 +18,9 @@ router.post("/orders", createOrderForPlan);
 
 // Fetch order status
 router.get("/orders/:orderId", getOrder);
+
+// Get user subscription status (authenticated)
+router.get("/subscription", protect, getUserSubscription);
 
 // Webhook handler
 router.post("/webhook", handleCashfreeWebhook);
