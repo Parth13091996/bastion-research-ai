@@ -113,8 +113,14 @@ export const listPlans = async (_req: Request, res: Response) => {
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const { plan, customer_id, customer_email, customer_phone, source } =
-      req.body;
+    const {
+      plan,
+      customer_id,
+      customer_email,
+      customer_phone,
+      return_url,
+      source,
+    } = req.body;
     if (!plan) return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
       return res.status(400).json({ message: "customer_id is required" });
@@ -149,13 +155,8 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
     ).replace(/\/$/, "");
     // Build return URL with optional context so client can branch behavior
     let returnUrl =
-      process.env.CASHFREE_RETURN_URL ||
-      `${frontendUrl}/payment/success?order_id={order_id}`;
-    if (source) {
-      const hasQuery = returnUrl.includes("?");
-      const sep = hasQuery ? "&" : "?";
-      returnUrl = `${returnUrl}${sep}src=${encodeURIComponent(String(source))}`;
-    }
+      `${return_url}?order_id=${orderId}` ||
+      `${frontendUrl}/payment/success?order_id=${orderId}`;
 
     const request = {
       order_id: orderId,
@@ -219,6 +220,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
 
     // Signature is valid, process the event
     const event = JSON.parse(rawBody);
+    console.log(event, "event logs");
     // We no longer depend on onboarding_sessions here. If required,
     // client will finalize onboarding after payment success.
 

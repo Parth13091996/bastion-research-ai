@@ -40,6 +40,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         customer_email: formData.email,
         customer_phone: formData.phone,
         source: "register",
+        return_url: location.origin + "/login",
       });
 
       const { payment_session_id } = orderResponse.data.order;
@@ -108,8 +109,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           {isLoading
             ? "Processing..."
             : selectedPlanDetails?.code === "free"
-            ? "Complete Signup"
-            : `Pay ₹${selectedPlanDetails?.amount || ""}`}
+              ? "Complete Signup"
+              : `Pay ₹${selectedPlanDetails?.amount || ""}`}
         </button>
       </div>
     </div>
