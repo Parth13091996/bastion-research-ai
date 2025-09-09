@@ -4,8 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/api/axios';
 import { Edit, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
 import EditRowModal from '@/components/admin/EditRowModal';
 
 const AllUsers = () => {

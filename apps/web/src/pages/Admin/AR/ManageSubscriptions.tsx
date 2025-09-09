@@ -2,9 +2,6 @@ import React, { useState, useMemo } from "react";
 import { Search, Plus, Eye, FileText, Trash2, X } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import "../../../styles/ag-grid-custom.css";
 
 // Mock Data
 const subscriptionsData = [
