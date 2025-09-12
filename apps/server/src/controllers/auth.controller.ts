@@ -34,27 +34,21 @@ export const createUserAfterOnboarding = async (userData: any) => {
     !password ||
     !firstName ||
     !lastName ||
-    !panCard ||
     !dateOfBirth
   ) {
     console.error("Validation failed for userData:", userData);
     throw new Error("Missing required fields for user creation.");
   }
 
-  // Check if user already exists
-  const { data: existingUser, error: existingUserError } = await supabase
+  const { data: existingUser } = await supabase
     .from("users")
-    .select("email, phone")
-    .or(`email.eq.${email},phone.eq.${phone}`);
+    .select("email")
+    .eq("email", email)
+    .maybeSingle();
 
-  if (existingUserError) {
-    console.error("Error checking for existing user:", existingUserError);
-    throw existingUserError;
-  }
-
-  if (existingUser && existingUser.length > 0) {
+  if (existingUser) {
     console.warn(`Attempted to create a user that already exists: ${email}`);
-    return existingUser[0];
+    throw new Error(`Attempted to create a user that already exists: ${email}`);
   }
 
   const hashedPassword = await bcrypt.hash(password, config.saltRounds);
@@ -73,7 +67,6 @@ export const createUserAfterOnboarding = async (userData: any) => {
       last_name: lastName,
       pan_card_number: panCard,
       date_of_birth: dateOfBirth,
-      aadhar_card_number: aadharCard,
       status: "active",
       isPremium: true,
     })

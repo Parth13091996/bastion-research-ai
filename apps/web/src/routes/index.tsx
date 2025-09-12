@@ -102,14 +102,16 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
       { path: AppRoutes.webinar(), element: <Webinar /> },
       { path: AppRoutes.smartFrameworks(), element: <SmartFrameworks /> },
-      { path: AppRoutes.paymentSuccess(), element: <PaymentSuccess /> },
       {
         element: <ProtectedRoute />,
         children: [
           { path: AppRoutes.dashboard(), element: <Dashboard /> },
           { path: AppRoutes.editProfile(), element: <EditProfile /> },
           { path: AppRoutes.subscription(), element: <Subscription /> },
-          { path: AppRoutes.transactionHistory(), element: <TransactionHistory /> },
+          {
+            path: AppRoutes.transactionHistory(),
+            element: <TransactionHistory />,
+          },
         ],
       },
     ],

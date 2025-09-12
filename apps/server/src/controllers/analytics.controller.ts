@@ -61,8 +61,14 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
     }
 
     // Aggregate in-memory
-    const byDay: Record<string, { total: number; uniqueIPs: Set<string>; uniqueUsers: Set<string> }> = {};
-    const topPaths: Record<string, { views: number; ips: Set<string>; users: Set<string> }> = {};
+    const byDay: Record<
+      string,
+      { total: number; uniqueIPs: Set<string>; uniqueUsers: Set<string> }
+    > = {};
+    const topPaths: Record<
+      string,
+      { views: number; ips: Set<string>; users: Set<string> }
+    > = {};
     const allIps = new Set<string>();
     const allUsers = new Set<string>();
 
@@ -73,7 +79,11 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
     for (const r of rows || []) {
       const d = new Date(r.occurred_at);
       const dayKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
-      byDay[dayKey] ||= { total: 0, uniqueIPs: new Set(), uniqueUsers: new Set() };
+      byDay[dayKey] ||= {
+        total: 0,
+        uniqueIPs: new Set(),
+        uniqueUsers: new Set(),
+      };
       byDay[dayKey].total += 1;
       if (r.ip) {
         byDay[dayKey].uniqueIPs.add(r.ip);
@@ -106,10 +116,18 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
         uniqueUsers: byDay[k].uniqueUsers.size,
       }));
 
-    const usersByDay = visitsByDay.map((v) => ({ date: v.date, uniqueUsers: v.uniqueUsers }));
+    const usersByDay = visitsByDay.map((v) => ({
+      date: v.date,
+      uniqueUsers: v.uniqueUsers,
+    }));
 
     const topPathsArr = Object.entries(topPaths)
-      .map(([path, v]) => ({ path, views: v.views, uniqueIPs: v.ips.size, uniqueUsers: v.users.size }))
+      .map(([path, v]) => ({
+        path,
+        views: v.views,
+        uniqueIPs: v.ips.size,
+        uniqueUsers: v.users.size,
+      }))
       .sort((a, b) => b.views - a.views)
       .slice(0, 10);
 

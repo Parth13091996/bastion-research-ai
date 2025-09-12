@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const EditProfile = () => {
   const { user, refetchUser, isLoading } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -91,6 +92,8 @@ const EditProfile = () => {
     onSuccess: async () => {
       toast.success("Profile updated successfully");
       await refetchUser();
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.error || err?.message || "Update failed";
@@ -102,7 +105,9 @@ const EditProfile = () => {
     // Normalize date_of_birth to YYYY-MM-DD if present
     const payload = {
       ...data,
-      date_of_birth: data.date_of_birth ? data.date_of_birth.split("T")[0] : undefined,
+      date_of_birth: data.date_of_birth
+        ? data.date_of_birth.split("T")[0]
+        : undefined,
     } as ProfileFormValues;
     mutation.mutate(payload);
   };
@@ -125,40 +130,54 @@ const EditProfile = () => {
             <Label htmlFor="first_name">First Name</Label>
             <Input id="first_name" {...register("first_name")} />
             {errors.first_name && (
-              <p className="text-red-600 text-sm mt-1">{errors.first_name.message}</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.first_name.message}
+              </p>
             )}
           </div>
           <div>
             <Label htmlFor="last_name">Last Name</Label>
             <Input id="last_name" {...register("last_name")} />
             {errors.last_name && (
-              <p className="text-red-600 text-sm mt-1">{errors.last_name.message}</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.last_name.message}
+              </p>
             )}
           </div>
           <div>
             <Label htmlFor="username">Username</Label>
             <Input id="username" {...register("username")} />
             {errors.username && (
-              <p className="text-red-600 text-sm mt-1">{errors.username.message}</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.username.message}
+              </p>
             )}
           </div>
           <div>
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...register("email")} />
             {errors.email && (
-              <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <div>
             <Label htmlFor="phone">Phone</Label>
             <Input id="phone" {...register("phone")} />
             {errors.phone && (
-              <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>
+              <p className="text-red-600 text-sm mt-1">
+                {errors.phone.message}
+              </p>
             )}
           </div>
           <div>
             <Label htmlFor="date_of_birth">Date of Birth</Label>
-            <Input id="date_of_birth" type="date" {...register("date_of_birth")} />
+            <Input
+              id="date_of_birth"
+              type="date"
+              {...register("date_of_birth")}
+            />
           </div>
         </div>
 
@@ -207,22 +226,27 @@ const EditProfile = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => user && reset({
-              username: user.username || "",
-              email: user.email || "",
-              first_name: user.first_name || "",
-              last_name: user.last_name || "",
-              phone: user.phone || "",
-              date_of_birth: user.date_of_birth ? String(user.date_of_birth).split("T")[0] : "",
-              pan_card_number: user.pan_card_number || "",
-              address_1: user.address_1 || "",
-              address_2: user.address_2 || "",
-              state: user.state || "",
-              city: user.city || "",
-              pin_code: user.pin_code || "",
-              gst_number: user.gst_number || "",
-              company: user.company || "",
-            })}
+            onClick={() =>
+              user &&
+              reset({
+                username: user.username || "",
+                email: user.email || "",
+                first_name: user.first_name || "",
+                last_name: user.last_name || "",
+                phone: user.phone || "",
+                date_of_birth: user.date_of_birth
+                  ? String(user.date_of_birth).split("T")[0]
+                  : "",
+                pan_card_number: user.pan_card_number || "",
+                address_1: user.address_1 || "",
+                address_2: user.address_2 || "",
+                state: user.state || "",
+                city: user.city || "",
+                pin_code: user.pin_code || "",
+                gst_number: user.gst_number || "",
+                company: user.company || "",
+              })
+            }
           >
             Reset
           </Button>

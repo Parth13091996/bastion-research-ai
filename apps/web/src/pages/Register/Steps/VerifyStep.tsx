@@ -1,5 +1,6 @@
 import axiosInstance from "@/api/axios";
 import { ArrowLeft, Check } from "lucide-react";
+import { toast } from "sonner";
 
 const VerifyStep: React.FC<VerifyStepProps> = ({
   otp,
@@ -21,10 +22,11 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     setIsLoading(true);
     const otp = formData.otp.join("");
     try {
-      await axiosInstance.post("/api/otp/verify", {
+      const response = await axiosInstance.post("/api/otp/verify", {
         phone: "+91" + formData.phone,
         otp: otp,
       });
+      toast.success(response?.data?.message || "OTP verified");
       nextStep();
     } catch (err: any) {
       const errorMessage =
@@ -68,6 +70,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       setIsLoading(false);
     }
   };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -106,12 +109,14 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
                 .padStart(2, "0")}`;
             })()}
           </p>
-          <button
-            onClick={handleResendOtp}
-            disabled={isLoading || otpTimer > 0}
-            className="text-red-600 text-sm hover:underline mt-1 disabled:text-gray-400"
-          >
-            Didn't receive the OTP? Resend OTP
+          <button className="text-secondary text-sm mt-1 disabled:text-gray-400">
+            Didn't receive the OTP?{` `}
+            <span
+              onClick={isLoading ? () => null : handleResendOtp}
+              className={`text-red-600 hover:underline ${isLoading ? "cursor-not-allowed" : ""}`}
+            >
+              Resend OTP
+            </span>
           </button>
         </div>
       </div>

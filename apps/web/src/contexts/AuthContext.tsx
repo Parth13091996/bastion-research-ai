@@ -50,25 +50,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    data,
-    isLoading: isQueryLoading,
-    refetch,
-  } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: [queryKeys.auth_session],
     queryFn: async () => (await axiosInstance.get("/api/auth/session")).data,
     staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
     gcTime: 60 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
   });
 
-  // Subscription query
   const {
     data: subscriptionData,
     isLoading: isSubscriptionLoading,
     refetch: refetchSubscription,
   } = useQuery({
     queryKey: [queryKeys.subscription],
-    queryFn: async () => (await axiosInstance.get("/api/cashfree/subscription")).data,
+    queryFn: async () =>
+      (await axiosInstance.get("/api/cashfree/subscription")).data,
     enabled: !!user, // Only fetch when user is authenticated
     staleTime: 30 * 1000, // 30 seconds cache freshness for subscription
     gcTime: 5 * 60 * 1000, // 5 minutes cache retention
@@ -78,8 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     setUser(data?.user ?? null);
-    setIsLoading(isQueryLoading);
-  }, [data, isQueryLoading]);
+    setIsLoading(false);
+  }, [data]);
 
   const refetchUser = async () => {
     await refetch();
@@ -109,18 +105,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        login,
-        logout,
-        refetchUser,
-        refetchSubscription,
-        isAuthenticated,
-        isAdmin,
-        isLoading,
-        subscription: subscriptionData || null,
-        isSubscriptionLoading,
-      } as any}
+      value={
+        {
+          user,
+          login,
+          logout,
+          refetchUser,
+          refetchSubscription,
+          isAuthenticated,
+          isAdmin,
+          isLoading,
+          subscription: subscriptionData || null,
+          isSubscriptionLoading,
+        } as any
+      }
     >
       {children}
     </AuthContext.Provider>

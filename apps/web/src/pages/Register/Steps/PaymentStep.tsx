@@ -21,7 +21,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     setError(null);
     setIsLoading(true);
     try {
-      if (selectedPlanDetails?.code === "free") {
+      if (selectedPlanDetails?.name === "Freemium") {
         // Directly onboard without payment
         await axiosInstance.post("/api/auth/onboard", formData);
         try {
@@ -63,6 +63,74 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       setIsLoading(false); // Set loading to false on error
     }
   };
+
+  const onBackHandler = () => {
+    if (selectedPlanDetails?.name === "Freemium") {
+      return;
+    }
+    onBack();
+  };
+
+  // Show different content for Freemium plan
+  if (selectedPlanDetails?.name === "Freemium") {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Free Plan Selected
+          </h2>
+          <p className="text-gray-600 text-sm">
+            You're using our free plan with limited features
+          </p>
+        </div>
+
+        <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
+          <div className="text-center">
+            <div className="text-2xl mb-2">🎉</div>
+            <h3 className="font-semibold text-blue-900 mb-2">
+              Welcome to TripleEdge!
+            </h3>
+            <p className="text-blue-800 text-sm mb-3">
+              You're starting with our free plan. While features are limited,
+              you can always upgrade later for full access.
+            </p>
+            <div className="text-xs text-blue-700">
+              <p className="mb-1">• Basic portfolio tracking</p>
+              <p className="mb-1">• Limited market data</p>
+              <p>• Community support</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <p className="text-yellow-800 text-sm text-center">
+            <strong>Want more features?</strong> Upgrade anytime to unlock
+            advanced analytics, real-time data, and premium support.
+          </p>
+        </div>
+
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+        <div className="flex space-x-3">
+          <button
+            onClick={onBackHandler}
+            className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft size={20} className="mr-1" /> Back
+          </button>
+          <button
+            onClick={handlePayment}
+            disabled={isLoading}
+            className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400"
+          >
+            {isLoading ? "Creating Account..." : "Register"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Original payment flow for paid plans
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -96,7 +164,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
       <div className="flex space-x-3">
         <button
-          onClick={onBack}
+          onClick={onBackHandler}
           className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
         >
           <ArrowLeft size={20} className="mr-1" /> Back

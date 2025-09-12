@@ -26,11 +26,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     agreeToTerms: false,
     selectedPlan: "",
   });
+  const stepsValues = [
+    { id: 1, name: "Register", icon: "👤" },
+    { id: 2, name: "Verify", icon: "✓" },
+    { id: 3, name: "Onboard", icon: "📋" },
+    { id: 4, name: "Plans", icon: "📋" },
+    { id: 5, name: "KYC", icon: "🆔" },
+    { id: 6, name: "Agreement", icon: "📄" },
+  ];
   // OTP countdown timer in seconds (10 minutes)
   const [otpTimer, setOtpTimer] = useState(600);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [steps, setSteps] = useState(stepsValues);
 
   useEffect(() => {
     const formDataFromStorage = localStorage.getItem("onboardingFormData");
@@ -54,16 +63,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       }
     }
   }, []);
-
-  const steps = [
-    { id: 1, name: "Register", icon: "👤" },
-    { id: 2, name: "Verify", icon: "✓" },
-    { id: 3, name: "Onboard", icon: "📋" },
-    { id: 4, name: "Plans", icon: "📋" },
-    { id: 5, name: "KYC", icon: "🆔" },
-    { id: 6, name: "Agreement", icon: "📄" },
-    { id: 7, name: "Payment", icon: "💳" },
-  ];
 
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -91,9 +90,19 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  // Persist form data locally for continuity between steps
   useEffect(() => {
-    localStorage.setItem("onboardingFormData", JSON.stringify(formData));
+    if (Object.values(formData).flat(Infinity).filter(Boolean).length) {
+      localStorage.setItem("onboardingFormData", JSON.stringify(formData));
+      localStorage.setItem("onboardingStep", JSON.stringify(currentStep));
+    }
+    if (!formData?.selectedPlan) return;
+    if (
+      plans.find((r) => r.code === formData?.selectedPlan)?.name === "Freemium"
+    ) {
+      setSteps((prev) => prev.slice(0, 4));
+    } else {
+      setSteps(stepsValues);
+    }
   }, [formData]);
 
   useEffect(() => {
@@ -128,8 +137,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         try {
           const response = await axiosInstance.get("/api/cashfree/plans");
           const apiPlans: Plan[] = response.data.plans || [];
-          const freePlan: Plan = { code: "free", name: "Freemium", amount: 0, currency: "INR" };
-          setPlans([freePlan, ...apiPlans]);
+          setPlans(apiPlans);
         } catch (err: any) {
           setError(err.response?.data?.message || "Failed to fetch plans.");
         } finally {
@@ -204,6 +212,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             onBack={prevStep}
             onNext={nextStep}
             updateFormData={updateFormData}
+            setCurrentStep={setCurrentStep}
           />
         );
       case 5:
@@ -241,6 +250,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             setError={setError}
             setOtpTimer={setOtpTimer}
             setIsLoading={setIsLoading}
+            setCurrentStep={setCurrentStep}
           />
         );
       default:

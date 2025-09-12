@@ -87,6 +87,7 @@ interface PlansStepProps {
   onNext: () => void;
   isLoading: boolean;
   error: string | null;
+  setCurrentStep: any;
 }
 
 interface AgreementStepProps {
@@ -109,4 +110,5 @@ interface PaymentStepProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string>>;
   setOtpTimer: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentStep: any;
 }
