@@ -1,8 +1,9 @@
 import { ArrowLeft } from "lucide-react";
+import { useEffect } from "react";
 
 const PlansStep: React.FC<PlansStepProps> = ({
   plans,
-  selectedPlan,
+  formData,
   updateFormData,
   onBack,
   onNext,
@@ -11,13 +12,20 @@ const PlansStep: React.FC<PlansStepProps> = ({
   setCurrentStep,
 }) => {
   const plansStepNextHandler = () => {
-    const currentPlan = plans.find((r) => r.code === selectedPlan);
-    if (currentPlan.name == "Freemium") {
+    const currentPlan = plans.find((r) => r.code === formData?.selectedPlan);
+    if (currentPlan?.name !== undefined && currentPlan?.name == "Freemium") {
       setCurrentStep(7);
       return;
     }
     onNext();
   };
+
+  useEffect(() => {
+    if (formData && formData?.selectedPlan !== undefined) {
+      delete formData?.selectedPlan;
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -36,7 +44,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`border rounded-lg p-4 cursor-pointer hover:border-red-500 ${selectedPlan === plan.code ? "border-red-500 border-2" : ""}`}
+              className={`border rounded-lg p-4 cursor-pointer hover:border-red-500 ${formData?.selectedPlan === plan.code ? "border-red-500 border-2" : ""}`}
               onClick={() => updateFormData("selectedPlan", plan.code)}
             >
               <div className="flex justify-between items-center mb-2">
@@ -59,7 +67,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
         </button>
         <button
           onClick={plansStepNextHandler}
-          disabled={!selectedPlan || isLoading}
+          disabled={!formData?.selectedPlan || isLoading}
           className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
         >
           Continue

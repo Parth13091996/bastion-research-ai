@@ -11,12 +11,13 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   isLoading,
   error,
   onBack,
-  onClose,
   setError,
   setIsLoading,
+  setCurrentStep,
 }) => {
   const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
   const navigate = useNavigate();
+
   const handlePayment = async () => {
     setError(null);
     setIsLoading(true);
@@ -66,6 +67,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
   const onBackHandler = () => {
     if (selectedPlanDetails?.name === "Freemium") {
+      setCurrentStep(3);
+      setError("");
       return;
     }
     onBack();

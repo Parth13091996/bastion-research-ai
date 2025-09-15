@@ -1,4 +1,4 @@
-import { useLoaderStore } from "@/stores/loaderStore";
+import { useLoaderStore } from "@/stores/loader-store";
 
 export const useLoader = () => {
   const start = useLoaderStore((state) => state.start);

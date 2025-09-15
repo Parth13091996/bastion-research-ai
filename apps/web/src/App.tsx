@@ -16,7 +16,7 @@ function App() {
       <RouteAnalytics />
       <AppRoutes />
       <ModalsLayout />
-      {/* <Loader /> */}
+      <Loader />
       <Toaster />
     </Router>
   );

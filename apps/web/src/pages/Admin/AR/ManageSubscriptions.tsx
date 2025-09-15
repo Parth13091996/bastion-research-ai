@@ -2,24 +2,8 @@ import React, { useState, useMemo } from "react";
 import { Search, Plus, Eye, FileText, Trash2, X } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
-
-// Mock Data
-const subscriptionsData = [
-    { id: 658, membership: "Freemium", username: "tharmamgmail.com", name: "RAJESH KANNATHARA", startDate: "August 24, 2024", expiryNextRenewal: "", amount: "0.00 INR", paymentType: "Manual", transactionId: "0", status: "Active" },
-    { id: 657, membership: "Freemium", username: "learningappbgcmail.com", name: "Learning App", startDate: "August 24, 2024", expiryNextRenewal: "", amount: "0.00 INR", paymentType: "Manual", transactionId: "0", status: "Active" },
-    { id: 656, membership: "Annual Plan", username: "shreyaanshacademylist@gmail.com", name: "Shreyaansh Limbachiya", startDate: "August 22, 2024", expiryNextRenewal: "August 22, 2025", amount: "15,890.00 INR", paymentType: "Manual", transactionId: "", status: "Active" },
-    { id: 655, membership: "Freemium", username: "kuleshdeekshit190@gmail.com", name: "Kulesh Swami", startDate: "August 20, 2024", expiryNextRenewal: "", amount: "0.00 INR", paymentType: "Manual", transactionId: "0", status: "Active" },
-];
-const allActivitiesData = [
-    { invoiceId: "BIL-205", membership: "Annual Plan", username: "shreyaanshacademylist@gmail.com", name: "Shreyaansh Limbachiya", paymentDate: "August 22, 2024", amount: "18,750.20 INR", paymentType: "Manual Semi Automatic", status: "Success" },
-    { invoiceId: "BIL-204", membership: "Annual Plan", username: "Sudheena", name: "Sudheen Reddy", paymentDate: "August 17, 2024", amount: "18,750.20 INR", paymentType: "Razorpay Semi Automatic", status: "Success" },
-    { invoiceId: "BIL-204", membership: "Bastion Research Core", username: "khalfasolutions@gmail.com", name: "Khalfaso Hryanshi", paymentDate: "August 11, 2024", amount: "4,000.00 INR", paymentType: "Razorpay Auto Debit", status: "Failed" },
-];
-const upcomingSubscriptionsData = [
-    { id: 194, membership: "Annual Plan", username: "Cabochan", name: "Anuj Bhartiya", startDate: "August 30, 2024", expiryNextRenewal: "August 30, 2025", amount: "15,890.00 INR", paymentType: "Razorpay Semi Automatic" },
-    { id: 195, membership: "Annual Plan", username: "Jeegat", name: "Naveen Rawat", startDate: "August 30, 2024", expiryNextRenewal: "August 30, 2025", amount: "15,890.00 INR", paymentType: "Razorpay Semi Automatic" },
-    { id: 196, membership: "Annual Plan", username: "Atuj", name: "Atuj Mehra", startDate: "September 3, 2024", expiryNextRenewal: "September 3, 2025", amount: "15,890.00 INR", paymentType: "Manual" },
-];
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axiosInstance from "@/api/axios";
 
 const SubscriptionGrid = ({ rowData, columnDefs }: { rowData: any[], columnDefs: ColDef[] }) => {
     return (
@@ -42,10 +26,13 @@ const SubscriptionGrid = ({ rowData, columnDefs }: { rowData: any[], columnDefs:
     );
 };
 
-const SubscriptionsActionsRenderer = () => (
-    <button className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex items-center gap-1">
-        <X size={12} />
-        Cancel
+const SubscriptionsActionsRenderer = (params: any) => (
+    <button
+      className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex items-center gap-1"
+      onClick={() => params?.context?.cancel?.(params?.data)}
+    >
+      <X size={12} />
+      Cancel
     </button>
 );
 
@@ -73,11 +60,75 @@ const ManageSubscriptions = () => {
     const [membershipFilter, setMembershipFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
 
+    const queryClient = useQueryClient();
+    const { data: subsRaw } = useQuery({
+        queryKey: ["subscriptions"],
+        queryFn: () => axiosInstance.get('/api/subscriptions').then(res => res.data)
+    });
+    const { data: activitiesRaw } = useQuery({
+        queryKey: ["payment-history"],
+        queryFn: () => axiosInstance.get('/api/payment-history').then(res => res.data)
+    });
+    const { data: plansRaw } = useQuery({
+        queryKey: ["membership-plans"],
+        queryFn: () => axiosInstance.get('/api/membership-plans').then(res => res.data)
+    });
+
+    const planMap: Record<string, string> = useMemo(() => {
+        const m: Record<string, string> = {};
+        (plansRaw || []).forEach((p: any) => { m[String(p.plan_id)] = p.plan_name; });
+        return m;
+    }, [plansRaw]);
+
+    const cancelMutation = useMutation({
+        mutationFn: (payload: any) => axiosInstance.delete(`/api/subscriptions/${payload.membership_id}`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["subscriptions"] })
+    });
+
+    const mapSubscriptions = (rows: any[]) => {
+        return (rows || []).map((r: any) => ({
+            membership: planMap[String(r.membership_id)] || r.name || String(r.membership_id),
+            user: r.user_id,
+            name: r.name || "",
+            startDate: r.start_date ? new Date(r.start_date).toLocaleDateString() : "",
+            expiryNextRenewal: r.expire_next_renewal ? new Date(r.expire_next_renewal).toLocaleDateString() : "",
+            amount: typeof r.amount === 'number' ? `${r.amount} ${r.currency || ''}`.trim() : r.amount,
+            paymentType: r.payment_type || "",
+            transactionId: r.transaction_id || "",
+            status: r.status || "Active",
+            membership_id: r.membership_id,
+        }));
+    };
+
+    const mapActivities = (rows: any[]) => {
+        return (rows || []).map((r: any) => ({
+            invoiceId: r.invoice_id || "",
+            membership: planMap[String(r.plan_id)] || String(r.plan_id || ""),
+            username: r.user_email || r.payer_email || r.user_id || "",
+            name: r.payer_email || "",
+            paymentDate: r.payment_date ? new Date(r.payment_date).toLocaleDateString() : (r.created_at ? new Date(r.created_at).toLocaleDateString() : ""),
+            amount: typeof r.amount === 'number' ? `${r.amount} ${r.currency || ''}`.trim() : r.amount,
+            paymentType: r.payment_type || r.payment_gateway || "",
+            status: r.transaction_status || "",
+        }));
+    };
+
+    const subscriptionsData = mapSubscriptions(subsRaw || []);
+    const allActivitiesData = mapActivities(activitiesRaw || []);
+    const upcomingSubscriptionsData = subscriptionsData.filter((r: any) => {
+        if (!r.expiryNextRenewal) return false;
+        const d = new Date(r.expiryNextRenewal);
+        return d.getTime() > Date.now();
+    });
+
     const subscriptionsColDefs: ColDef[] = [
-        { headerName: "ID", field: "id" }, { headerName: "Membership", field: "membership" },
-        { headerName: "Username", field: "username" }, { headerName: "Name", field: "name" },
-        { headerName: "Start Date", field: "startDate" }, { headerName: "Expiry/Next Renewal", field: "expiryNextRenewal" },
-        { headerName: "Amount", field: "amount" }, { headerName: "Payment Type", field: "paymentType" },
+        { headerName: "Membership", field: "membership" },
+        { headerName: "User ID", field: "user" },
+        { headerName: "Name", field: "name" },
+        { headerName: "Start Date", field: "startDate" },
+        { headerName: "Expiry/Next Renewal", field: "expiryNextRenewal" },
+        { headerName: "Amount", field: "amount" },
+        { headerName: "Payment Type", field: "paymentType" },
         { headerName: "Transaction ID", field: "transactionId" },
         { headerName: "Status", field: "status", cellRenderer: StatusCellRenderer },
         { headerName: "Actions", cellRenderer: SubscriptionsActionsRenderer, filter: false, sortable: false },
@@ -93,24 +144,27 @@ const ManageSubscriptions = () => {
     ];
 
     const upcomingColDefs: ColDef[] = [
-        { headerName: "ID", field: "id" }, { headerName: "Membership", field: "membership" },
-        { headerName: "Username", field: "username" }, { headerName: "Name", field: "name" },
-        { headerName: "Start Date", field: "startDate" }, { headerName: "Expiry/Next Renewal", field: "expiryNextRenewal" },
-        { headerName: "Amount", field: "amount" }, { headerName: "Payment Type", field: "paymentType" },
+        { headerName: "Membership", field: "membership" },
+        { headerName: "User ID", field: "user" },
+        { headerName: "Name", field: "name" },
+        { headerName: "Start Date", field: "startDate" },
+        { headerName: "Expiry/Next Renewal", field: "expiryNextRenewal" },
+        { headerName: "Amount", field: "amount" },
+        { headerName: "Payment Type", field: "paymentType" },
     ];
 
     const filteredData = useMemo(() => {
         let data = activeTab === 'subscriptions' ? subscriptionsData : activeTab === 'activities' ? allActivitiesData : upcomingSubscriptionsData;
-
         if (searchTerm) {
             const lowerCaseSearchTerm = searchTerm.toLowerCase();
-            data = data.filter(item => Object.values(item).some(value => value?.toString().toLowerCase().includes(lowerCaseSearchTerm)));
+            data = data.filter((item: any) => Object.values(item).some((value: any) => value?.toString().toLowerCase().includes(lowerCaseSearchTerm)));
         }
-        if (membershipFilter) data = data.filter(item => item.membership === membershipFilter);
-        if (statusFilter && activeTab !== "upcoming") data = data.filter(item => item.status === statusFilter);
-
+        if (membershipFilter) data = data.filter((item: any) => item.membership === membershipFilter);
+        if (statusFilter && activeTab !== "upcoming") data = data.filter((item: any) => item.status === statusFilter);
         return data;
-    }, [activeTab, searchTerm, membershipFilter, statusFilter]);
+    }, [activeTab, searchTerm, membershipFilter, statusFilter, subscriptionsData, allActivitiesData, upcomingSubscriptionsData]);
+
+    const cancel = (row: any) => cancelMutation.mutate(row);
 
     const renderCurrentTable = () => {
         switch (activeTab) {
@@ -166,7 +220,20 @@ const ManageSubscriptions = () => {
                         </button>
                     </div>
                 </div>
-                <div className="p-4">{renderCurrentTable()}</div>
+                <div className="p-4">
+                  <div className="ag-theme-alpine">
+                    <AgGridReact
+                      theme="legacy"
+                      rowData={filteredData}
+                      columnDefs={activeTab === 'subscriptions' ? subscriptionsColDefs : activeTab === 'activities' ? activitiesColDefs : upcomingColDefs}
+                      defaultColDef={{ sortable: true, filter: true, resizable: true, flex: 1 }}
+                      pagination={true}
+                      paginationPageSize={10}
+                      paginationPageSizeSelector={[10,25,50,100]}
+                      context={{ cancel }}
+                    />
+                  </div>
+                </div>
             </div>
         </div>
     );
