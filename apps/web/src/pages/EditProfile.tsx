@@ -23,7 +23,6 @@ const profileSchema = z.object({
   state: z.string().optional(),
   city: z.string().optional(),
   pin_code: z.string().optional(),
-  gst_number: z.string().optional(),
   company: z.string().optional(),
 });
 
@@ -53,7 +52,6 @@ const EditProfile = () => {
       state: "",
       city: "",
       pin_code: "",
-      gst_number: "",
       company: "",
     },
   });
@@ -76,7 +74,6 @@ const EditProfile = () => {
         state: user.state || "",
         city: user.city || "",
         pin_code: user.pin_code || "",
-        gst_number: user.gst_number || "",
         company: user.company || "",
       });
     }
@@ -186,10 +183,6 @@ const EditProfile = () => {
             <Label htmlFor="pan_card_number">PAN Card Number</Label>
             <Input id="pan_card_number" {...register("pan_card_number")} />
           </div>
-          <div>
-            <Label htmlFor="gst_number">GST Number</Label>
-            <Input id="gst_number" {...register("gst_number")} />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,7 +236,6 @@ const EditProfile = () => {
                 state: user.state || "",
                 city: user.city || "",
                 pin_code: user.pin_code || "",
-                gst_number: user.gst_number || "",
                 company: user.company || "",
               })
             }

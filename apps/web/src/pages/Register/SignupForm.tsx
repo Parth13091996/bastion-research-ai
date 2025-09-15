@@ -151,16 +151,17 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const renderStep = () => {
+    const registerFormData = {
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+    };
     switch (currentStep) {
       case 1:
         return (
           <RegisterStep
-            formData={{
-              email: formData.email,
-              phone: formData.phone,
-              password: formData.password,
-              confirmPassword: formData.confirmPassword,
-            }}
+            formData={registerFormData}
             error={error}
             isLoading={isLoading}
             showPassword={showPassword}

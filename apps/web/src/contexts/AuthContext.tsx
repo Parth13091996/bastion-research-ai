@@ -50,7 +50,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { data, refetch } = useQuery({
+  const {
+    data,
+    isLoading: sessionLoading,
+    refetch,
+  } = useQuery({
     queryKey: [queryKeys.auth_session],
     queryFn: async () => (await axiosInstance.get("/api/auth/session")).data,
     staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
@@ -74,8 +78,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     setUser(data?.user ?? null);
-    setIsLoading(false);
-  }, [data]);
+    setIsLoading(sessionLoading);
+  }, [data, sessionLoading]);
 
   const refetchUser = async () => {
     await refetch();
