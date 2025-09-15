@@ -16,16 +16,8 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
 
 // This function will be called internally after successful payment.
 export const createUserAfterOnboarding = async (userData: any) => {
-  const {
-    email,
-    phone,
-    password,
-    firstName,
-    lastName,
-    panCard,
-    dateOfBirth,
-    aadharCard,
-  } = userData;
+  const { email, phone, password, firstName, lastName, panCard, dateOfBirth } =
+    userData;
 
   // Basic validation
   if (
@@ -325,7 +317,7 @@ export const registerFromOnboarding = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Onboarding finalize error:", error);
     return res.status(400).json({
-      message: "Failed to create user from onboarding data",
+      message: error?.message || "Failed to create user from onboarding data",
       error: error?.message,
     });
   }

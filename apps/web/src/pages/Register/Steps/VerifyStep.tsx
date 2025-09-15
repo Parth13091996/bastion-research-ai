@@ -1,9 +1,9 @@
 import axiosInstance from "@/api/axios";
 import { ArrowLeft, Check } from "lucide-react";
+import OTPInput from "react-otp-input";
 import { toast } from "sonner";
 
 const VerifyStep: React.FC<VerifyStepProps> = ({
-  otp,
   otpTimer,
   isLoading,
   error,
@@ -35,22 +35,6 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       console.error(err);
     } finally {
       setIsLoading(false);
-    }
-  };
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length <= 1) {
-      const newOtp = [...formData.otp];
-      newOtp[index] = value;
-      updateFormData("otp", newOtp);
-
-      // Auto focus next input
-      if (value && index < 5) {
-        const nextInput = document.querySelector(
-          `input[name="otp-${index + 1}"]`
-        );
-        //@ts-ignore
-        if (nextInput) nextInput?.focus();
-      }
     }
   };
   const handleResendOtp = async () => {
@@ -85,18 +69,22 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-center space-x-3">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              type="text"
-              name={`otp-${index}`}
-              value={digit}
-              onChange={(e) => handleOtpChange(index, e.target.value)}
-              className="w-12 h-12 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg font-semibold"
-              maxLength={1}
-            />
-          ))}
+        <div className="flex justify-center">
+          <OTPInput
+            value={formData.otp.join("")}
+            onChange={(value: string) => {
+              const digits = value.split("");
+              while (digits.length < 6) digits.push("");
+              updateFormData("otp", digits.slice(0, 6));
+            }}
+            renderInput={(inputProps) => <input {...inputProps} />}
+            numInputs={6}
+            inputType="tel"
+            shouldAutoFocus={false}
+            skipDefaultStyles={true}
+            containerStyle="flex gap-3"
+            inputStyle="w-12 h-12 md:w-14 md:h-14 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg font-semibold"
+          />
         </div>
 
         <div className="text-center">

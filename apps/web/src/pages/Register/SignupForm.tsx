@@ -22,7 +22,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     lastName: "",
     dateOfBirth: "",
     panCard: "",
-    aadharCard: "",
     agreeToTerms: false,
     selectedPlan: "",
   });
@@ -221,7 +220,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
           <KYCStep
             formData={{
               panCard: formData.panCard,
-              aadharCard: formData.aadharCard,
             }}
             onBack={prevStep}
             onNext={nextStep}

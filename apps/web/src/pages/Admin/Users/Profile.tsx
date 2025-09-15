@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { State, City } from "country-state-city";
 
 const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -36,6 +38,8 @@ const Profile = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -54,6 +58,27 @@ const Profile = () => {
       company: "",
     },
   });
+
+  // Derived lists for India (IN)
+  const indianStates = useMemo(() => State.getStatesOfCountry("IN"), []);
+  const selectedStateName = watch("state");
+  const selectedState = useMemo(
+    () => indianStates.find((s) => s.name === selectedStateName),
+    [indianStates, selectedStateName]
+  );
+  const indianCities = useMemo(
+    () =>
+      selectedState ? City.getCitiesOfState("IN", selectedState.isoCode) : [],
+    [selectedState]
+  );
+
+  useEffect(() => {
+    const currentCity = watch("city");
+    if (currentCity && indianCities.length > 0) {
+      const exists = indianCities.some((c) => c.name === currentCity);
+      if (!exists) setValue("city", "");
+    }
+  }, [indianCities, setValue, watch]);
 
   useEffect(() => {
     if (user) {
@@ -106,7 +131,10 @@ const Profile = () => {
   if (isLoading && !user) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading profile...</div>
+        <div className="flex items-center gap-2 text-gray-600">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Loading profile...</span>
+        </div>
       </div>
     );
   }
@@ -193,12 +221,37 @@ const Profile = () => {
             <Input id="address_2" {...register("address_2")} />
           </div>
           <div>
-            <Label htmlFor="city">City</Label>
-            <Input id="city" {...register("city")} />
+            <Label htmlFor="state">State</Label>
+            <select
+              id="state"
+              className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              {...register("state")}
+            >
+              <option value="">Select State</option>
+              {indianStates.map((s) => (
+                <option key={s.isoCode} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
-            <Label htmlFor="state">State</Label>
-            <Input id="state" {...register("state")} />
+            <Label htmlFor="city">City</Label>
+            <select
+              id="city"
+              className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!selectedState}
+              {...register("city")}
+            >
+              <option value="">
+                {selectedState ? "Select City" : "Select State first"}
+              </option>
+              {indianCities.map((c) => (
+                <option key={`${c.stateCode}-${c.name}`} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <Label htmlFor="pin_code">PIN Code</Label>

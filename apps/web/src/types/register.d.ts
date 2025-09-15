@@ -10,10 +10,8 @@ interface OnboardingFormData {
   lastName: string;
   dateOfBirth: string;
   panCard: string;
-  aadharCard: string;
   agreeToTerms: boolean;
   selectedPlan: string;
-  // Optional: store digio document id after initiating eSign
   digioDocId?: string;
 }
 
@@ -72,7 +70,6 @@ interface OnboardStepProps {
 interface KYCStepProps {
   formData: {
     panCard: string;
-    aadharCard: string;
   };
   updateFormData: UpdateFormFn;
   onBack: () => void;

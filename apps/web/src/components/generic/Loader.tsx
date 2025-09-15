@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { createPortal } from "react-dom";
-import { useLoaderStore } from "@/stores/loaderStore";
+import { Loader2 } from "lucide-react";
+import { useLoaderStore } from "@/stores/loader-store";
 
 const Loader = () => {
   const isLoading = useLoaderStore((state) => state.isLoading);
@@ -19,14 +19,18 @@ const Loader = () => {
 
   if (!isLoading) return null;
 
-  return createPortal(
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50">
-      <div className="flex flex-col items-center gap-3 p-6 rounded-lg bg-white shadow-md">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
-        {message ? <p className="text-sm text-gray-700">{message}</p> : null}
+  // Render inline (no portals) as an app-level overlay
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-white shadow-xl border border-gray-100">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-700" />
+        {message ? (
+          <p className="text-sm text-gray-700">{message}</p>
+        ) : (
+          <p className="text-sm text-gray-500">Loading...</p>
+        )}
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 
