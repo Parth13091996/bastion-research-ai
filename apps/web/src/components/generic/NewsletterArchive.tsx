@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Search, Crown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Crown, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import BackgroundShapes from "./framer-motion.tsx";
 
 // Brand Colors
@@ -18,7 +18,7 @@ const newsletter = [
     title: "Understanding GLP-1 and Market Knock-ons",
     date: "August 20, 2025",
     description: "Deep dive into GLP-1 impact on markets.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -26,7 +26,7 @@ const newsletter = [
     title: "Hospitals: Capacity Ramp and ROCE Math",
     date: "August 15, 2025",
     description: "Analyzing hospital capacity expansions.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -34,7 +34,7 @@ const newsletter = [
     title: "Q1 Results: Diagnostics Beat, AMC Mixed",
     date: "August 12, 2025",
     description: "Quarterly earnings update across diagnostics.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -42,7 +42,7 @@ const newsletter = [
     title: "Scratch Pad: Near-Miss in Specialty Chem",
     date: "August 10, 2025",
     description: "Case study on specialty chemicals near-miss.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Scratch Pad",
   },
   {
@@ -51,7 +51,7 @@ const newsletter = [
     date: "August 25, 2025",
     description:
       "Exploring how artificial intelligence is accelerating the process of drug discovery and development.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -60,7 +60,7 @@ const newsletter = [
     date: "August 22, 2025",
     description:
       "An in-depth analysis of recent mergers and acquisitions in the pharmaceutical sector.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -69,7 +69,7 @@ const newsletter = [
     date: "August 18, 2025",
     description:
       "Understanding the potential and challenges of CRISPR and other gene-editing tools.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -78,7 +78,7 @@ const newsletter = [
     date: "August 14, 2025",
     description:
       "How tailored treatments based on genetic information are revolutionizing healthcare.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Scratch Pad",
   },
   {
@@ -87,7 +87,7 @@ const newsletter = [
     date: "August 11, 2025",
     description:
       "A guide to the complex regulatory landscape for new biotechnology products.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -96,7 +96,7 @@ const newsletter = [
     date: "August 8, 2025",
     description:
       "Identifying promising areas for investment within the medical technology industry.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -105,7 +105,7 @@ const newsletter = [
     date: "August 5, 2025",
     description:
       "Assessing how virtual consultations are changing patient care.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -114,7 +114,7 @@ const newsletter = [
     date: "August 1, 2025",
     description:
       "From research to rollout: a comprehensive overview of how vaccines are made.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -123,7 +123,7 @@ const newsletter = [
     date: "July 29, 2025",
     description:
       "Highlighting the latest advancements in using the immune system to fight cancer.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Scratch Pad",
   },
   {
@@ -132,7 +132,7 @@ const newsletter = [
     date: "July 25, 2025",
     description:
       "Examining the market dynamics and challenges for orphan drugs.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -141,7 +141,7 @@ const newsletter = [
     date: "July 22, 2025",
     description:
       "A discussion on the moral and ethical dilemmas in human medical research.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -150,7 +150,7 @@ const newsletter = [
     date: "July 18, 2025",
     description:
       "How large datasets are being used to track diseases and improve public health outcomes.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -158,7 +158,7 @@ const newsletter = [
     title: "Innovations in Surgical Robotics",
     date: "July 15, 2025",
     description: "Exploring the cutting-edge of robotic-assisted surgery.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Scratch Pad",
   },
   {
@@ -166,7 +166,7 @@ const newsletter = [
     title: "The Challenge of Antibiotic Resistance",
     date: "July 11, 2025",
     description: "Addressing the growing threat of drug-resistant bacteria.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -175,7 +175,7 @@ const newsletter = [
     date: "July 8, 2025",
     description:
       "The startups and technologies aiming to revolutionize mental healthcare.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -184,7 +184,7 @@ const newsletter = [
     date: "July 4, 2025",
     description:
       "Investigating the potential of 3D printing to create human organs for transplantation.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -193,7 +193,7 @@ const newsletter = [
     date: "July 1, 2025",
     description:
       "Lessons learned from recent disruptions and strategies for a more robust supply chain.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Scratch Pad",
   },
   {
@@ -202,7 +202,7 @@ const newsletter = [
     date: "June 27, 2025",
     description:
       "Exploring the companies and research focused on extending human lifespan.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
   {
@@ -211,7 +211,7 @@ const newsletter = [
     date: "June 24, 2025",
     description:
       "The challenges of protecting sensitive health information in an interconnected world.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Learning of the Week",
   },
   {
@@ -220,7 +220,7 @@ const newsletter = [
     date: "June 20, 2025",
     description:
       "How freelance and temporary work is changing the healthcare workforce.",
-    imageUrl: "../src/files/episode-9.webp",
+    imageUrl: "/media/episode-9.webp",
     category: "Topical Update",
   },
 ];

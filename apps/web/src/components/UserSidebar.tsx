@@ -97,7 +97,7 @@ const UserSidebar = ({ user }) => {
       <div className="p-4 mt-auto">
         <Link to="/" className="block">
           <img
-            src={collapsed ? "/files/favicon.webp" : "/files/header-logo.webp"}
+            src={collapsed ? "/media/favicon.webp" : "/media/header-logo.webp"}
             alt="Logo"
             className={`mx-auto ${collapsed ? "w-10 h-10" : "w-36"}`}
           />

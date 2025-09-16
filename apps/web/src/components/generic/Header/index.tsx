@@ -35,7 +35,7 @@ const Header = () => {
             <div className="flex items-center">
               <Link to="/">
                 <img
-                  src="src/files/header-logo.webp"
+                  src="/media/header-logo.webp"
                   alt="Bastion Research"
                   className="h-8 md:h-10"
                 />

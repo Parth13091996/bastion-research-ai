@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 import { CircleCheck, User, Briefcase } from "lucide-react";
 import Lottie from "lottie-react";
-import testimonialAnim from "../../files/testimonial.json";
+import testimonialAnim from "@/../public/media/testimonial.json";
 
 // Brand Colors
 const COLORS = {

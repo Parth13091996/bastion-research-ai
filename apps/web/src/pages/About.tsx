@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Lottie from "lottie-react";
+import React, { useRef, useState } from "react";
 import BackgroundShapes from "../components/generic/framer-motion.tsx";
 
 // Import your Lottie JSON files
-import researchAllyAnim from "@/files/researchAlly.json";
-import bastionCoreAnim from "@/files/bastionCore.json";
-import adaptiveQualityAnim from "@/files/adaptiveQuality.json";
+import adaptiveQualityAnim from "@/../public/media/adaptiveQuality.json";
+import bastionCoreAnim from "@/../public/media/bastionCore.json";
+import researchAllyAnim from "@/../public/media/researchAlly.json";
 
 const About: React.FC = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
