@@ -84,3 +84,34 @@
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out forwards;
 }
+
+/* Table font and padding */
+.ag-theme-alpine .ag-cell {
+  font-size: 14px;
+  padding: 14px 16px;
+}
+
+/* Header font */
+.ag-theme-alpine .ag-header-cell-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Hover effect for rows */
+.ag-theme-alpine .ag-row-hover {
+  background-color: #f9fafb !important;
+}
+
+/* Make table full width */
+.ag-theme-alpine {
+  width: 100% !important;
+}
+
+/* Responsive fix for small screens */
+@media (max-width: 768px) {
+  .ag-theme-alpine .ag-cell {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+}
+
