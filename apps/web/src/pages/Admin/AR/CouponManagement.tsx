@@ -1,20 +1,22 @@
-import { AgGridReact } from 'ag-grid-react';
-import { ColDef } from 'ag-grid-community';
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '@/api/axios';
+import { AgGridReact } from "ag-grid-react";
+import { ColDef } from "ag-grid-community";
+import { useQuery } from "@tanstack/react-query";
+import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 
 const CouponManagement = () => {
   const { data: rowData, isLoading } = useQuery({
-    queryKey: ['coupons'],
-    queryFn: () => axiosInstance.get('/api/coupons').then((res) => res.data),
+    queryKey: ["coupons"],
+    queryFn: () =>
+      axiosInstance.get(endpoints.coupons.base).then((res) => res.data),
   });
 
   const columnDefs: ColDef[] = [
-    { headerName: 'Coupon ID', field: 'coupon_id' },
-    { headerName: 'Coupon Code', field: 'coupon_code' },
-    { headerName: 'Discount Type', field: 'discount_type' },
-    { headerName: 'Discount Value', field: 'discount_value' },
-    { headerName: 'Expiry Date', field: 'expiry_date' },
+    { headerName: "Coupon ID", field: "coupon_id" },
+    { headerName: "Coupon Code", field: "coupon_code" },
+    { headerName: "Discount Type", field: "discount_type" },
+    { headerName: "Discount Value", field: "discount_value" },
+    { headerName: "Expiry Date", field: "expiry_date" },
   ];
 
   if (isLoading) {
@@ -24,7 +26,7 @@ const CouponManagement = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Coupon Management</h1>
-      <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
+      <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
         <AgGridReact
           theme="legacy"
           rowData={rowData}

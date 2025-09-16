@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { useEditMemberStore } from "@/stores/edit-member-store";
 import { useModalStore } from "@/stores/modal-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,7 +61,8 @@ const MemberManagementDashboard = () => {
     error,
   } = useQuery({
     queryKey: ["users"],
-    queryFn: () => axiosInstance.get("/api/users").then((res) => res.data),
+    queryFn: () =>
+      axiosInstance.get(endpoints.users.base).then((res) => res.data),
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Select Status");
@@ -69,11 +71,11 @@ const MemberManagementDashboard = () => {
   const gridRef = useRef<AgGridReact>(null);
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) =>
-      axiosInstance.put(`/api/users/${payload.id}`, payload.body),
+      axiosInstance.put(endpoints.users.byId(payload.id), payload.body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => axiosInstance.delete(`/api/users/${id}`),
+    mutationFn: (id: string) => axiosInstance.delete(endpoints.users.byId(id)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 

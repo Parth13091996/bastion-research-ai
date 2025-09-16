@@ -2,6 +2,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
@@ -10,18 +11,19 @@ const JobOpenings = () => {
   const queryClient = useQueryClient();
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["jobs"],
-    queryFn: () => axiosInstance.get("/api/jobs").then((res) => res.data),
+    queryFn: () =>
+      axiosInstance.get(endpoints.jobs.base).then((res) => res.data),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) =>
-      axiosInstance.delete(`/api/jobs/${id}`),
+      axiosInstance.delete(endpoints.jobs.byId(id)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["jobs"] }),
   });
 
   const updateMutation = useMutation({
     mutationFn: (payload: any) =>
-      axiosInstance.put(`/api/jobs/${payload.id}`, payload.body),
+      axiosInstance.put(endpoints.jobs.byId(payload.id), payload.body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["jobs"] }),
   });
 

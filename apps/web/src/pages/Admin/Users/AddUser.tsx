@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { endpoints } from "@/api/endpoints";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -49,7 +50,7 @@ const AddUser = () => {
 
   const mutation = useMutation<unknown, Error, AddUserFormValues>({
     mutationFn: (data) =>
-      axiosInstance.post("/api/users", data).then((res) => res.data),
+      axiosInstance.post(endpoints.users.base, data).then((res) => res.data),
     onSuccess: () => {
       reset();
       queryClient.invalidateQueries({ queryKey: ["users"] });

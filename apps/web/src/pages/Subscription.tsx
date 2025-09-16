@@ -19,6 +19,7 @@ import { Check, Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { endpoints } from "@/api/endpoints";
 
 type ApiPlan = {
   code: string;
@@ -112,7 +113,7 @@ const Subscription = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await axiosInstance.get("/api/cashfree/plans");
+        const res = await axiosInstance.get(endpoints.cashfree.plans);
         const apiPlans: ApiPlan[] = res.data?.plans || [];
         setPlans(apiPlans);
       } catch (e: any) {
@@ -153,7 +154,11 @@ const Subscription = () => {
     setKycStep("kyc");
     setKycError(null);
     setKycSubmitting(false);
-    setUpgradeForm((prev) => ({ ...prev, agreeToTerms: false, panCard: userPan }));
+    setUpgradeForm((prev) => ({
+      ...prev,
+      agreeToTerms: false,
+      panCard: userPan,
+    }));
     setPendingPlan(null);
   };
 
@@ -171,14 +176,15 @@ const Subscription = () => {
     setKycSubmitting(true);
     setKycError(null);
     try {
-      await axiosInstance.put(`/api/users/${user.id}`, {
+      await axiosInstance.put(endpoints.users.byId(user.id), {
         pan_card_number: pan,
       });
       setUpgradeForm((prev) => ({ ...prev, panCard: pan }));
       await refetchUser();
       setKycStep("agreement");
     } catch (err: any) {
-      const message = err?.response?.data?.error || err?.message || "Failed to update PAN";
+      const message =
+        err?.response?.data?.error || err?.message || "Failed to update PAN";
       setKycError(message);
     } finally {
       setKycSubmitting(false);
@@ -200,11 +206,17 @@ const Subscription = () => {
     setPendingPlan(null);
 
     if (planToCheckout) {
-      setTimeout(() => handleSubscribe(planToCheckout.code, { bypassKyc: true }), 0);
+      setTimeout(
+        () => handleSubscribe(planToCheckout.code, { bypassKyc: true }),
+        0
+      );
     }
   };
 
-  const handleSubscribe = async (code: string, opts?: { bypassKyc?: boolean }) => {
+  const handleSubscribe = async (
+    code: string,
+    opts?: { bypassKyc?: boolean }
+  ) => {
     if (!user) return;
     const selectedPlan = plans.find((p) => p.code === code);
     if (!selectedPlan) return;
@@ -224,7 +236,7 @@ const Subscription = () => {
     try {
       setCheckingOut(selectedPlan.code);
       const resp = await loader.withLoader(
-        axiosInstance.post("/api/cashfree/orders", {
+        axiosInstance.post(endpoints.cashfree.orders, {
           plan: selectedPlan.code,
           customer_id: user.id,
           customer_email: user.email,
@@ -303,13 +315,18 @@ const Subscription = () => {
           <CardContent>
             {isSubscriptionLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Loading current plan...
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading current
+                plan...
               </div>
             ) : (
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold">
-                    {subscription?.subscription?.name || (onFreePlan ? "Freemium" : currentPlanCode.toUpperCase())} Plan
+                    {subscription?.subscription?.name ||
+                      (onFreePlan
+                        ? "Freemium"
+                        : currentPlanCode.toUpperCase())}{" "}
+                    Plan
                   </h3>
                   <p className="text-muted-foreground">
                     {onFreePlan
@@ -319,18 +336,26 @@ const Subscription = () => {
                         : "Subscription pending"}
                   </p>
                 </div>
-                <Badge variant={subscription?.isPremium ? "default" : "secondary"}>
+                <Badge
+                  variant={subscription?.isPremium ? "default" : "secondary"}
+                >
                   {subscription?.isPremium ? "Active" : "Pending"}
                 </Badge>
                 {subscription?.subscription && (
                   <div className="text-sm text-muted-foreground space-y-1">
                     <p>Amount: {formatINR(subscription.subscription.amount)}</p>
                     <p>
-                      Started: {new Date(subscription.subscription.startDate).toLocaleDateString()}
+                      Started:{" "}
+                      {new Date(
+                        subscription.subscription.startDate
+                      ).toLocaleDateString()}
                     </p>
                     {subscription.subscription.expireDate && (
                       <p>
-                        Expires: {new Date(subscription.subscription.expireDate).toLocaleDateString()}
+                        Expires:{" "}
+                        {new Date(
+                          subscription.subscription.expireDate
+                        ).toLocaleDateString()}
                       </p>
                     )}
                   </div>
@@ -356,8 +381,10 @@ const Subscription = () => {
               const normalizedName = plan.name.toLowerCase();
               const popular = normalizedName.includes("annual");
               const limited = normalizedName.includes("core");
-              const priceLabel = plan.amount > 0 ? formatINR(plan.amount) : "Free";
-              const disabled = planMatchesCurrent(plan) || checkingOut === plan.code;
+              const priceLabel =
+                plan.amount > 0 ? formatINR(plan.amount) : "Free";
+              const disabled =
+                planMatchesCurrent(plan) || checkingOut === plan.code;
               const ctaLabel = planMatchesCurrent(plan)
                 ? "Current Plan"
                 : plan.amount > 0
@@ -376,7 +403,10 @@ const Subscription = () => {
                     </Badge>
                   )}
                   {limited && (
-                    <Badge variant="outline" className="absolute -top-2 right-4">
+                    <Badge
+                      variant="outline"
+                      className="absolute -top-2 right-4"
+                    >
                       Limited
                     </Badge>
                   )}
@@ -409,13 +439,18 @@ const Subscription = () => {
                     </ul>
                     <Button
                       className="w-full"
-                      variant={popular && !planMatchesCurrent(plan) ? "default" : "outline"}
+                      variant={
+                        popular && !planMatchesCurrent(plan)
+                          ? "default"
+                          : "outline"
+                      }
                       disabled={disabled}
                       onClick={() => handleSubscribe(plan.code)}
                     >
                       {checkingOut === plan.code ? (
                         <span className="inline-flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" /> Processing
+                          <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                          Processing
                         </span>
                       ) : (
                         ctaLabel
@@ -468,7 +503,11 @@ const Subscription = () => {
             </div>
             {kycError && <p className="text-sm text-red-600">{kycError}</p>}
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={handleKycModalClose} disabled={kycSubmitting}>
+              <Button
+                variant="outline"
+                onClick={handleKycModalClose}
+                disabled={kycSubmitting}
+              >
                 Cancel
               </Button>
               <Button onClick={handleKycSubmit} disabled={kycSubmitting}>

@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { ArrowLeft } from "lucide-react";
 import { load } from "@cashfreepayments/cashfree-js";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +25,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     try {
       if (selectedPlanDetails?.name === "Freemium") {
         // Directly onboard without payment
-        await axiosInstance.post("/api/auth/onboard", formData);
+        await axiosInstance.post(endpoints.auth.onboard, formData);
         try {
           localStorage.removeItem("onboardingFormData");
           localStorage.removeItem("onboardingCurrentStep");
@@ -35,14 +36,17 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         navigate(AppRoutes.login(), { replace: true });
         return;
       }
-      const orderResponse = await axiosInstance.post("/api/cashfree/orders", {
-        plan: formData.selectedPlan,
-        customer_id: formData.email,
-        customer_email: formData.email,
-        customer_phone: formData.phone,
-        source: "register",
-        return_url: location.origin + "/login",
-      });
+      const orderResponse = await axiosInstance.post(
+        endpoints.cashfree.orders,
+        {
+          plan: formData.selectedPlan,
+          customer_id: formData.email,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          source: "register",
+          return_url: location.origin + "/login",
+        }
+      );
 
       const { payment_session_id } = orderResponse.data.order;
 

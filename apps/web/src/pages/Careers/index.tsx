@@ -3,6 +3,7 @@ import { Search, MapPin, Clock, Home } from "lucide-react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 
 const CareerPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,17 +12,17 @@ const CareerPage = () => {
 
   const { data: jobs, isLoading } = useQuery({
     queryKey: ["public-jobs"],
-    queryFn: () => axiosInstance.get("/api/jobs").then((r) => r.data),
+    queryFn: () => axiosInstance.get(endpoints.jobs.base).then((r) => r.data),
   });
 
   // Filtering Logic
   const filteredJobs = useMemo(() => {
     if (!jobs) return [] as any[];
     return jobs.filter((job: any) => {
-      const title = (job.job_title || '').toLowerCase();
-      const type = (job.job_type || '').toLowerCase().replace(/[-\s]/g, '');
-      const location = (job.location || '').toLowerCase();
-      const selectedType = jobType.toLowerCase().replace(/[-\s]/g, '');
+      const title = (job.job_title || "").toLowerCase();
+      const type = (job.job_type || "").toLowerCase().replace(/[-\s]/g, "");
+      const location = (job.location || "").toLowerCase();
+      const selectedType = jobType.toLowerCase().replace(/[-\s]/g, "");
       const matchesSearch = title.includes(searchQuery.toLowerCase());
       const matchesType = jobType === "All" || type === selectedType;
       const matchesLocation =
@@ -94,7 +95,7 @@ const CareerPage = () => {
                 <div className="flex flex-wrap items-center gap-4 mb-4">
                   <div className="flex items-center text-gray-600">
                     <Clock className="w-4 h-4 mr-2" />
-                    <span>{job.job_type || job.commitment || '—'}</span>
+                    <span>{job.job_type || job.commitment || "—"}</span>
                   </div>
                   <div className="flex items-center text-gray-600">
                     {job.location?.toLowerCase() === "office" ? (
@@ -102,7 +103,7 @@ const CareerPage = () => {
                     ) : (
                       <Home className="w-4 h-4 mr-2" />
                     )}
-                    <span>{job.location || '—'}</span>
+                    <span>{job.location || "—"}</span>
                   </div>
                 </div>
 

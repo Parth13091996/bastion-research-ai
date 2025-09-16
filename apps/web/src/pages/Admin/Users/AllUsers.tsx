@@ -2,6 +2,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
@@ -10,17 +11,18 @@ const AllUsers = () => {
   const queryClient = useQueryClient();
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["users"],
-    queryFn: () => axiosInstance.get("/api/users").then((res) => res.data),
+    queryFn: () =>
+      axiosInstance.get(endpoints.users.base).then((res) => res.data),
   });
 
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) =>
-      axiosInstance.put(`/api/users/${payload.id}`, payload.body),
+      axiosInstance.put(endpoints.users.byId(payload.id), payload.body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => axiosInstance.delete(`/api/users/${id}`),
+    mutationFn: (id: string) => axiosInstance.delete(endpoints.users.byId(id)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 

@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { ArrowLeft, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import OTPInput from "react-otp-input";
@@ -28,7 +29,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     setStartOtpTimer(true);
     const otp = Array.isArray(formData.otp) ? formData.otp.join("") : "";
     try {
-      const response = await axiosInstance.post("/api/otp/verify", {
+      const response = await axiosInstance.post(endpoints.otp.verify, {
         phone: "+91" + formData.phone,
         otp: otp,
       });
@@ -54,7 +55,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     setStartOtpTimer(true);
 
     try {
-      await axiosInstance.post("/api/otp/send", {
+      await axiosInstance.post(endpoints.otp.send, {
         phone: "+91" + formData.phone,
       });
       setOtpTimer(600); // Reset timer to 10 minutes

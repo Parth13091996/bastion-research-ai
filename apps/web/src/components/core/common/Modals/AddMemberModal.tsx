@@ -8,6 +8,7 @@ import axiosInstance from "../../../../api/axios";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { useModalStore } from "@/stores/modal-store";
+import { endpoints } from "@/api/endpoints";
 
 // Zod schema updated based on DB schema
 const memberSchema = z
@@ -55,7 +56,7 @@ const AddMemberModal = () => {
 
   const mutation = useMutation({
     mutationFn: (newMember: MemberFormValues) => {
-      return axiosInstance.post("/api/users", newMember);
+      return axiosInstance.post(endpoints.users.base, newMember);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

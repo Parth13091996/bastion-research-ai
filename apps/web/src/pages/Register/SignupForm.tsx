@@ -8,6 +8,7 @@ import PaymentStep from "./Steps/PaymentStep";
 import PlansStep from "./Steps/PlansStep";
 import RegisterStep from "./Steps/RegisterStep";
 import VerifyStep from "./Steps/VerifyStep";
+import { endpoints } from "@/api/endpoints";
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -109,7 +110,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       if (currentStep === 4) {
         setIsLoading(true);
         try {
-          const response = await axiosInstance.get("/api/cashfree/plans");
+          const response = await axiosInstance.get(endpoints.cashfree.plans);
           const apiPlans: Plan[] = response.data.plans || [];
           setPlans(apiPlans);
         } catch (err: any) {

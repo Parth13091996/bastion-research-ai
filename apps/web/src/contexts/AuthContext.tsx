@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { queryKeys } from "@/api/queryKeys";
 import { Config } from "@/utils/config";
 import { User } from "@repo/types";
@@ -56,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     refetch,
   } = useQuery({
     queryKey: [queryKeys.auth_session],
-    queryFn: async () => (await axiosInstance.get("/api/auth/session")).data,
+    queryFn: async () => (await axiosInstance.get(endpoints.auth.session)).data,
     staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
     gcTime: 60 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
     refetchOnWindowFocus: false,
@@ -71,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   } = useQuery({
     queryKey: [queryKeys.subscription],
     queryFn: async () =>
-      (await axiosInstance.get("/api/cashfree/subscription")).data,
+      (await axiosInstance.get(endpoints.cashfree.subscription)).data,
     enabled: !!user, // Only fetch when user is authenticated
     staleTime: 30 * 1000, // 30 seconds cache freshness for subscription
     gcTime: 5 * 60 * 1000, // 5 minutes cache retention
@@ -95,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      const response = await axiosInstance.post("/api/auth/logout");
+      const response = await axiosInstance.post(endpoints.auth.logout);
       toast.success(response?.data?.message || "Logged out successfully");
     } catch (error) {
       console.error("Logout failed", error);

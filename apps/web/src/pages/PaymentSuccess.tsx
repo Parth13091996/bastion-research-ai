@@ -4,6 +4,7 @@ import axiosInstance from "@/api/axios";
 import { AppRoutes } from "@/routes/app-routes";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { endpoints } from "@/api/endpoints";
 
 const isOrderPaid = (data: any): boolean => {
   // Try common fields that may indicate a successful payment
@@ -46,10 +47,14 @@ export default function PaymentSuccess() {
 
       try {
         setMessage("Verifying payment status...");
-        const orderResp = await axiosInstance.get(`/api/cashfree/orders/${orderId}`);
+        const orderResp = await axiosInstance.get(
+          endpoints.cashfree.orderById(orderId)
+        );
         const paid = isOrderPaid(orderResp?.data);
         if (!paid) {
-          setError("Payment not confirmed. If amount was deducted, contact support.");
+          setError(
+            "Payment not confirmed. If amount was deducted, contact support."
+          );
           return;
         }
 
@@ -63,7 +68,7 @@ export default function PaymentSuccess() {
             return;
           }
           const formData = JSON.parse(formRaw);
-          await axiosInstance.post("/api/auth/onboard", formData);
+          await axiosInstance.post(endpoints.auth.onboard, formData);
 
           // Cleanup onboarding state
           try {
@@ -81,7 +86,7 @@ export default function PaymentSuccess() {
 
         // Non-onboarding flow (e.g., subscription or dashboard purchase)
         setMessage("Payment confirmed. Updating your subscription...");
-        
+
         // Refresh subscription status to get latest data
         try {
           await refetchSubscription();
@@ -90,7 +95,7 @@ export default function PaymentSuccess() {
           console.warn("Failed to refresh subscription:", e);
           // Don't fail the flow if subscription refresh fails
         }
-        
+
         setTimeout(() => {
           if (user) {
             navigate(AppRoutes.dashboard(), { replace: true });
@@ -99,7 +104,8 @@ export default function PaymentSuccess() {
           }
         }, 1200);
       } catch (e: any) {
-        const msg = e?.response?.data?.message || e?.message || "Something went wrong.";
+        const msg =
+          e?.response?.data?.message || e?.message || "Something went wrong.";
         setError(msg);
       }
     };

@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import axiosInstance from '@/api/axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { AppRoutes } from '@/routes/app-routes';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import axiosInstance from "@/api/axios";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { AppRoutes } from "@/routes/app-routes";
+import { motion } from "framer-motion";
+import { endpoints } from "@/api/endpoints";
 
 const schema = z.object({ email: z.string().email() });
 type FormValues = z.infer<typeof schema>;
@@ -15,7 +16,7 @@ type FormValues = z.infer<typeof schema>;
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const {
     register,
     handleSubmit,
@@ -24,10 +25,13 @@ const ForgotPassword = () => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      const response = await axiosInstance.post('/api/auth/forgot-password', data);
-      console.log(response, 'respnse')
-      if(response?.data?.sentStatus === 'failed') {
-        setError(response?.data?.message || "Mail sending failed")
+      const response = await axiosInstance.post(
+        endpoints.auth.forgotPassword,
+        data
+      );
+      console.log(response, "respnse");
+      if (response?.data?.sentStatus === "failed") {
+        setError(response?.data?.message || "Mail sending failed");
       }
       setSent(true);
     } catch (e) {
@@ -48,31 +52,65 @@ const ForgotPassword = () => {
               transition={{ duration: 0.6 }}
               className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100"
             >
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Forgot password</h1>
-              <p className="text-gray-600 mb-6">Enter your email, and we'll send a reset link.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Forgot password
+              </h1>
+              <p className="text-gray-600 mb-6">
+                Enter your email, and we'll send a reset link.
+              </p>
 
               {sent ? (
                 <div>
-                  <div className={`rounded-lg  ${error ? "bg-red-50 text-red-700": "bg-green-50 text-green-700"}  p-3 mb-6`}>
+                  <div
+                    className={`rounded-lg  ${error ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}  p-3 mb-6`}
+                  >
                     {error ? error : "A password reset link has been sent."}
                   </div>
-                  <Button className="w-full" onClick={() => navigate(AppRoutes.login())}>Back to Login</Button>
+                  <Button
+                    className="w-full"
+                    onClick={() => navigate(AppRoutes.login())}
+                  >
+                    Back to Login
+                  </Button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                    <Input id="email" type="email" placeholder="you@example.com" {...register('email')} />
-                    {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Email Address
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      {...register("email")}
+                    />
+                    {errors.email && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {errors.email.message}
+                      </p>
+                    )}
                   </div>
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending…' : 'Send Reset Link'}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Sending…" : "Send Reset Link"}
                   </Button>
                 </form>
               )}
 
               <div className="mt-6 text-center">
-                <Link to={AppRoutes.login()} className="text-sm text-red-600 hover:underline">Back to login</Link>
+                <Link
+                  to={AppRoutes.login()}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Back to login
+                </Link>
               </div>
             </motion.div>
           </div>
@@ -83,4 +121,3 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
-

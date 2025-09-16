@@ -12,6 +12,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints.ts";
 
 const SingleCareer = () => {
   const params = useParams();
@@ -33,7 +34,7 @@ const SingleCareer = () => {
       try {
         setLoading(true);
         const id = params.slug as string;
-        const res = await axiosInstance.get(`/api/jobs/${id}`);
+        const res = await axiosInstance.get(endpoints.jobs.byId(id));
         const data = res.data;
         setCareerData(data);
       } catch (err) {
@@ -61,7 +62,7 @@ const SingleCareer = () => {
     try {
       // Replace with your actual form submission API
       const id = Number(params.slug);
-      await axiosInstance.post('/api/applications', {
+      await axiosInstance.post(endpoints.applications.base, {
         job_id: id,
         applicant_name: formData.name,
         email: formData.email,
@@ -135,7 +136,9 @@ const SingleCareer = () => {
                     {careerData.job_title}
                   </h1>
                   {careerData.team && (
-                    <p className="text-lg text-blue-600 font-semibold">Team: {careerData.team}</p>
+                    <p className="text-lg text-blue-600 font-semibold">
+                      Team: {careerData.team}
+                    </p>
                   )}
                 </div>
               </div>
@@ -143,15 +146,15 @@ const SingleCareer = () => {
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
-                  {careerData.location || '—'}
+                  {careerData.location || "—"}
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {careerData.experience || '—'}
+                  {careerData.experience || "—"}
                 </div>
                 <div className="flex items-center gap-1">
                   <Home className="w-4 h-4" />
-                  {careerData.job_type || careerData.commitment || '—'}
+                  {careerData.job_type || careerData.commitment || "—"}
                 </div>
               </div>
             </div>
@@ -167,24 +170,27 @@ const SingleCareer = () => {
             </div>
 
             {/* What You'll Do */}
-            {careerData.responsibilities && careerData.responsibilities.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  What You'll Do
-                </h2>
-                <ul className="space-y-3">
-                  {careerData.responsibilities.map((responsibility: string, index: number) => (
-                    <li
-                      key={index}
-                      className="flex items-start gap-3 text-gray-700"
-                    >
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                      <span>{responsibility}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {careerData.responsibilities &&
+              careerData.responsibilities.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                    What You'll Do
+                  </h2>
+                  <ul className="space-y-3">
+                    {careerData.responsibilities.map(
+                      (responsibility: string, index: number) => (
+                        <li
+                          key={index}
+                          className="flex items-start gap-3 text-gray-700"
+                        >
+                          <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <span>{responsibility}</span>
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
 
             {/* What We're Looking For */}
             {careerData.requirements && careerData.requirements.length > 0 && (
@@ -193,15 +199,17 @@ const SingleCareer = () => {
                   What We're Looking For
                 </h2>
                 <ul className="space-y-3">
-                  {careerData.requirements.map((requirement: string, index: number) => (
-                    <li
-                      key={index}
-                      className="flex items-start gap-3 text-gray-700"
-                    >
-                      <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                      <span>{requirement}</span>
-                    </li>
-                  ))}
+                  {careerData.requirements.map(
+                    (requirement: string, index: number) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 text-gray-700"
+                      >
+                        <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <span>{requirement}</span>
+                      </li>
+                    )
+                  )}
                 </ul>
               </div>
             )}
@@ -213,15 +221,17 @@ const SingleCareer = () => {
                   What We Offer
                 </h2>
                 <ul className="space-y-3">
-                  {(careerData.benefits || careerData.whatWeOffer).map((offer: string, index: number) => (
-                    <li
-                      key={index}
-                      className="flex items-start gap-3 text-gray-700"
-                    >
-                      <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
-                      <span>{offer}</span>
-                    </li>
-                  ))}
+                  {(careerData.benefits || careerData.whatWeOffer).map(
+                    (offer: string, index: number) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 text-gray-700"
+                      >
+                        <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <span>{offer}</span>
+                      </li>
+                    )
+                  )}
                 </ul>
               </div>
             )}

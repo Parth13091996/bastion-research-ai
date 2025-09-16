@@ -4,6 +4,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef, GridReadyEvent } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { queryKeys } from "@/api/queryKeys";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 
@@ -92,24 +93,27 @@ const MembershipPlans = () => {
   const { data: plans } = useQuery({
     queryKey: [queryKeys.membership_plans],
     queryFn: () =>
-      axiosInstance.get("/api/membership-plans").then((res) => res.data),
+      axiosInstance.get(endpoints.membershipPlans.base).then((res) => res.data),
   });
 
   const createMutation = useMutation({
     mutationFn: (body: any) =>
-      axiosInstance.post("/api/membership-plans", body),
+      axiosInstance.post(endpoints.membershipPlans.base, body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });
   const updateMutation = useMutation({
     mutationFn: (payload: { id: number | string; body: any }) =>
-      axiosInstance.put(`/api/membership-plans/${payload.id}`, payload.body),
+      axiosInstance.put(
+        endpoints.membershipPlans.byId(payload.id),
+        payload.body
+      ),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) =>
-      axiosInstance.delete(`/api/membership-plans/${id}`),
+      axiosInstance.delete(endpoints.membershipPlans.byId(id)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });

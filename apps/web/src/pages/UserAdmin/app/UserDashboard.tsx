@@ -2,11 +2,13 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 
 const CouponManagement = () => {
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["coupons"],
-    queryFn: () => axiosInstance.get("/api/coupons").then((res) => res.data),
+    queryFn: () =>
+      axiosInstance.get(endpoints.coupons.base).then((res) => res.data),
   });
 
   const columnDefs: ColDef[] = [

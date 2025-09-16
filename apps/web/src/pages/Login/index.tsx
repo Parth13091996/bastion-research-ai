@@ -1,16 +1,27 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, CheckCircle, Shield, TrendingUp, BarChart3, Target, Star, Eye, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
-import axiosInstance from '@/api/axios';
-import { toast } from 'sonner';
-import { useState } from 'react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  CheckCircle,
+  Shield,
+  TrendingUp,
+  BarChart3,
+  Target,
+  Star,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import axiosInstance from "@/api/axios";
+import { toast } from "sonner";
+import { useState } from "react";
+import { endpoints } from "@/api/endpoints";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -34,14 +45,14 @@ const Login = () => {
 
   const mutation = useMutation<any, Error, LoginFormValues>({
     mutationFn: (data) =>
-      axiosInstance.post('/api/auth/signin', data).then((res) => res.data),
+      axiosInstance.post(endpoints.auth.signin, data).then((res) => res.data),
     onSuccess: (data) => {
       login(data.user);
-      navigate('/dashboard');
+      navigate("/dashboard");
     },
-    onError(error: any ) {
-      toast.error(error?.response?.data?.message || error.message)
-    }
+    onError(error: any) {
+      toast.error(error?.response?.data?.message || error.message);
+    },
   });
 
   const onSubmit = (data: LoginFormValues) => {
@@ -52,30 +63,30 @@ const Login = () => {
     {
       icon: <TrendingUp className="w-5 h-5" />,
       title: "Real-time Analytics",
-      description: "Track your portfolio performance with live data"
+      description: "Track your portfolio performance with live data",
     },
     {
       icon: <Shield className="w-5 h-5" />,
       title: "Secure Platform",
-      description: "Bank-level security for your investments"
+      description: "Bank-level security for your investments",
     },
     {
       icon: <BarChart3 className="w-5 h-5" />,
       title: "Advanced Tools",
-      description: "Professional-grade research and analysis tools"
+      description: "Professional-grade research and analysis tools",
     },
     {
       icon: <Target className="w-5 h-5" />,
       title: "Personalized Insights",
-      description: "Custom recommendations based on your goals"
-    }
+      description: "Custom recommendations based on your goals",
+    },
   ];
 
   const stats = [
     { number: "58.15%", label: "Avg Returns" },
     { number: "10K+", label: "Active Users" },
     { number: "99.9%", label: "Uptime" },
-    { number: "24/7", label: "Support" }
+    { number: "24/7", label: "Support" },
   ];
 
   return (
@@ -93,7 +104,7 @@ const Login = () => {
               className="space-y-8"
             >
               <div className="space-y-4">
-                <motion.h1 
+                <motion.h1
                   className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -104,19 +115,19 @@ const Login = () => {
                     Your Investment Hub
                   </span>
                 </motion.h1>
-                <motion.p 
+                <motion.p
                   className="text-xl text-gray-600 leading-relaxed"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  Access your personalized dashboard, track your portfolio performance, 
-                  and discover new investment opportunities.
+                  Access your personalized dashboard, track your portfolio
+                  performance, and discover new investment opportunities.
                 </motion.p>
               </div>
 
               {/* Stats */}
-              <motion.div 
+              <motion.div
                 className="grid grid-cols-2 md:grid-cols-4 gap-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -124,7 +135,9 @@ const Login = () => {
               >
                 {stats.map((stat, index) => (
                   <div key={index} className="text-center">
-                    <div className="text-2xl md:text-3xl font-bold text-red-600">{stat.number}</div>
+                    <div className="text-2xl md:text-3xl font-bold text-red-600">
+                      {stat.number}
+                    </div>
                     <div className="text-sm text-gray-600">{stat.label}</div>
                   </div>
                 ))}
@@ -145,7 +158,9 @@ const Login = () => {
                       <span className="text-white font-bold text-xl">B</span>
                     </div>
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Welcome Back
+                  </h2>
                   <p className="text-gray-600">Sign in to your account</p>
                 </div>
 
@@ -157,18 +172,20 @@ const Login = () => {
                     >
                       Email Address
                     </label>
-                    <Input 
-                      id="email" 
-                      type="email" 
+                    <Input
+                      id="email"
+                      type="email"
                       placeholder="Enter your email"
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                      {...register('email')} 
+                      {...register("email")}
                     />
                     {errors.email && (
-                      <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
+                      <p className="mt-2 text-sm text-red-600">
+                        {errors.email.message}
+                      </p>
                     )}
                   </div>
-                  
+
                   <div>
                     <label
                       htmlFor="password"
@@ -177,19 +194,23 @@ const Login = () => {
                       Password
                     </label>
                     <div className="relative">
-                      <Input 
-                        id="password" 
+                      <Input
+                        id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                        {...register('password')} 
+                        {...register("password")}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
                     {errors.password && (
@@ -201,8 +222,13 @@ const Login = () => {
 
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
-                      <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-600">
+                        Remember me
+                      </span>
                     </label>
                     <Link
                       to="/forgot-password"
@@ -216,8 +242,8 @@ const Login = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={mutation.isPending}
                       className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                     >
@@ -237,7 +263,9 @@ const Login = () => {
                 </form>
 
                 <div className="mt-6 text-center">
-                  <span className="text-sm text-gray-600">Don't have an account? </span>
+                  <span className="text-sm text-gray-600">
+                    Don't have an account?{" "}
+                  </span>
                   <Link
                     to="/register"
                     className="text-sm text-red-600 hover:underline font-medium"
@@ -246,7 +274,7 @@ const Login = () => {
                   </Link>
                 </div>
               </div>
-              
+
               {/* Background decoration */}
               <div className="absolute -top-4 -right-4 w-72 h-72 bg-gradient-to-r from-red-200 to-red-300 rounded-full opacity-20 blur-3xl"></div>
               <div className="absolute -bottom-4 -left-4 w-64 h-64 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full opacity-20 blur-3xl"></div>
@@ -269,7 +297,8 @@ const Login = () => {
               Everything You Need to Succeed
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Access powerful tools and insights designed to help you make informed investment decisions.
+              Access powerful tools and insights designed to help you make
+              informed investment decisions.
             </p>
           </motion.div>
 
@@ -286,7 +315,9 @@ const Login = () => {
                 <div className="w-16 h-16 bg-gradient-to-r from-red-600 to-red-800 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
                 <p className="text-gray-600">{feature.description}</p>
               </motion.div>
             ))}
@@ -308,12 +339,10 @@ const Login = () => {
               New to Bastion?
             </h2>
             <p className="text-xl text-red-100 max-w-2xl mx-auto">
-              Join thousands of successful investors and start your journey with institutional-grade research and tools.
+              Join thousands of successful investors and start your journey with
+              institutional-grade research and tools.
             </p>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to="/register"
                 className="inline-flex items-center px-8 py-4 bg-white text-red-600 font-semibold rounded-2xl hover:bg-gray-50 transition-colors duration-300 shadow-lg hover:shadow-xl"

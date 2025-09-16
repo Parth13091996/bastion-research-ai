@@ -9,6 +9,7 @@ import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { useEffect } from "react";
 import { useEditMemberStore } from "@/stores/edit-member-store";
+import { endpoints } from "@/api/endpoints";
 
 const editMemberSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -85,7 +86,7 @@ const EditMemberModal = () => {
   const mutation = useMutation({
     mutationFn: (values: EditMemberValues) => {
       if (!member?.id) return Promise.reject(new Error("Missing member id"));
-      return axiosInstance.put(`/api/users/${member.id}`, values);
+      return axiosInstance.put(endpoints.users.byId(member.id), values);
     },
     onSuccess: (data) => {
       console.log(data, "response");

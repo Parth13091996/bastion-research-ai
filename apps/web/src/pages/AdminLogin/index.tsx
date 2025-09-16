@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as z from "zod";
+import { endpoints } from "@/api/endpoints";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -44,7 +45,7 @@ const AdminLogin = () => {
     mutationFn: (data) =>
       loader.withLoader(
         axiosInstance
-          .post("/api/auth/signin", { ...data, isAdminLogin: true })
+          .post(endpoints.auth.signin, { ...data, isAdminLogin: true })
           .then((res) => res.data),
         "Logging in..."
       ),

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { State, City } from "country-state-city";
+import { endpoints } from "@/api/endpoints";
 
 const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -105,7 +106,10 @@ const Profile = () => {
   const mutation = useMutation({
     mutationFn: async (payload: ProfileFormValues) => {
       if (!user?.id) throw new Error("User not loaded");
-      const res = await axiosInstance.put(`/api/users/${user.id}`, payload);
+      const res = await axiosInstance.put(
+        endpoints.users.byId(user.id),
+        payload
+      );
       return res.data;
     },
     onSuccess: async () => {

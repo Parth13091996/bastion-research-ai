@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 
 declare global {
   interface Window {
@@ -22,10 +23,14 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   const [error, setError] = React.useState<string | null>(null);
   const digioRef = React.useRef<any>(null);
 
-  const env = (import.meta as any)?.env?.VITE_DIGIO_ENV === "production" ? "production" : "sandbox";
-  const sdkSrc = env === "production"
-    ? "https://app.digio.in/sdk/v11/digio.js"
-    : "https://ext-gateway.digio.in/sdk/v11/digio.js";
+  const env =
+    (import.meta as any)?.env?.VITE_DIGIO_ENV === "production"
+      ? "production"
+      : "sandbox";
+  const sdkSrc =
+    env === "production"
+      ? "https://app.digio.in/sdk/v11/digio.js"
+      : "https://ext-gateway.digio.in/sdk/v11/digio.js";
 
   const loadDigioScript = React.useCallback(() => {
     return new Promise<void>((resolve, reject) => {
@@ -33,7 +38,9 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
       const existing = document.querySelector(`script[src='${sdkSrc}']`);
       if (existing) {
         existing.addEventListener("load", () => resolve());
-        existing.addEventListener("error", () => reject(new Error("Failed to load Digio SDK")));
+        existing.addEventListener("error", () =>
+          reject(new Error("Failed to load Digio SDK"))
+        );
         return;
       }
       const s = document.createElement("script");
@@ -63,7 +70,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
       await loadDigioScript();
 
       // 1) Initiate signature by uploading a tiny PDF via our server
-      const initResp = await axiosInstance.post("/api/digio/esign/uploadjson", {
+      const initResp = await axiosInstance.post(endpoints.digio.uploadJson, {
         file_data: DIGIO_PDF_BASE64,
         file_name: "agreement.pdf",
         will_self_sign: true,
@@ -114,7 +121,9 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
       digio.submit(documentId, identifier);
     } catch (e: any) {
       console.error(e);
-      setError(e?.response?.data?.message || e?.message || "Failed to start eSign");
+      setError(
+        e?.response?.data?.message || e?.message || "Failed to start eSign"
+      );
       setLoading(false);
     }
   };
@@ -128,23 +137,31 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Terms & Agreement</h2>
-        <p className="text-gray-600 text-sm">Review, accept and eSign the agreement</p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Terms & Agreement
+        </h2>
+        <p className="text-gray-600 text-sm">
+          Review, accept and eSign the agreement
+        </p>
       </div>
 
       <div className="max-h-48 overflow-y-auto border rounded-lg p-4 text-sm text-gray-700">
         <h3 className="font-semibold mb-2">Terms of Service</h3>
         <p className="mb-4">
-          By using TripleEdge services, you agree to the following terms and conditions...
+          By using TripleEdge services, you agree to the following terms and
+          conditions...
         </p>
         <p className="mb-4">
-          1. Investment Risks: All investments carry risk of loss. Past performance does not guarantee future results.
+          1. Investment Risks: All investments carry risk of loss. Past
+          performance does not guarantee future results.
         </p>
         <p className="mb-4">
-          2. Service Agreement: You agree to pay applicable fees for the services provided.
+          2. Service Agreement: You agree to pay applicable fees for the
+          services provided.
         </p>
         <p className="mb-4">
-          3. Privacy Policy: We will protect your personal information as outlined in our privacy policy.
+          3. Privacy Policy: We will protect your personal information as
+          outlined in our privacy policy.
         </p>
       </div>
 

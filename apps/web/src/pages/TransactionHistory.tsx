@@ -3,6 +3,7 @@ import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 
 type PaymentRow = {
   transaction_id: string;
@@ -24,8 +25,8 @@ const StatusBadge = ({ value }: { value?: string }) => {
     v === "success" || v === "completed"
       ? "bg-green-100 text-green-800"
       : v === "failed" || v === "cancelled"
-      ? "bg-red-100 text-red-800"
-      : "bg-blue-100 text-blue-800";
+        ? "bg-red-100 text-red-800"
+        : "bg-blue-100 text-blue-800";
   return (
     <span className={`px-2 py-1 rounded-md text-xs font-medium ${classes}`}>
       {value || "-"}
@@ -37,7 +38,10 @@ const currency = (v?: number | string | null) => {
   if (v == null || v === "") return "-";
   const n = typeof v === "string" ? Number(v) : v;
   if (isNaN(n as number)) return String(v);
-  return new Intl.NumberFormat(undefined, { style: "currency", currency: "INR" }).format(n as number);
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "INR",
+  }).format(n as number);
 };
 
 const formatDate = (v?: string | null) => {
@@ -52,7 +56,7 @@ const TransactionHistory: React.FC = () => {
   const { data, isLoading, isError } = useQuery<PaymentRow[]>({
     queryKey: ["my-payment-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/api/payment-history/me");
+      const res = await axiosInstance.get(endpoints.paymentHistory.me);
       return res.data as PaymentRow[];
     },
   });
@@ -76,20 +80,34 @@ const TransactionHistory: React.FC = () => {
   }, [filtered]);
 
   const colDefs: ColDef<PaymentRow>[] = [
-    { headerName: "Date", field: "payment_date", valueFormatter: (p) => formatDate(p.value as string) },
+    {
+      headerName: "Date",
+      field: "payment_date",
+      valueFormatter: (p) => formatDate(p.value as string),
+    },
     { headerName: "Invoice", field: "invoice_id" },
     { headerName: "Transaction", field: "transaction_id" },
     { headerName: "Membership", field: "membership" },
     { headerName: "Gateway", field: "payment_gateway" },
     { headerName: "Type", field: "payment_type" },
-    { headerName: "Status", field: "transaction_status", cellRenderer: StatusBadge },
-    { headerName: "Amount", field: "amount", valueFormatter: (p) => currency(p.value as any) },
+    {
+      headerName: "Status",
+      field: "transaction_status",
+      cellRenderer: StatusBadge,
+    },
+    {
+      headerName: "Amount",
+      field: "amount",
+      valueFormatter: (p) => currency(p.value as any),
+    },
   ];
 
   return (
     <div className="min-h-screen mx-auto max-w-[80rem] bg-gray-50 p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Transaction History</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Transaction History
+        </h1>
         <p className="text-sm text-gray-600 mt-1">
           View your payments and subscription transactions.
         </p>
@@ -98,11 +116,15 @@ const TransactionHistory: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500">Total Records</p>
-          <p className="text-2xl font-semibold text-gray-900">{filtered?.length || 0}</p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {filtered?.length || 0}
+          </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500">Total Amount</p>
-          <p className="text-2xl font-semibold text-gray-900">{currency(totalAmount)}</p>
+          <p className="text-2xl font-semibold text-gray-900">
+            {currency(totalAmount)}
+          </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500">Status Overview</p>
@@ -147,7 +169,9 @@ const TransactionHistory: React.FC = () => {
           <div className="p-3 text-sm text-gray-600">Loading...</div>
         )}
         {isError && (
-          <div className="p-3 text-sm text-red-600">Failed to load transactions.</div>
+          <div className="p-3 text-sm text-red-600">
+            Failed to load transactions.
+          </div>
         )}
       </div>
     </div>
@@ -155,4 +179,3 @@ const TransactionHistory: React.FC = () => {
 };
 
 export default TransactionHistory;
-
