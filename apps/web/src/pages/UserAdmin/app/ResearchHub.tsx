@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Search,
-  Plus,
-  ChevronDown,
-  Eye,
-  Edit,
-  Users,
   Building,
-  Trash2,
+  ChevronDown,
+  Edit,
+  Eye,
   Filter,
-  Settings,
+  Plus,
+  Search,
+  Trash2,
+  Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 // Mock data - replace with actual API calls
 const mockMembers = [
@@ -153,7 +152,7 @@ const MemberManagementDashboard = () => {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [hiddenColumns, setHiddenColumns] = useState({});
+  const [hiddenColumns, setHiddenColumns] = useState<any>({});
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);

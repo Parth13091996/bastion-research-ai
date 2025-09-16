@@ -48,7 +48,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     data,
@@ -59,6 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     queryFn: async () => (await axiosInstance.get("/api/auth/session")).data,
     staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
     gcTime: 60 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
   });
 
   const {
@@ -78,16 +81,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     setUser(data?.user ?? null);
+    console.log(sessionLoading, "load");
     setIsLoading(sessionLoading);
   }, [data, sessionLoading]);
 
   const refetchUser = async () => {
     await refetch();
   };
-
-  useEffect(() => {
-    refetchUser();
-  }, []);
 
   const login = (newUser: User) => {
     setUser(newUser);

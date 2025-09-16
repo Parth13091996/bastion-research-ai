@@ -5,7 +5,7 @@ import { ColDef, GridReadyEvent } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
 import { queryKeys } from "@/api/queryKeys";
-import EditRowModal from "@/components/admin/EditRowModal";
+import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 
 // Replaced static data with API-driven content
 

@@ -28,7 +28,7 @@ export const useLoaderStore = create<LoaderState>((set, get) => ({
     const newCounter = Math.max(0, counter - 1);
     set({
       counter: newCounter,
-      isLoading: newCounter > 0,
+      isLoading: false,
       message: newCounter > 0 ? get().message : undefined,
     });
   },

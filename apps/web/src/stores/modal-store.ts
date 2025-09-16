@@ -1,9 +1,6 @@
 import { create } from "zustand";
 
-export type ModalKey =
-  | "projectInfo"
-  // add more modal keys here as you implement modals
-  ;
+export type ModalKey = "projectInfo" | "addMember";
 
 type ModalState = {
   modals: Record<ModalKey, boolean>;
@@ -16,10 +13,11 @@ type ModalState = {
 export const useModalStore = create<ModalState>((set) => ({
   modals: {
     projectInfo: false,
+    addMember: false,
   },
   open: (key) => set((s) => ({ modals: { ...s.modals, [key]: true } })),
   close: (key) => set((s) => ({ modals: { ...s.modals, [key]: false } })),
-  toggle: (key) => set((s) => ({ modals: { ...s.modals, [key]: !s.modals[key] } })),
+  toggle: (key) =>
+    set((s) => ({ modals: { ...s.modals, [key]: !s.modals[key] } })),
   set: (key, open) => set((s) => ({ modals: { ...s.modals, [key]: open } })),
 }));
-

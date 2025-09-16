@@ -1,16 +1,16 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axiosInstance from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import axiosInstance from "@/api/axios";
 import { useLoader } from "@/hooks/useLoader";
 import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useEffect } from "react";
 import * as z from "zod";
 
 const loginSchema = z.object({
@@ -23,7 +23,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
-  const queryClient = useQueryClient();
   const loader = useLoader();
 
   // Redirect immediately during render once auth is known
@@ -61,7 +60,6 @@ const AdminLogin = () => {
     },
   });
 
-  // Show loader for auth checking
   useEffect(() => {
     if (isLoading) {
       loader.start("Checking session...");
