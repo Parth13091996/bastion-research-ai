@@ -1,13 +1,14 @@
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
-import DeleteConfirmationModal from "@/components/core/common/Modals/ConfirmationModal";
+import { DataTable } from "@/components/ui/data-table";
 import { useEditMemberStore } from "@/stores/edit-member-store";
 import { useModalStore } from "@/stores/modal-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ColDef, GridReadyEvent } from "ag-grid-community";
-import { AgGridReact } from "ag-grid-react";
-import { Edit, Plus, Search, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ColDef } from "ag-grid-community";
+import { Plus, Trash2, UserPlus, Mail } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const AvatarRenderer = (params: any) => {
   const getInitial = (name: string) =>
@@ -21,35 +22,31 @@ const AvatarRenderer = (params: any) => {
   );
 };
 
-// Plan badge removed; role/status will be shown instead
+const RoleRenderer = (params: any) => {
+  const role = params.value || "employee";
+  const roleColors = {
+    admin: "bg-red-100 text-red-800",
+    employee: "bg-blue-100 text-blue-800",
+    core_subscriber: "bg-green-100 text-green-800",
+    ipo_subscriber: "bg-purple-100 text-purple-800",
+    research_ally_subscriber: "bg-orange-100 text-orange-800",
+  };
+  
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[role] || "bg-gray-100 text-gray-800"}`}>
+      {role.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+    </span>
+  );
+};
 
-const StatusBadgeRenderer = (params: any) => (
-  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-    {params?.value || "active"}
-  </span>
-);
-
-const ActionsRenderer = (params: any) => (
-  <div className="flex items-center space-x-1">
-    <button
-      className="p-1 text-gray-600 hover:text-blue-600 rounded"
-      title="Edit"
-      onClick={() => {
-        params?.context?.openEdit?.(params?.data);
-      }}
-      disabled={!params?.context?.openEdit || !params?.data}
-    >
-      <Edit size={16} />
-    </button>
-    <button
-      className="p-1 text-gray-600 hover:text-red-600 rounded"
-      title="Delete"
-      onClick={() => params?.context?.openDelete?.(params?.data)}
-      disabled={!params?.context?.openDelete || !params?.data?.id}
-    >
-      <Trash2 size={16} />
-    </button>
-  </div>
+const EmailRenderer = (params: any) => (
+  <a
+    href={`mailto:${params.value}`}
+    className="text-blue-600 hover:underline flex items-center"
+  >
+    <Mail className="mr-1 h-3 w-3" />
+    {params.value}
+  </a>
 );
 
 const MemberManagementDashboard = () => {
@@ -63,26 +60,22 @@ const MemberManagementDashboard = () => {
     queryFn: () =>
       axiosInstance.get(endpoints.users.base).then((res) => res.data),
   });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("Select Status");
+  
+  const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
   const setIsModalOpen = useModalStore((s) => s.set);
-
-  const gridRef = useRef<AgGridReact>(null);
+  
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) =>
       axiosInstance.put(endpoints.users.byId(payload.id), payload.body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
+  
   const deleteMutation = useMutation({
     mutationFn: (id: string) => axiosInstance.delete(endpoints.users.byId(id)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 
-  const setModalOpen = useModalStore((s) => s.set);
-  const setModalProps = useModalStore((s) => s.setProps);
-
-  const [colDefs] = useState<ColDef[]>([
-    { headerName: "", field: "select", width: 50 },
+  const columns: ColDef[] = [
     {
       headerName: "Avatar",
       field: "avatar",
@@ -91,36 +84,91 @@ const MemberManagementDashboard = () => {
       sortable: false,
       filter: false,
     },
-    { headerName: "Username", field: "username", flex: 2 },
-    { headerName: "Email Address", field: "email", flex: 3 },
-    { headerName: "Role", field: "role", flex: 1 },
+    { 
+      headerName: "Username", 
+      field: "username", 
+      flex: 1,
+      minWidth: 150,
+    },
+    { 
+      headerName: "Email", 
+      field: "email", 
+      flex: 2,
+      cellRenderer: EmailRenderer,
+      minWidth: 200,
+    },
+    { 
+      headerName: "Name", 
+      field: "full_name",
+      valueGetter: (params) => `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      headerName: "Role",
+      field: "role",
+      cellRenderer: RoleRenderer,
+      flex: 1,
+      minWidth: 120,
+    },
     {
       headerName: "Status",
       field: "status",
-      cellRenderer: StatusBadgeRenderer,
       flex: 1,
+      minWidth: 100,
     },
-    { headerName: "First Name", field: "first_name", flex: 1 },
-    { headerName: "Last Name", field: "last_name", flex: 1 },
     {
-      headerName: "Actions",
-      field: "actions",
-      cellRenderer: ActionsRenderer,
-      width: 120,
+      headerName: "Created",
+      field: "created_at",
+      valueFormatter: (params) => {
+        if (!params.value) return "";
+        return new Date(params.value).toLocaleDateString();
+      },
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      headerName: "Premium",
+      field: "isPremium",
+      cellRenderer: (params: any) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          params.value 
+            ? "bg-green-100 text-green-800" 
+            : "bg-gray-100 text-gray-800"
+        }`}>
+          {params.value ? "Yes" : "No"}
+        </span>
+      ),
+      width: 100,
       sortable: false,
       filter: false,
     },
-  ]);
-  const openEditMember = useEditMemberStore((s) => s.open);
-  const openEdit = (row: any) => {
-    if (row) {
-      openEditMember(row);
-    }
-  };
-  // Updates are now handled inside EditMemberModal
+  ];
 
-  const openDelete = (row: any) => {
-    if (!row?.id) return;
+  const bulkActions = [
+    {
+      label: "Delete Selected",
+      icon: <Trash2 className="h-4 w-4" />,
+      action: (selected: any[]) => handleBulkDelete(selected),
+      variant: "destructive" as const,
+    },
+    {
+      label: "Send Email",
+      icon: <Mail className="h-4 w-4" />,
+      action: (selected: any[]) => handleBulkEmail(selected),
+    },
+  ];
+
+  const openEditMember = useEditMemberStore((s) => s.open);
+  
+  const handleEdit = (row: any) => {
+    openEditMember(row);
+  };
+
+  const handleDelete = (row: any) => {
+    const setModalOpen = useModalStore.getState().set;
+    const setModalProps = useModalStore.getState().setProps;
+    
     setModalProps("confirm", {
       title: "Delete member?",
       description: `This action cannot be undone. This will permanently delete ${row.first_name || row.username || "this user"}.`,
@@ -133,6 +181,7 @@ const MemberManagementDashboard = () => {
           onSettled: () => {
             setModalOpen("confirm", false);
             setModalProps("confirm", undefined);
+            toast.success("Member deleted successfully");
           },
         });
       },
@@ -143,155 +192,76 @@ const MemberManagementDashboard = () => {
     setModalOpen("confirm", true);
   };
 
-  // confirmation handled by generic modal
-
-  const onGridReady = (params: GridReadyEvent) => {
-    // Store the API reference directly
+  const handleBulkDelete = (selected: any[]) => {
+    const setModalOpen = useModalStore.getState().set;
+    const setModalProps = useModalStore.getState().setProps;
+    
+    setModalProps("confirm", {
+      title: `Delete ${selected.length} members?`,
+      description: "This action cannot be undone. This will permanently delete all selected members.",
+      confirmText: "Delete All",
+      cancelText: "Cancel",
+      tone: "danger",
+      isLoading: deleteMutation.isPending,
+      onConfirm: async () => {
+        try {
+          await Promise.all(selected.map(member => 
+            axiosInstance.delete(endpoints.users.byId(member.id))
+          ));
+          queryClient.invalidateQueries({ queryKey: ["users"] });
+          toast.success(`${selected.length} members deleted successfully`);
+        } catch (error) {
+          toast.error("Failed to delete some members");
+        } finally {
+          setModalOpen("confirm", false);
+          setModalProps("confirm", undefined);
+        }
+      },
+      onCancel: () => {
+        setModalProps("confirm", undefined);
+      },
+    });
+    setModalOpen("confirm", true);
   };
 
-  useEffect(() => {
-    if (gridRef.current && gridRef.current.api) {
-      const statusFilter =
-        selectedStatus !== "Select Status"
-          ? {
-              status: {
-                filterType: "text",
-                type: "equals",
-                filter: selectedStatus,
-              },
-            }
-          : null;
-      const combinedFilter = { ...statusFilter };
-      gridRef.current.api.setFilterModel(combinedFilter);
-      gridRef.current.api.onFilterChanged();
-    }
-  }, [selectedStatus]);
-
-  useEffect(() => {
-    if (gridRef.current && gridRef.current.api) {
-      gridRef.current.api.setGridOption("quickFilterText", searchTerm);
-    }
-  }, [searchTerm]);
-
-  const onPageSizeChanged = (newPageSize: number) => {
-    if (gridRef.current && gridRef.current.api) {
-      gridRef.current.api.setGridOption("paginationPageSize", newPageSize);
-    }
+  const handleBulkEmail = (selected: any[]) => {
+    const emails = selected.map(member => member.email).join(", ");
+    window.open(`mailto:${emails}`, "_blank");
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-red-500">Failed to load members.</div>
-      </div>
-    );
-  }
-
-  // Add null check for rowData
-  if (!rowData || !Array.isArray(rowData)) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">No member data available.</div>
-      </div>
-    );
-  }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-sm max-w-[80rem] mx-auto">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Manage Members
-          </h1>
-          <button
-            onClick={() => setIsModalOpen("addMember", true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-          >
-            <Plus size={20} />
-            <span>Add Member</span>
-          </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Manage Members</h1>
+          <p className="text-muted-foreground">
+            Manage user accounts and permissions
+          </p>
         </div>
-
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-wrap items-center gap-4 mb-4">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="text"
-                placeholder="Search Member..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-4 py-2 w-48 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option>Select Status</option>
-              <option>Active</option>
-              <option>Inactive</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="ag-theme-alpine" style={{ height: 600, width: "100%" }}>
-          <AgGridReact
-            ref={gridRef}
-            rowData={rowData ?? []}
-            columnDefs={colDefs}
-            theme="legacy"
-            defaultColDef={{
-              sortable: true,
-              filter: true,
-              resizable: true,
-            }}
-            pagination={true}
-            paginationPageSize={10}
-            paginationPageSizeSelector={[10, 25, 50, 100]}
-            onGridReady={onGridReady}
-            rowSelection={{
-              mode: "multiRow",
-              checkboxes: true,
-              headerCheckbox: true,
-              enableClickSelection: false,
-            }}
-            context={{ openEdit, openDelete }}
-          />
-        </div>
-
-        <div className="flex items-center justify-end px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Show</span>
-            <select
-              onChange={(e) => onPageSizeChanged(Number(e.target.value))}
-              defaultValue={10}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-            <span className="text-sm text-gray-600">members</span>
-          </div>
-        </div>
+        <Button
+          onClick={() => setIsModalOpen("addMember", true)}
+          className="flex items-center space-x-2"
+        >
+          <UserPlus className="h-4 w-4" />
+          <span>Add Member</span>
+        </Button>
       </div>
-      {/* EditMemberModal is rendered in ModalsLayout */}
 
-      {/* Confirmation handled globally via ConfirmationModal and modal-store */}
+      {/* Data Table */}
+      <DataTable
+        data={rowData || []}
+        columns={columns}
+        loading={loading}
+        error={error?.message}
+        onSelectionChange={setSelectedMembers}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        bulkActions={bulkActions}
+        searchPlaceholder="Search members by name, email, or username..."
+        title="Members"
+        description={`${rowData?.length || 0} total members`}
+      />
     </div>
   );
 };
