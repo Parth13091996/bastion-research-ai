@@ -175,7 +175,7 @@ export default function Sidebar() {
                         isCollapsed ? "justify-center" : ""
                       } ${
                         isActive || isSubActive
-                          ? "bg-blue-900 text-whote"
+                          ? "bg-blue-900 text-white"
                           : "text-gray-200 hover:bg-red-900"
                       }`}
                       title={isCollapsed ? item.name : undefined}
@@ -249,8 +249,8 @@ export default function Sidebar() {
             <div
               ref={submenuRef}
               key={menuName}
-              className="absolute left-full z-50 bg-blue shadow-lg rounded-lg py-2 w-48 border animate-slideIn"
-              style={{ top: submenuPosition.top - 64 }}
+              className="fixed left-16 top-0 shadow-lg rounded-lg py-2 w-48 border z-50 animate-slideIn"
+              style={{ top: submenuPosition.top - 16, backgroundColor: BrandColors.blue }} // Updated line
             >
               {parent.subItems.map((sub) => {
                 const isSubActive = location.pathname === sub.path;
@@ -261,8 +261,8 @@ export default function Sidebar() {
                     onClick={() => setIsMobileOpen(false)}
                     className={`flex items-center px-3 py-2 text-sm transition-colors ${
                       isSubActive
-                        ? "bg-blue-900 text-blue-900"
-                        : "text-gray-700 hover:bg-red-900 hover:text-white"
+                        ? "bg-blue-900 text-white"
+                        : "text-white hover:bg-red-900 hover:text-white"
                     }`}
                   >
                     <sub.icon className="h-4 w-4 mr-2" />
@@ -373,7 +373,7 @@ export default function Sidebar() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col transition-all duration-300 h-screen ${
+        className={`hidden lg:flex flex-col transition-all duration-300 h-screen z-40 ${ // Added `z-40` here
           isCollapsed ? "w-16" : "w-80"
         }`}
       >
