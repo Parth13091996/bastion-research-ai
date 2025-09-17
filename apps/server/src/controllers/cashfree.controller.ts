@@ -201,6 +201,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     const signature = req.headers["x-webhook-signature"] as string;
     const timestamp = req.headers["x-webhook-timestamp"] as string;
     const rawBody = (req as any).rawBody;
+    console.log({ signature, timestamp });
 
     if (!signature || !timestamp || !rawBody) {
       return res
