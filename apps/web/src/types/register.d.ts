@@ -9,6 +9,12 @@ interface OnboardingFormData {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
+  address1?: string;
+  address2?: string;
+  state?: string;
+  city?: string;
+  pinCode?: string;
+  company?: string;
   panCard: string;
   agreeToTerms: boolean;
   selectedPlan: string;
@@ -59,7 +65,17 @@ interface VerifyStepProps {
 }
 
 interface OnboardStepProps {
-  formData: { firstName: string; lastName: string; dateOfBirth: string };
+  formData: {
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    address1?: string;
+    address2?: string;
+    state?: string;
+    city?: string;
+    pinCode?: string;
+    company?: string;
+  };
   updateFormData: UpdateFormFn;
   setCurrentStep: any;
   onNext: () => void;

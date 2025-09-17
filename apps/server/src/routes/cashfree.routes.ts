@@ -5,6 +5,7 @@ import {
   getOrder,
   handleCashfreeWebhook,
   getUserSubscription,
+  testCashfreeWebhook,
 } from "../controllers/cashfree.controller";
 import { protect } from "../middleware/auth.middleware";
 
@@ -24,5 +25,6 @@ router.get("/subscription", protect, getUserSubscription);
 
 // Webhook handler
 router.post("/webhook", handleCashfreeWebhook);
+router.get("/webhook", testCashfreeWebhook);
 
 export default router;

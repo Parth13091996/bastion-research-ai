@@ -4,25 +4,24 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef, GridReadyEvent } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
 import { queryKeys } from "@/api/queryKeys";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
-
-// Replaced static data with API-driven content
 
 const ActionsRenderer = (params: any) => (
   <div className="flex items-center space-x-2">
     <button
-      onClick={() => params.context?.openEdit?.(params.data)}
+      onClick={() => params?.context?.openEdit?.(params?.data)}
       className="p-2 text-gray-600 hover:text-blue-600"
       title="Edit"
+      disabled={!params?.context?.openEdit || !params?.data}
     >
       <Edit2 size={14} />
     </button>
     <button
-      onClick={() => params.context?.deletePlan?.(params.data.plan_id)}
+      onClick={() => params?.context?.deletePlan?.(params?.data?.plan_id)}
       className="p-2 text-gray-600 hover:text-red-600"
       title="Delete"
+      disabled={!params?.context?.deletePlan || !params?.data?.plan_id}
     >
       <Trash2 size={14} />
     </button>
@@ -30,6 +29,7 @@ const ActionsRenderer = (params: any) => (
 );
 
 const PlanTypeRenderer = (params: any) => {
+  if (!params || !params.value) return null;
   return (
     <span
       className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium w-fit ${
@@ -55,6 +55,8 @@ const MembershipPlans = () => {
   });
 
   const createPlan = () => {
+    if (!form.plan_name || !form.plan_type || !form.currency || !form.wp_role)
+      return;
     createMutation.mutate(form);
     setShowForm(false);
     setForm({
@@ -66,24 +68,30 @@ const MembershipPlans = () => {
       wp_role: "",
     });
   };
-  const updatePlan = (id: number | string, body: any) =>
+  const updatePlan = (id: number | string, body: any) => {
+    if (!id || !body) return;
     updateMutation.mutate({ id, body });
-  const deletePlan = (id: number | string) => deleteMutation.mutate(id);
+  };
+  const deletePlan = (id: number | string) => {
+    if (!id) return;
+    deleteMutation.mutate(id);
+  };
   const [editOpen, setEditOpen] = useState(false);
   const [editRow, setEditRow] = useState<any | null>(null);
   const openEdit = (row: any) => {
+    if (!row) return;
     setEditRow(row);
     setEditOpen(true);
   };
   const saveEdit = (values: any) => {
-    if (!editRow) return;
+    if (!editRow || !values) return;
     updatePlan(editRow.plan_id, {
-      plan_name: values.plan_name,
-      plan_type: values.plan_type,
-      price_amount: Number(values.price_amount),
-      currency: values.currency,
-      duration_months: Number(values.duration_months),
-      wp_role: values.wp_role,
+      plan_name: values.plan_name ?? "",
+      plan_type: values.plan_type ?? "",
+      price_amount: Number(values.price_amount ?? 0),
+      currency: values.currency ?? "",
+      duration_months: Number(values.duration_months ?? 0),
+      wp_role: values.wp_role ?? "",
     });
     setEditOpen(false);
   };
@@ -93,27 +101,24 @@ const MembershipPlans = () => {
   const { data: plans } = useQuery({
     queryKey: [queryKeys.membership_plans],
     queryFn: () =>
-      axiosInstance.get(endpoints.membershipPlans.base).then((res) => res.data),
+      axiosInstance.get("/api/membership-plans").then((res) => res?.data ?? []),
   });
 
   const createMutation = useMutation({
     mutationFn: (body: any) =>
-      axiosInstance.post(endpoints.membershipPlans.base, body),
+      axiosInstance.post("/api/membership-plans", body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });
   const updateMutation = useMutation({
     mutationFn: (payload: { id: number | string; body: any }) =>
-      axiosInstance.put(
-        endpoints.membershipPlans.byId(payload.id),
-        payload.body
-      ),
+      axiosInstance.put(`/api/membership-plans/${payload?.id}`, payload?.body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) =>
-      axiosInstance.delete(endpoints.membershipPlans.byId(id)),
+      axiosInstance.delete(`/api/membership-plans/${id}`),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });
@@ -172,8 +177,8 @@ const MembershipPlans = () => {
               <input
                 type="text"
                 placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm ?? ""}
+                onChange={(e) => setSearchTerm(e?.target?.value ?? "")}
                 className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </div>
@@ -186,48 +191,58 @@ const MembershipPlans = () => {
               <input
                 className="border p-2 rounded"
                 placeholder="Plan Name"
-                value={form.plan_name}
+                value={form?.plan_name ?? ""}
                 onChange={(e) =>
-                  setForm({ ...form, plan_name: e.target.value })
+                  setForm({ ...form, plan_name: e?.target?.value ?? "" })
                 }
               />
               <input
                 className="border p-2 rounded"
                 placeholder="Plan Type"
-                value={form.plan_type}
+                value={form?.plan_type ?? ""}
                 onChange={(e) =>
-                  setForm({ ...form, plan_type: e.target.value })
+                  setForm({ ...form, plan_type: e?.target?.value ?? "" })
                 }
               />
               <input
                 className="border p-2 rounded"
                 placeholder="Price Amount"
                 type="number"
-                value={form.price_amount}
+                value={form?.price_amount ?? 0}
                 onChange={(e) =>
-                  setForm({ ...form, price_amount: Number(e.target.value) })
+                  setForm({
+                    ...form,
+                    price_amount: Number(e?.target?.value ?? 0),
+                  })
                 }
               />
               <input
                 className="border p-2 rounded"
                 placeholder="Currency"
-                value={form.currency}
-                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                value={form?.currency ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, currency: e?.target?.value ?? "" })
+                }
               />
               <input
                 className="border p-2 rounded"
                 placeholder="Duration (months)"
                 type="number"
-                value={form.duration_months}
+                value={form?.duration_months ?? 0}
                 onChange={(e) =>
-                  setForm({ ...form, duration_months: Number(e.target.value) })
+                  setForm({
+                    ...form,
+                    duration_months: Number(e?.target?.value ?? 0),
+                  })
                 }
               />
               <input
                 className="border p-2 rounded"
                 placeholder="WP Role"
-                value={form.wp_role}
-                onChange={(e) => setForm({ ...form, wp_role: e.target.value })}
+                value={form?.wp_role ?? ""}
+                onChange={(e) =>
+                  setForm({ ...form, wp_role: e?.target?.value ?? "" })
+                }
               />
             </div>
             <div className="flex gap-2">
@@ -254,7 +269,7 @@ const MembershipPlans = () => {
           <AgGridReact
             theme="legacy"
             ref={gridRef}
-            rowData={plans}
+            rowData={plans ?? []}
             columnDefs={colDefs}
             defaultColDef={{
               sortable: true,
@@ -270,7 +285,7 @@ const MembershipPlans = () => {
           />
         </div>
         <EditRowModal
-          open={editOpen}
+          open={!!editOpen}
           title="Edit Plan"
           fields={[
             { name: "plan_name", label: "Plan Name" },
@@ -284,10 +299,10 @@ const MembershipPlans = () => {
             },
             { name: "wp_role", label: "WP Role" },
           ]}
-          initialValues={editRow}
+          initialValues={editRow ?? {}}
           onClose={() => setEditOpen(false)}
           onSave={saveEdit}
-          saving={updateMutation.isPending}
+          saving={!!updateMutation?.isPending}
         />
       </div>
     </div>

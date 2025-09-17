@@ -224,7 +224,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     }
 
     const webhookResponse = JSON.parse(rawBody);
-    console.log({webhookResponse})
+    console.log({ webhookResponse });
     if (webhookResponse?.type === "PAYMENT_SUCCESS_WEBHOOK") {
       const { payment, order, customer_details } = webhookResponse?.data;
       if (payment?.payment_status === "SUCCESS") {
@@ -290,6 +290,10 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
   }
 };
 
+export const testCashfreeWebhook = async (req: Request, res: Response) => {
+  return res.status(200).json({ message: "Webhook configured successfully!" });
+};
+
 export const getOrder = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
@@ -313,14 +317,11 @@ export const getUserSubscription = async (req: Request, res: Response) => {
 
     // Get user's current subscription and payment status
     const [userResult, subscriptionResult, paymentResult] = await Promise.all([
-      supabase
-        .from("users")
-        .select("isPremium")
-        .eq("id", userId)
-        .single(),
+      supabase.from("users").select("isPremium").eq("id", userId).single(),
       supabase
         .from("subscriptions")
-        .select(`
+        .select(
+          `
           membership_id,
           name,
           start_date,
@@ -328,20 +329,23 @@ export const getUserSubscription = async (req: Request, res: Response) => {
           amount,
           transaction_id,
           created_at
-        `)
+        `
+        )
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
       supabase
         .from("payment_history")
-        .select(`
+        .select(
+          `
           amount,
           transaction_status,
           plan_id,
           payer_email,
           created_at
-        `)
+        `
+        )
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -372,28 +376,32 @@ export const getUserSubscription = async (req: Request, res: Response) => {
     const response = {
       isPremium: user?.isPremium || false,
       currentPlan,
-      subscription: subscription ? {
-        name: subscription.name,
-        startDate: subscription.start_date,
-        expireDate: subscription.expire_next_renewal,
-        amount: subscription.amount,
-        transactionId: subscription.transaction_id,
-      } : null,
-      lastPayment: payment ? {
-        amount: payment.amount,
-        status: payment.transaction_status,
-        planId: payment.plan_id,
-        email: payment.payer_email,
-        date: payment.created_at,
-      } : null,
+      subscription: subscription
+        ? {
+            name: subscription.name,
+            startDate: subscription.start_date,
+            expireDate: subscription.expire_next_renewal,
+            amount: subscription.amount,
+            transactionId: subscription.transaction_id,
+          }
+        : null,
+      lastPayment: payment
+        ? {
+            amount: payment.amount,
+            status: payment.transaction_status,
+            planId: payment.plan_id,
+            email: payment.payer_email,
+            date: payment.created_at,
+          }
+        : null,
     };
 
     return res.status(200).json(response);
   } catch (error: any) {
     console.error("Error fetching user subscription:", error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: "Failed to fetch subscription status",
-      error: error.message 
+      error: error.message,
     });
   }
 };

@@ -16,8 +16,21 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
 
 // This function will be called internally after successful payment.
 export const createUserAfterOnboarding = async (userData: any) => {
-  const { email, phone, password, firstName, lastName, panCard, dateOfBirth } =
-    userData;
+  const {
+    email,
+    phone,
+    password,
+    firstName,
+    lastName,
+    panCard,
+    dateOfBirth,
+    address1,
+    address2,
+    state,
+    city,
+    pinCode,
+    company,
+  } = userData;
 
   // Basic validation
   if (
@@ -59,6 +72,13 @@ export const createUserAfterOnboarding = async (userData: any) => {
       last_name: lastName,
       pan_card_number: panCard,
       date_of_birth: dateOfBirth,
+      // optional address/company fields
+      address_1: address1 || null,
+      address_2: address2 || null,
+      state: state || null,
+      city: city || null,
+      pin_code: pinCode || null,
+      company: company || null,
       status: "active",
       isPremium: true,
     })
