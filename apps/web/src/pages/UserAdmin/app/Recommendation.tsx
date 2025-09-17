@@ -5,7 +5,7 @@ import axiosInstance from '@/api/axios';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
-const ManagePlans = () => {
+const Recommendation = () => {
   const { data: rowData, isLoading } = useQuery({
     queryKey: ['membership-plans'],
     queryFn: () => axiosInstance.get('/api/membership-plans').then((res) => res.data),
@@ -26,20 +26,20 @@ const ManagePlans = () => {
     return <div>Loading...</div>;
   }
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Manage Plans</h1>
-      <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
-        <AgGridReact
-          rowData={rowData}
-          columnDefs={columnDefs}
-          defaultColDef={{ sortable: true, filter: true, resizable: true }}
-          pagination={true}
-          paginationPageSize={10}
-        />
-      </div>
-    </div>
-  );
+  // return (
+  //   <div>
+  //     <h1 className="text-2xl font-bold mb-4">Manage Plans</h1>
+  //     <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
+  //       <AgGridReact
+  //         rowData={rowData}
+  //         columnDefs={columnDefs}
+  //         defaultColDef={{ sortable: true, filter: true, resizable: true }}
+  //         pagination={true}
+  //         paginationPageSize={10}
+  //       />
+  //     </div>
+  //   </div>
+  // );
 };
 
-export default ManagePlans;
+export default Recommendation;

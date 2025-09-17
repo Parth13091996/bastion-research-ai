@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ChevronLeft,
   LayoutDashboard,
@@ -95,19 +96,20 @@ const Sidebar = () => {
         )}
         <nav className="space-y-1">
           {navItems.map((item) => (
-            <button
+            <Link
               key={item.name}
+              to={item.path}
               className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full
                 ${isCollapsed ? "justify-center" : ""}
-                ${item.isActive 
-                  ? "bg-orange-50 text-orange-700 border-r-2 border-orange-500" 
+                ${item.isActive
+                  ? "bg-orange-50 text-orange-700 border-r-2 border-orange-500"
                   : "text-gray-700 hover:bg-gray-100"
                 }`}
               title={isCollapsed ? item.name : ""}
             >
               <item.icon className="h-5 w-5" />
               {!isCollapsed && <span className="ml-3">{item.name}</span>}
-            </button>
+            </Link>
           ))}
         </nav>
       </div>
