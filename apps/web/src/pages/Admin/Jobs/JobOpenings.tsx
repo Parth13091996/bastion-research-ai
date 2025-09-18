@@ -1,110 +1,188 @@
-import { AgGridReact } from 'ag-grid-react';
-import { ColDef } from 'ag-grid-community';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import axiosInstance from '@/api/axios';
-import { Edit, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-import EditRowModal from '@/components/admin/EditRowModal';
+import { AgGridReact } from "ag-grid-react";
+import { ColDef } from "ag-grid-community";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
+import { Edit, Trash2 } from "lucide-react";
+import { useState } from "react";
+import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 
 const JobOpenings = () => {
   const queryClient = useQueryClient();
   const { data: rowData, isLoading } = useQuery({
-    queryKey: ['jobs'],
-    queryFn: () => axiosInstance.get('/api/jobs').then((res) => res.data),
+    queryKey: ["jobs"],
+    queryFn: () =>
+      axiosInstance.get(endpoints.jobs.base).then((res) => res.data),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number | string) => axiosInstance.delete(`/api/jobs/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobs'] }),
+    mutationFn: (id: number | string) =>
+      axiosInstance.delete(endpoints.jobs.byId(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job deleted successfully");
+    },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (payload: any) =>
-      axiosInstance.put(`/api/jobs/${payload.id}`, payload.body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['jobs'] }),
-  });
-
-  const [editOpen, setEditOpen] = useState(false as any);
-  const [editRow, setEditRow] = useState<any | null>(null);
-
-  const openEdit = (row: any) => { setEditRow(row); setEditOpen(true); };
-
-  const saveEdit = (values: any) => {
-    if (!editRow) return;
-    updateMutation.mutate({ id: editRow.job_id, body: {
-      job_title: values.job_title,
-      author: values.author,
-      expiry: values.expiry,
-      team: values.team,
-      experience: values.experience,
-      commitment: values.commitment,
-      job_type: values.job_type,
-      location: values.location,
-    }});
-    setEditOpen(false);
-  };
-
-  const removeJob = (id: number | string) => deleteMutation.mutate(id);
-
-  const ActionsRenderer = (params: any) => (
-    <div className="flex gap-2">
-      <button className="p-1 text-gray-600 hover:text-blue-600" onClick={() => params.context.openEdit(params.data)} title="Edit"><Edit size={16} /></button>
-      <button className="p-1 text-gray-600 hover:text-red-600" onClick={() => params.context.removeJob(params.data.job_id)} title="Delete"><Trash2 size={16} /></button>
-    </div>
-  );
-
-  const columnDefs: ColDef[] = [
-    { headerName: 'Job ID', field: 'job_id' },
-    { headerName: 'Job Title', field: 'job_title' },
-    { headerName: 'Author', field: 'author' },
-    { headerName: 'Team', field: 'team' },
-    { headerName: 'Experience', field: 'experience' },
-    { headerName: 'Commitment', field: 'commitment' },
-    { headerName: 'Type', field: 'job_type' },
-    { headerName: 'Location', field: 'location' },
-    { headerName: 'Applications', field: 'applications' },
-    { headerName: 'Expiry', field: 'expiry' },
-    { headerName: 'Views', field: 'views' },
-    { headerName: 'Conversion', field: 'conversion' },
-    { headerName: 'Actions', field: 'actions', cellRenderer: ActionsRenderer, sortable: false, filter: false, width: 120 },
+  const columns: ColDef[] = [
+    { 
+      headerName: "Job Title", 
+      field: "job_title",
+      flex: 2,
+      minWidth: 200,
+      cellRenderer: (params: any) => (
+        <div className="flex items-center">
+          <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
+          <span className="font-medium">{params.value}</span>
+        </div>
+      ),
+    },
+    { 
+      headerName: "Author", 
+      field: "author",
+      flex: 1,
+      minWidth: 120,
+    },
+    { 
+      headerName: "Team", 
+      field: "team",
+      flex: 1,
+      minWidth: 120,
+    },
+    { 
+      headerName: "Experience", 
+      field: "experience",
+      flex: 1,
+      minWidth: 120,
+    },
+    { 
+      headerName: "Type", 
+      field: "job_type",
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      headerName: "Location",
+      field: "location",
+      cellRenderer: LocationRenderer,
+      flex: 1,
+      minWidth: 150,
+    },
+    { 
+      headerName: "Applications", 
+      field: "applications",
+      width: 100,
+      cellRenderer: (params: any) => (
+        <div className="flex items-center">
+          <Users className="mr-1 h-3 w-3" />
+          {params.value || 0}
+        </div>
+      ),
+    },
+    {
+      headerName: "Expiry",
+      field: "expiry",
+      cellRenderer: ExpiryRenderer,
+      flex: 1,
+      minWidth: 120,
+    },
+    { 
+      headerName: "Views", 
+      field: "views",
+      width: 80,
+    },
   ];
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const bulkActions = [
+    {
+      label: "Delete Selected",
+      icon: <Trash2 className="h-4 w-4" />,
+      action: (selected: any[]) => handleBulkDelete(selected),
+      variant: "destructive" as const,
+    },
+  ];
+
+  const handleEdit = (row: any) => {
+    // Navigate to edit job page or open edit modal
+    console.log("Edit job:", row);
+  };
+
+  const handleDelete = (row: any) => {
+    const setModalOpen = useModalStore.getState().set;
+    const setModalProps = useModalStore.getState().setProps;
+    
+    setModalProps("confirm", {
+      title: "Delete job opening?",
+      description: `This will permanently delete "${row.job_title}".`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      tone: "danger",
+      onConfirm: () => {
+        deleteMutation.mutate(row.job_id);
+        setModalOpen("confirm", false);
+        setModalProps("confirm", undefined);
+      },
+      onCancel: () => {
+        setModalProps("confirm", undefined);
+      },
+    });
+    setModalOpen("confirm", true);
+  };
+
+  const handleBulkDelete = (selected: any[]) => {
+    const setModalOpen = useModalStore.getState().set;
+    const setModalProps = useModalStore.getState().setProps;
+    
+    setModalProps("confirm", {
+      title: `Delete ${selected.length} job openings?`,
+      description: "This action cannot be undone.",
+      confirmText: "Delete All",
+      cancelText: "Cancel",
+      tone: "danger",
+      onConfirm: async () => {
+        try {
+          await Promise.all(selected.map(job => 
+            axiosInstance.delete(endpoints.jobs.byId(job.job_id))
+          ));
+          queryClient.invalidateQueries({ queryKey: ["jobs"] });
+          toast.success(`${selected.length} jobs deleted successfully`);
+        } catch (error) {
+          toast.error("Failed to delete some jobs");
+        } finally {
+          setModalOpen("confirm", false);
+          setModalProps("confirm", undefined);
+        }
+      },
+      onCancel: () => {
+        setModalProps("confirm", undefined);
+      },
+    });
+    setModalOpen("confirm", true);
+  };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Job Openings</h1>
-      <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
-        <AgGridReact
-          rowData={rowData}
-          columnDefs={columnDefs}
-          defaultColDef={{ sortable: true, filter: true, resizable: true }}
-          pagination={true}
-          paginationPageSize={10}
-          context={{ openEdit, removeJob }}
-        />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Job Openings</h1>
+          <p className="text-muted-foreground">
+            Manage job postings and applications
+          </p>
+        </div>
       </div>
-      <EditRowModal
-        open={editOpen}
-        title="Edit Job"
-        fields={[
-          { name: 'job_title', label: 'Job Title' },
-          { name: 'author', label: 'Author' },
-          { name: 'expiry', label: 'Expiry', type: 'date' },
-          { name: 'team', label: 'Team' },
-          { name: 'experience', label: 'Experience' },
-          { name: 'commitment', label: 'Commitment' },
-          { name: 'job_type', label: 'Job Type' },
-          { name: 'location', label: 'Location' },
-        ]}
-        initialValues={editRow}
-        onClose={() => setEditOpen(false)}
-        onSave={saveEdit}
-        saving={updateMutation.isPending}
+
+      {/* Data Table */}
+      <DataTable
+        data={rowData || []}
+        columns={columns}
+        loading={isLoading}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        bulkActions={bulkActions}
+        searchPlaceholder="Search jobs by title, team, or location..."
+        title="Job Openings"
+        description={`${rowData?.length || 0} active job openings`}
       />
     </div>
   );

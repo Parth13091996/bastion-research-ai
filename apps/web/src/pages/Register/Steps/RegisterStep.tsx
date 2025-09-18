@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { Eye, EyeOff } from "lucide-react";
 
 const RegisterStep: React.FC<RegisterStepProps> = ({
@@ -21,7 +22,7 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     setIsLoading(true);
     try {
       // Data is already updated in the session via useEffect
-      await axiosInstance.post("/api/otp/send", {
+      await axiosInstance.post(endpoints.otp.send, {
         phone: "+91" + formData.phone,
       });
       nextStep();

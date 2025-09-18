@@ -9,6 +9,7 @@ import membershipRoutes from "./routes/membership.routes";
 import couponRoutes from "./routes/coupon.routes";
 import applicationRoutes from "./routes/application.routes";
 import adminRoutes from "./routes/admin.routes";
+import analyticsRoutes from "./routes/analytics.routes";
 import authRoutes from "./routes/auth.routes";
 import digioRoutes from "./routes/digio.routes";
 import cashfreeRoutes from "./routes/cashfree.routes";
@@ -18,7 +19,7 @@ import kraRoutes from "./routes/kra.routes";
 dotenv.config();
 
 const app: Express = express();
-const port = process.env.PORT || 3001;
+const port = Number(process.env.PORT) || 3001;
 
 // Middleware
 app.use(
@@ -53,6 +54,9 @@ app.use("/api", userRoutes);
 app.use("/api", jobRoutes);
 app.use("/api", applicationRoutes);
 app.use("/api", membershipRoutes);
+app.use("/api/analytics", analyticsRoutes);
+
+app.set("trust proxy", 1); // if you use secure cookies or rely on req.protocol
 
 // Root endpoint
 app.get("/", (req: Request, res: Response) => {
@@ -61,8 +65,9 @@ app.get("/", (req: Request, res: Response) => {
     .json({ status: "ok", message: "Express + TypeScript Server running!" });
 });
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+const host = "0.0.0.0"
+app.listen(port,host, () => {
+  console.log(`[server]: Server is running at http://${host}:${port}`);
 });
 
 export default app;

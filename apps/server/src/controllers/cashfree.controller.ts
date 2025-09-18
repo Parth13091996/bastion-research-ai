@@ -75,7 +75,12 @@ const pgFetchOrder = async (orderId: string) => {
   }
 };
 
-type PublicPlan = { code: string; name: string; amount: number; currency: string };
+type PublicPlan = {
+  code: string;
+  name: string;
+  amount: number;
+  currency: string;
+};
 
 export const listPlans = async (_req: Request, res: Response) => {
   try {
@@ -88,7 +93,9 @@ export const listPlans = async (_req: Request, res: Response) => {
     }
 
     const plans: PublicPlan[] = (data || [])
-      .filter((p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0)
+      .filter(
+        (p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0
+      )
       .map((p: any) => ({
         code: String(p.plan_id),
         name: p.plan_name,
@@ -98,15 +105,23 @@ export const listPlans = async (_req: Request, res: Response) => {
 
     return res.status(200).json({ plans });
   } catch (err: any) {
-    return res.status(500).json({ message: err?.message || "Failed to fetch plans" });
+    return res
+      .status(500)
+      .json({ message: err?.message || "Failed to fetch plans" });
   }
 };
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const { plan, customer_id, customer_email, customer_phone, source } = req.body;
-    if (!plan)
-      return res.status(400).json({ message: "plan is required" });
+    const {
+      plan,
+      customer_id,
+      customer_email,
+      customer_phone,
+      return_url,
+      source,
+    } = req.body;
+    if (!plan) return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
       return res.status(400).json({ message: "customer_id is required" });
     if (!customer_phone)
@@ -135,16 +150,12 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       currency: planRow.currency || "INR",
     };
     const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+    const frontendUrl = (
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    ).replace(/\/$/, "");
     // Build return URL with optional context so client can branch behavior
     let returnUrl =
-      process.env.CASHFREE_RETURN_URL ||
-      `${frontendUrl}/payment/success?order_id={order_id}`;
-    if (source) {
-      const hasQuery = returnUrl.includes("?");
-      const sep = hasQuery ? "&" : "?";
-      returnUrl = `${returnUrl}${sep}src=${encodeURIComponent(String(source))}`;
-    }
+      return_url || `${frontendUrl}/payment/success?order_id=${orderId}`;
 
     const request = {
       order_id: orderId,
@@ -162,6 +173,12 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
     };
 
     const response = await pgCreateOrder(request);
+    await supabase.from("payment_history").upsert({
+      payer_email: customer_email || null,
+      transaction_status: "PENDING",
+      user_id: customer_id,
+      plan_id: planRow.plan_id,
+    });
     return res
       .status(201)
       .json({ plan: selected, order: response?.data || response });
@@ -184,6 +201,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     const signature = req.headers["x-webhook-signature"] as string;
     const timestamp = req.headers["x-webhook-timestamp"] as string;
     const rawBody = (req as any).rawBody;
+    console.log({ signature, timestamp });
 
     if (!signature || !timestamp || !rawBody) {
       return res
@@ -206,10 +224,63 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid webhook signature." });
     }
 
-    // Signature is valid, process the event
-    const event = JSON.parse(rawBody);
-    // We no longer depend on onboarding_sessions here. If required,
-    // client will finalize onboarding after payment success.
+    const webhookResponse = JSON.parse(rawBody);
+    console.log({ webhookResponse });
+    if (webhookResponse?.type === "PAYMENT_SUCCESS_WEBHOOK") {
+      const { payment, order, customer_details } = webhookResponse?.data;
+      if (payment?.payment_status === "SUCCESS") {
+        const [response, { data: plans }] = await Promise.all([
+          pgFetchOrder(order.order_id),
+          supabase
+            .from("membership_plans")
+            .select(
+              "plan_id, plan_name, price_amount, currency, duration_months"
+            ),
+        ]);
+        const userId = response?.customer_details?.customer_id;
+        const currentPlan = plans?.find(
+          (plan) => plan.price_amount === payment?.payment_amount
+        );
+        await Promise.all([
+          supabase.from("users").update({ isPremium: true }).eq("id", userId),
+          supabase.from("subscriptions").upsert({
+            membership_id: currentPlan?.plan_id,
+            name: currentPlan?.plan_name,
+            start_date: payment?.payment_time,
+            expire_next_renewal: currentPlan?.duration_months
+              ? new Date(
+                  new Date(payment?.payment_time).getTime() +
+                    currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
+                ).toISOString()
+              : null,
+            amount: payment?.payment_amount,
+            transaction_id: payment?.payment_amount,
+            user_id: userId,
+          }),
+          supabase.from("payment_history").upsert({
+            amount: payment?.payment_amount,
+            transaction_status: payment?.payment_status,
+            plan_id: currentPlan?.plan_id,
+            user_id: userId,
+            payer_email: customer_details?.customer_email,
+          }),
+        ]);
+
+        res.status(200).json({ message: "Subscription updated." });
+      }
+    }
+    if (webhookResponse?.type === "PAYMENT_USER_DROPPED_WEBHOOK") {
+      const { payment } = webhookResponse?.data;
+      if (payment?.payment_status === "USER_DROPPED") {
+        res.status(200).json({
+          message: payment?.payment_message || "Payment user dropped.",
+        });
+      }
+    }
+    if (webhookResponse?.type === "PAYMENT_FAILED_WEBHOOK") {
+      const { error_details } = webhookResponse?.data;
+      res.status(200).json({ message: "Webhook received successfully." });
+    }
 
     res.status(200).json({ message: "Webhook received successfully." });
   } catch (error: any) {
@@ -218,6 +289,10 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
       .status(500)
       .json({ message: "Error handling webhook.", error: error.message });
   }
+};
+
+export const testCashfreeWebhook = async (req: Request, res: Response) => {
+  return res.status(200).json({ message: "Webhook configured successfully!" });
 };
 
 export const getOrder = async (req: Request, res: Response) => {
@@ -231,5 +306,103 @@ export const getOrder = async (req: Request, res: Response) => {
       message: "Failed to fetch order",
     };
     return res.status(status).json(payload);
+  }
+};
+
+export const getUserSubscription = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Get user's current subscription and payment status
+    const [userResult, subscriptionResult, paymentResult] = await Promise.all([
+      supabase.from("users").select("isPremium").eq("id", userId).single(),
+      supabase
+        .from("subscriptions")
+        .select(
+          `
+          membership_id,
+          name,
+          start_date,
+          expire_next_renewal,
+          amount,
+          transaction_id,
+          created_at
+        `
+        )
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("payment_history")
+        .select(
+          `
+          amount,
+          transaction_status,
+          plan_id,
+          payer_email,
+          created_at
+        `
+        )
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    if (userResult.error) {
+      return res.status(500).json({ message: userResult.error.message });
+    }
+
+    const user = userResult.data;
+    const subscription = subscriptionResult.data;
+    const payment = paymentResult.data;
+
+    // Determine current plan based on subscription or default to free
+    let currentPlan = "free";
+    if (subscription && user?.isPremium) {
+      // Map plan based on membership_id or amount
+      if (subscription.membership_id === 2) {
+        currentPlan = "12m"; // Annual Plan
+      } else if (subscription.membership_id === 4) {
+        currentPlan = "3m"; // Bastion Research Core
+      } else if (subscription.membership_id === 5) {
+        currentPlan = "free"; // Freemium
+      }
+    }
+
+    const response = {
+      isPremium: user?.isPremium || false,
+      currentPlan,
+      subscription: subscription
+        ? {
+            name: subscription.name,
+            startDate: subscription.start_date,
+            expireDate: subscription.expire_next_renewal,
+            amount: subscription.amount,
+            transactionId: subscription.transaction_id,
+          }
+        : null,
+      lastPayment: payment
+        ? {
+            amount: payment.amount,
+            status: payment.transaction_status,
+            planId: payment.plan_id,
+            email: payment.payer_email,
+            date: payment.created_at,
+          }
+        : null,
+    };
+
+    return res.status(200).json(response);
+  } catch (error: any) {
+    console.error("Error fetching user subscription:", error);
+    return res.status(500).json({
+      message: "Failed to fetch subscription status",
+      error: error.message,
+    });
   }
 };

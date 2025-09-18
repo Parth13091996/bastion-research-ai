@@ -1,256 +1,267 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Search, Plus, Edit, Trash2 } from "lucide-react";
-import { AgGridReact } from "ag-grid-react";
-import { ColDef, GridReadyEvent } from "ag-grid-community";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import "../../../styles/ag-grid-custom.css";
-import EditRowModal from "@/components/admin/EditRowModal";
-import AddMemberModal from "../../../components/admin/AddMemberModal";
+import { endpoints } from "@/api/endpoints";
+import { DataTable } from "@/components/ui/data-table";
+import { useEditMemberStore } from "@/stores/edit-member-store";
+import { useModalStore } from "@/stores/modal-store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ColDef } from "ag-grid-community";
+import { Plus, Trash2, UserPlus, Mail } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-// Avatar Renderer
 const AvatarRenderer = (params: any) => {
-  const getInitial = (name: string) => (name ? name.charAt(0).toUpperCase() : "U");
+  const getInitial = (name: string) =>
+    name ? name.charAt(0).toUpperCase() : "U";
+  // Add null checks for params and params.data
+  const displayName = params?.data?.first_name ?? params?.data?.username ?? "";
   return (
     <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
-      {getInitial(params.data.first_name || params.data.username)}
+      {getInitial(displayName)}
     </div>
   );
 };
 
-// Status Badge Renderer
-const StatusBadgeRenderer = (params: any) => (
-  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-    {params.value || "Active"}
-  </span>
-);
+const RoleRenderer = (params: any) => {
+  const role = params.value || "employee";
+  const roleColors = {
+    admin: "bg-red-100 text-red-800",
+    employee: "bg-blue-100 text-blue-800",
+    core_subscriber: "bg-green-100 text-green-800",
+    ipo_subscriber: "bg-purple-100 text-purple-800",
+    research_ally_subscriber: "bg-orange-100 text-orange-800",
+  };
+  
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[role] || "bg-gray-100 text-gray-800"}`}>
+      {role.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+    </span>
+  );
+};
 
-// Actions Renderer
-const ActionsRenderer = (params: any) => (
-  <div className="flex items-center space-x-1">
-    <button
-      className="p-1 text-gray-600 hover:text-blue-600 rounded"
-      title="Edit"
-      onClick={() => params.context?.openEdit?.(params.data)}
-    >
-      <Edit size={16} />
-    </button>
-    <button
-      className="p-1 text-gray-600 hover:text-red-600 rounded"
-      title="Delete"
-      onClick={() => params.context?.deleteUser?.(params.data.id)}
-    >
-      <Trash2 size={16} />
-    </button>
-  </div>
+const EmailRenderer = (params: any) => (
+  <a
+    href={`mailto:${params.value}`}
+    className="text-blue-600 hover:underline flex items-center"
+  >
+    <Mail className="mr-1 h-3 w-3" />
+    {params.value}
+  </a>
 );
 
 const MemberManagementDashboard = () => {
   const queryClient = useQueryClient();
-  const { data: rowData, isLoading: loading } = useQuery({
+  const {
+    data: rowData,
+    isLoading: loading,
+    error,
+  } = useQuery({
     queryKey: ["users"],
-    queryFn: () => axiosInstance.get("/api/users").then((res) => res.data),
+    queryFn: () =>
+      axiosInstance.get(endpoints.users.base).then((res) => res.data),
   });
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("Select Status");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const gridRef = useRef<AgGridReact>(null);
-
+  
+  const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
+  const setIsModalOpen = useModalStore((s) => s.set);
+  
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) =>
-      axiosInstance.put(`/api/users/${payload.id}`, payload.body),
+      axiosInstance.put(endpoints.users.byId(payload.id), payload.body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
-
+  
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => axiosInstance.delete(`/api/users/${id}`),
+    mutationFn: (id: string) => axiosInstance.delete(endpoints.users.byId(id)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 
-  const [colDefs] = useState<ColDef[]>([
+  const columns: ColDef[] = [
     {
-      headerName: "",
-      field: "select",
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
-      width: 50,
+      headerName: "Avatar",
+      field: "avatar",
+      cellRenderer: AvatarRenderer,
+      width: 80,
+      sortable: false,
+      filter: false,
     },
-    { headerName: "Avatar", field: "avatar", cellRenderer: AvatarRenderer, width: 80, sortable: false, filter: false },
-    { headerName: "Username", field: "username", flex: 2 },
-    { headerName: "Email Address", field: "email", flex: 3 },
-    { headerName: "Role", field: "role", flex: 1 },
-    { headerName: "Status", field: "status", cellRenderer: StatusBadgeRenderer, flex: 1 },
-    { headerName: "First Name", field: "first_name", flex: 1 },
-    { headerName: "Last Name", field: "last_name", flex: 1 },
-    { headerName: "Actions", field: "actions", cellRenderer: ActionsRenderer, width: 120, sortable: false, filter: false },
-  ]);
+    { 
+      headerName: "Username", 
+      field: "username", 
+      flex: 1,
+      minWidth: 150,
+    },
+    { 
+      headerName: "Email", 
+      field: "email", 
+      flex: 2,
+      cellRenderer: EmailRenderer,
+      minWidth: 200,
+    },
+    { 
+      headerName: "Name", 
+      field: "full_name",
+      valueGetter: (params) => `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      headerName: "Role",
+      field: "role",
+      cellRenderer: RoleRenderer,
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      headerName: "Status",
+      field: "status",
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      headerName: "Created",
+      field: "created_at",
+      valueFormatter: (params) => {
+        if (!params.value) return "";
+        return new Date(params.value).toLocaleDateString();
+      },
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      headerName: "Premium",
+      field: "isPremium",
+      cellRenderer: (params: any) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          params.value 
+            ? "bg-green-100 text-green-800" 
+            : "bg-gray-100 text-gray-800"
+        }`}>
+          {params.value ? "Yes" : "No"}
+        </span>
+      ),
+      width: 100,
+      sortable: false,
+      filter: false,
+    },
+  ];
 
-  const [editOpen, setEditOpen] = useState(false);
-  const [editRow, setEditRow] = useState<any | null>(null);
+  const bulkActions = [
+    {
+      label: "Delete Selected",
+      icon: <Trash2 className="h-4 w-4" />,
+      action: (selected: any[]) => handleBulkDelete(selected),
+      variant: "destructive" as const,
+    },
+    {
+      label: "Send Email",
+      icon: <Mail className="h-4 w-4" />,
+      action: (selected: any[]) => handleBulkEmail(selected),
+    },
+  ];
 
-  const openEdit = (row: any) => {
-    setEditRow(row);
-    setEditOpen(true);
+  const openEditMember = useEditMemberStore((s) => s.open);
+  
+  const handleEdit = (row: any) => {
+    openEditMember(row);
   };
 
-  const saveEdit = (values: any) => {
-    if (!editRow) return;
-    updateMutation.mutate({
-      id: editRow.id,
-      body: {
-        username: values.username,
-        email: values.email,
-        first_name: values.first_name,
-        last_name: values.last_name,
+  const handleDelete = (row: any) => {
+    const setModalOpen = useModalStore.getState().set;
+    const setModalProps = useModalStore.getState().setProps;
+    
+    setModalProps("confirm", {
+      title: "Delete member?",
+      description: `This action cannot be undone. This will permanently delete ${row.first_name || row.username || "this user"}.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      tone: "danger",
+      isLoading: deleteMutation.isPending,
+      onConfirm: () => {
+        deleteMutation.mutate(row.id, {
+          onSettled: () => {
+            setModalOpen("confirm", false);
+            setModalProps("confirm", undefined);
+            toast.success("Member deleted successfully");
+          },
+        });
+      },
+      onCancel: () => {
+        setModalProps("confirm", undefined);
       },
     });
-    setEditOpen(false);
+    setModalOpen("confirm", true);
   };
 
-  const deleteUser = (id: string) => deleteMutation.mutate(id);
-
-  const onGridReady = (params: GridReadyEvent) => {
-    gridRef.current = params;
+  const handleBulkDelete = (selected: any[]) => {
+    const setModalOpen = useModalStore.getState().set;
+    const setModalProps = useModalStore.getState().setProps;
+    
+    setModalProps("confirm", {
+      title: `Delete ${selected.length} members?`,
+      description: "This action cannot be undone. This will permanently delete all selected members.",
+      confirmText: "Delete All",
+      cancelText: "Cancel",
+      tone: "danger",
+      isLoading: deleteMutation.isPending,
+      onConfirm: async () => {
+        try {
+          await Promise.all(selected.map(member => 
+            axiosInstance.delete(endpoints.users.byId(member.id))
+          ));
+          queryClient.invalidateQueries({ queryKey: ["users"] });
+          toast.success(`${selected.length} members deleted successfully`);
+        } catch (error) {
+          toast.error("Failed to delete some members");
+        } finally {
+          setModalOpen("confirm", false);
+          setModalProps("confirm", undefined);
+        }
+      },
+      onCancel: () => {
+        setModalProps("confirm", undefined);
+      },
+    });
+    setModalOpen("confirm", true);
   };
 
-  useEffect(() => {
-    if (gridRef.current?.api) {
-      const statusFilter =
-        selectedStatus !== "Select Status"
-          ? {
-              status: { filterType: "text", type: "equals", filter: selectedStatus },
-            }
-          : null;
-      const combinedFilter = { ...statusFilter };
-      gridRef.current.api.setFilterModel(combinedFilter);
-      gridRef.current.api.onFilterChanged();
-    }
-  }, [selectedStatus]);
-
-  useEffect(() => {
-    if (gridRef.current?.api) {
-      gridRef.current.api.setQuickFilter(searchTerm);
-    }
-  }, [searchTerm]);
-
-  const onPageSizeChanged = (newPageSize: number) => {
-    if (gridRef.current?.api) {
-      gridRef.current.api.paginationSetPageSize(newPageSize);
-    }
+  const handleBulkEmail = (selected: any[]) => {
+    const emails = selected.map(member => member.email).join(", ");
+    window.open(`mailto:${emails}`, "_blank");
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-sm max-w-[90rem] mx-auto p-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Manage Members</h1>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <Plus size={20} />
-            <span>Add Member</span>
-          </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Manage Members</h1>
+          <p className="text-muted-foreground">
+            Manage user accounts and permissions
+          </p>
         </div>
-
-        <AddMemberModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
-          <div className="relative w-full md:w-1/3">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Search Member..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-4 py-2 w-full md:w-48 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option>Select Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </div>
-
-        {/* Table */}
-        <div className="w-full overflow-x-auto">
-          <div className="ag-theme-alpine w-full" style={{ height: 600 }}>
-            <AgGridReact
-              ref={gridRef}
-              rowData={rowData}
-              columnDefs={colDefs}
-              defaultColDef={{
-                sortable: true,
-                filter: true,
-                resizable: true,
-              }}
-              pagination={true}
-              paginationPageSize={10}
-              rowHeight={65} // Increased row height
-              headerHeight={50} // Increased header height
-              onGridReady={onGridReady}
-              rowSelection="multiple"
-              suppressRowClickSelection={true}
-              context={{ openEdit, deleteUser }}
-              domLayout="autoHeight"
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end mt-4">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <span>Show</span>
-            <select
-              onChange={(e) => onPageSizeChanged(Number(e.target.value))}
-              defaultValue={10}
-              className="border border-gray-300 rounded px-2 py-1"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-            <span>members</span>
-          </div>
-        </div>
-
-        <EditRowModal
-          open={editOpen}
-          title="Edit Member"
-          fields={[
-            { name: "username", label: "Username" },
-            { name: "email", label: "Email", type: "email" },
-            { name: "first_name", label: "First Name" },
-            { name: "last_name", label: "Last Name" },
-          ]}
-          initialValues={editRow}
-          onClose={() => setEditOpen(false)}
-          onSave={saveEdit}
-          saving={updateMutation.isPending}
-        />
+        <Button
+          onClick={() => setIsModalOpen("addMember", true)}
+          className="flex items-center space-x-2"
+        >
+          <UserPlus className="h-4 w-4" />
+          <span>Add Member</span>
+        </Button>
       </div>
+
+      {/* Data Table */}
+      <DataTable
+        data={rowData || []}
+        columns={columns}
+        loading={loading}
+        error={error?.message}
+        onSelectionChange={setSelectedMembers}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        bulkActions={bulkActions}
+        searchPlaceholder="Search members by name, email, or username..."
+        title="Members"
+        description={`${rowData?.length || 0} total members`}
+      />
     </div>
   );
 };

@@ -19,7 +19,7 @@ function TypingLoop({ phrases, typingSpeed = 30, pauseTime = 2000 }) {
   const [index, setIndex] = React.useState(0);
   const [charIndex, setCharIndex] = React.useState(0);
   const [deleting, setDeleting] = React.useState(false);
-  
+
   React.useEffect(() => {
     let timer;
 
@@ -123,7 +123,7 @@ export default function BastionCoreProductPage() {
     {
       title: "Detailed Business Understanding Note",
       desc: "Get access to detailed business understanding notes on companies under active coverage.",
-      img: "https://cdn.shopify.com/s/files/1/0723/2415/3587/files/businessUnderstanding.jpg?v=1756568173",
+      img: "https://cdn.shopify.com/s/media/1/0723/2415/3587/media/businessUnderstanding.jpg?v=1756568173",
     },
     {
       title: "Regular Updates",
@@ -138,7 +138,7 @@ export default function BastionCoreProductPage() {
     {
       title: "Model Portfolio",
       desc: "Don't just want access to research but also ready to execute portfolio? We have got you covered.",
-      img: "https://cdn.shopify.com/s/files/1/0723/2415/3587/files/businessUnderstanding.jpg?v=1756568173",
+      img: "https://cdn.shopify.com/s/media/1/0723/2415/3587/media/businessUnderstanding.jpg?v=1756568173",
     },
     {
       title: "Quarterly Interactions",
@@ -340,37 +340,6 @@ export default function BastionCoreProductPage() {
                 <span className="font-semibold">Peter Lynch</span>
               </div>
             </motion.div>
-
-            {/* <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="rounded-3xl p-6 md:p-8 shadow-lg flex flex-col items-center justify-center"
-              style={{ background: COLORS.blue }}
-            >
-              <div className="relative mb-4">
-                <div className="overflow-visible rounded-3xl shadow-2xl transition-transform duration-500 transform">
-                  <img
-                    src="src/files/peter-lynch-portrait.webp"
-                    alt="Peter Lynch"
-                    className="w-64 md:w-80 h-auto rounded-3xl object-contain"
-                  />
-                </div>
-                <div className="mt-3 text-center text-white text-lg md:text-xl font-semibold">
-                  Peter Lynch
-                </div>
-              </div>
-
-              <div className="text-center text-white">
-                <div className="text-2xl md:text-3xl font-semibold">
-                  Clean. Objective. Actionable.
-                </div>
-                <div className="opacity-80 mt-2 text-lg md:text-base">
-                  No fluff. Just high-quality research you can actually use.
-                </div>
-              </div>
-            </motion.div> */}
           </div>
         </section>
 

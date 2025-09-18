@@ -12,7 +12,6 @@ export interface User {
   city: string;
   pin_code: string;
   date_of_birth: string; // Or Date, but string is safer for serialization
-  gst_number?: string | null;
   company?: string | null;
   password?: string | null; // Null for OAuth users
   role?: "user" | "admin"; // Assuming possible roles

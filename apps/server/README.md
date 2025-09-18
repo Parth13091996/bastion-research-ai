@@ -52,3 +52,48 @@ If `DIGIO_WEBHOOK_REQUIRE_SIGNATURE=true` you must include a valid HMAC signatur
 If the table `public.digio_documents` exists, the handler attempts to update the row where `document_id` matches, setting `status` and `raw_response`.
 
 > Tip: If you also store `user_id → document_id` at creation time, the webhook will enrich your existing record automatically when the status changes.
+
+## Analytics (Page Views)
+
+The server provides a lightweight analytics system to track page views with IP- and user-level aggregation.
+
+- Public endpoint (called by SPA on route changes): `POST /api/analytics/track`
+  - Body: `{ path: string; title?: string; referrer?: string }`
+  - Uses cookie `token` (if present) to attach `user_id`
+  - Captures `ip` from `x-forwarded-for` / socket, and `user_agent`
+
+- Admin summary endpoint: `GET /api/admin/analytics/summary?days=7`
+  - Secured by admin auth
+  - Returns: visits per day, unique users per day, top pages, and active users/IPs in the last 5 minutes
+
+### Database schema
+
+Create the table in your Supabase/Postgres project (run once):
+
+File: `apps/server/sql/analytics.sql`
+
+```sql
+create extension if not exists pgcrypto;
+
+create table if not exists public.analytics_pageviews (
+  id uuid primary key default gen_random_uuid(),
+  occurred_at timestamptz not null default now(),
+  path text not null,
+  title text,
+  referrer text,
+  ip text,
+  user_id text,
+  user_agent text
+);
+
+create index if not exists idx_analytics_pageviews_occurred_at on public.analytics_pageviews (occurred_at desc);
+create index if not exists idx_analytics_pageviews_path on public.analytics_pageviews (path);
+create index if not exists idx_analytics_pageviews_user_id on public.analytics_pageviews (user_id);
+```
+
+Env requirements:
+- `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` must be set (already used elsewhere in this server)
+
+Notes:
+- The track endpoint fails open (returns 202) if the table doesn’t exist yet; apply the SQL above to enable full analytics.
+- If you deploy behind a proxy, ensure it forwards `x-forwarded-for` so IPs are accurate.

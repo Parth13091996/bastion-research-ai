@@ -75,7 +75,6 @@ export const createUser = async (req: Request, res: Response) => {
     city,
     pin_code,
     date_of_birth,
-    gst_number,
     company,
     status,
   } = req.body;
@@ -110,7 +109,6 @@ export const createUser = async (req: Request, res: Response) => {
         city,
         pin_code,
         date_of_birth: dob,
-        gst_number,
         company,
         status: status || "active",
       },
@@ -156,7 +154,6 @@ export const updateUser = async (req: Request, res: Response) => {
     "city",
     "pin_code",
     "date_of_birth",
-    "gst_number",
     "company",
     "pan_card_number",
   ] as const;
@@ -191,7 +188,9 @@ export const updateUser = async (req: Request, res: Response) => {
 
     return res.status(200).json(data);
   } catch (e: any) {
-    return res.status(500).json({ error: e?.message || "Failed to update user" });
+    return res
+      .status(500)
+      .json({ error: e?.message || "Failed to update user" });
   }
 };
 

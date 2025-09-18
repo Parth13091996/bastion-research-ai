@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../../src/files/favicon.webp";
+import logo from "../../public/media/favicon.webp";
 import {
   ChevronLeft,
   LayoutDashboard,
@@ -304,7 +304,7 @@ export default function Sidebar() {
               <img
                 src={profile.avatarUrl}
                 alt={profile.name}
-                className="w-8 h-8 object-cover"
+                className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
               <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">

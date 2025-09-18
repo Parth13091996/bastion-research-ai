@@ -24,9 +24,12 @@ export const createUserAfterOnboarding = async (userData: any) => {
     lastName,
     panCard,
     dateOfBirth,
-    aadharCard,
-    bankAccount,
-    ifscCode,
+    address1,
+    address2,
+    state,
+    city,
+    pinCode,
+    company,
   } = userData;
 
   // Basic validation
@@ -36,27 +39,21 @@ export const createUserAfterOnboarding = async (userData: any) => {
     !password ||
     !firstName ||
     !lastName ||
-    !panCard ||
     !dateOfBirth
   ) {
     console.error("Validation failed for userData:", userData);
     throw new Error("Missing required fields for user creation.");
   }
 
-  // Check if user already exists
-  const { data: existingUser, error: existingUserError } = await supabase
+  const { data: existingUser } = await supabase
     .from("users")
-    .select("email, phone")
-    .or(`email.eq.${email},phone.eq.${phone}`);
+    .select("email")
+    .eq("email", email)
+    .maybeSingle();
 
-  if (existingUserError) {
-    console.error("Error checking for existing user:", existingUserError);
-    throw existingUserError;
-  }
-
-  if (existingUser && existingUser.length > 0) {
+  if (existingUser) {
     console.warn(`Attempted to create a user that already exists: ${email}`);
-    return existingUser[0];
+    throw new Error(`Attempted to create a user that already exists: ${email}`);
   }
 
   const hashedPassword = await bcrypt.hash(password, config.saltRounds);
@@ -75,9 +72,13 @@ export const createUserAfterOnboarding = async (userData: any) => {
       last_name: lastName,
       pan_card_number: panCard,
       date_of_birth: dateOfBirth,
-      aadhar_card_number: aadharCard,
-      bank_account_number: bankAccount,
-      ifsc_code: ifscCode,
+      // optional address/company fields
+      address_1: address1 || null,
+      address_2: address2 || null,
+      state: state || null,
+      city: city || null,
+      pin_code: pinCode || null,
+      company: company || null,
       status: "active",
       isPremium: true,
     })
@@ -171,9 +172,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
     // Always respond success even if not found to prevent user enumeration
     if (!user || error) {
       return res.status(200).json({
-        message:
-          "User doesn't exists for this email, Please create one.",
-        sentStatus: 'failed'
+        message: "User doesn't exists for this email, Please create one.",
+        sentStatus: "failed",
       });
     }
 
@@ -181,7 +181,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
     if (!secret) throw new Error("JWT_SECRET not set");
 
     // password version tag so token invalidates after password change
-    const pwdTag = crypto.createHash("sha256").update(user.password || "").digest("hex");
+    const pwdTag = crypto
+      .createHash("sha256")
+      .update(user.password || "")
+      .digest("hex");
     const token = jwt.sign(
       { sub: user.id, email: user.email, type: "pwd_reset", pv: pwdTag },
       secret,
@@ -218,14 +221,18 @@ export const forgotPassword = async (req: Request, res: Response) => {
 export const resetPassword = async (req: Request, res: Response) => {
   const { token, password } = req.body as { token?: string; password?: string };
   if (!token || !password || password.length < 6) {
-    return res.status(400).json({ message: "Invalid token or password too short" });
+    return res
+      .status(400)
+      .json({ message: "Invalid token or password too short" });
   }
   try {
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error("JWT_SECRET not set");
     const decoded = jwt.verify(token, secret) as any;
     if (!decoded || decoded.type !== "pwd_reset" || !decoded.sub) {
-      return res.status(400).json({ message: "Invalid or expired reset token" });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token" });
     }
 
     const { data: user, error } = await supabase
@@ -238,7 +245,10 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     // Ensure token not reused after password change
-    const pwdTag = crypto.createHash("sha256").update(user.password || "").digest("hex");
+    const pwdTag = crypto
+      .createHash("sha256")
+      .update(user.password || "")
+      .digest("hex");
     if (pwdTag !== decoded.pv) {
       return res.status(400).json({ message: "Reset link is no longer valid" });
     }
@@ -327,7 +337,7 @@ export const registerFromOnboarding = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Onboarding finalize error:", error);
     return res.status(400).json({
-      message: "Failed to create user from onboarding data",
+      message: error?.message || "Failed to create user from onboarding data",
       error: error?.message,
     });
   }

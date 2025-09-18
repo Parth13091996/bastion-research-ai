@@ -9,12 +9,16 @@ interface OnboardingFormData {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
+  address1?: string;
+  address2?: string;
+  state?: string;
+  city?: string;
+  pinCode?: string;
+  company?: string;
   panCard: string;
-  aadharCard: string;
-  bankAccount: string;
-  ifscCode: string;
   agreeToTerms: boolean;
   selectedPlan: string;
+  digioDocId?: string;
 }
 
 interface SignUpFormProps {
@@ -48,7 +52,6 @@ interface RegisterStepProps {
 
 interface VerifyStepProps {
   otp: string[];
-  otpTimer: number;
   isLoading: boolean;
   error: string | null;
   onBack: () => void;
@@ -56,25 +59,31 @@ interface VerifyStepProps {
   updateFormData: (field: string, value: any) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string>>;
-  setOtpTimer: React.Dispatch<React.SetStateAction<number>>;
   formData: OnboardingFormData;
   email: string;
   phone: string;
 }
 
 interface OnboardStepProps {
-  formData: { firstName: string; lastName: string; dateOfBirth: string };
+  formData: {
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    address1?: string;
+    address2?: string;
+    state?: string;
+    city?: string;
+    pinCode?: string;
+    company?: string;
+  };
   updateFormData: UpdateFormFn;
-  onBack: () => void;
+  setCurrentStep: any;
   onNext: () => void;
 }
 
 interface KYCStepProps {
   formData: {
     panCard: string;
-    aadharCard: string;
-    bankAccount: string;
-    ifscCode: string;
   };
   updateFormData: UpdateFormFn;
   onBack: () => void;
@@ -83,12 +92,13 @@ interface KYCStepProps {
 
 interface PlansStepProps {
   plans: Plan[];
-  selectedPlan: string;
+  formData: OnboardingFormData;
   updateFormData: UpdateFormFn;
   onBack: () => void;
   onNext: () => void;
   isLoading: boolean;
   error: string | null;
+  setCurrentStep: any;
 }
 
 interface AgreementStepProps {
@@ -96,6 +106,8 @@ interface AgreementStepProps {
   updateFormData: UpdateFormFn;
   onBack: () => void;
   onNext: () => void;
+  // Access to identifier for Digio (email/phone)
+  formData?: { email: string; phone: string };
 }
 
 interface PaymentStepProps {
@@ -108,5 +120,5 @@ interface PaymentStepProps {
   onClose: () => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string>>;
-  setOtpTimer: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentStep: any;
 }

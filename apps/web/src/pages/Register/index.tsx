@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, Shield, TrendingUp, BarChart3, Target } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { SignUpCard } from "./SignUpCard";
 import SignUpForm from "./SignupForm";
-
-const NAVY = "#1C2852";
-const MAROON = "#C00000";
 
 export default function Register() {
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
@@ -14,44 +11,22 @@ export default function Register() {
   useEffect(() => {
     try {
       const wasOpen = localStorage.getItem("onboardingOpen");
-      const step = parseInt(localStorage.getItem("onboardingCurrentStep") || "1", 10);
+      const step = parseInt(
+        localStorage.getItem("onboardingCurrentStep") || "1",
+        10
+      );
       if (wasOpen === "true" || (step && step > 1)) {
         setIsSignUpOpen(true);
       }
     } catch {}
   }, []);
 
-  const features = [
-    {
-      icon: <TrendingUp className="w-6 h-6" />,
-      title: "Expert Research",
-      description: "Institutional-grade analysis from seasoned professionals"
-    },
-    {
-      icon: <Shield className="w-6 h-6" />,
-      title: "Risk Management",
-      description: "Comprehensive risk assessment and portfolio protection"
-    },
-    {
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: "Data-Driven Insights",
-      description: "Actionable intelligence based on deep market analysis"
-    },
-    {
-      icon: <Target className="w-6 h-6" />,
-      title: "Personalized Strategy",
-      description: "Customized investment approaches for your goals"
-    }
-  ];
-
   const stats = [
     { number: "58.15%", label: "Average Returns" },
     { number: "10K+", label: "Active Users" },
     { number: "95%", label: "Success Rate" },
-    { number: "24/7", label: "Support" }
+    { number: "24/7", label: "Support" },
   ];
-
-  // Removed testimonials and any mention of free trial or free features
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50">
@@ -68,7 +43,7 @@ export default function Register() {
               className="space-y-8"
             >
               <div className="space-y-4">
-                <motion.h1 
+                <motion.h1
                   className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -79,19 +54,20 @@ export default function Register() {
                     Investment Journey
                   </span>
                 </motion.h1>
-                <motion.p 
+                <motion.p
                   className="text-xl text-gray-600 leading-relaxed"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  Join thousands of investors who trust Bastion for institutional-grade research, 
-                  risk management, and personalized investment strategies.
+                  Join thousands of investors who trust Bastion for
+                  institutional-grade research, risk management, and
+                  personalized investment strategies.
                 </motion.p>
               </div>
 
               {/* Stats */}
-              <motion.div 
+              <motion.div
                 className="grid grid-cols-2 md:grid-cols-4 gap-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -99,7 +75,9 @@ export default function Register() {
               >
                 {stats.map((stat, index) => (
                   <div key={index} className="text-center">
-                    <div className="text-2xl md:text-3xl font-bold text-red-600">{stat.number}</div>
+                    <div className="text-2xl md:text-3xl font-bold text-red-600">
+                      {stat.number}
+                    </div>
                     <div className="text-sm text-gray-600">{stat.label}</div>
                   </div>
                 ))}
@@ -111,10 +89,14 @@ export default function Register() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
-                <SignUpCard onSignUpClick={() => {
-                  try { localStorage.setItem("onboardingOpen", "true"); } catch {}
-                  setIsSignUpOpen(true);
-                }} />
+                <SignUpCard
+                  onSignUpClick={() => {
+                    try {
+                      localStorage.setItem("onboardingOpen", "true");
+                    } catch {}
+                    setIsSignUpOpen(true);
+                  }}
+                />
               </motion.div>
             </motion.div>
 
@@ -132,23 +114,33 @@ export default function Register() {
                       <span className="text-white font-bold text-xl">B</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900">Bastion TripleEdge</h3>
-                      <p className="text-gray-600">Premium Investment Research</p>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        Bastion TripleEdge
+                      </h3>
+                      <p className="text-gray-600">
+                        Premium Investment Research
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Institutional-grade research</span>
+                      <span className="text-gray-700">
+                        Institutional-grade research
+                      </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Risk management tools</span>
+                      <span className="text-gray-700">
+                        Risk management tools
+                      </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Personalized strategies</span>
+                      <span className="text-gray-700">
+                        Personalized strategies
+                      </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
@@ -158,13 +150,17 @@ export default function Register() {
 
                   <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">58.15%</div>
-                      <div className="text-sm text-gray-600">Average Annual Returns</div>
+                      <div className="text-2xl font-bold text-red-600">
+                        58.15%
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Average Annual Returns
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               {/* Background decoration */}
               <div className="absolute -top-4 -right-4 w-72 h-72 bg-gradient-to-r from-red-200 to-red-300 rounded-full opacity-20 blur-3xl"></div>
               <div className="absolute -bottom-4 -left-4 w-64 h-64 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full opacity-20 blur-3xl"></div>
@@ -178,7 +174,9 @@ export default function Register() {
         <SignUpForm
           isOpen={isSignUpOpen}
           onClose={() => {
-            try { localStorage.setItem("onboardingOpen", "false"); } catch {}
+            try {
+              localStorage.setItem("onboardingOpen", "false");
+            } catch {}
             setIsSignUpOpen(false);
           }}
         />

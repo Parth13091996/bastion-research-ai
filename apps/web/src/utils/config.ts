@@ -1,5 +1,6 @@
 export const Config = {
   app_name: "Bastion Research",
+  app_url: import.meta.env.BASE_URL,
   connect_url: "connect@bastionresearch.in",
   social_links: {
     twitter: "https://x.com/bastionresearch",

@@ -1,13 +1,14 @@
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { ArrowLeft, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import OTPInput from "react-otp-input";
+import { toast } from "sonner";
 
 const VerifyStep: React.FC<VerifyStepProps> = ({
-  otp,
-  otpTimer,
   isLoading,
   error,
   onBack,
-  setOtpTimer,
   updateFormData,
   formData,
   email,
@@ -16,58 +17,111 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
   setError,
   nextStep,
 }) => {
+  const [startOtpTimer, setStartOtpTimer] = useState(false);
+  const [otpTimer, setOtpTimer] = useState<number>(600);
   const handleVerifyOtp = async () => {
-    setError(null);
-    setIsLoading(true);
-    const otp = formData.otp.join("");
+    if (!formData || !formData.otp || !formData.phone) {
+      setError && setError("Missing OTP or phone number.");
+      return;
+    }
+    setError && setError(null);
+    setIsLoading && setIsLoading(true);
+    setStartOtpTimer(true);
+    const otp = Array.isArray(formData.otp) ? formData.otp.join("") : "";
     try {
-      await axiosInstance.post("/api/otp/verify", {
+      const response = await axiosInstance.post(endpoints.otp.verify, {
         phone: "+91" + formData.phone,
         otp: otp,
       });
-      nextStep();
+      toast.success(response?.data?.message || "OTP verified");
+      nextStep && nextStep();
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || "An unexpected error occurred.";
-      setError(errorMessage);
+        err?.response?.data?.message || "An unexpected error occurred.";
+      setError && setError(errorMessage);
       console.error(err);
     } finally {
-      setIsLoading(false);
+      setIsLoading && setIsLoading(false);
     }
   };
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length <= 1) {
-      const newOtp = [...formData.otp];
-      newOtp[index] = value;
-      updateFormData("otp", newOtp);
 
-      // Auto focus next input
-      if (value && index < 5) {
-        const nextInput = document.querySelector(
-          `input[name="otp-${index + 1}"]`
-        );
-        //@ts-ignore
-        if (nextInput) nextInput?.focus();
-      }
-    }
-  };
   const handleResendOtp = async () => {
-    setError(null);
-    setIsLoading(true);
+    if (!formData || !formData.phone) {
+      setError && setError("Missing phone number.");
+      return;
+    }
+    setError && setError(null);
+    setIsLoading && setIsLoading(true);
+    setStartOtpTimer(true);
+
     try {
-      await axiosInstance.post("/api/otp/send", {
+      await axiosInstance.post(endpoints.otp.send, {
         phone: "+91" + formData.phone,
       });
       setOtpTimer(600); // Reset timer to 10 minutes
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || "An unexpected error occurred.";
-      setError(errorMessage);
+        err?.response?.data?.message || "An unexpected error occurred.";
+      setError && setError(errorMessage);
       console.error(err);
     } finally {
-      setIsLoading(false);
+      setIsLoading && setIsLoading(false);
     }
   };
+
+  const renderOtpTimer = () => {
+    if (!startOtpTimer) return null;
+    const timer = typeof otpTimer === "number" ? otpTimer : 0;
+    const minutes = Math.floor(timer / 60);
+    const seconds = timer % 60;
+    return `Expire in ${minutes.toString().padStart(1, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  useEffect(() => {
+    // On initial render, delete the otp value and reset/restore the expires timer
+    if (formData && formData.otp !== undefined) {
+      delete formData.otp;
+    }
+    try {
+      const otpTimerFromStorage = localStorage.getItem("onboardingOtpTimer");
+      if (otpTimerFromStorage) {
+        const t = parseInt(otpTimerFromStorage, 10);
+        if (!Number.isNaN(t) && t >= 0) {
+          setOtpTimer(t);
+        } else {
+          setOtpTimer(600);
+        }
+      } else {
+        setOtpTimer(600);
+      }
+    } catch {
+      setOtpTimer(600);
+    }
+    setStartOtpTimer(true);
+  }, []);
+
+  // Countdown effect
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    if (startOtpTimer && otpTimer > 0) {
+      timer = setInterval(() => {
+        setOtpTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [startOtpTimer, otpTimer]);
+
+  // Persist timer
+  useEffect(() => {
+    try {
+      localStorage.setItem("onboardingOtpTimer", String(otpTimer));
+    } catch {}
+  }, [otpTimer]);
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -77,48 +131,50 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
         <p className="text-gray-600 text-sm">
           We have sent you a message with a 6-digit verification code on
           <br />
-          {email} & {phone}
+          {email ?? "your email"} & {phone ?? "your phone"}
         </p>
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-center space-x-3">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              type="text"
-              name={`otp-${index}`}
-              value={digit}
-              onChange={(e) => handleOtpChange(index, e.target.value)}
-              className="w-12 h-12 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg font-semibold"
-              maxLength={1}
-            />
-          ))}
+        <div className="flex justify-center">
+          <OTPInput
+            value={
+              formData && Array.isArray(formData.otp)
+                ? formData.otp.join("")
+                : ""
+            }
+            onChange={(value: string) => {
+              const digits = value.split("");
+              while (digits.length < 6) digits.push("");
+              updateFormData && updateFormData("otp", digits.slice(0, 6));
+            }}
+            renderInput={(inputProps) => <input {...inputProps} />}
+            numInputs={6}
+            inputType="tel"
+            shouldAutoFocus={false}
+            skipDefaultStyles={true}
+            containerStyle="flex gap-3"
+            inputStyle="w-12 h-12 md:w-14 md:h-14 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg font-semibold"
+          />
         </div>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">
-            {(() => {
-              const minutes = Math.floor(otpTimer / 60);
-              const seconds = otpTimer % 60;
-              return `Expire in ${minutes.toString().padStart(1, "0")}:${seconds
-                .toString()
-                .padStart(2, "0")}`;
-            })()}
-          </p>
-          <button
-            onClick={handleResendOtp}
-            disabled={isLoading || otpTimer > 0}
-            className="text-red-600 text-sm hover:underline mt-1 disabled:text-gray-400"
-          >
-            Didn't receive the OTP? Resend OTP
+          <p className="text-sm text-gray-600">{renderOtpTimer()}</p>
+          <button className="text-secondary text-sm mt-1 disabled:text-gray-400">
+            Didn't receive the OTP?{` `}
+            <span
+              onClick={isLoading ? () => null : handleResendOtp}
+              className={`text-red-600 hover:underline ${isLoading ? "cursor-not-allowed" : ""}`}
+            >
+              Resend OTP
+            </span>
           </button>
         </div>
       </div>
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
       <div className="flex space-x-3">
         <button
-          onClick={onBack}
+          onClick={onBack ? onBack : () => {}}
           className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
         >
           <ArrowLeft size={20} className="mr-1" /> Back

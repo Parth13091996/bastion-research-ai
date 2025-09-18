@@ -7,6 +7,7 @@ This is the frontend for the Bastion Research application, built with React, Typ
 - User authentication (Login and Registration)
 - Dashboard with Cashfree payment integration
 - Payment history display
+- Admin Analytics dashboard (Chart.js)
 
 ## Getting Started
 
@@ -33,6 +34,18 @@ This is the frontend for the Bastion Research application, built with React, Typ
     ```
     VITE_API_BASE_URL=https://bastion-research-backend.onrender.com
     ```
+
+### Analytics
+
+The SPA automatically records page views to the backend on every route change (IP-based and user-based when a login cookie exists).
+
+- Library: Chart.js via `react-chartjs-2`
+- Admin page: `/admin/dashboard`
+- Backend endpoints:
+  - `POST /api/analytics/track` (public)
+  - `GET /api/admin/analytics/summary?days=7` (admin only)
+
+Ensure the backend has created the `analytics_pageviews` table (see `apps/server/sql/analytics.sql`).
 
 ### Running the Application
 

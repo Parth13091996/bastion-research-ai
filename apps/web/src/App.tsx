@@ -1,8 +1,9 @@
-import { Suspense } from "react";
 import { BrowserRouter as Router, useRoutes } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { routes } from "./routes";
-import PageLoader from "./components/generic/PageLoader";
+import ModalsLayout from "./layouts/ModalsLayout";
+import RouteAnalytics from "./components/RouteAnalytics";
+import Loader from "./components/generic/Loader";
 
 const AppRoutes = () => {
   const element = useRoutes(routes);
@@ -12,8 +13,10 @@ const AppRoutes = () => {
 function App() {
   return (
     <Router>
+      <RouteAnalytics />
       <AppRoutes />
-      <PageLoader />
+      <ModalsLayout />
+      <Loader />
       <Toaster />
     </Router>
   );

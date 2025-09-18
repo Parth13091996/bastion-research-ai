@@ -2,7 +2,7 @@ import axiosInstance from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLoader } from "@/contexts/LoaderContext";
+import { useLoader } from "@/hooks/useLoader";
 import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as z from "zod";
+import { endpoints } from "@/api/endpoints";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -23,19 +24,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
-  const { start: showLoader, stop: hideLoader } = useLoader();
+  const loader = useLoader();
 
   // Redirect immediately during render once auth is known
   const shouldRedirect = !isLoading && isAuthenticated && isAdmin;
-
-  useEffect(() => {
-    if (isLoading) {
-      showLoader("Checking session...");
-    } else {
-      hideLoader();
-    }
-    return () => hideLoader();
-  }, [isLoading, showLoader, hideLoader]);
 
   const {
     register,
@@ -51,9 +43,12 @@ const AdminLogin = () => {
     LoginFormValues
   >({
     mutationFn: (data) =>
-      axiosInstance
-        .post("/api/auth/signin", { ...data, isAdminLogin: true })
-        .then((res) => res.data),
+      loader.withLoader(
+        axiosInstance
+          .post(endpoints.auth.signin, { ...data, isAdminLogin: true })
+          .then((res) => res.data),
+        "Logging in..."
+      ),
     onSuccess: (data: any) => {
       if (data.user?.role === Config.roles.admin) {
         toast.success("Admin logged in successfully");
@@ -66,11 +61,18 @@ const AdminLogin = () => {
     },
   });
 
+  useEffect(() => {
+    if (isLoading) {
+      loader.start("Checking session...");
+    } else {
+      loader.stop();
+    }
+  }, [isLoading, loader]);
+
   const onSubmit = (data: LoginFormValues) => {
     mutation.mutate(data);
   };
 
-  if (isLoading) return <></>;
   if (shouldRedirect)
     return <Navigate to={AppRoutes.adminDashboard()} replace />;
 

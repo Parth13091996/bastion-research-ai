@@ -1,46 +1,195 @@
-/* AG-Grid Custom Theme */
+/* AG-Grid Custom Theme - Enhanced for Better UI */
 
 .ag-theme-alpine {
-    /* Header Styles */
-    --ag-header-background-color: #f8f9fa;
-    --ag-header-foreground-color: #343a40;
-    --ag-header-cell-hover-background-color: #e9ecef;
-    --ag-header-cell-moving-background-color: #dee2e6;
+  /* Modern color scheme using CSS variables */
+  --ag-header-background-color: hsl(var(--muted));
+  --ag-header-foreground-color: hsl(var(--foreground));
+  --ag-header-cell-hover-background-color: hsl(var(--muted) / 0.8);
+  --ag-header-cell-moving-background-color: hsl(var(--muted) / 0.6);
 
-    /* Row Styles */
-    --ag-row-hover-color: #f1f3f5;
+  /* Row Styles */
+  --ag-row-hover-color: hsl(var(--muted) / 0.3);
+  --ag-odd-row-background-color: hsl(var(--background));
+  --ag-even-row-background-color: hsl(var(--muted) / 0.1);
 
-    /* Font & Sizing */
-    --ag-font-family: 'Inter', sans-serif;
-    --ag-font-size: 14px;
-    --ag-grid-size: 8px; /* increase paddings */
-    --ag-row-height: 44px; /* taller rows */
-    --ag-header-height: 48px; /* taller header */
+  /* Enhanced typography */
+  --ag-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ag-font-size: 14px;
+  --ag-grid-size: 16px;
+  --ag-row-height: 56px;
+  --ag-header-height: 60px;
 
-    /* Border Styles */
-    --ag-border-color: #dee2e6;
-    --ag-row-border-color: #e9ecef;
+  /* Modern borders */
+  --ag-border-color: hsl(var(--border));
+  --ag-row-border-color: hsl(var(--border) / 0.5);
 
-    /* Icon Styles */
-    --ag-icon-size: 16px;
+  /* Icons */
+  --ag-icon-size: 16px;
+
+  /* Selection colors using theme */
+  --ag-range-selection-background-color: hsl(var(--primary) / 0.1);
+  --ag-selected-row-background-color: hsl(var(--primary) / 0.05);
+  --ag-checkbox-checked-color: hsl(var(--primary));
+  
+  /* Focus and active states */
+  --ag-input-focus-border-color: hsl(var(--primary));
+  --ag-minichart-selected-chart-color: hsl(var(--primary));
 }
 
-/* Customizations for a more modern look */
+/* Grid container improvements */
+.ag-theme-alpine {
+  border-radius: 12px;
+  border: 1px solid var(--ag-border-color);
+  box-shadow: 0 1px 3px 0 hsl(var(--foreground) / 0.1);
+  overflow: hidden;
+}
+
+/* Header styling */
 .ag-theme-alpine .ag-header {
-    border-bottom: 1px solid var(--ag-border-color);
-    font-weight: 600;
+  border-bottom: 1px solid var(--ag-border-color);
+  font-weight: 600;
+  background: var(--ag-header-background-color);
 }
 
 .ag-theme-alpine .ag-header-cell {
-    padding: 0 16px;
+  padding: 0 24px;
+  font-weight: 600;
+  color: var(--ag-header-foreground-color);
+  border-right: 1px solid var(--ag-border-color);
+  display: flex;
+  align-items: center;
 }
 
+.ag-theme-alpine .ag-header-cell:last-child {
+  border-right: none;
+}
+
+/* Cell styling */
 .ag-theme-alpine .ag-cell {
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+  border-right: 1px solid hsl(var(--border) / 0.3);
 }
 
+.ag-theme-alpine .ag-cell:last-child {
+  border-right: none;
+}
+
+/* Row styling */
 .ag-theme-alpine .ag-row {
-    border-bottom: 1px solid var(--ag-row-border-color);
+  border-bottom: 1px solid var(--ag-row-border-color);
+  transition: all 0.2s ease-in-out;
+}
+
+.ag-theme-alpine .ag-row:hover {
+  background-color: var(--ag-row-hover-color) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px 0 hsl(var(--foreground) / 0.1);
+}
+
+/* Selection styling */
+.ag-theme-alpine .ag-row-selected {
+  background-color: var(--ag-selected-row-background-color) !important;
+  border-left: 3px solid hsl(var(--primary));
+}
+
+/* Checkbox styling */
+.ag-theme-alpine .ag-checkbox-input {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid hsl(var(--border));
+}
+
+.ag-theme-alpine .ag-checkbox-input:checked {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+/* Pagination styling */
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 1px solid var(--ag-border-color);
+  background-color: hsl(var(--muted) / 0.3);
+  padding: 16px 24px;
+}
+
+.ag-theme-alpine .ag-paging-button {
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 0 4px;
+  color: hsl(var(--foreground));
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.ag-theme-alpine .ag-paging-button:hover {
+  background-color: hsl(var(--muted));
+  border-color: hsl(var(--primary));
+  transform: translateY(-1px);
+}
+
+.ag-theme-alpine .ag-paging-button.ag-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Filter and menu styling */
+.ag-theme-alpine .ag-filter-toolpanel,
+.ag-theme-alpine .ag-menu {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1);
+  border: 1px solid var(--ag-border-color);
+  background: hsl(var(--background));
+}
+
+/* Loading overlay */
+.ag-theme-alpine .ag-overlay-loading-wrapper {
+  background: hsl(var(--background) / 0.95);
+  backdrop-filter: blur(4px);
+}
+
+.ag-theme-alpine .ag-overlay-loading-center {
+  color: hsl(var(--foreground));
+  font-weight: 500;
+}
+
+/* Sort indicators */
+.ag-theme-alpine .ag-header-cell-sorted-asc .ag-header-cell-label::after,
+.ag-theme-alpine .ag-header-cell-sorted-desc .ag-header-cell-label::after {
+  color: hsl(var(--primary));
+}
+
+/* Filter icons */
+.ag-theme-alpine .ag-header-cell-filtered .ag-header-cell-label::after {
+  color: hsl(var(--primary));
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .ag-theme-alpine {
+    --ag-font-size: 13px;
+    --ag-row-height: 48px;
+    --ag-header-height: 52px;
+    --ag-grid-size: 12px;
+  }
+  
+  .ag-theme-alpine .ag-cell,
+  .ag-theme-alpine .ag-header-cell {
+    padding: 0 16px;
+  }
+}
+
+/* Dark mode support */
+.dark .ag-theme-alpine {
+  --ag-background-color: hsl(var(--background));
+  --ag-foreground-color: hsl(var(--foreground));
+  --ag-header-background-color: hsl(var(--muted));
+  --ag-header-foreground-color: hsl(var(--foreground));
+  --ag-border-color: hsl(var(--border));
+  --ag-row-border-color: hsl(var(--border) / 0.5);
 }

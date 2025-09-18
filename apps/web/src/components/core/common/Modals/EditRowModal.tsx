@@ -1,8 +1,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "../../../ui/button";
+import { Input } from "../../../ui/input";
 
 type Field = {
   name: string;
@@ -22,7 +22,15 @@ interface EditRowModalProps {
   saving?: boolean;
 }
 
-const EditRowModal = ({ open, title, fields, initialValues, onClose, onSave, saving }: EditRowModalProps) => {
+const EditRowModal = ({
+  open,
+  title,
+  fields,
+  initialValues,
+  onClose,
+  onSave,
+  saving,
+}: EditRowModalProps) => {
   const [values, setValues] = useState<Record<string, any>>({});
 
   useEffect(() => {
@@ -40,7 +48,9 @@ const EditRowModal = ({ open, title, fields, initialValues, onClose, onSave, sav
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50" />
         <Dialog.Content className="fixed top-1/2 left-1/2 w-[92vw] max-w-2xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 shadow-lg overflow-y-auto">
-          <Dialog.Title className="text-lg font-semibold text-gray-900">{title}</Dialog.Title>
+          <Dialog.Title className="text-lg font-semibold text-gray-900">
+            {title}
+          </Dialog.Title>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             {fields.map((f) => (
               <div key={f.name} className="space-y-1">
@@ -52,7 +62,9 @@ const EditRowModal = ({ open, title, fields, initialValues, onClose, onSave, sav
                     className="w-full p-2 border rounded"
                   >
                     {f.options?.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
                     ))}
                   </select>
                 ) : (
@@ -60,15 +72,26 @@ const EditRowModal = ({ open, title, fields, initialValues, onClose, onSave, sav
                     type={f.type || "text"}
                     placeholder={f.placeholder}
                     value={values[f.name] ?? ""}
-                    onChange={(e) => handleChange(f.name, f.type === "number" ? Number(e.target.value) : e.target.value)}
+                    onChange={(e) =>
+                      handleChange(
+                        f.name,
+                        f.type === "number"
+                          ? Number(e.target.value)
+                          : e.target.value
+                      )
+                    }
                   />
                 )}
               </div>
             ))}
           </div>
           <div className="mt-6 flex justify-end gap-2">
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button onClick={() => onSave(values)} disabled={!!saving}>{saving ? "Saving..." : "Save"}</Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={() => onSave(values)} disabled={!!saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
           </div>
           <Dialog.Close asChild>
             <button
@@ -85,4 +108,3 @@ const EditRowModal = ({ open, title, fields, initialValues, onClose, onSave, sav
 };
 
 export default EditRowModal;
-
