@@ -90,7 +90,7 @@ export default function Complaince() {
                 In case you are not satisfied with our response you can lodge
                 your grievance with SEBI at{" "}
                 <a
-                  href="#"
+                  href="https://scores.gov.in/"
                   className="text-red-600 hover:underline font-medium"
                 >
                   SCORES
@@ -99,7 +99,7 @@ export default function Complaince() {
                 be accessed thorough SCORES mobile application as well, same can
                 be downloaded from this{" "}
                 <a
-                  href="#"
+                  href="https://play.google.com/store/apps/details?id=com.sebi.invapp&hl=en&gl=US&pli=1"
                   className="text-red-600 hover:underline font-medium"
                 >
                   link
@@ -117,7 +117,7 @@ export default function Complaince() {
                 disputes arising in the Indian Securities Market has been
                 established. ODR Portal can be accessed via the following{" "}
                 <a
-                  href="#"
+                  href="https://smartodr.in/login"
                   className="text-red-600 hover:underline font-medium"
                 >
                   link
