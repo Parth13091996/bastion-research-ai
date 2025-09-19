@@ -26,6 +26,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "@react-pdf/renderer": "^4.3.0",
     "@tiptap/core": "^3.3.0",
     "@tiptap/extension-color": "^3.3.0",
     "@tiptap/extension-highlight": "^3.3.0",
@@ -36,7 +37,8 @@
     "ag-grid-community": "^34.1.1",
     "ag-grid-react": "^34.1.1",
     "react-icons": "^5.5.0",
-    "react-parallax-tilt": "^1.7.304"
+    "react-parallax-tilt": "^1.7.304",
+    "react-pdf": "^10.1.0"
   },
   "pnpm": {
     "ignoredBuiltDependencies": [

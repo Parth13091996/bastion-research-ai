@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import {
-  MapPin,
-  Clock,
-  Home,
-} from "lucide-react";
+import { MapPin, Clock, Home } from "lucide-react";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints.ts";
 
@@ -45,19 +41,28 @@ const SingleCareer = () => {
   }, [params.slug]);
 
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked, files } = e.target as any;
-    setFormData(prev => ({
-      ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : type === "file"
-          ? files && files.length > 0
-            ? files[0]
-            : null
-          : value,
-    }));
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const { name, value, type } = target;
+    if (type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: (target as HTMLInputElement).checked,
+      }));
+    } else if (type === "file") {
+      const files = (target as HTMLInputElement).files;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: files && files.length > 0 ? files[0] : null,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -228,8 +233,10 @@ const SingleCareer = () => {
             )}
 
           {/* What We Offer */}
-          {(Array.isArray(careerData.benefits) && careerData.benefits.length > 0) ||
-          (Array.isArray(careerData.whatWeOffer) && careerData.whatWeOffer.length > 0) ? (
+          {(Array.isArray(careerData.benefits) &&
+            careerData.benefits.length > 0) ||
+          (Array.isArray(careerData.whatWeOffer) &&
+            careerData.whatWeOffer.length > 0) ? (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 What We Offer
@@ -264,7 +271,9 @@ const SingleCareer = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">What You'll Get</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  What You'll Get
+                </h3>
                 <ul className="space-y-2 text-gray-700">
                   <li className="flex items-start">
                     <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -272,15 +281,18 @@ const SingleCareer = () => {
                   </li>
                   <li className="flex items-start">
                     <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Access to internal tools, processes, and frameworks built by practitioners.
+                    Access to internal tools, processes, and frameworks built by
+                    practitioners.
                   </li>
                   <li className="flex items-start">
                     <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Mentorship from a team that lives and breathes equity research.
+                    Mentorship from a team that lives and breathes equity
+                    research.
                   </li>
                   <li className="flex items-start">
                     <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    If you do well, we'll make room for you long-term — not just in the trainee seat.
+                    If you do well, we'll make room for you long-term — not just
+                    in the trainee seat.
                   </li>
                 </ul>
               </div>
@@ -288,10 +300,12 @@ const SingleCareer = () => {
               <div className="border-t border-gray-200 pt-4 md:col-span-2">
                 <div className="flex items-center space-x-8 text-sm text-gray-600">
                   <div>
-                    <span className="font-medium">💼 Job Type:</span> {careerData.jobType || careerData.job_type || "Full Time"}
+                    <span className="font-medium">💼 Job Type:</span>{" "}
+                    {careerData.jobType || careerData.job_type || "Full Time"}
                   </div>
                   <div>
-                    <span className="font-medium">📍 Job Location:</span> {careerData.location || "Office"}
+                    <span className="font-medium">📍 Job Location:</span>{" "}
+                    {careerData.location || "Office"}
                   </div>
                 </div>
               </div>
@@ -302,10 +316,19 @@ const SingleCareer = () => {
         {/* Right Column - Application Form */}
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-lg shadow sticky top-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Apply For This Position</h3>
-            <form className="space-y-4" onSubmit={handleSubmit} encType="multipart/form-data">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              Apply For This Position
+            </h3>
+            <form
+              className="space-y-4"
+              onSubmit={handleSubmit}
+              encType="multipart/form-data"
+            >
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="fullName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Full Name *
                 </label>
                 <input
@@ -320,7 +343,10 @@ const SingleCareer = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Email *
                 </label>
                 <input
@@ -335,7 +361,10 @@ const SingleCareer = () => {
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Phone *
                 </label>
                 <input
@@ -350,7 +379,10 @@ const SingleCareer = () => {
               </div>
 
               <div>
-                <label htmlFor="coverLetter" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="coverLetter"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Cover Letter *
                 </label>
                 <textarea
@@ -365,7 +397,10 @@ const SingleCareer = () => {
               </div>
 
               <div>
-                <label htmlFor="resume" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="resume"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Upload CV/Resume *
                 </label>
                 <input
@@ -384,7 +419,8 @@ const SingleCareer = () => {
 
               <div className="pt-2">
                 <p className="text-xs text-gray-600 mb-3">
-                  📋 By using this form you agree with the storage and handling of your data by this website. *
+                  📋 By using this form you agree with the storage and handling
+                  of your data by this website. *
                 </p>
                 <div className="flex items-start">
                   <input
