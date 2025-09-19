@@ -1,6 +1,6 @@
-@import 'ag-grid-community/styles/ag-grid.css';
-@import 'ag-grid-community/styles/ag-theme-alpine.css';
-@import './styles/ag-grid-custom.css';
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-alpine.css";
+@import "./styles/ag-grid-custom.css";
 
 @tailwind base;
 @tailwind components;
@@ -67,7 +67,7 @@
 }
 
 ::selection {
-  background-color: #C00000;
+  background-color: #c00000;
   color: #fff;
 }
 
@@ -115,18 +115,18 @@
   }
 }
 
-
 /* Animation styles for the userAdmin myAccount's Sub-tabs */
 @keyframes slideIn {
-            from {
-              opacity: 0;
-              transform: translateX(-10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-          .animate-slide-in {
-            animation: slideIn 0.2s ease-out;
-          }
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+

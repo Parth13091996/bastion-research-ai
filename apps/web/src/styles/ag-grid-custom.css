@@ -1,195 +1,67 @@
-/* AG-Grid Custom Theme - Enhanced for Better UI */
+/* ================================
+   Compact AG-Grid Filter Styling
+   ================================ */
 
-.ag-theme-alpine {
-  /* Modern color scheme using CSS variables */
-  --ag-header-background-color: hsl(var(--muted));
-  --ag-header-foreground-color: hsl(var(--foreground));
-  --ag-header-cell-hover-background-color: hsl(var(--muted) / 0.8);
-  --ag-header-cell-moving-background-color: hsl(var(--muted) / 0.6);
-
-  /* Row Styles */
-  --ag-row-hover-color: hsl(var(--muted) / 0.3);
-  --ag-odd-row-background-color: hsl(var(--background));
-  --ag-even-row-background-color: hsl(var(--muted) / 0.1);
-
-  /* Enhanced typography */
-  --ag-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --ag-font-size: 14px;
-  --ag-grid-size: 16px;
-  --ag-row-height: 56px;
-  --ag-header-height: 60px;
-
-  /* Modern borders */
-  --ag-border-color: hsl(var(--border));
-  --ag-row-border-color: hsl(var(--border) / 0.5);
-
-  /* Icons */
-  --ag-icon-size: 16px;
-
-  /* Selection colors using theme */
-  --ag-range-selection-background-color: hsl(var(--primary) / 0.1);
-  --ag-selected-row-background-color: hsl(var(--primary) / 0.05);
-  --ag-checkbox-checked-color: hsl(var(--primary));
-  
-  /* Focus and active states */
-  --ag-input-focus-border-color: hsl(var(--primary));
-  --ag-minichart-selected-chart-color: hsl(var(--primary));
-}
-
-/* Grid container improvements */
-.ag-theme-alpine {
-  border-radius: 12px;
-  border: 1px solid var(--ag-border-color);
-  box-shadow: 0 1px 3px 0 hsl(var(--foreground) / 0.1);
-  overflow: hidden;
-}
-
-/* Header styling */
-.ag-theme-alpine .ag-header {
-  border-bottom: 1px solid var(--ag-border-color);
-  font-weight: 600;
-  background: var(--ag-header-background-color);
-}
-
-.ag-theme-alpine .ag-header-cell {
-  padding: 0 24px;
-  font-weight: 600;
-  color: var(--ag-header-foreground-color);
-  border-right: 1px solid var(--ag-border-color);
-  display: flex;
-  align-items: center;
-}
-
-.ag-theme-alpine .ag-header-cell:last-child {
-  border-right: none;
-}
-
-/* Cell styling */
-.ag-theme-alpine .ag-cell {
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  line-height: 1.5;
-  color: hsl(var(--foreground));
-  border-right: 1px solid hsl(var(--border) / 0.3);
-}
-
-.ag-theme-alpine .ag-cell:last-child {
-  border-right: none;
-}
-
-/* Row styling */
-.ag-theme-alpine .ag-row {
-  border-bottom: 1px solid var(--ag-row-border-color);
-  transition: all 0.2s ease-in-out;
-}
-
-.ag-theme-alpine .ag-row:hover {
-  background-color: var(--ag-row-hover-color) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px 0 hsl(var(--foreground) / 0.1);
-}
-
-/* Selection styling */
-.ag-theme-alpine .ag-row-selected {
-  background-color: var(--ag-selected-row-background-color) !important;
-  border-left: 3px solid hsl(var(--primary));
-}
-
-/* Checkbox styling */
-.ag-theme-alpine .ag-checkbox-input {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 2px solid hsl(var(--border));
-}
-
-.ag-theme-alpine .ag-checkbox-input:checked {
-  background-color: hsl(var(--primary));
-  border-color: hsl(var(--primary));
-}
-
-/* Pagination styling */
-.ag-theme-alpine .ag-paging-panel {
-  border-top: 1px solid var(--ag-border-color);
-  background-color: hsl(var(--muted) / 0.3);
-  padding: 16px 24px;
-}
-
-.ag-theme-alpine .ag-paging-button {
-  background-color: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin: 0 4px;
-  color: hsl(var(--foreground));
-  font-weight: 500;
-  transition: all 0.2s ease-in-out;
-}
-
-.ag-theme-alpine .ag-paging-button:hover {
-  background-color: hsl(var(--muted));
-  border-color: hsl(var(--primary));
-  transform: translateY(-1px);
-}
-
-.ag-theme-alpine .ag-paging-button.ag-disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Filter and menu styling */
+/* Compact filter menu popup */
 .ag-theme-alpine .ag-filter-toolpanel,
 .ag-theme-alpine .ag-menu {
-  border-radius: 12px;
-  box-shadow: 0 10px 25px -5px hsl(var(--foreground) / 0.1);
-  border: 1px solid var(--ag-border-color);
-  background: hsl(var(--background));
+  border-radius: 6px !important;
+  box-shadow: 0 6px 15px -4px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid var(--ag-border-color) !important;
+  background: hsl(var(--background)) !important;
+  max-width: 200px !important;
+  padding: 4px 6px !important;
+  font-size: 12px !important;
 }
 
-/* Loading overlay */
-.ag-theme-alpine .ag-overlay-loading-wrapper {
-  background: hsl(var(--background) / 0.95);
-  backdrop-filter: blur(4px);
+/* Compact input field inside filter */
+.ag-theme-alpine input.ag-input-field-input.ag-text-field-input {
+  height: 24px !important;
+  line-height: 20px !important;
+  font-size: 12px !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  box-sizing: border-box !important;
 }
 
-.ag-theme-alpine .ag-overlay-loading-center {
-  color: hsl(var(--foreground));
-  font-weight: 500;
+/* Compact filter body */
+.ag-theme-alpine .ag-filter-body-wrapper,
+.ag-theme-alpine .ag-simple-filter-body-wrapper,
+.ag-theme-alpine .ag-filter-body-wrapper.ag-simple-filter-body-wrapper.ag-focus-managed {
+  padding: 2px !important;
+  max-height: 150px !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
 }
 
-/* Sort indicators */
-.ag-theme-alpine .ag-header-cell-sorted-asc .ag-header-cell-label::after,
-.ag-theme-alpine .ag-header-cell-sorted-desc .ag-header-cell-label::after {
-  color: hsl(var(--primary));
+/* Compact operator dropdown (equals, contains, etc.) */
+.ag-theme-alpine .ag-picker-field.ag-labeled.ag-label-align-left.ag-select.ag-filter-select {
+  margin-bottom: 2px !important;
+  padding: 2px !important;
+  font-size: 12px !important;
+  height: 24px !important;
+  line-height: 20px !important;
+  box-sizing: border-box !important;
 }
 
-/* Filter icons */
-.ag-theme-alpine .ag-header-cell-filtered .ag-header-cell-label::after {
-  color: hsl(var(--primary));
+/* Compact AND / OR condition wrapper */
+.ag-theme-alpine .ag-filter-condition {
+  margin: 2px 0 !important;
+  padding: 2px !important;
+  font-size: 12px !important;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .ag-theme-alpine {
-    --ag-font-size: 13px;
-    --ag-row-height: 48px;
-    --ag-header-height: 52px;
-    --ag-grid-size: 12px;
-  }
-  
-  .ag-theme-alpine .ag-cell,
-  .ag-theme-alpine .ag-header-cell {
-    padding: 0 16px;
-  }
+/* Buttons inside filter popup */
+.ag-theme-alpine .ag-filter-apply-panel button {
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  height: 26px !important;
+  border-radius: 4px !important;
+}
+/* Extra spacing between filter operator dropdown and input */
+.ag-theme-alpine .ag-filter-body-wrapper .ag-filter-select + .ag-input-wrapper {
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+  display: block !important;
 }
 
-/* Dark mode support */
-.dark .ag-theme-alpine {
-  --ag-background-color: hsl(var(--background));
-  --ag-foreground-color: hsl(var(--foreground));
-  --ag-header-background-color: hsl(var(--muted));
-  --ag-header-foreground-color: hsl(var(--foreground));
-  --ag-border-color: hsl(var(--border));
-  --ag-row-border-color: hsl(var(--border) / 0.5);
-}
