@@ -19,13 +19,13 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  
 
   return (
     <>
       <header
-        className={`fixed top-0 z-[9999] left-0 w-full py-6 transition-shadow duration-300 ${
-          scrolled ? "shadow-[0_2px_6px_rgba(0,0,0,0.08)]" : "shadow-none"
-        } bg-white/60 backdrop-blur-md border-b border-white/20`}
+        className={`fixed top-0 z-[9999] left-0 w-full py-6 transition-shadow duration-300 ${scrolled ? "shadow-[0_2px_6px_rgba(0,0,0,0.08)]" : "shadow-none"
+          } bg-white/60 backdrop-blur-md border-b border-white/20`}
         itemType="https://schema.org/Organization"
         itemScope
       >
