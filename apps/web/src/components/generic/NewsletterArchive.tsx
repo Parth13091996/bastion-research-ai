@@ -1,4 +1,11 @@
-import { ChevronLeft, ChevronRight, Crown, Search } from "lucide-react";
+import {
+  BookOpen,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  Search,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import BackgroundShapes from "./framer-motion.tsx";
 
@@ -413,7 +420,7 @@ const NewsletterArchive = () => {
               {currentPodcasts.map((podcast) => (
                 <div
                   key={podcast.id}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col group relative transition-all duration-300"
                 >
                   {/* Image */}
                   <div className="aspect-video overflow-hidden bg-gray-100">
@@ -426,62 +433,57 @@ const NewsletterArchive = () => {
 
                   {/* Content */}
                   <div className="p-4 flex flex-col flex-1">
-                    {/* Top (category + title + desc) */}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        {podcast.category === "Scratch Pad" ? (
-                          <div
-                            className="px-3 py-1 rounded-full text-xs font-medium text-yellow-900 shadow-md inline-flex items-center gap-2"
-                            style={{
-                              background:
-                                "linear-gradient(to right, #FACC15, #F59E0B)",
-                            }}
-                          >
-                            <Crown className="h-4 w-4" />
+                    {/* Category + Date */}
+                    <div className="flex items-center justify-between mb-2">
+                      {podcast.category === "Scratch Pad" ? (
+                        <div
+                          className="px-3 py-1 rounded-full text-xs font-medium text-yellow-900 shadow-md inline-flex items-center gap-2"
+                          style={{
+                            background:
+                              "linear-gradient(to right, #FACC15, #F59E0B)",
+                          }}
+                        >
+                          <Crown className="h-4 w-4" />
+                          {podcast.category}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                             {podcast.category}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            {/* Beige dot */}
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                              {podcast.category}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Date as plain text */}
-                        <span className="text-sm text-gray-500">
-                          {podcast.date}
-                        </span>
-                      </div>
-
-                      {/* Title */}
-                      <h3
-                        className="text-lg font-bold mb-2 leading-tight"
-                        style={{ color: COLORS.blue }}
-                      >
-                        {podcast.title}
-                      </h3>
-
-                      {/* Description */}
-                      {/* <p className="text-gray-600 mb-6 text-sm">
-                        {podcast.description}
-                      </p> */}
+                          </span>
+                        </div>
+                      )}
+                      <span className="text-sm text-gray-500">
+                        {podcast.date}
+                      </span>
                     </div>
 
-                    {/* Buttons pinned at bottom */}
-                    <div className="flex gap-3 mt-auto">
+                    {/* Title */}
+                    <h3
+                      className="text-lg font-bold mb-2 leading-tight"
+                      style={{ color: COLORS.blue }}
+                    >
+                      {podcast.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-gray-600 text-sm flex-1">
+                      {podcast.description}
+                    </p>
+
+                    {/* Hover Buttons Overlay */}
+                    <div className="absolute bottom-0 left-0 w-full px-4 py-3 bg-white/90 backdrop-blur-md flex gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto">
                       <a
                         href={`/podcast/${podcast.id}`}
-                        className="flex-1 bg-red-600 text-white text-center py-2 rounded-lg font-medium"
+                        className="flex-1 bg-red-600 text-white text-center py-2 rounded-lg font-medium flex items-center justify-center gap-2"
                       >
-                        Read Now
+                        <BookOpen className="w-5 h-5" />
                       </a>
                       <button
                         onClick={() => handleShare(podcast.id)}
-                        className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium"
+                        className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium flex items-center justify-center gap-2"
                       >
-                        Share Link
+                        <Share2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
