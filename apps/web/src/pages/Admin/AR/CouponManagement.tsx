@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Edit, Trash2, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import axiosInstance from '@/api/axios';
 import { endpoints } from '@/api/endpoints';
+import ConfirmationModal from '@/components/core/common/Modals/ConfirmationModal';
 
 const CouponsManagement = () => {
   const [coupons, setCoupons] = useState([]);
@@ -11,6 +12,8 @@ const CouponsManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [hoveredRow, setHoveredRow] = useState(null);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [couponToDelete, setCouponToDelete] = useState<number | null>(null);
 
   // New: filters
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'active' | 'inactive'
@@ -91,6 +94,25 @@ const CouponsManagement = () => {
       allowedUses: 'Unlimited'
     }
   ];
+
+  const handleDelete = async (couponId) => {
+    setCouponToDelete(couponId);
+    setIsConfirmationOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (couponToDelete === null) return;
+    try {
+      await axiosInstance.delete(`${endpoints.coupons.base}/${couponToDelete}`);
+      await fetchCoupons(); // Refresh the list
+      setSelectedCoupons((prev) => prev.filter((id) => id !== couponToDelete));
+    } catch (error) {
+      console.error('Failed to delete coupon:', error);
+    } finally {
+      setIsConfirmationOpen(false);
+      setCouponToDelete(null);
+    }
+  };
 
   // helpers
   const isUnlimited = (d) => (d || '').toLowerCase() === 'unlimited';

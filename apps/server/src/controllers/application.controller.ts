@@ -2,30 +2,11 @@ import { Request, Response } from "express";
 import { supabase } from "../supabase";
 
 export const getApplications = async (req: Request, res: Response) => {
-  const { data, error } = await supabase.from("applications").select("*");
+  const { data, error } = await supabase.from("applications").select("*, job_openings(job_title)")
   if (error) {
     return res.status(500).json({ error: error.message });
   }
-  if (data && data.length > 0) {
-    return res.status(200).json(data);
-  }
-  const dummyData = [
-    {
-      application_id: 1,
-      job_id: 1,
-      applicant_name: "John Doe",
-      date_applied: "2024-07-20",
-      status: "Pending",
-    },
-    {
-      application_id: 2,
-      job_id: 1,
-      applicant_name: "Jane Smith",
-      date_applied: "2024-07-21",
-      status: "Reviewed",
-    },
-  ];
-  res.status(200).json(dummyData);
+  return res.status(200).json(data);
 };
 
 export const createApplication = async (req: Request, res: Response) => {
