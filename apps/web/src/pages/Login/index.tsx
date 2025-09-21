@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import axiosInstance from "@/api/axios";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { endpoints } from "@/api/endpoints";
 
 const loginSchema = z.object({
@@ -32,8 +32,39 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate("/user/app/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the form if user is authenticated (will redirect)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const {
     register,
@@ -48,7 +79,11 @@ const Login = () => {
       axiosInstance.post(endpoints.auth.signin, data).then((res) => res.data),
     onSuccess: (data) => {
       login(data.user);
-      navigate("/dashboard");
+      toast.success("Login successful! Redirecting to dashboard...");
+      // Use setTimeout to ensure the login state is properly set before navigation
+      setTimeout(() => {
+        navigate("/user/app/dashboard", { replace: true });
+      }, 100);
     },
     onError(error: any) {
       toast.error(error?.response?.data?.message || error.message);

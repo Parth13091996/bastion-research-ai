@@ -92,6 +92,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (newUser: User) => {
     setUser(newUser);
+    // Force a refetch to ensure session is properly established
+    refetch();
   };
 
   const logout = async () => {

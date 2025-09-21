@@ -98,7 +98,7 @@ export default function PaymentSuccess() {
 
         setTimeout(() => {
           if (user) {
-            navigate(AppRoutes.dashboard(), { replace: true });
+            navigate("/user/app/dashboard", { replace: true });
           } else {
             navigate(AppRoutes.login(), { replace: true });
           }

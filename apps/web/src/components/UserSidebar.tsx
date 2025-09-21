@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../public/media/favicon.webp";
 import {
   ChevronLeft,
@@ -17,7 +17,14 @@ import {
   LogOut,
   CreditCard,
   Settings,
+  Crown,
+  Shield,
+  Home,
+  ExternalLink,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 // Brand Colors
 const BrandColors = {
@@ -39,7 +46,7 @@ const navItems = [
       { name: "Edit Profile", path: "/user/app/account/edit-profile", icon: Settings },
       { name: "Show Subscription", path: "/user/app/account/subscription", icon: CreditCard },
       { name: "Transaction History", path: "/user/app/account/transactions", icon: BarChart3 },
-      { name: "Logout", path: "/logout", icon: LogOut },
+      { name: "Logout", path: "/user/app/account/logout", icon: LogOut },
     ],
   },
 ];
@@ -50,18 +57,23 @@ const quickStats = [
   { label: "Win Rate", value: "87%", icon: Percent },
 ];
 
-const profile = {
-  name: "Bastion-User",
-  role: "Type of User",
-  avatarUrl: null,
-};
-
 export default function Sidebar() {
+  const { user, subscription, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
   const [submenuPosition, setSubmenuPosition] = useState(null);
   const location = useLocation();
+
+  // Get user profile data
+  const profile = {
+    name: user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "User" : "Guest",
+    role: user?.role || "User",
+    avatarUrl: null, // You can add avatar URL to user object later
+    isPremium: subscription?.isPremium || false,
+    currentPlan: subscription?.currentPlan || "free",
+  };
 
   const sidebarRef = useRef(null);
   const submenuRef = useRef(null);
@@ -88,6 +100,23 @@ export default function Sidebar() {
 
   const toggleSidebar = () => setIsCollapsed((s) => !s);
   const toggleMobileMenu = () => setIsMobileOpen((s) => !s);
+
+  const handleExploreWebsite = () => {
+    navigate("/");
+    setIsMobileOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/");
+      setIsMobileOpen(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to logout. Please try again.");
+    }
+  };
 
   const toggleSubMenu = (name, e) => {
     if (isCollapsed) {
@@ -143,6 +172,53 @@ export default function Sidebar() {
             }`}
           />
         </button>
+      </div>
+
+      {/* Header Buttons */}
+      <div className={`px-4 py-3 border-b border-gray-700 ${isCollapsed ? "px-2" : ""}`}>
+        {!isCollapsed ? (
+          <div className="flex gap-2">
+            <Button
+              onClick={handleExploreWebsite}
+              variant="outline"
+              size="sm"
+              className="flex-1 bg-blue-600 border-gray-600 text-white hover:bg-white hover:text-blue-900 transition-colors"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Explore Website
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="sm"
+              className="flex-1 bg-red-600 border-gray-600 text-white hover:bg-white hover:text-red-600 hover:border-600 transition-colors"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={handleExploreWebsite}
+              variant="outline"
+              size="icon"
+              className="w-full bg-transparent border-gray-600 text-white hover:bg-white hover:text-blue-900 transition-colors"
+              title="Explore Website"
+            >
+              <Home className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="icon"
+              className="w-full bg-transparent border-gray-600 text-white hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Nav */}
@@ -299,27 +375,55 @@ export default function Sidebar() {
       {/* Profile */}
       <div className="mt-auto p-4 border-t border-gray-700">
         {!isCollapsed ? (
-          <div className="flex items-center">
-            {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile.name}
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
-                  {profile.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join("")}
+          <div className="space-y-3">
+            <div className="flex items-center">
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-white">
+                    {profile.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")}
+                  </span>
+                </div>
+              )}
+              <div className="ml-3 text-white">
+                <p className="text-sm font-medium">{profile.name}</p>
+                <p className="text-xs text-gray-300 capitalize">{profile.role}</p>
+              </div>
+            </div>
+            
+            {/* Premium Status & User Type */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                {profile.isPremium ? (
+                  <>
+                    <Crown className="h-3 w-3 text-yellow-400" />
+                    <span className="text-xs text-yellow-400 font-medium">
+                      Premium Member
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-3 w-3 text-gray-400" />
+                    <span className="text-xs text-gray-400">
+                      Free Member
+                    </span>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">
+                  Plan: {profile.currentPlan.toUpperCase()}
                 </span>
               </div>
-            )}
-            <div className="ml-3 text-white">
-              <p className="text-sm font-medium">{profile.name}</p>
-              <p className="text-xs text-gray-300">{profile.role}</p>
             </div>
           </div>
         ) : (
@@ -331,10 +435,13 @@ export default function Sidebar() {
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
-              <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center relative">
                 <span className="text-sm font-medium text-white">
                   {profile.name[0] || "B"}
                 </span>
+                {profile.isPremium && (
+                  <Crown className="h-3 w-3 text-yellow-400 absolute -top-1 -right-1" />
+                )}
               </div>
             )}
           </div>

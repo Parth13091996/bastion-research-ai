@@ -29,9 +29,10 @@ const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
 const Compliance = lazy(() => import("../pages/Compliance"));
 const BastionCore = lazy(() => import("../pages/BastionCore"));
 const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
-const EditProfile = lazy(() => import("../pages/EditProfile"));
-const Subscription = lazy(() => import("../pages/Subscription"));
-const TransactionHistory = lazy(() => import("../pages/TransactionHistory"));
+// OLD USER ADMIN PAGES - COMMENTED OUT (Now using UserAdmin layout)
+// const EditProfile = lazy(() => import("../pages/EditProfile"));
+// const Subscription = lazy(() => import("../pages/Subscription"));
+// const TransactionHistory = lazy(() => import("../pages/TransactionHistory"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
 const About = lazy(() => import("../pages/About"));
 const NotFound = lazy(() => import("../pages/NotFound"));
@@ -45,6 +46,18 @@ const UserAdminRecommendation = lazy(
 );
 const UserAdminResearchHub = lazy(
   () => import("@/pages/UserAdmin/app/ResearchHub")
+);
+const UserAdminEditProfile = lazy(
+  () => import("@/pages/UserAdmin/app/EditProfile")
+);
+const UserAdminSubscription = lazy(
+  () => import("@/pages/UserAdmin/app/Subscription")
+);
+const UserAdminTransactionHistory = lazy(
+  () => import("@/pages/UserAdmin/app/TransactionHistory")
+);
+const UserAdminLogout = lazy(
+  () => import("@/pages/UserAdmin/app/UserLogout")
 );
 
 // Admin Pages
@@ -123,12 +136,13 @@ export const routes: RouteObject[] = [
         element: <ProtectedRoute />,
         children: [
           { path: AppRoutes.dashboard(), element: <Dashboard /> },
-          { path: AppRoutes.editProfile(), element: <EditProfile /> },
-          { path: AppRoutes.subscription(), element: <Subscription /> },
-          {
-            path: AppRoutes.transactionHistory(),
-            element: <TransactionHistory />,
-          },
+          // OLD USER ADMIN ROUTES - COMMENTED OUT (Now using UserAdmin layout)
+          // { path: AppRoutes.editProfile(), element: <EditProfile /> },
+          // { path: AppRoutes.subscription(), element: <Subscription /> },
+          // {
+          //   path: AppRoutes.transactionHistory(),
+          //   element: <TransactionHistory />,
+          // },
         ],
       },
     ],
@@ -257,6 +271,10 @@ export const routes: RouteObject[] = [
           { path: "app/dashboard", element: <UserAdminDashboard /> },
           { path: "app/recommendation", element: <UserAdminRecommendation /> },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
+          { path: "app/account/edit-profile", element: <UserAdminEditProfile /> },
+          { path: "app/account/subscription", element: <UserAdminSubscription /> },
+          { path: "app/account/transactions", element: <UserAdminTransactionHistory /> },
+          { path: "app/account/logout", element: <UserAdminLogout /> },
         ],
       },
     ],
