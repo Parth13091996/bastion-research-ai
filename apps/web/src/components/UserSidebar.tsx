@@ -17,7 +17,10 @@ import {
   LogOut,
   CreditCard,
   Settings,
+  Crown,
+  Shield,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Brand Colors
 const BrandColors = {
@@ -39,7 +42,7 @@ const navItems = [
       { name: "Edit Profile", path: "/user/app/account/edit-profile", icon: Settings },
       { name: "Show Subscription", path: "/user/app/account/subscription", icon: CreditCard },
       { name: "Transaction History", path: "/user/app/account/transactions", icon: BarChart3 },
-      { name: "Logout", path: "/logout", icon: LogOut },
+      { name: "Logout", path: "/user/app/account/logout", icon: LogOut },
     ],
   },
 ];
@@ -50,18 +53,22 @@ const quickStats = [
   { label: "Win Rate", value: "87%", icon: Percent },
 ];
 
-const profile = {
-  name: "Bastion-User",
-  role: "Type of User",
-  avatarUrl: null,
-};
-
 export default function Sidebar() {
+  const { user, subscription, isAuthenticated } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
   const [submenuPosition, setSubmenuPosition] = useState(null);
   const location = useLocation();
+
+  // Get user profile data
+  const profile = {
+    name: user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "User" : "Guest",
+    role: user?.role || "User",
+    avatarUrl: null, // You can add avatar URL to user object later
+    isPremium: subscription?.isPremium || false,
+    currentPlan: subscription?.currentPlan || "free",
+  };
 
   const sidebarRef = useRef(null);
   const submenuRef = useRef(null);
@@ -299,27 +306,55 @@ export default function Sidebar() {
       {/* Profile */}
       <div className="mt-auto p-4 border-t border-gray-700">
         {!isCollapsed ? (
-          <div className="flex items-center">
-            {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile.name}
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
-                  {profile.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join("")}
+          <div className="space-y-3">
+            <div className="flex items-center">
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-white">
+                    {profile.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")}
+                  </span>
+                </div>
+              )}
+              <div className="ml-3 text-white">
+                <p className="text-sm font-medium">{profile.name}</p>
+                <p className="text-xs text-gray-300 capitalize">{profile.role}</p>
+              </div>
+            </div>
+            
+            {/* Premium Status & User Type */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                {profile.isPremium ? (
+                  <>
+                    <Crown className="h-3 w-3 text-yellow-400" />
+                    <span className="text-xs text-yellow-400 font-medium">
+                      Premium Member
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-3 w-3 text-gray-400" />
+                    <span className="text-xs text-gray-400">
+                      Free Member
+                    </span>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">
+                  Plan: {profile.currentPlan.toUpperCase()}
                 </span>
               </div>
-            )}
-            <div className="ml-3 text-white">
-              <p className="text-sm font-medium">{profile.name}</p>
-              <p className="text-xs text-gray-300">{profile.role}</p>
             </div>
           </div>
         ) : (
@@ -331,10 +366,13 @@ export default function Sidebar() {
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
-              <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center relative">
                 <span className="text-sm font-medium text-white">
                   {profile.name[0] || "B"}
                 </span>
+                {profile.isPremium && (
+                  <Crown className="h-3 w-3 text-yellow-400 absolute -top-1 -right-1" />
+                )}
               </div>
             )}
           </div>
