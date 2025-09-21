@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Edit, Trash2, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import axiosInstance from '@/api/axios';
+import { endpoints } from '@/api/endpoints';
 
 const CouponsManagement = () => {
   const [coupons, setCoupons] = useState([]);
@@ -107,8 +109,19 @@ const CouponsManagement = () => {
   const isValidNow = (d) => isUnlimited(d) || !isExpired(d);
 
   useEffect(() => {
-    setCoupons(dummyData);
+    fetchCoupons();
   }, []);
+
+  const fetchCoupons = async () => {
+    try {
+      const response = await axiosInstance.get(endpoints.coupons.base);
+      setCoupons(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch coupons:', error);
+      // Fallback to dummy data if API fails
+      setCoupons(dummyData);
+    }
+  };
 
   // Derived filtered list (search + filters)
   const filteredCoupons = useMemo(() => {
@@ -157,21 +170,32 @@ const CouponsManagement = () => {
   const handleSearch = (e) => setSearchTerm(e.target.value);
   const handleBulkActionChange = (e) => setBulkAction(e.target.value);
 
-  const handleBulkActionGo = () => {
+  const handleBulkActionGo = async () => {
     if (!bulkAction || selectedCoupons.length === 0) return;
 
-    setCoupons((prev) => {
+    try {
       if (bulkAction === 'delete') {
-        return prev.filter((c) => !selectedCoupons.includes(c.id));
+        // Delete coupons one by one
+        await Promise.all(
+          selectedCoupons.map(id => 
+            axiosInstance.delete(`${endpoints.coupons.base}/${id}`)
+          )
+        );
+        await fetchCoupons(); // Refresh the list
+      } else if (bulkAction === 'activate' || bulkAction === 'deactivate') {
+        // Update coupons one by one
+        await Promise.all(
+          selectedCoupons.map(id => 
+            axiosInstance.put(`${endpoints.coupons.base}/${id}`, {
+              active: bulkAction === 'activate'
+            })
+          )
+        );
+        await fetchCoupons(); // Refresh the list
       }
-      if (bulkAction === 'activate') {
-        return prev.map((c) => (selectedCoupons.includes(c.id) ? { ...c, active: true } : c));
-      }
-      if (bulkAction === 'deactivate') {
-        return prev.map((c) => (selectedCoupons.includes(c.id) ? { ...c, active: false } : c));
-      }
-      return prev;
-    });
+    } catch (error) {
+      console.error('Failed to perform bulk action:', error);
+    }
 
     setSelectedCoupons([]);
     setBulkAction('');
@@ -202,9 +226,14 @@ const CouponsManagement = () => {
     // add your modal / navigation here
   };
 
-  const handleDelete = (couponId) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== couponId));
-    setSelectedCoupons((prev) => prev.filter((id) => id !== couponId));
+  const handleDelete = async (couponId) => {
+    try {
+      await axiosInstance.delete(`${endpoints.coupons.base}/${couponId}`);
+      await fetchCoupons(); // Refresh the list
+      setSelectedCoupons((prev) => prev.filter((id) => id !== couponId));
+    } catch (error) {
+      console.error('Failed to delete coupon:', error);
+    }
   };
 
   const handlePageChange = (page) => setCurrentPage(page);
@@ -236,18 +265,234 @@ const CouponsManagement = () => {
     getCurrentPageCoupons().every((c) => selectedCoupons.includes(c.id));
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Coupon Management</h1>
-      <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
-        <AgGridReact
-          theme="legacy"
-          rowData={rowData}
-          columnDefs={columnDefs}
-          defaultColDef={{ sortable: true, filter: true, resizable: true }}
-          pagination={true}
-          paginationPageSize={10}
-          paginationPageSizeSelector={[10, 25, 50, 100]}
-        />
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Coupon Management</h1>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+          <Plus size={20} className="mr-2" />
+          Add Coupon
+        </button>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex-1 min-w-64">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search coupons..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          <select
+            value={activeFilter}
+            onChange={(e) => setActiveFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+
+          <select
+            value={validityFilter}
+            onChange={(e) => setValidityFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Validity</option>
+            <option value="valid">Valid</option>
+            <option value="expired">Expired</option>
+            <option value="unlimited">Unlimited</option>
+          </select>
+        </div>
+
+        {/* Bulk Actions */}
+        {selectedCoupons.length > 0 && (
+          <div className="mt-4 flex items-center gap-2">
+            <span className="text-sm text-gray-600">{selectedCoupons.length} selected</span>
+            <select
+              value={bulkAction}
+              onChange={handleBulkActionChange}
+              className="px-3 py-1 border border-gray-300 rounded text-sm"
+            >
+              <option value="">Bulk Actions</option>
+              <option value="activate">Activate</option>
+              <option value="deactivate">Deactivate</option>
+              <option value="delete">Delete</option>
+            </select>
+            <button
+              onClick={handleBulkActionGo}
+              disabled={!bulkAction}
+              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              Apply
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-4 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={allCurrentSelected}
+                    onChange={handleSelectAll}
+                    className="rounded border-gray-300"
+                  />
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Code</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Label</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Discount</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Start Date</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Expire Date</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Used</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {getCurrentPageCoupons().map((coupon) => (
+                <tr
+                  key={coupon.id}
+                  className="hover:bg-gray-50"
+                  onMouseEnter={() => setHoveredRow(coupon.id)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                >
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedCoupons.includes(coupon.id)}
+                      onChange={() => handleSelectCoupon(coupon.id)}
+                      className="rounded border-gray-300"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                      {coupon.code}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {coupon.label || '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {coupon.discount}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {coupon.startDate}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {formatExpireDate(coupon.expireDate)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        coupon.active
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {coupon.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {coupon.used} / {coupon.allowedUses}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleEdit(coupon.id)}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                        title="Edit"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(coupon.id)}
+                        className="text-red-600 hover:text-red-800 p-1"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-700">Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="px-2 py-1 border border-gray-300 rounded text-sm"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span className="text-sm text-gray-700">entries</span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-700">
+              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredCoupons.length)} to{' '}
+              {Math.min(currentPage * itemsPerPage, filteredCoupons.length)} of {filteredCoupons.length} entries
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            
+            <div className="flex space-x-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1 text-sm rounded ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

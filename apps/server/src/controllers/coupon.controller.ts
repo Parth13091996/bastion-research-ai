@@ -69,3 +69,32 @@ export const deleteCoupon = async (req: Request, res: Response) => {
   }
   res.status(200).json(data);
 };
+
+export const validateCoupon = async (req: Request, res: Response) => {
+  const { code } = req.query;
+  
+  if (!code) {
+    return res.status(400).json({ error: "Coupon code is required" });
+  }
+
+  const { data, error } = await supabase
+    .from("coupons")
+    .select("*")
+    .eq("coupon_code", code)
+    .eq("active", true)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return res.status(404).json({ error: "Coupon not found" });
+    }
+    return res.status(500).json({ error: error.message });
+  }
+
+  // Check if coupon is expired
+  if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+    return res.status(400).json({ error: "Coupon has expired" });
+  }
+
+  res.status(200).json(data);
+};
