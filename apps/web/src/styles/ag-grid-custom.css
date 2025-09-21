@@ -65,3 +65,18 @@
   display: block !important;
 }
 
+/* Center align table header text */
+.ag-theme-alpine .ag-header-cell-label {
+  justify-content: flex-start;
+  text-align: left;
+  align-items: center;
+}
+
+/* Left align row data */
+.ag-theme-alpine .ag-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+}
+
