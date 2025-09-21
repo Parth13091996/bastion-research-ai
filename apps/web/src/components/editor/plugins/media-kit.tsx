@@ -6,8 +6,8 @@ import {
 } from '@platejs/media/react';
 import { KEYS } from 'platejs';
 
-import { ImageElement } from '@/components/media-image-node';
-import { MediaPreviewDialog } from '@/components/media-preview-dialog';
+import { ImageElement } from '@/components/ui/media-image-node';
+import { MediaPreviewDialog } from '@/components/ui/media-preview-dialog';
 
 export const MediaKit = [
   ImagePlugin.configure({

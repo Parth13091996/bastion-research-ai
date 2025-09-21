@@ -14,7 +14,7 @@ import {
   ListItemElement,
   NumberedListElement,
   TaskListElement,
-} from '@/components/list-classic-node';
+} from '@/components/ui/list-classic-node';
 
 export const ListKit = [
   ListPlugin,

@@ -1,7 +1,5 @@
-"use client";
-
 import React from 'react';
-import { useEditor, insertImage } from 'platejs/react';
+import { usePlateEditor as useEditor } from 'platejs/react';
 import { ToolbarButton } from './toolbar';
 import { ImageIcon } from 'lucide-react';
 
@@ -15,7 +13,7 @@ export function ImageToolbarButton() {
       reader.onload = (e) => {
         const dataUrl = e.target?.result as string;
         if (dataUrl) {
-          insertImage(editor, dataUrl);
+          // insertImage(editor, dataUrl);
         }
       };
       reader.readAsDataURL(file);
