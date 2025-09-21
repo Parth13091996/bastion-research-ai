@@ -1,154 +1,155 @@
-import * as React from 'react';
-import { KEYS, type Value } from 'platejs';
+import 'tippy.js/dist/tippy.css';
+import '@/features/plate-example/index.css';
+import { useRef, useState } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { createJuicePlugin } from '@udecode/plate-juice';
 import {
-  BlockquotePlugin,
-  BoldPlugin,
-  H1Plugin,
-  H2Plugin,
-  H3Plugin,
-  HighlightPlugin,
-  ItalicPlugin,
-  StrikethroughPlugin,
-  UnderlinePlugin,
-  HorizontalRulePlugin,
-} from '@platejs/basic-nodes/react';
-import { CodeBlockPlugin } from '@platejs/code-block/react';
-import { Plate, usePlateEditor } from 'platejs/react';
-import { ParagraphPlugin } from 'platejs/react';
-import { BlockquoteElement } from '@/components/ui/blockquote-node';
-import { Editor, EditorContainer } from '@/components/ui/editor';
-import { FixedToolbar } from '@/components/ui/fixed-toolbar';
-import { H1Element, H2Element, H3Element } from '@/components/ui/heading-node';
-import { HighlightLeaf } from '@/components/ui/highlight-node';
-import { HrElement } from '@/components/ui/hr-node';
-import { ParagraphElement } from '@/components/ui/paragraph-node';
-import { MarkToolbarButton } from '@/components/ui/mark-toolbar-button';
-import { ToolbarButton, ToolbarGroup } from '@/components/ui/toolbar';
-import { LinkKit } from '@/components/editor/plugins/link-kit';
-import { LinkToolbarButton } from '@/components/ui/link-toolbar-button';
-import { MediaKit } from '@/components/editor/plugins/media-kit';
-import { ImageToolbarButton } from '@/components/ui/ImageToolbarButton';
-import { ListKit } from '@/components/editor/plugins/list-classic-kit';
-import { ListToolbarButton } from '@/components/ui/list-classic-toolbar-button';
+  Plate,
+  createAlignPlugin,
+  createAutoformatPlugin,
+  createBlockquotePlugin,
+  createBoldPlugin,
+  createCodeBlockPlugin,
+  createCodePlugin,
+  createComboboxPlugin,
+  createDeserializeCsvPlugin,
+  createDeserializeDocxPlugin,
+  createDeserializeMdPlugin,
+  createDndPlugin,
+  createExitBreakPlugin,
+  createHeadingPlugin,
+  createHighlightPlugin,
+  createHorizontalRulePlugin,
+  createImagePlugin,
+  createIndentPlugin,
+  createItalicPlugin,
+  createKbdPlugin,
+  createLinkPlugin,
+  createListPlugin,
+  createMediaEmbedPlugin,
+  createNodeIdPlugin,
+  createNormalizeTypesPlugin,
+  createParagraphPlugin,
+  createResetNodePlugin,
+  createSelectOnBackspacePlugin,
+  createSoftBreakPlugin,
+  createStrikethroughPlugin,
+  createSubscriptPlugin,
+  createSuperscriptPlugin,
+  createTablePlugin,
+  createTodoListPlugin,
+  createTrailingBlockPlugin,
+  createUnderlinePlugin,
+  HeadingToolbar,
+  MentionCombobox,
+  usePlateEditorRef,
+} from '@udecode/plate';
 import {
-  UndoToolbarButton,
-  RedoToolbarButton,
-} from '@/components/ui/history-toolbar-button';
-import { TooltipProvider } from '@/components/ui/tooltip';
+  MarkBallonToolbar,
+  ToolbarButtons,
+} from '@/features/plate-example/config/components/Toolbars';
+import { withStyledPlaceHolders } from '@/features/plate-example/config/components/withStyledPlaceHolders';
+import { withStyledDraggables } from '@/features/plate-example/config/components/withStyledDraggables';
+import { CONFIG } from '@/features/plate-example/config/config';
+import { createDragOverCursorPlugin } from '@/features/plate-example/config/plugins';
+import { CursorOverlayContainer } from '@/features/plate-example/config/components/CursorOverlayContainer';
+import {
+  createMyPlugins,
+  MyEditor,
+  MyPlatePlugin,
+  MyValue,
+} from '@/features/plate-example/config/typescript';
+import { createChangedNodeIdPlugin } from '@/features/plate-example/plugins/changedNodeId';
+// Removed custom NameNode plugin to simplify deps
+import { createMentionPlugin } from '@/features/plate-example/plugins/mentionPlugin';
+import { createCreatedAtPlugin } from '@/features/plate-example/plugins/createdAt';
+import transformEditorPayload from '@/features/plate-example/utils/transformEditorPayload';
 
-const initialValue: Value = [
-  {
-    children: [{ text: 'Title' }],
-    type: 'h3',
-  },
-  {
-    children: [{ text: 'This is a quote.' }],
-    type: 'blockquote',
-  },
-  {
-    children: [
-      { text: 'With some ' },
-      { bold: true, text: 'bold' },
-      { text: ' text for emphasis!' },
-    ],
-    type: 'p',
-  },
-];
+// Build components map
+import { createPlateUI, ELEMENT_CODE_BLOCK, StyledElement } from '@udecode/plate';
 
-export default function RichEditor() {
-  const editor = usePlateEditor({
-    // Note: Plate.js has built-in history management, so no separate HistoryPlugin is needed.
-    plugins: [
-      ParagraphPlugin.withComponent(ParagraphElement),
-      BoldPlugin,
-      ItalicPlugin,
-      UnderlinePlugin,
-      StrikethroughPlugin,
-      HighlightPlugin.configure({ node: { component: HighlightLeaf } }),
-      H1Plugin.withComponent(H1Element),
-      H2Plugin.withComponent(H2Element),
-      H3Plugin.withComponent(H3Element),
-      BlockquotePlugin.withComponent(BlockquoteElement),
-      CodeBlockPlugin,
-      HorizontalRulePlugin.withComponent(HrElement),
-      ...LinkKit,
-      ...MediaKit,
-      ...ListKit,
+const componentsBase = createPlateUI({
+  [ELEMENT_CODE_BLOCK]: StyledElement,
+});
+const components = withStyledDraggables(withStyledPlaceHolders(componentsBase));
+
+const USER_ID = '14f1f8b0-3373-4397-9016-27bafa6b03f7';
+
+export default function Editor() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [mentionables, setMentionables] = useState<any[]>([]);
+
+  const plugins = createMyPlugins(
+    [
+      createParagraphPlugin(),
+      createBlockquotePlugin(),
+      createTodoListPlugin(),
+      createHeadingPlugin(),
+      createImagePlugin(),
+      createHorizontalRulePlugin(),
+      createLinkPlugin(),
+      createListPlugin(),
+      createTablePlugin(),
+      createMediaEmbedPlugin(),
+      createCodeBlockPlugin(),
+      createAlignPlugin(CONFIG.align),
+      createBoldPlugin(),
+      createCodePlugin(),
+      createItalicPlugin(),
+      createHighlightPlugin(),
+      createUnderlinePlugin(),
+      createStrikethroughPlugin(),
+      createSubscriptPlugin(),
+      createSuperscriptPlugin(),
+      createJuicePlugin() as MyPlatePlugin,
+      createNodeIdPlugin(),
+      createDndPlugin(),
+      createDragOverCursorPlugin(),
+      createIndentPlugin(CONFIG.indent),
+      createAutoformatPlugin(CONFIG.autoformat),
+      createResetNodePlugin(CONFIG.resetBlockType),
+      createSoftBreakPlugin(CONFIG.softBreak),
+      createExitBreakPlugin(CONFIG.exitBreak),
+      createNormalizeTypesPlugin(CONFIG.forceLayout),
+      createTrailingBlockPlugin(CONFIG.trailingBlock),
+      createSelectOnBackspacePlugin(CONFIG.selectOnBackspace),
+      createComboboxPlugin(),
+      createMentionPlugin(),
+      createDeserializeMdPlugin(),
+      createDeserializeCsvPlugin(),
+      createDeserializeDocxPlugin(),
+      createChangedNodeIdPlugin(),
+      createCreatedAtPlugin(),
     ],
-    value: (() => {
-      try {
-        const saved = localStorage.getItem('plate-content');
-        if (!saved) return initialValue;
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-        if (parsed?.editor?.children && Array.isArray(parsed.editor.children)) {
-          return parsed.editor.children as Value;
-        }
-      } catch {}
-      return initialValue;
-    })(),
-  });
+    { components }
+  );
+
+  const handleChange = (value: any) => {
+    const transformedPayload = transformEditorPayload(value);
+    // eslint-disable-next-line no-console
+    console.log('Transformed value: ', transformedPayload);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const key = e.key;
+    if (key === '@') {
+      setMentionables(CONFIG.mentionItems);
+    }
+  };
 
   return (
-    <Plate
-      editor={editor}
-      onChange={(state: any) => {
-        const children = editor?.children ?? state?.editor?.children ?? null;
-        if (children) {
-          try {
-            localStorage.setItem('plate-content', JSON.stringify(children));
-          } catch {}
-        }
-      }}
-    >
-      <TooltipProvider delayDuration={150} skipDelayDuration={0}>
-      <FixedToolbar className="flex justify-start gap-1 rounded-t-lg">
-        <ToolbarGroup>
-          <UndoToolbarButton />
-          <RedoToolbarButton />
-        </ToolbarGroup>
-        <ToolbarGroup>
-          <ToolbarButton onClick={() => editor?.tf.toggle.h1()}>
-            H1
-          </ToolbarButton>
-          <ToolbarButton onClick={() => editor?.tf.toggle.h2()}>
-            H2
-          </ToolbarButton>
-          <ToolbarButton onClick={() => editor?.tf.toggle.h3()}>
-            H3
-          </ToolbarButton>
-        </ToolbarGroup>
-        <ToolbarGroup>
-          <MarkToolbarButton nodeType="bold" tooltip="Bold (⌘+B)">B</MarkToolbarButton>
-          <MarkToolbarButton nodeType="italic" tooltip="Italic (⌘+I)">I</MarkToolbarButton>
-          <MarkToolbarButton nodeType="underline" tooltip="Underline (⌘+U)">U</MarkToolbarButton>
-          <MarkToolbarButton nodeType="strikethrough" tooltip="Strikethrough">S</MarkToolbarButton>
-          <MarkToolbarButton nodeType="highlight" tooltip="Highlight">H</MarkToolbarButton>
-        </ToolbarGroup>
-        <ToolbarGroup>
-          <ToolbarButton onClick={() => editor?.tf.toggle.blockquote()}>
-            Quote
-          </ToolbarButton>
-          <ToolbarButton onClick={() => editor?.tf.toggle.codeBlock()}>
-            Code
-          </ToolbarButton>
-          <ToolbarButton onClick={() => editor?.tf.hr.insert()}>
-            HR
-          </ToolbarButton>
-        </ToolbarGroup>
-        <ToolbarGroup>
-          <ListToolbarButton />
-          <ListToolbarButton nodeType={KEYS.olClassic} />
-        </ToolbarGroup>
-        <ToolbarGroup>
-          <LinkToolbarButton />
-          <ImageToolbarButton />
-        </ToolbarGroup>
-      </FixedToolbar>
-      </TooltipProvider>
-      <EditorContainer>
-        <Editor placeholder="Type your amazing content here..." />
-      </EditorContainer>
-    </Plate>
+    <DndProvider backend={HTML5Backend}>
+      <Plate id={USER_ID} editableProps={CONFIG.editableProps} plugins={plugins} onChange={handleChange}>
+        <HeadingToolbar>
+          <ToolbarButtons />
+        </HeadingToolbar>
+        <div ref={containerRef} style={{ position: 'relative' }} onKeyDown={handleKeyDown}>
+          <MarkBallonToolbar />
+          <MentionCombobox items={mentionables} />
+          {/* <CursorOverlayContainer containerRef={containerRef} /> */}
+        </div>
+      </Plate>
+    </DndProvider>
   );
 }

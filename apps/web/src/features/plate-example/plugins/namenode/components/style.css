@@ -1,0 +1,94 @@
+.name-node {
+  width: 200px;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 3px solid black;
+}
+
+.scrolling {
+  -moz-transform: translateX(100%);
+  -webkit-transform: translateX(100%);
+  transform: translateX(100%);
+
+  -moz-animation: scroll-animation 15s linear infinite;
+  -webkit-animation: scroll-animation 15s linear infinite;
+  animation: scroll-animation 15s linear infinite;
+}
+
+.reverse-scrolling {
+  text-align: right;
+  /* animation properties */
+  -moz-transform: translateX(-100%);
+  -webkit-transform: translateX(-100%);
+  transform: translateX(-100%);
+
+  -moz-animation: reverse-animation 15s linear infinite;
+  -webkit-animation: reverse-animation 15s linear infinite;
+  animation: reverse-animation 15s linear infinite;
+}
+
+/* for Firefox */
+@-moz-keyframes scroll-animation {
+  from {
+    -moz-transform: translateX(100%);
+  }
+  to {
+    -moz-transform: translateX(-100%);
+  }
+}
+
+/* for Chrome */
+@-webkit-keyframes scroll-animation {
+  from {
+    -webkit-transform: translateX(100%);
+  }
+  to {
+    -webkit-transform: translateX(-100%);
+  }
+}
+
+@keyframes scroll-animation {
+  from {
+    -moz-transform: translateX(100%);
+    -webkit-transform: translateX(100%);
+    transform: translateX(100%);
+  }
+  to {
+    -moz-transform: translateX(-100%);
+    -webkit-transform: translateX(-100%);
+    transform: translateX(-100%);
+  }
+}
+
+/* for Firefox */
+@-moz-keyframes reverse-animation {
+  from {
+    -moz-transform: translateX(-100%);
+  }
+  to {
+    -moz-transform: translateX(100%);
+  }
+}
+
+/* for Chrome */
+@-webkit-keyframes reverse-animation {
+  from {
+    -webkit-transform: translateX(-100%);
+  }
+  to {
+    -webkit-transform: translateX(100%);
+  }
+}
+
+@keyframes reverse-animation {
+  from {
+    -moz-transform: translateX(-100%);
+    -webkit-transform: translateX(-100%);
+    transform: translateX(-100%);
+  }
+  to {
+    -moz-transform: translateX(100%);
+    -webkit-transform: translateX(100%);
+    transform: translateX(100%);
+  }
+}
