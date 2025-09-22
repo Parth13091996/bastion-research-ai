@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Search, Edit, Trash2, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { AgGridReact } from 'ag-grid-react';
+import { ColDef, GridReadyEvent } from 'ag-grid-community';
 import axiosInstance from '@/api/axios';
 import { endpoints } from '@/api/endpoints';
 import ConfirmationModal from '@/components/core/common/Modals/ConfirmationModal';
@@ -280,6 +282,117 @@ const CouponsManagement = () => {
     ));
   };
 
+  // AgGrid Cell Renderers
+  const CheckboxRenderer = (params: any) => (
+    <input
+      type="checkbox"
+      checked={selectedCoupons.includes(params.data.id)}
+      onChange={() => handleSelectCoupon(params.data.id)}
+      className="rounded border-gray-300"
+    />
+  );
+
+  const CodeRenderer = (params: any) => (
+    <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+      {params.value}
+    </span>
+  );
+
+  const StatusRenderer = (params: any) => (
+    <span
+      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+        params.value
+          ? 'bg-green-100 text-green-800'
+          : 'bg-red-100 text-red-800'
+      }`}
+    >
+      {params.value ? 'Active' : 'Inactive'}
+    </span>
+  );
+
+  const ExpireDateRenderer = (params: any) => {
+    const date = params.value;
+    if (isUnlimited(date)) return 'Unlimited';
+    if (isExpired(date)) {
+      return <span className="text-red-500">{date}</span>;
+    }
+    return date;
+  };
+
+  const ActionsRenderer = (params: any) => (
+    <div className="flex items-center space-x-1">
+      <button
+        onClick={() => handleEdit(params.data.id)}
+        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
+        title="Edit"
+      >
+        <Edit className="h-4 w-4" />
+      </button>
+      <button
+        onClick={() => handleDelete(params.data.id)}
+        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+        title="Delete"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
+  // AgGrid Column Definitions
+  const columnDefs: ColDef[] = [
+    {
+      headerName: '',
+      field: 'id',
+      width: 50,
+      checkboxSelection: false,
+      headerCheckboxSelection: false,
+      cellRenderer: CheckboxRenderer,
+      sortable: false,
+      filter: false,
+    },
+    {
+      headerName: 'Code',
+      field: 'code',
+      cellRenderer: CodeRenderer,
+    },
+    {
+      headerName: 'Label',
+      field: 'label',
+      valueFormatter: (params) => params.value || '-',
+    },
+    {
+      headerName: 'Discount',
+      field: 'discount',
+    },
+    {
+      headerName: 'Start Date',
+      field: 'startDate',
+    },
+    {
+      headerName: 'Expire Date',
+      field: 'expireDate',
+      cellRenderer: ExpireDateRenderer,
+    },
+    {
+      headerName: 'Status',
+      field: 'active',
+      cellRenderer: StatusRenderer,
+    },
+    {
+      headerName: 'Used',
+      field: 'used',
+      valueFormatter: (params) => `${params.value} / ${params.data.allowedUses}`,
+    },
+    {
+      headerName: 'Actions',
+      field: 'actions',
+      cellRenderer: ActionsRenderer,
+      sortable: false,
+      filter: false,
+      width: 120,
+    },
+  ];
+
   // select-all checkbox checked state only for the current page slice
   const currentPageIds = new Set(getCurrentPageCoupons().map((c) => c.id));
   const allCurrentSelected =
@@ -359,161 +472,26 @@ const CouponsManagement = () => {
         )}
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-4 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={allCurrentSelected}
-                    onChange={handleSelectAll}
-                    className="rounded border-gray-300"
-                  />
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Code</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Label</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Discount</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Start Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Expire Date</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Used</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {getCurrentPageCoupons().map((coupon) => (
-                <tr
-                  key={coupon.id}
-                  className="hover:bg-gray-50"
-                  onMouseEnter={() => setHoveredRow(coupon.id)}
-                  onMouseLeave={() => setHoveredRow(null)}
-                >
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedCoupons.includes(coupon.id)}
-                      onChange={() => handleSelectCoupon(coupon.id)}
-                      className="rounded border-gray-300"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                      {coupon.code}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {coupon.label || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {coupon.discount}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {coupon.startDate}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    {formatExpireDate(coupon.expireDate)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        coupon.active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {coupon.active ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {coupon.used} / {coupon.allowedUses}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-1">
-                      <button
-                        onClick={() => handleEdit(coupon.id)}
-                        className="h-8 w-8 p-0"
-                        title="Edit"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(coupon.id)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">Show</span>
-            <select
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span className="text-sm text-gray-700">entries</span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">
-              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredCoupons.length)} to{' '}
-              {Math.min(currentPage * itemsPerPage, filteredCoupons.length)} of {filteredCoupons.length} entries
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            
-            <div className="flex space-x-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1;
-                return (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 text-sm rounded ${
-                      currentPage === page
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
+      {/* AgGrid Table */}
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+          <AgGridReact
+            theme="legacy"
+            rowData={filteredCoupons}
+            columnDefs={columnDefs}
+            defaultColDef={{
+              sortable: true,
+              filter: true,
+              resizable: true,
+              flex: 1,
+            }}
+            pagination={true}
+            paginationPageSize={itemsPerPage}
+            paginationPageSizeSelector={[10, 25, 50, 100]}
+            onGridReady={(params: GridReadyEvent) => {
+              // Handle any grid ready logic here if needed
+            }}
+          />
         </div>
       </div>
     </div>

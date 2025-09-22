@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Search, Plus, Eye, FileText, Trash2, X } from "lucide-react";
+import { Search, Plus, Eye, FileText, Trash2, X, Edit } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +36,13 @@ const SubscriptionGrid = ({
 const SubscriptionsActionsRenderer = (params: any) => (
   <div className="flex items-center space-x-2">
     <button
+      className="text-blue-600 hover:text-blue-800 p-1"
+      title="Edit"
+      onClick={() => params?.context?.edit?.(params?.data)}
+    >
+      <Edit size={16} className="text-blue-600" />
+    </button>
+    <button
       className="text-red-600 hover:text-red-800 p-1"
       title="Cancel"
       onClick={() => params?.context?.cancel?.(params?.data)}
@@ -45,8 +52,15 @@ const SubscriptionsActionsRenderer = (params: any) => (
   </div>
 );
 
-const ActivitiesActionsRenderer = () => (
+const ActivitiesActionsRenderer = (params: any) => (
   <div className="flex items-center space-x-2">
+    <button
+      className="text-blue-600 hover:text-blue-800 p-1"
+      title="Edit"
+      onClick={() => params?.context?.edit?.(params?.data)}
+    >
+      <Edit size={16} className="text-blue-600" />
+    </button>
     <button
       title="View Invoice"
       className="text-blue-600 hover:text-blue-800 p-1"
@@ -245,6 +259,12 @@ const ManageSubscriptions = () => {
 
   const cancel = (row: any) => cancelMutation.mutate(row);
 
+  const edit = (row: any) => {
+    console.log("Edit subscription/activity:", row);
+    // TODO: Implement edit functionality - could open a modal or navigate to edit page
+    // For now, just log the row data for demonstration
+  };
+
   const renderCurrentTable = () => {
     switch (activeTab) {
       case "subscriptions":
@@ -367,7 +387,7 @@ const ManageSubscriptions = () => {
               pagination={true}
               paginationPageSize={10}
               paginationPageSizeSelector={[10, 25, 50, 100]}
-              context={{ cancel }}
+              context={{ cancel, edit }}
             />
           </div>
         </div>

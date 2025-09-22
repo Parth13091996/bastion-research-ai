@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import {
   ColDef,
@@ -90,7 +91,7 @@ const ActionsRenderer = ({ data, context }: { data: any; context: any }) => {
           onClick={() => onEdit(data)}
           title="Edit"
         >
-          <Edit className="h-4 w-4" />
+          <Edit className="h-4 w-4 text-blue-600 hover:text-blue-800" />
         </Button>
       )}
       {onDelete && (

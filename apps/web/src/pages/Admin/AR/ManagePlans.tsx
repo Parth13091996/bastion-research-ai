@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, SquarePen, Trash2 } from "lucide-react"; // 🔥 Changed Edit2 -> SquarePen
 import { AgGridReact } from "ag-grid-react";
 import { ColDef, GridReadyEvent } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +15,7 @@ const ActionsRenderer = (params: any) => (
       title="Edit"
       disabled={!params?.context?.openEdit || !params?.data}
     >
-      <Edit2 size={16} />
+      <SquarePen size={16} /> {/* 🔥 Updated icon */}
     </button>
     <button
       onClick={() => params?.context?.deletePlan?.(params?.data?.plan_id)}
@@ -68,21 +68,26 @@ const MembershipPlans = () => {
       wp_role: "",
     });
   };
+
   const updatePlan = (id: number | string, body: any) => {
     if (!id || !body) return;
     updateMutation.mutate({ id, body });
   };
+
   const deletePlan = (id: number | string) => {
     if (!id) return;
     deleteMutation.mutate(id);
   };
+
   const [editOpen, setEditOpen] = useState(false);
   const [editRow, setEditRow] = useState<any | null>(null);
+
   const openEdit = (row: any) => {
     if (!row) return;
     setEditRow(row);
     setEditOpen(true);
   };
+
   const saveEdit = (values: any) => {
     if (!editRow || !values) return;
     updatePlan(editRow.plan_id, {
@@ -95,9 +100,11 @@ const MembershipPlans = () => {
     });
     setEditOpen(false);
   };
+
   const [searchTerm, setSearchTerm] = useState("");
   const gridRef = useRef<any>(null);
   const queryClient = useQueryClient();
+
   const { data: plans } = useQuery({
     queryKey: [queryKeys.membership_plans],
     queryFn: () =>
@@ -110,12 +117,14 @@ const MembershipPlans = () => {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });
+
   const updateMutation = useMutation({
     mutationFn: (payload: { id: number | string; body: any }) =>
       axiosInstance.put(`/api/membership-plans/${payload?.id}`, payload?.body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.membership_plans] }),
   });
+
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) =>
       axiosInstance.delete(`/api/membership-plans/${id}`),
