@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Lottie from "lottie-react";
 import React, { useRef, useState } from "react";
-import BackgroundShapes from "../components/generic/framer-motion.tsx";
+import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 
 // Import your Lottie JSON files
 import adaptiveQualityAnim from "@/../public/media/adaptiveQuality.json";

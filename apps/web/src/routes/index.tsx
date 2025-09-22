@@ -28,13 +28,8 @@ const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
 const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
 const Compliance = lazy(() => import("../pages/Compliance"));
 const BastionCore = lazy(() => import("../pages/BastionCore"));
-const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
-// OLD USER ADMIN PAGES - COMMENTED OUT (Now using UserAdmin layout)
-// const EditProfile = lazy(() => import("../pages/EditProfile"));
-// const Subscription = lazy(() => import("../pages/Subscription"));
-// const TransactionHistory = lazy(() => import("../pages/TransactionHistory"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
-const About = lazy(() => import("../pages/About"));
+const About = lazy(() => import("../pages/AboutUs"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
 // User Admin Pages
@@ -56,13 +51,11 @@ const UserAdminSubscription = lazy(
 const UserAdminTransactionHistory = lazy(
   () => import("@/pages/UserAdmin/app/TransactionHistory")
 );
-const UserAdminLogout = lazy(
-  () => import("@/pages/UserAdmin/app/UserLogout")
-);
+const UserAdminLogout = lazy(() => import("@/pages/UserAdmin/app/UserLogout"));
 
 // Admin Pages
 const AdminLogin = lazy(() => import("../pages/AdminLogin"));
-const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
+const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const ManageMembers = lazy(() => import("../pages/Admin/AR/ManageMembers"));
 const ManagePlans = lazy(() => import("../pages/Admin/AR/ManagePlans"));
 const ManageSubscriptions = lazy(
@@ -78,15 +71,26 @@ const Applications = lazy(() => import("../pages/Admin/Jobs/Applications"));
 const AllUsers = lazy(() => import("../pages/Admin/Users/AllUsers"));
 const AddUser = lazy(() => import("../pages/Admin/Users/AddUser"));
 const Profile = lazy(() => import("../pages/Admin/Users/Profile"));
-const AdminSettings = lazy(() => import("../pages/AdminSettings"));
+const AdminSettings = lazy(() => import("../pages/Admin/Settings"));
 
-// Content Management Pages
-const NewsletterManagement = lazy(() => import("../pages/Admin/Content/NewsletterManagement"));
-const WebinarManagement = lazy(() => import("../pages/Admin/Content/WebinarManagement"));
-const PodcastManagement = lazy(() => import("../pages/Admin/Content/PodcastManagement"));
-const NewsletterEditor = lazy(() => import("../pages/Admin/Content/NewsletterEditor"));
-const WebinarEditor = lazy(() => import("../pages/Admin/Content/WebinarEditor"));
-const PodcastEditor = lazy(() => import("../pages/Admin/Content/PodcastEditor"));
+const NewsletterManagement = lazy(
+  () => import("../pages/Admin/Content/NewsletterManagement")
+);
+const WebinarManagement = lazy(
+  () => import("../pages/Admin/Content/WebinarManagement")
+);
+const PodcastManagement = lazy(
+  () => import("../pages/Admin/Content/PodcastManagement")
+);
+const NewsletterEditor = lazy(
+  () => import("../pages/Admin/Content/NewsletterEditor")
+);
+const WebinarEditor = lazy(
+  () => import("../pages/Admin/Content/WebinarEditor")
+);
+const PodcastEditor = lazy(
+  () => import("../pages/Admin/Content/PodcastEditor")
+);
 
 // Public Content Pages
 const NewsletterView = lazy(() => import("../pages/NewsletterView"));
@@ -99,7 +103,7 @@ const Test = lazy(() => import("../components/generic/Test"));
 const NewsletterArchive = lazy(
   () => import("../components/generic/NewsletterArchive")
 );
-const Webinar = lazy(() => import("../components/generic/Webinar"));
+const Webinar = lazy(() => import("../pages/Webinars"));
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );
@@ -134,16 +138,7 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.podcastView(), element: <PodcastView /> },
       {
         element: <ProtectedRoute />,
-        children: [
-          { path: AppRoutes.dashboard(), element: <Dashboard /> },
-          // OLD USER ADMIN ROUTES - COMMENTED OUT (Now using UserAdmin layout)
-          // { path: AppRoutes.editProfile(), element: <EditProfile /> },
-          // { path: AppRoutes.subscription(), element: <Subscription /> },
-          // {
-          //   path: AppRoutes.transactionHistory(),
-          //   element: <TransactionHistory />,
-          // },
-        ],
+        children: [{ path: AppRoutes.dashboard(), element: <Dashboard /> }],
       },
     ],
   },
@@ -259,7 +254,7 @@ export const routes: RouteObject[] = [
       },
     ],
   },
-  
+
   {
     path: "/user",
     element: <UserAdminLayout />,
@@ -271,9 +266,18 @@ export const routes: RouteObject[] = [
           { path: "app/dashboard", element: <UserAdminDashboard /> },
           { path: "app/recommendation", element: <UserAdminRecommendation /> },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
-          { path: "app/account/edit-profile", element: <UserAdminEditProfile /> },
-          { path: "app/account/subscription", element: <UserAdminSubscription /> },
-          { path: "app/account/transactions", element: <UserAdminTransactionHistory /> },
+          {
+            path: "app/account/edit-profile",
+            element: <UserAdminEditProfile />,
+          },
+          {
+            path: "app/account/subscription",
+            element: <UserAdminSubscription />,
+          },
+          {
+            path: "app/account/transactions",
+            element: <UserAdminTransactionHistory />,
+          },
           { path: "app/account/logout", element: <UserAdminLogout /> },
         ],
       },
