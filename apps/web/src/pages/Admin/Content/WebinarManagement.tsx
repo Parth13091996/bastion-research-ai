@@ -1,7 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import ContentManagement from '@/components/admin/ContentManagement';
-import { webinarApi } from '@/api/content';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import ContentManagement from "@/components/admin/ContentManagement";
+import { webinarApi } from "@/api/content";
 
 const WebinarManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const WebinarManagement: React.FC = () => {
 
   return (
     <ContentManagement
-      type="webinar"
+      type="webinars"
       title="Webinar Management"
       api={webinarApi}
       onEdit={handleEdit}

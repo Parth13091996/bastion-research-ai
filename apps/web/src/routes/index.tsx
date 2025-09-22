@@ -94,7 +94,7 @@ const PodcastEditor = lazy(
 
 // Public Content Pages
 const NewsletterView = lazy(() => import("../pages/NewsletterView"));
-const WebinarView = lazy(() => import("../pages/WebinarView"));
+const WebinarView = lazy(() => import("../pages/Webinars/WebinarView"));
 const PodcastView = lazy(() => import("../pages/PodcastView"));
 
 // Components that are used as pages

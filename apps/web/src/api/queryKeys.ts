@@ -3,4 +3,6 @@ export const queryKeys = {
   subscription: "subscription",
   membership_plans: "membership-plans",
   applications: "applications",
+  users: "users",
+  webinars: "webinars",
 };

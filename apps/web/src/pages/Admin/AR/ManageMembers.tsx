@@ -9,6 +9,7 @@ import { Plus, Trash2, UserPlus, Mail } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { queryKeys } from "@/api/queryKeys";
 
 const AvatarRenderer = (params: any) => {
   const getInitial = (name: string) =>
@@ -31,10 +32,12 @@ const RoleRenderer = (params: any) => {
     ipo_subscriber: "bg-purple-100 text-purple-800",
     research_ally_subscriber: "bg-orange-100 text-orange-800",
   };
-  
+
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[role] || "bg-gray-100 text-gray-800"}`}>
-      {role.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+    <span
+      className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[role] || "bg-gray-100 text-gray-800"}`}
+    >
+      {role.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
     </span>
   );
 };
@@ -56,23 +59,25 @@ const MemberManagementDashboard = () => {
     isLoading: loading,
     error,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: [queryKeys.users],
     queryFn: () =>
       axiosInstance.get(endpoints.users.base).then((res) => res.data),
   });
-  
+
   const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
   const setIsModalOpen = useModalStore((s) => s.set);
-  
+
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) =>
       axiosInstance.put(endpoints.users.byId(payload.id), payload.body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [queryKeys.users] }),
   });
-  
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => axiosInstance.delete(endpoints.users.byId(id)),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [queryKeys.users] }),
   });
 
   const columns: ColDef[] = [
@@ -84,23 +89,24 @@ const MemberManagementDashboard = () => {
       sortable: false,
       filter: false,
     },
-    { 
-      headerName: "Username", 
-      field: "username", 
+    {
+      headerName: "Username",
+      field: "username",
       flex: 1,
       minWidth: 150,
     },
-    { 
-      headerName: "Email", 
-      field: "email", 
+    {
+      headerName: "Email",
+      field: "email",
       flex: 2,
       cellRenderer: EmailRenderer,
       minWidth: 200,
     },
-    { 
-      headerName: "Name", 
+    {
+      headerName: "Name",
       field: "full_name",
-      valueGetter: (params) => `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
+      valueGetter: (params) =>
+        `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
       flex: 1,
       minWidth: 150,
     },
@@ -131,11 +137,13 @@ const MemberManagementDashboard = () => {
       headerName: "Premium",
       field: "isPremium",
       cellRenderer: (params: any) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          params.value 
-            ? "bg-green-100 text-green-800" 
-            : "bg-gray-100 text-gray-800"
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            params.value
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {params.value ? "Yes" : "No"}
         </span>
       ),
@@ -160,7 +168,7 @@ const MemberManagementDashboard = () => {
   ];
 
   const openEditMember = useEditMemberStore((s) => s.open);
-  
+
   const handleEdit = (row: any) => {
     openEditMember(row);
   };
@@ -168,7 +176,7 @@ const MemberManagementDashboard = () => {
   const handleDelete = (row: any) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
-    
+
     setModalProps("confirm", {
       title: "Delete member?",
       description: `This action cannot be undone. This will permanently delete ${row.first_name || row.username || "this user"}.`,
@@ -195,19 +203,22 @@ const MemberManagementDashboard = () => {
   const handleBulkDelete = (selected: any[]) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
-    
+
     setModalProps("confirm", {
       title: `Delete ${selected.length} members?`,
-      description: "This action cannot be undone. This will permanently delete all selected members.",
+      description:
+        "This action cannot be undone. This will permanently delete all selected members.",
       confirmText: "Delete All",
       cancelText: "Cancel",
       tone: "danger",
       isLoading: deleteMutation.isPending,
       onConfirm: async () => {
         try {
-          await Promise.all(selected.map(member => 
-            axiosInstance.delete(endpoints.users.byId(member.id))
-          ));
+          await Promise.all(
+            selected.map((member) =>
+              axiosInstance.delete(endpoints.users.byId(member.id))
+            )
+          );
           queryClient.invalidateQueries({ queryKey: ["users"] });
           toast.success(`${selected.length} members deleted successfully`);
         } catch (error) {
@@ -225,7 +236,7 @@ const MemberManagementDashboard = () => {
   };
 
   const handleBulkEmail = (selected: any[]) => {
-    const emails = selected.map(member => member.email).join(", ");
+    const emails = selected.map((member) => member.email).join(", ");
     window.open(`mailto:${emails}`, "_blank");
   };
 

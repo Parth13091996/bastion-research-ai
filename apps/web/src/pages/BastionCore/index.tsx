@@ -1,8 +1,8 @@
+import BackgroundShapes from "@/components/generic/framer-motion";
+import Testimonial from "@/components/generic/Test";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import React, { useState } from "react";
-import BackgroundShapes from "../components/generic/framer-motion.tsx";
-import Testimonial from "../components/generic/Testimonial.tsx";
 
 // Brand Colors
 const COLORS = {

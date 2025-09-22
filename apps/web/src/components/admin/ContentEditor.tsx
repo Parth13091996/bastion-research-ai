@@ -168,7 +168,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-2xl font-bold">{getTitle()}</h1>
+          <h1 className="text-2xl font-bold text-secondary">{getTitle()}</h1>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => setIsPreview(!isPreview)}>
@@ -218,26 +218,25 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         </div>
 
         {/* Editor */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Editor</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isPreview ? (
-                <div
-                  className="prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: formData.html_content }}
-                />
-              ) : (
-                <Editor
-                  initialValue={formData.html_content}
-                  onChange={handleEditorChange}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        {type !== "webinar" && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Content Editor</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isPreview ? (
+                  <div
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formData.html_content }}
+                  />
+                ) : (
+                  <Editor />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

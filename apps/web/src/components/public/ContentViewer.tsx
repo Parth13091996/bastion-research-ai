@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, Share2, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Calendar, Share2, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
-export type ContentType = 'newsletter' | 'webinar' | 'podcast';
+export type ContentType = "newsletter" | "webinar" | "podcast";
 
 interface ContentViewerProps {
   type: ContentType;
@@ -17,11 +17,7 @@ interface ContentViewerProps {
   onBack: () => void;
 }
 
-const ContentViewer: React.FC<ContentViewerProps> = ({
-  type,
-  api,
-  onBack,
-}) => {
+const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [content, setContent] = useState<any>(null);
@@ -39,7 +35,7 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
       const data = await api.getById(id!);
       setContent(data);
     } catch (error: any) {
-      toast.error('Failed to load content');
+      toast.error("Failed to load content");
       onBack();
     } finally {
       setIsLoading(false);
@@ -49,37 +45,37 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
   const handleShare = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url);
-    toast.success('Link copied to clipboard!');
+    toast.success("Link copied to clipboard!");
   };
 
   const getTypeIcon = () => {
     switch (type) {
-      case 'newsletter':
-        return '📧';
-      case 'webinar':
-        return '🎥';
-      case 'podcast':
-        return '🎧';
+      case "newsletter":
+        return "📧";
+      case "webinar":
+        return "🎥";
+      case "podcast":
+        return "🎧";
       default:
-        return '📄';
+        return "📄";
     }
   };
 
   const getTypeColor = () => {
     switch (type) {
-      case 'newsletter':
-        return 'bg-blue-100 text-blue-800';
-      case 'webinar':
-        return 'bg-purple-100 text-purple-800';
-      case 'podcast':
-        return 'bg-green-100 text-green-800';
+      case "newsletter":
+        return "bg-blue-100 text-blue-800";
+      case "webinar":
+        return "bg-purple-100 text-purple-800";
+      case "podcast":
+        return "bg-green-100 text-green-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMMM dd, yyyy');
+    return format(new Date(dateString), "MMMM dd, yyyy");
   };
 
   if (isLoading) {
@@ -144,7 +140,9 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
               </div>
               <CardTitle className="text-3xl">{content.title}</CardTitle>
               {content.sub_title && (
-                <p className="text-lg text-gray-600 mt-2">{content.sub_title}</p>
+                <p className="text-lg text-gray-600 mt-2">
+                  {content.sub_title}
+                </p>
               )}
             </CardHeader>
             {content.headline_image_url && (
@@ -162,7 +160,7 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
           {content.html_content && (
             <Card>
               <CardContent className="pt-6">
-                <div 
+                <div
                   className="prose max-w-none"
                   dangerouslySetInnerHTML={{ __html: content.html_content }}
                 />
@@ -171,13 +169,18 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
           )}
 
           {/* Video (for webinars and podcasts) */}
-          {(content.video_url && (type === 'webinar' || type === 'podcast')) && (
+          {content.video_url && (type === "webinar" || type === "podcast") && (
             <Card>
               <CardHeader>
                 <CardTitle>Video</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-video">
+                <div
+                  className="aspect-video"
+                  style={{
+                    background: content.video_url,
+                  }}
+                >
                   <iframe
                     src={content.video_url}
                     className="w-full h-full rounded-lg"
@@ -185,23 +188,15 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
                     title={content.title}
                   />
                 </div>
-                <div className="mt-4">
-                  <Button asChild>
-                    <a href={content.video_url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Open in New Tab
-                    </a>
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
 
           {/* Footer Content (for newsletters) */}
-          {content.footer_content && type === 'newsletter' && (
+          {content.footer_content && type === "newsletter" && (
             <Card>
               <CardContent className="pt-6">
-                <div 
+                <div
                   className="prose max-w-none text-sm text-gray-600"
                   dangerouslySetInnerHTML={{ __html: content.footer_content }}
                 />
@@ -218,8 +213,8 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
               <CardTitle>Share this {type}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full justify-start"
                 onClick={handleShare}
               >

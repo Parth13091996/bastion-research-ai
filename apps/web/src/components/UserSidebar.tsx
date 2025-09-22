@@ -1,30 +1,29 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "../../public/media/favicon.webp";
-import {
-  ChevronLeft,
-  LayoutDashboard,
-  TrendingUp,
-  FileText,
-  Menu,
-  X,
-  Target,
-  BarChart3,
-  Percent,
-  User,
-  ChevronDown,
-  ChevronRight,
-  LogOut,
-  CreditCard,
-  Settings,
-  Crown,
-  Shield,
-  Home,
-  ExternalLink,
-} from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  BarChart3,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Crown,
+  FileText,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Percent,
+  Settings,
+  Shield,
+  Target,
+  TrendingUp,
+  User,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import logo from "../../public/media/favicon.webp";
 
 // Brand Colors
 const BrandColors = {
@@ -36,16 +35,32 @@ const BrandColors = {
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/user/app/dashboard" },
-  { name: "Recommendation", icon: TrendingUp, path: "/user/app/recommendation" },
+  {
+    name: "Recommendation",
+    icon: TrendingUp,
+    path: "/user/app/recommendation",
+  },
   { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
   {
     name: "My Account",
     icon: User,
     path: "/user/app/account",
     subItems: [
-      { name: "Edit Profile", path: "/user/app/account/edit-profile", icon: Settings },
-      { name: "Show Subscription", path: "/user/app/account/subscription", icon: CreditCard },
-      { name: "Transaction History", path: "/user/app/account/transactions", icon: BarChart3 },
+      {
+        name: "Edit Profile",
+        path: "/user/app/account/edit-profile",
+        icon: Settings,
+      },
+      {
+        name: "Show Subscription",
+        path: "/user/app/account/subscription",
+        icon: CreditCard,
+      },
+      {
+        name: "Transaction History",
+        path: "/user/app/account/transactions",
+        icon: BarChart3,
+      },
       { name: "Logout", path: "/user/app/account/logout", icon: LogOut },
     ],
   },
@@ -58,7 +73,7 @@ const quickStats = [
 ];
 
 export default function Sidebar() {
-  const { user, subscription, isAuthenticated, logout } = useAuth();
+  const { user, subscription, logout } = useAuth();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -68,7 +83,11 @@ export default function Sidebar() {
 
   // Get user profile data
   const profile = {
-    name: user ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "User" : "Guest",
+    name: user
+      ? `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+        user.username ||
+        "User"
+      : "Guest",
     role: user?.role || "User",
     avatarUrl: null, // You can add avatar URL to user object later
     isPremium: subscription?.isPremium || false,
@@ -175,7 +194,9 @@ export default function Sidebar() {
       </div>
 
       {/* Header Buttons */}
-      <div className={`px-4 py-3 border-b border-gray-700 ${isCollapsed ? "px-2" : ""}`}>
+      <div
+        className={`px-4 py-3 border-b border-gray-700 ${isCollapsed ? "px-2" : ""}`}
+      >
         {!isCollapsed ? (
           <div className="flex gap-2">
             <Button
@@ -237,7 +258,10 @@ export default function Sidebar() {
               location.pathname.startsWith(item.path + "/");
 
             const isSubActive =
-              hasSub && item.subItems.some((sub) => location.pathname.startsWith(sub.path));
+              hasSub &&
+              item.subItems.some((sub) =>
+                location.pathname.startsWith(sub.path)
+              );
 
             const isOpen = openMenus[item.name] || isSubActive;
 
@@ -326,7 +350,10 @@ export default function Sidebar() {
               ref={submenuRef}
               key={menuName}
               className="fixed left-16 top-0 shadow-lg rounded-lg py-2 w-48 border z-50 animate-slideIn"
-              style={{ top: submenuPosition.top - 16, backgroundColor: BrandColors.blue }} // Updated line
+              style={{
+                top: submenuPosition.top - 16,
+                backgroundColor: BrandColors.blue,
+              }} // Updated line
             >
               {parent.subItems.map((sub) => {
                 const isSubActive = location.pathname === sub.path;
@@ -358,7 +385,10 @@ export default function Sidebar() {
           </h2>
           <div className="space-y-3">
             {quickStats.map((stat) => (
-              <div key={stat.label} className="flex items-center justify-between text-gray-200">
+              <div
+                key={stat.label}
+                className="flex items-center justify-between text-gray-200"
+              >
                 <div className="flex items-center">
                   <stat.icon className="h-4 w-4 text-gray-400 mr-2" />
                   <span className="text-sm">{stat.label}</span>
@@ -396,10 +426,12 @@ export default function Sidebar() {
               )}
               <div className="ml-3 text-white">
                 <p className="text-sm font-medium">{profile.name}</p>
-                <p className="text-xs text-gray-300 capitalize">{profile.role}</p>
+                <p className="text-xs text-gray-300 capitalize">
+                  {profile.role}
+                </p>
               </div>
             </div>
-            
+
             {/* Premium Status & User Type */}
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -413,9 +445,7 @@ export default function Sidebar() {
                 ) : (
                   <>
                     <Shield className="h-3 w-3 text-gray-400" />
-                    <span className="text-xs text-gray-400">
-                      Free Member
-                    </span>
+                    <span className="text-xs text-gray-400">Free Member</span>
                   </>
                 )}
               </div>
@@ -458,7 +488,11 @@ export default function Sidebar() {
         className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white shadow-lg text-gray-700 rounded-lg border"
         aria-label="Open menu"
       >
-        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {isMobileOpen ? (
+          <X className="h-5 w-5" />
+        ) : (
+          <Menu className="h-5 w-5" />
+        )}
       </button>
 
       {/* Mobile sidebar */}
@@ -480,7 +514,8 @@ export default function Sidebar() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col transition-all duration-300 h-screen z-40 ${ // Added `z-40` here
+        className={`hidden lg:flex flex-col transition-all duration-300 h-screen z-40 ${
+          // Added `z-40` here
           isCollapsed ? "w-16" : "w-80"
         }`}
       >

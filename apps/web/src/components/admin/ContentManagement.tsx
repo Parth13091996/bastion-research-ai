@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Eye,
-  Calendar
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
+  Calendar,
+} from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
-export type ContentType = 'newsletter' | 'webinar' | 'podcast';
+export type ContentType = "newsletters" | "webinars" | "podcasts";
 
 interface ContentItem {
   id: string;
@@ -64,7 +64,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
   const navigate = useNavigate();
   const [items, setItems] = useState<ContentItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<ContentItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -81,8 +81,8 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
       const data = await api.getAll();
       setItems(data);
     } catch (error: any) {
-      toast.error('Failed to load items');
-      console.error('Error loading items:', error);
+      toast.error("Failed to load items");
+      console.error("Error loading items:", error);
     } finally {
       setIsLoading(false);
     }
@@ -94,9 +94,11 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
       return;
     }
 
-    const filtered = items.filter(item =>
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.sub_title && item.sub_title.toLowerCase().includes(searchQuery.toLowerCase()))
+    const filtered = items.filter(
+      (item) =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.sub_title &&
+          item.sub_title.toLowerCase().includes(searchQuery.toLowerCase()))
     );
     setFilteredItems(filtered);
   };
@@ -108,11 +110,11 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
 
     try {
       await api.delete(id);
-      toast.success('Item deleted successfully');
+      toast.success("Item deleted successfully");
       loadItems();
     } catch (error: any) {
-      toast.error('Failed to delete item');
-      console.error('Error deleting item:', error);
+      toast.error("Failed to delete item");
+      console.error("Error deleting item:", error);
     }
   };
 
@@ -122,19 +124,19 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
 
   const getTypeIcon = () => {
     switch (type) {
-      case 'newsletter':
-        return '📧';
-      case 'webinar':
-        return '🎥';
-      case 'podcast':
-        return '🎧';
+      case "newsletters":
+        return "📧";
+      case "webinars":
+        return "🎥";
+      case "podcasts":
+        return "🎧";
       default:
-        return '📄';
+        return "📄";
     }
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMM dd, yyyy');
+    return format(new Date(dateString), "MMM dd, yyyy");
   };
 
   if (isLoading) {
@@ -191,7 +193,9 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
               <div className="text-4xl mb-4">{getTypeIcon()}</div>
               <h3 className="text-lg font-medium mb-2">No {type}s found</h3>
               <p className="text-gray-600 mb-4">
-                {searchQuery ? 'Try adjusting your search' : `Get started by creating your first ${type}`}
+                {searchQuery
+                  ? "Try adjusting your search"
+                  : `Get started by creating your first ${type}`}
               </p>
               {!searchQuery && (
                 <Button onClick={handleCreate}>
@@ -205,7 +209,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  {type === 'newsletter' && <TableHead>Sub Title</TableHead>}
+                  {type === "newsletters" && <TableHead>Sub Title</TableHead>}
                   <TableHead>Created</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
@@ -218,10 +222,13 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                         {item.title}
                       </div>
                     </TableCell>
-                    {type === 'newsletter' && (
+                    {type === "newsletters" && (
                       <TableCell>
-                        <div className="max-w-xs truncate text-gray-600" title={item.sub_title}>
-                          {item.sub_title || '-'}
+                        <div
+                          className="max-w-xs truncate text-gray-600"
+                          title={item.sub_title}
+                        >
+                          {item.sub_title || "-"}
                         </div>
                       </TableCell>
                     )}
@@ -247,7 +254,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDelete(item.id, item.title)}
                             className="text-red-600"
                           >

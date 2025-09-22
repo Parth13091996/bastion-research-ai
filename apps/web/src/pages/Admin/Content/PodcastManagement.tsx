@@ -1,7 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import ContentManagement from '@/components/admin/ContentManagement';
-import { podcastApi } from '@/api/content';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import ContentManagement from "@/components/admin/ContentManagement";
+import { podcastApi } from "@/api/content";
 
 const PodcastManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const PodcastManagement: React.FC = () => {
 
   return (
     <ContentManagement
-      type="podcast"
+      type="podcasts"
       title="Podcast Management"
       api={podcastApi}
       onEdit={handleEdit}

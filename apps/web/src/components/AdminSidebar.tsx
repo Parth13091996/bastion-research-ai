@@ -16,24 +16,68 @@ import {
   Contact,
   Calendar,
   ClipboardList,
-} from "lucide-react";
+  Mail,
+  Mic,
+  Video,
+} from "lucide-react"; // Added Mail, Mic, and Video icons
 import { AppRoutes } from "../routes/app-routes";
 
 const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: AppRoutes.adminDashboard() },
+  {
+    name: "Dashboard",
+    icon: LayoutDashboard,
+    path: AppRoutes.adminDashboard(),
+  },
   {
     name: "AR Members",
     icon: Users,
     subItems: [
-      { name: "Manage Members", icon: Contact, path: AppRoutes.adminManageMembers() },
-      { name: "Manage Plans", icon: FileText, path: AppRoutes.adminManagePlans() },
+      {
+        name: "Manage Members",
+        icon: Contact,
+        path: AppRoutes.adminManageMembers(),
+      },
+      {
+        name: "Manage Plans",
+        icon: FileText,
+        path: AppRoutes.adminManagePlans(),
+      },
       {
         name: "Manage Subscriptions",
         icon: Calendar,
         path: AppRoutes.adminManageSubscriptions(),
       },
-      { name: "Payment History", icon: CreditCard, path: AppRoutes.adminPaymentHistory() },
-      { name: "Coupon Management", icon: Gift, path: AppRoutes.adminCouponManagement() },
+      {
+        name: "Payment History",
+        icon: CreditCard,
+        path: AppRoutes.adminPaymentHistory(),
+      },
+      {
+        name: "Coupon Management",
+        icon: Gift,
+        path: AppRoutes.adminCouponManagement(),
+      },
+    ],
+  },
+  {
+    name: "Content",
+    icon: LayoutDashboard,
+    subItems: [
+      {
+        name: "News Letter",
+        icon: Mail, // Changed to Mail icon
+        path: AppRoutes.adminNewsletterManagement(),
+      },
+      {
+        name: "Podcasts",
+        icon: Mic, // Changed to Mic icon
+        path: AppRoutes.adminPodcastManagement(),
+      },
+      {
+        name: "Webinars",
+        icon: Video, // Changed to Video icon
+        path: AppRoutes.adminWebinarManagement(),
+      },
     ],
   },
   {
@@ -65,7 +109,7 @@ const navItems = [
   { name: "Settings", icon: Settings, path: AppRoutes.adminSettings() },
 ];
 
-const Sidebar = () => {
+const AdminSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -82,7 +126,7 @@ const Sidebar = () => {
     setOpenSections((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
-  const sidebarContent = (
+  const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div
         className={`flex items-center justify-between p-4 ${isCollapsed ? "justify-center" : ""}`}
@@ -173,7 +217,7 @@ const Sidebar = () => {
                    lg:hidden transition-transform duration-300 ease-in-out
                    ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {sidebarContent}
+        <SidebarContent />
       </div>
       {isMobileOpen && (
         <div
@@ -182,15 +226,14 @@ const Sidebar = () => {
         ></div>
       )}
 
-      {/* Desktop sidebar */}
       <aside
         className={`hidden lg:flex flex-col bg-gray-800 text-white transition-all duration-300
                    ${isCollapsed ? "w-20" : "w-64"}`}
       >
-        {sidebarContent}
+        <SidebarContent />
       </aside>
     </>
   );
 };
 
-export default Sidebar;
+export default AdminSidebar;
