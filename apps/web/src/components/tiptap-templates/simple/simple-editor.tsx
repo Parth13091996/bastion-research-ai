@@ -65,9 +65,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { useCursorVisibility } from "@/hooks/use-cursor-visibility";
 
-// --- Components ---
-import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle";
-
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 
@@ -75,6 +72,7 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 import content from "@/components/tiptap-templates/simple/data/content.json";
+import { useEditorStore } from "@/stores/editor-store";
 
 const MainToolbarContent = ({
   onHighlighterClick,
@@ -147,10 +145,10 @@ const MainToolbarContent = ({
       <Spacer />
 
       {isMobile && <ToolbarSeparator />}
-
+      {/* 
       <ToolbarGroup>
         <ThemeToggle />
-      </ToolbarGroup>
+      </ToolbarGroup> */}
     </>
   );
 };
@@ -303,6 +301,12 @@ export function SimpleEditor() {
     ],
     content,
   });
+
+  const editorStore = useEditorStore();
+
+  React.useEffect(() => {
+    editorStore.setEditor(editor);
+  }, [editor]);
 
   const rect = useCursorVisibility({
     editor,

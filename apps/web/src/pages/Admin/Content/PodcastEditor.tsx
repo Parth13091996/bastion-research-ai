@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import ContentEditor from '@/components/admin/ContentEditor';
-import { podcastApi, Podcast } from '@/api/content';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import ContentEditor from "@/components/admin/ContentEditor";
+import { podcastApi } from "@/api/content";
+import { toast } from "sonner";
 
 const PodcastEditor: React.FC = () => {
   const { id } = useParams();
@@ -22,8 +22,8 @@ const PodcastEditor: React.FC = () => {
       const data = await podcastApi.getById(id!);
       setInitialData(data);
     } catch (error: any) {
-      toast.error('Failed to load podcast');
-      navigate('/admin/content/podcasts');
+      toast.error("Failed to load podcast");
+      navigate("/admin/content/podcasts");
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +52,7 @@ const PodcastEditor: React.FC = () => {
 
   return (
     <ContentEditor
-      type="podcast"
+      type="podcasts"
       initialData={initialData}
       onSave={handleSave}
     />

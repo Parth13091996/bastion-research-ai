@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import { toast } from "sonner";
 import Editor from "@/components/core/editor";
+import { useEditorStore } from "@/stores/editor-store";
 
-export type ContentType = "newsletter" | "webinar" | "podcast";
+export type ContentType = "newsletters" | "webinars" | "podcasts";
 
 interface ContentEditorProps {
   type: ContentType;
@@ -27,6 +27,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
+  const editorStore = useEditorStore();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -57,13 +58,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
-
-  const handleEditorChange = (content: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      html_content: content,
     }));
   };
 
@@ -110,7 +104,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     );
 
     // Sub title (newsletter only)
-    if (type === "newsletter") {
+    if (type === "newsletters") {
       fields.push(
         <div key="sub_title" className="space-y-2">
           <Label htmlFor="sub_title">Sub Title</Label>
@@ -125,7 +119,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     }
 
     // Headline image (newsletter only)
-    if (type === "newsletter") {
+    if (type === "newsletters") {
       fields.push(
         <div key="headline_image_url" className="space-y-2">
           <Label htmlFor="headline_image_url">Headline Image URL</Label>
@@ -142,7 +136,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     }
 
     // Video URL (webinar and podcast)
-    if (type === "webinar" || type === "podcast") {
+    if (type === "webinars" || type === "podcasts") {
       fields.push(
         <div key="video_url" className="space-y-2">
           <Label htmlFor="video_url">Video URL</Label>
@@ -171,10 +165,22 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
           <h1 className="text-2xl font-bold text-secondary">{getTitle()}</h1>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => setIsPreview(!isPreview)}>
-            <Eye className="h-4 w-4 mr-2" />
-            {isPreview ? "Edit" : "Preview"}
-          </Button>
+          {type !== "webinars" && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                console.log(editorStore.editor.getHTML(), "response hai");
+                setFormData((prev) => ({
+                  ...prev,
+                  html_content: editorStore.editor.getHTML(),
+                }));
+                setIsPreview(!isPreview);
+              }}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              {isPreview ? "Edit" : "Preview"}
+            </Button>
+          )}
           <Button onClick={handleSave} disabled={isLoading}>
             <Save className="h-4 w-4 mr-2" />
             {isLoading ? "Saving..." : "Save"}
@@ -182,7 +188,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="flex flex-col gap-6">
         {/* Form */}
         <div className="space-y-6">
           <Card>
@@ -193,7 +199,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
           </Card>
 
           {/* Footer content for newsletter */}
-          {type === "newsletter" && (
+          {type === "newsletters" && (
             <Card>
               <CardHeader>
                 <CardTitle>Footer Content</CardTitle>
@@ -218,7 +224,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         </div>
 
         {/* Editor */}
-        {type !== "webinar" && (
+        {type !== "webinars" && (
           <div className="space-y-6">
             <Card>
               <CardHeader>
