@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, Share2, ExternalLink } from "lucide-react";
-import { toast } from "sonner";
+import { videoUrlWithEmbed } from "@/utils";
 import { format } from "date-fns";
+import { ArrowLeft, Calendar, Share2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export type ContentType = "newsletter" | "webinar" | "podcast";
 
@@ -19,7 +20,6 @@ interface ContentViewerProps {
 
 const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [content, setContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -178,11 +178,11 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
                 <div
                   className="aspect-video"
                   style={{
-                    background: content.video_url,
+                    background: videoUrlWithEmbed(content.video_url),
                   }}
                 >
                   <iframe
-                    src={content.video_url}
+                    src={videoUrlWithEmbed(content.video_url)}
                     className="w-full h-full rounded-lg"
                     allowFullScreen
                     title={content.title}

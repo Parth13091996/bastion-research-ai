@@ -98,7 +98,7 @@ const PublicPodcastsPage = () => {
                     {/* Image */}
                     <div className="aspect-video overflow-hidden bg-gray-100">
                       <img
-                        src={podcast.imageUrl}
+                        src={`https://img.youtube.com/vi/${new URL(podcast.video_url).pathname.split("/").at(-1)}/sddefault.jpg`}
                         alt={podcast.title}
                         className="w-full h-full object-cover"
                       />
