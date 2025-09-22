@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import ContentEditor from '@/components/admin/ContentEditor';
-import { webinarApi, Webinar } from '@/api/content';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import ContentEditor from "@/components/admin/ContentEditor";
+import { webinarApi } from "@/api/content";
+import { toast } from "sonner";
 
 const WebinarEditor: React.FC = () => {
   const { id } = useParams();
@@ -22,8 +22,8 @@ const WebinarEditor: React.FC = () => {
       const data = await webinarApi.getById(id!);
       setInitialData(data);
     } catch (error: any) {
-      toast.error('Failed to load webinar');
-      navigate('/admin/content/webinars');
+      toast.error("Failed to load webinar");
+      navigate("/admin/content/webinars");
     } finally {
       setIsLoading(false);
     }

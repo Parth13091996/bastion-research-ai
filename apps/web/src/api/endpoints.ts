@@ -92,7 +92,7 @@ export const endpoints = {
       base: "/content/newsletters",
       byId: (id: string) => `/content/newsletters/${id}`,
       admin: {
-        base: "/admin/content/newsletters",
+        base: "/api/admin/content/newsletters",
         byId: (id: string) => `/admin/content/newsletters/${id}`,
       },
     },
@@ -100,7 +100,7 @@ export const endpoints = {
       base: "/content/webinars",
       byId: (id: string) => `/content/webinars/${id}`,
       admin: {
-        base: "/admin/content/webinars",
+        base: "/api/admin/content/webinars",
         byId: (id: string) => `/admin/content/webinars/${id}`,
       },
     },
@@ -108,7 +108,7 @@ export const endpoints = {
       base: "/content/podcasts",
       byId: (id: string) => `/content/podcasts/${id}`,
       admin: {
-        base: "/admin/content/podcasts",
+        base: "/api/admin/content/podcasts",
         byId: (id: string) => `/admin/content/podcasts/${id}`,
       },
     },

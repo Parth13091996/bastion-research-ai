@@ -9,8 +9,6 @@ const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const UserAdminLayout = lazy(() => import("../layouts/UserAdminLayout"));
 
 // Guards
-const ProtectedRoute = lazy(() => import("./ClientRoutes/ProtectedRoute"));
-const AdminRoute = lazy(() => import("./AdminRoutes/AdminRoute"));
 const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
 
 // Pages
@@ -132,14 +130,10 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
       { path: AppRoutes.webinar(), element: <Webinar /> },
       { path: AppRoutes.smartFrameworks(), element: <SmartFrameworks /> },
-      // Public content view routes
       { path: AppRoutes.newsletterView(), element: <NewsletterView /> },
       { path: AppRoutes.webinarView(), element: <WebinarView /> },
       { path: AppRoutes.podcastView(), element: <PodcastView /> },
-      {
-        element: <ProtectedRoute />,
-        children: [{ path: AppRoutes.dashboard(), element: <Dashboard /> }],
-      },
+      { path: AppRoutes.dashboard(), element: <Dashboard /> },
     ],
   },
   {
@@ -151,106 +145,101 @@ export const routes: RouteObject[] = [
     path: AppRoutes.admin(),
     children: [
       {
-        element: <AdminRoute />,
-        children: [
-          {
-            index: true,
-            element: <Navigate to={AppRoutes.adminDashboard()} replace />,
-          },
-          {
-            path: AppRoutes.adminDashboard(),
-            element: <AdminDashboard />,
-          },
-          {
-            path: AppRoutes.adminManageMembers(),
-            element: <ManageMembers />,
-          },
-          {
-            path: AppRoutes.adminManagePlans(),
-            element: <ManagePlans />,
-          },
-          {
-            path: AppRoutes.adminManageSubscriptions(),
-            element: <ManageSubscriptions />,
-          },
-          {
-            path: AppRoutes.adminPaymentHistory(),
-            element: <PaymentHistory />,
-          },
-          {
-            path: AppRoutes.adminCouponManagement(),
-            element: <CouponManagement />,
-          },
-          {
-            path: AppRoutes.adminJobOpenings(),
-            element: <JobOpenings />,
-          },
-          {
-            path: AppRoutes.adminAddNewJob(),
-            element: <AddNewJob />,
-          },
-          {
-            path: AppRoutes.adminApplications(),
-            element: <Applications />,
-          },
-          {
-            path: AppRoutes.adminAllUsers(),
-            element: <AllUsers />,
-          },
-          {
-            path: AppRoutes.adminAddUser(),
-            element: <AddUser />,
-          },
-          {
-            path: AppRoutes.adminProfile(),
-            element: <Profile />,
-          },
-          {
-            path: AppRoutes.adminSettings(),
-            element: <AdminSettings />,
-          },
-          {
-            path: AppRoutes.editor(),
-            element: <Editor />,
-          },
-          // Content Management Routes
-          {
-            path: AppRoutes.adminNewsletterManagement(),
-            element: <NewsletterManagement />,
-          },
-          {
-            path: AppRoutes.adminWebinarManagement(),
-            element: <WebinarManagement />,
-          },
-          {
-            path: AppRoutes.adminPodcastManagement(),
-            element: <PodcastManagement />,
-          },
-          {
-            path: AppRoutes.adminNewsletterCreate(),
-            element: <NewsletterEditor />,
-          },
-          {
-            path: AppRoutes.adminNewsletterEdit(),
-            element: <NewsletterEditor />,
-          },
-          {
-            path: AppRoutes.adminWebinarCreate(),
-            element: <WebinarEditor />,
-          },
-          {
-            path: AppRoutes.adminWebinarEdit(),
-            element: <WebinarEditor />,
-          },
-          {
-            path: AppRoutes.adminPodcastCreate(),
-            element: <PodcastEditor />,
-          },
-          {
-            path: AppRoutes.adminPodcastEdit(),
-            element: <PodcastEditor />,
-          },
-        ],
+        index: true,
+        element: <Navigate to={AppRoutes.adminDashboard()} replace />,
+      },
+      {
+        path: AppRoutes.adminDashboard(),
+        element: <AdminDashboard />,
+      },
+      {
+        path: AppRoutes.adminManageMembers(),
+        element: <ManageMembers />,
+      },
+      {
+        path: AppRoutes.adminManagePlans(),
+        element: <ManagePlans />,
+      },
+      {
+        path: AppRoutes.adminManageSubscriptions(),
+        element: <ManageSubscriptions />,
+      },
+      {
+        path: AppRoutes.adminPaymentHistory(),
+        element: <PaymentHistory />,
+      },
+      {
+        path: AppRoutes.adminCouponManagement(),
+        element: <CouponManagement />,
+      },
+      {
+        path: AppRoutes.adminJobOpenings(),
+        element: <JobOpenings />,
+      },
+      {
+        path: AppRoutes.adminAddNewJob(),
+        element: <AddNewJob />,
+      },
+      {
+        path: AppRoutes.adminApplications(),
+        element: <Applications />,
+      },
+      {
+        path: AppRoutes.adminAllUsers(),
+        element: <AllUsers />,
+      },
+      {
+        path: AppRoutes.adminAddUser(),
+        element: <AddUser />,
+      },
+      {
+        path: AppRoutes.adminProfile(),
+        element: <Profile />,
+      },
+      {
+        path: AppRoutes.adminSettings(),
+        element: <AdminSettings />,
+      },
+      {
+        path: AppRoutes.editor(),
+        element: <Editor />,
+      },
+      // Content Management Routes
+      {
+        path: AppRoutes.adminNewsletterManagement(),
+        element: <NewsletterManagement />,
+      },
+      {
+        path: AppRoutes.adminWebinarManagement(),
+        element: <WebinarManagement />,
+      },
+      {
+        path: AppRoutes.adminPodcastManagement(),
+        element: <PodcastManagement />,
+      },
+      {
+        path: AppRoutes.adminNewsletterCreate(),
+        element: <NewsletterEditor />,
+      },
+      {
+        path: AppRoutes.adminNewsletterEdit(),
+        element: <NewsletterEditor />,
+      },
+      {
+        path: AppRoutes.adminWebinarCreate(),
+        element: <WebinarEditor />,
+      },
+      {
+        path: AppRoutes.adminWebinarEdit(),
+        element: <WebinarEditor />,
+      },
+      {
+        path: AppRoutes.adminPodcastCreate(),
+        element: <PodcastEditor />,
+      },
+      {
+        path: AppRoutes.adminPodcastEdit(),
+        element: <PodcastEditor />,
       },
     ],
   },

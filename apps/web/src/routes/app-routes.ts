@@ -42,7 +42,7 @@ export const AppRoutes = {
   editor: () => "/admin/editor",
   // Content management routes
   adminNewsletterManagement: () => "/admin/content/newsletters",
-  adminWebinarManagement: () => "/admin/content/webinars", 
+  adminWebinarManagement: () => "/admin/content/webinars",
   adminPodcastManagement: () => "/admin/content/podcasts",
   adminNewsletterCreate: () => "/admin/content/newsletters/create",
   adminNewsletterEdit: () => "/admin/content/newsletters/:id/edit",
@@ -62,3 +62,5 @@ export const AuthRoutes = [
   AppRoutes.forgotPassword(),
   AppRoutes.resetPassword(),
 ];
+
+export const AdminAuthRoutes = [AppRoutes.adminLogin()];

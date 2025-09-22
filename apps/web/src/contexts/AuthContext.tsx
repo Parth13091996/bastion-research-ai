@@ -99,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       const response = await axiosInstance.post(endpoints.auth.logout);
+      await refetch();
       toast.success(response?.data?.message || "Logged out successfully");
     } catch (error) {
       console.error("Logout failed", error);
