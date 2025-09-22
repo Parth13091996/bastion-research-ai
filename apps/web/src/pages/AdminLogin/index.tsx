@@ -7,12 +7,13 @@ import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as z from "zod";
 import { endpoints } from "@/api/endpoints";
+import { Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -23,6 +24,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
   const { login, isAuthenticated, isAdmin, isLoading } = useAuth();
   const loader = useLoader();
 
@@ -104,7 +106,24 @@ const AdminLogin = () => {
             >
               Password
             </label>
-            <Input id="password" type="password" {...register("password")} />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="mt-2 text-sm text-red-600">
                 {errors.password.message}
