@@ -431,20 +431,20 @@ const CouponsManagement = () => {
                     {coupon.used} / {coupon.allowedUses}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
                       <button
                         onClick={() => handleEdit(coupon.id)}
-                        className="text-blue-600 hover:text-blue-800 p-1"
+                        className="h-8 w-8 p-0"
                         title="Edit"
                       >
-                        <Edit size={16} />
+                        <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(coupon.id)}
-                        className="text-red-600 hover:text-red-800 p-1"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                         title="Delete"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>

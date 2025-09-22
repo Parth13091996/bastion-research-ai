@@ -77,24 +77,27 @@ const RowActions = ({
   data: any;
   onDelete: (id: string) => void;
 }) => (
-  <div className="flex space-x-2">
+  <div className="flex items-center space-x-2">
     <button
-      className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+      className="text-blue-600 hover:text-blue-800 p-1"
       onClick={() => console.log("View Invoice", data.invoice_id)}
+      title="View Invoice"
     >
-      <FileText size={14} />
+      <FileText size={16} />
     </button>
     <button
-      className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+      className="text-blue-600 hover:text-blue-800 p-1"
       onClick={() => console.log("View Details", data.transaction_id)}
+      title="View Details"
     >
-      <Eye size={14} />
+      <Eye size={16} />
     </button>
     <button
-      className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+      className="text-red-600 hover:text-red-800 p-1"
       onClick={() => onDelete(data.transaction_id)}
+      title="Delete"
     >
-      <Trash2 size={14} />
+      <Trash2 size={16} />
     </button>
   </div>
 );
@@ -179,7 +182,7 @@ const PaymentHistory = () => {
   ];
 
   return (
-    <div className="min-h-screen mx-auto max-w-[80rem] bg-gray-100 p-6">
+    <div className="min-h-screen mx-auto bg-gray-100 p-6">
       <div className="bg-white rounded-lg shadow-sm">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
@@ -231,7 +234,7 @@ const PaymentHistory = () => {
           />
           {/* Add more filters UI here if needed */}
         </div>
-        <div className="ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+        <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
           <AgGridReact
             theme="legacy"
             rowData={filteredData}

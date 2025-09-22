@@ -11,19 +11,19 @@ const ActionsRenderer = (params: any) => (
   <div className="flex items-center space-x-2">
     <button
       onClick={() => params?.context?.openEdit?.(params?.data)}
-      className="p-2 text-gray-600 hover:text-blue-600"
+      className="text-blue-600 hover:text-blue-800 p-1"
       title="Edit"
       disabled={!params?.context?.openEdit || !params?.data}
     >
-      <Edit2 size={14} />
+      <Edit2 size={16} />
     </button>
     <button
       onClick={() => params?.context?.deletePlan?.(params?.data?.plan_id)}
-      className="p-2 text-gray-600 hover:text-red-600"
+      className="text-red-600 hover:text-red-800 p-1"
       title="Delete"
       disabled={!params?.context?.deletePlan || !params?.data?.plan_id}
     >
-      <Trash2 size={14} />
+      <Trash2 size={16} />
     </button>
   </div>
 );
@@ -156,8 +156,8 @@ const MembershipPlans = () => {
   };
 
   return (
-    <div className="bg-gray-50 flex-1 overflow-y-auto">
-      <div className="mx-auto max-w-[80rem] bg-white rounded-lg shadow-sm">
+    <div className="space-y-6">
+      <div className="mx-auto bg-white rounded-lg shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-gray-200">
           <h1 className="text-xl font-semibold text-gray-900 mb-4 sm:mb-0">
             Manage Membership Plans
@@ -263,8 +263,8 @@ const MembershipPlans = () => {
         )}
 
         <div
-          className="p-1 ag-theme-alpine"
-          style={{ height: 400, width: "100%" }}
+          className="rounded-md border bg-white ag-theme-alpine"
+          style={{ height: 600, width: "100%" }}
         >
           <AgGridReact
             theme="legacy"
