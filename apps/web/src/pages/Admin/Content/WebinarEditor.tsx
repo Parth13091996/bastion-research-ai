@@ -52,7 +52,7 @@ const WebinarEditor: React.FC = () => {
 
   return (
     <ContentEditor
-      type="webinar"
+      type="webinars"
       initialData={initialData}
       onSave={handleSave}
     />
