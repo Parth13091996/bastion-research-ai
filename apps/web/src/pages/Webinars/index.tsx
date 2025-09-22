@@ -7,6 +7,7 @@ import { AppRoutes } from "@/routes/app-routes";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 // Brand Colors
@@ -23,6 +24,7 @@ const ITEMS_PER_PAGE = 12;
 
 const PublicWebinarsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("free");
 
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.webinars],
@@ -33,11 +35,17 @@ const PublicWebinarsPage = () => {
   });
   const { start, stop } = useLoader();
 
-  const totalPages = Math.ceil(rowData.length / ITEMS_PER_PAGE);
+  const filteredWebinars = rowData.filter(
+    (webinar) =>
+      (activeTab === "free" && !webinar.is_premium) ||
+      (activeTab === "premium" && webinar.is_premium)
+  );
+
+  const totalPages = Math.ceil(filteredWebinars.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentWebinars = useMemo(
-    () => rowData.slice(startIndex, startIndex + ITEMS_PER_PAGE),
-    [currentPage, rowData]
+    () => filteredWebinars.slice(startIndex, startIndex + ITEMS_PER_PAGE),
+    [currentPage, filteredWebinars]
   );
 
   const handlePageChange = (page) => {
@@ -46,7 +54,7 @@ const PublicWebinarsPage = () => {
   };
 
   const handleShare = (id) => {
-    const link = `${window.location.origin}/podcast/${id}`;
+    const link = `${window.location.origin}/webinar/${id}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copied!");
   };
@@ -84,10 +92,41 @@ const PublicWebinarsPage = () => {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex justify-center mb-8 gap-x-4">
+          <button
+            onClick={() => setActiveTab("free")}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              activeTab === "free"
+                ? "text-white shadow-md"
+                : "text-gray-700 hover:bg-gray-100 border border-gray-300"
+            }`}
+            style={{
+              backgroundColor: activeTab === "free" ? COLORS.red : COLORS.white,
+            }}
+          >
+            Free
+          </button>
+          <button
+            onClick={() => setActiveTab("premium")}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              activeTab === "premium"
+                ? "text-white shadow-md"
+                : "text-gray-700 hover:bg-gray-100 border border-gray-300"
+            }`}
+            style={{
+              backgroundColor:
+                activeTab === "premium" ? COLORS.red : COLORS.white,
+            }}
+          >
+            Premium
+          </button>
+        </div>
+
         {/* Main Content */}
         <div>
           <div className="max-w-7xl mx-auto py-8">
-            {/* Podcast Cards Grid */}
+            {/* Webinar Cards Grid */}
             {currentWebinars.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {currentWebinars.map((webinar) => (
@@ -112,7 +151,7 @@ const PublicWebinarsPage = () => {
 
                           {/* Date */}
                           <span className="text-sm text-gray-500">
-                            {webinar.date}
+                            {new Date(webinar.created_at).toLocaleDateString()}
                           </span>
                         </div>
 
@@ -127,15 +166,15 @@ const PublicWebinarsPage = () => {
 
                       {/* Buttons */}
                       <div className="flex gap-3 mt-auto">
-                        <a
-                          href={AppRoutes.webinarView().replace(
+                        <Link
+                          to={AppRoutes.webinarView().replace(
                             ":id",
                             webinar.id
                           )}
                           className="flex-1 bg-red-600 text-white text-center py-2 rounded-lg font-medium"
                         >
                           Read Now
-                        </a>
+                        </Link>
                         <button
                           onClick={() => handleShare(webinar.id)}
                           className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium"

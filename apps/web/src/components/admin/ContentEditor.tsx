@@ -22,7 +22,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   type,
   initialData,
   onSave,
-  onCancel,
 }) => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -36,6 +35,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     html_content: "",
     footer_content: "",
     video_url: "",
+    is_premium: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -50,11 +50,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         html_content: initialData.html_content || "",
         footer_content: initialData.footer_content || "",
         video_url: initialData.video_url || "",
+        is_premium: initialData.is_premium || false,
       });
     }
   }, [initialData]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -146,6 +147,24 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             onChange={(e) => handleInputChange("video_url", e.target.value)}
             placeholder="Enter video URL"
           />
+        </div>
+      );
+    }
+
+    if (type === "webinars") {
+      fields.push(
+        <div key="is_premium" className="flex gap-x-2 group">
+          <Input
+            id="is_premium"
+            type="checkbox"
+            value={formData.is_premium as any}
+            className="w-4 h-4 cursor-pointer"
+            onChange={(e) => handleInputChange("is_premium", e.target.checked)}
+            placeholder="Is this premium?"
+          />
+          <Label htmlFor="is_premium" className="mt-0.5 cursor-pointer">
+            Is Premium
+          </Label>
         </div>
       );
     }

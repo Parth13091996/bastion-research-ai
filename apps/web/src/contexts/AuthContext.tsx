@@ -77,8 +77,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     enabled: !!user, // Only fetch when user is authenticated
     staleTime: 30 * 1000, // 30 seconds cache freshness for subscription
     gcTime: 5 * 60 * 1000, // 5 minutes cache retention
-    refetchInterval: 10 * 1000, // Poll every 10 seconds when payment is pending
-    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import { AppRoutes } from "@/routes/app-routes";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 // Brand Colors
@@ -127,15 +128,15 @@ const PublicPodcastsPage = () => {
 
                       {/* Buttons */}
                       <div className="flex gap-3 mt-auto">
-                        <a
-                          href={AppRoutes.podcastView().replace(
+                        <Link
+                          to={AppRoutes.podcastView().replace(
                             ":id",
                             podcast.id
                           )}
                           className="flex-1 bg-red-600 text-white text-center py-2 rounded-lg font-medium"
                         >
                           Read Now
-                        </a>
+                        </Link>
                         <button
                           onClick={() => handleShare(podcast.id)}
                           className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium"
