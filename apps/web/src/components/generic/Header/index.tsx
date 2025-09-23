@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import DesktopNav from "./DesktopNav";
 import Drawer from "./Drawer";
 import MobileNav from "./MobileNav";
+import axiosInstance from "@/api/axios";
 
 // Main Header Component
 const Header = () => {
@@ -19,13 +20,13 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  
 
   return (
     <>
       <header
-        className={`fixed top-0 z-[9999] left-0 w-full py-6 transition-shadow duration-300 ${scrolled ? "shadow-[0_2px_6px_rgba(0,0,0,0.08)]" : "shadow-none"
-          } bg-white/60 backdrop-blur-md border-b border-white/20`}
+        className={`fixed top-0 z-[9999] left-0 w-full py-6 transition-shadow duration-300 ${
+          scrolled ? "shadow-[0_2px_6px_rgba(0,0,0,0.08)]" : "shadow-none"
+        } bg-white/60 backdrop-blur-md border-b border-white/20`}
         itemType="https://schema.org/Organization"
         itemScope
       >
@@ -41,6 +42,24 @@ const Header = () => {
                 />
               </Link>
             </div>
+            <button
+              onClick={() => {
+                axiosInstance
+                  .post("/api/kra/download-pan", {
+                    pan_no: "FMQPM9044D",
+                    dob: "11/09/2001",
+                    service_provider: "NDML",
+                    unique_request_id: crypto.randomUUID(),
+                    fetch_type: "I",
+                    mobile: "+916355965638",
+                  })
+                  .then((res) => {
+                    console.log(res);
+                  });
+              }}
+            >
+              download pan
+            </button>
             <DesktopNav
               openSubmenu={openSubmenu}
               setOpenSubmenu={setOpenSubmenu}

@@ -61,7 +61,6 @@ const navItems = [
         path: "/user/app/account/transactions",
         icon: BarChart3,
       },
-      { name: "Logout", path: "/user/app/account/logout", icon: LogOut },
     ],
   },
 ];
@@ -448,11 +447,6 @@ export default function Sidebar() {
                     <span className="text-xs text-gray-400">Free Member</span>
                   </>
                 )}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">
-                  Plan: {profile.currentPlan.toUpperCase()}
-                </span>
               </div>
             </div>
           </div>
