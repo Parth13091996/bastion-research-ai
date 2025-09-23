@@ -246,8 +246,9 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
             plan_id: currentPlan?.plan_id,
             user_id: customer_details?.customer_id,
             payer_email: customer_details?.customer_email,
+            transaction_id: crypto.randomUUID(),
           });
-        console.log(payment_history_response, "response======>");
+        console.log(payment_history_response, "respons====>");
         supabase.from("subscriptions").upsert({
           membership_id: currentPlan?.plan_id,
           name: currentPlan?.plan_name,
