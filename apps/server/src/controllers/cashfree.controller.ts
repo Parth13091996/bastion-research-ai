@@ -225,9 +225,9 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     }
 
     const webhookResponse = JSON.parse(rawBody);
-    console.log({ webhookResponse, dd: webhookResponse?.data?.test_object });
     if (webhookResponse?.type === "PAYMENT_SUCCESS_WEBHOOK") {
       const { payment, order, customer_details } = webhookResponse?.data;
+      console.log(payment, order, customer_details, "deeeets");
       if (payment?.payment_status === "SUCCESS") {
         const [response, { data: plans }] = await Promise.all([
           pgFetchOrder(order.order_id),
@@ -237,6 +237,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
               "plan_id, plan_name, price_amount, currency, duration_months"
             ),
         ]);
+        console.log(response, "response");
         const userId = response?.customer_details?.customer_id;
         const currentPlan = plans?.find(
           (plan) => plan.price_amount === payment?.payment_amount
@@ -263,29 +264,31 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
             plan_id: currentPlan?.plan_id,
             user_id: userId,
             payer_email: customer_details?.customer_email,
+            transaction_id: payment?.cf_payment_id, // Added: Store transaction ID
           }),
         ]);
 
-        res.status(200).json({ message: "Subscription updated." });
+        return res.status(200).json({ message: "Subscription updated." });
       }
     }
     if (webhookResponse?.type === "PAYMENT_USER_DROPPED_WEBHOOK") {
       const { payment } = webhookResponse?.data;
       if (payment?.payment_status === "USER_DROPPED") {
-        res.status(200).json({
+        return res.status(200).json({
           message: payment?.payment_message || "Payment user dropped.",
         });
       }
     }
     if (webhookResponse?.type === "PAYMENT_FAILED_WEBHOOK") {
-      const { error_details } = webhookResponse?.data;
-      res.status(200).json({ message: "Webhook received successfully." });
+      return res
+        .status(200)
+        .json({ message: "Webhook received successfully." });
     }
 
-    res.status(200).json({ message: "Webhook received successfully." });
+    return res.status(200).json({ message: "Webhook received successfully." });
   } catch (error: any) {
     console.error("Error handling Cashfree webhook:", error);
-    res
+    return res
       .status(500)
       .json({ message: "Error handling webhook.", error: error.message });
   }
