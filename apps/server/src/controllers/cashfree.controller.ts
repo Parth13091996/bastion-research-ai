@@ -239,32 +239,32 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
         const currentPlan = plans?.find(
           (plan) => plan.price_amount === payment?.payment_amount
         );
-        await Promise.all([
+        const [, payment_history_response] = await Promise.all([
           supabase.from("users").update({ isPremium: true }).eq("id", userId),
-          supabase.from("subscriptions").upsert({
-            membership_id: currentPlan?.plan_id,
-            name: currentPlan?.plan_name,
-            start_date: payment?.payment_time,
-            expire_next_renewal: currentPlan?.duration_months
-              ? new Date(
-                  new Date(payment?.payment_time).getTime() +
-                    currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
-                ).toISOString()
-              : null,
-            amount: payment?.payment_amount,
-            transaction_id: payment?.payment_amount,
-            user_id: userId,
-          }),
           supabase.from("payment_history").upsert({
             amount: payment?.payment_amount,
             transaction_status: payment?.payment_status,
             plan_id: currentPlan?.plan_id,
             user_id: userId,
             payer_email: customer_details?.customer_email,
-            transaction_id: payment?.cf_payment_id, // Added: Store transaction ID
           }),
         ]);
-
+        console.log(payment_history_response, "response======>");
+        supabase.from("subscriptions").upsert({
+          membership_id: currentPlan?.plan_id,
+          name: currentPlan?.plan_name,
+          start_date: payment?.payment_time,
+          expire_next_renewal: currentPlan?.duration_months
+            ? new Date(
+                new Date(payment?.payment_time).getTime() +
+                  currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
+              ).toISOString()
+            : null,
+          amount: payment?.payment_amount,
+          //@ts-ignore
+          transaction_id: payment_history_response?.transaction_id,
+          user_id: userId,
+        });
         return res.status(200).json({ message: "Subscription updated." });
       }
     }
@@ -277,9 +277,10 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
       }
     }
     if (webhookResponse?.type === "PAYMENT_FAILED_WEBHOOK") {
+      const { payment } = webhookResponse?.data;
       return res
         .status(200)
-        .json({ message: "Webhook received successfully." });
+        .json({ message: payment?.payment_message || "Payment failed!" });
     }
 
     return res.status(200).json({ message: "Webhook received successfully." });

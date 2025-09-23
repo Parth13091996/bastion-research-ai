@@ -273,15 +273,6 @@ const Subscription = () => {
     }
   };
 
-  const handleRefreshSubscription = async () => {
-    try {
-      await refetchSubscription();
-      toast.success("Subscription status updated");
-    } catch (e: any) {
-      toast.error("Failed to refresh subscription status");
-    }
-  };
-
   const onFreePlan = currentPlanCode === "free";
 
   if (!isAuthenticated) {
@@ -294,27 +285,14 @@ const Subscription = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
-              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" /> Plans & Pricing
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" /> Plans
+              & Pricing
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-2">
               Choose the plan that fits you best
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              onClick={handleRefreshSubscription}
-              variant="outline"
-              size="sm"
-              disabled={isSubscriptionLoading}
-              className="w-full sm:w-auto"
-            >
-              <RefreshCw
-                className={`h-4 w-4 mr-2 ${
-                  isSubscriptionLoading ? "animate-spin" : ""
-                }`}
-              />
-              Refresh
-            </Button>
+          <div className="flex gap-2">
             <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link to="/dashboard">Back to Dashboard</Link>
             </Button>
@@ -325,7 +303,9 @@ const Subscription = () => {
         <Card className="mb-6 sm:mb-8">
           <CardHeader className="pb-3 sm:pb-6">
             <CardTitle className="text-lg sm:text-xl">Current Plan</CardTitle>
-            <CardDescription className="text-sm">Your active membership</CardDescription>
+            <CardDescription className="text-sm">
+              Your active membership
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isSubscriptionLoading ? (
@@ -360,7 +340,9 @@ const Subscription = () => {
                   </Badge>
                   {subscription?.subscription && (
                     <div className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                      <p>Amount: {formatINR(subscription.subscription.amount)}</p>
+                      <p>
+                        Amount: {formatINR(subscription.subscription.amount)}
+                      </p>
                       <p>
                         Started:{" "}
                         {new Date(
@@ -440,9 +422,14 @@ const Subscription = () => {
                           : "Best value for serious investors"}
                     </CardDescription>
                     <div className="mt-3 sm:mt-4">
-                      <span className="text-2xl sm:text-3xl font-bold">{priceLabel}</span>
+                      <span className="text-2xl sm:text-3xl font-bold">
+                        {priceLabel}
+                      </span>
                       {plan.amount > 0 && (
-                        <span className="text-muted-foreground text-sm"> one-time</span>
+                        <span className="text-muted-foreground text-sm">
+                          {" "}
+                          one-time
+                        </span>
                       )}
                     </div>
                   </CardHeader>
@@ -503,7 +490,9 @@ const Subscription = () => {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="subscription-pan" className="text-sm">PAN Card*</Label>
+              <Label htmlFor="subscription-pan" className="text-sm">
+                PAN Card*
+              </Label>
               <Input
                 id="subscription-pan"
                 value={upgradeForm.panCard}
@@ -531,7 +520,11 @@ const Subscription = () => {
               >
                 Cancel
               </Button>
-              <Button onClick={handleKycSubmit} disabled={kycSubmitting} className="w-full sm:w-auto">
+              <Button
+                onClick={handleKycSubmit}
+                disabled={kycSubmitting}
+                className="w-full sm:w-auto"
+              >
                 {kycSubmitting ? "Saving..." : "Continue"}
               </Button>
             </div>
