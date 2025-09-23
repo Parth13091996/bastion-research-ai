@@ -201,7 +201,6 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     const signature = req.headers["x-webhook-signature"] as string;
     const timestamp = req.headers["x-webhook-timestamp"] as string;
     const rawBody = (req as any).rawBody;
-    console.log({ signature, timestamp });
 
     if (!signature || !timestamp || !rawBody) {
       return res
@@ -227,7 +226,6 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     const webhookResponse = JSON.parse(rawBody);
     if (webhookResponse?.type === "PAYMENT_SUCCESS_WEBHOOK") {
       const { payment, order, customer_details } = webhookResponse?.data;
-      console.log(payment, order, customer_details, "deeeets");
       if (payment?.payment_status === "SUCCESS") {
         const [response, { data: plans }] = await Promise.all([
           pgFetchOrder(order.order_id),
@@ -237,8 +235,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
               "plan_id, plan_name, price_amount, currency, duration_months"
             ),
         ]);
-        console.log(response, "response");
-        const userId = response?.customer_details?.customer_id;
+        const userId = response?.data?.customer_details?.customer_id;
         const currentPlan = plans?.find(
           (plan) => plan.price_amount === payment?.payment_amount
         );
