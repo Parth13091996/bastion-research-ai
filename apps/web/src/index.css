@@ -3,6 +3,7 @@
 @import "./styles/ag-grid-custom.css";
 @import "./styles/_variables.scss";
 @import "./styles/_keyframe-animations.scss";
+@import "./styles/tiptap.scss";
 
 @tailwind base;
 @tailwind components;
