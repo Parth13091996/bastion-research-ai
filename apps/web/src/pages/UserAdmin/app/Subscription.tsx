@@ -1,4 +1,5 @@
 import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import Modal from "@/components/core/Modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,19 +14,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoader } from "@/hooks/useLoader";
-import AgreementStep from "../../Register/Steps/AgreementStep";
 import { load } from "@cashfreepayments/cashfree-js";
-import { Check, Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { Check, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { endpoints } from "@/api/endpoints";
+import AgreementStep from "../../Register/Steps/AgreementStep";
 
 type ApiPlan = {
   code: string;
   name: string;
   amount: number;
   currency: string;
+  occurrence_type: "one-time" | "recurring";
 };
 
 type UpgradeFormState = {
@@ -65,13 +66,13 @@ const planFeatures: Record<string, string[]> = {
 const getFeatureKey = (plan: ApiPlan) => {
   if (plan.amount <= 0) return "free";
   const normalized = plan.name.toLowerCase();
-  if (normalized.includes("annual") || normalized.includes("year")) {
+  if (plan.occurrence_type === "recurring" && normalized.includes("annual")) {
     return "12m";
   }
   if (
+    plan.occurrence_type === "one-time" ||
     normalized.includes("core") ||
-    normalized.includes("quarter") ||
-    normalized.includes("3")
+    normalized.includes("quarter")
   ) {
     return "3m";
   }
@@ -83,7 +84,6 @@ const Subscription = () => {
     user,
     subscription,
     isSubscriptionLoading,
-    refetchSubscription,
     refetchUser,
     isAuthenticated,
     isLoading,
@@ -139,11 +139,8 @@ const Subscription = () => {
     setUpgradeForm((prev) => ({ ...prev, panCard: userPan }));
   }, [userPan]);
 
-  const planMatchesCurrent = (plan: ApiPlan) => {
-    if (currentPlanCode === "free") {
-      return plan.amount <= 0;
-    }
-    return plan.code === currentPlanCode;
+  const planMatchesCurrent = (plan: string) => {
+    return plan === currentPlanCode;
   };
 
   const startUpgradeFlow = (plan: ApiPlan) => {
@@ -327,7 +324,7 @@ const Subscription = () => {
                     {onFreePlan
                       ? "Limited access to public content"
                       : subscription?.isPremium
-                        ? "Active paid subscription"
+                        ? `Active ${subscription?.subscription?.occurrence_type} subscription`
                         : "Subscription pending"}
                   </p>
                 </div>
@@ -351,12 +348,17 @@ const Subscription = () => {
                       </p>
                       {subscription.subscription.expireDate && (
                         <p>
-                          Expires:{" "}
+                          {subscription.subscription.occurrence_type ===
+                          "recurring"
+                            ? "Renews"
+                            : "Expires"}
+                          :{" "}
                           {new Date(
                             subscription.subscription.expireDate
                           ).toLocaleDateString()}
                         </p>
                       )}
+                      <p>Type: {subscription.subscription.occurrence_type}</p>
                     </div>
                   )}
                 </div>
@@ -379,37 +381,26 @@ const Subscription = () => {
             !error &&
             plans.map((plan) => {
               const normalizedName = plan.name.toLowerCase();
-              const popular = normalizedName.includes("annual");
-              const limited = normalizedName.includes("core");
+              const popular =
+                plan.occurrence_type === "recurring" &&
+                normalizedName.includes("annual");
+              const limited = plan.occurrence_type === "one-time";
               const priceLabel =
                 plan.amount > 0 ? formatINR(plan.amount) : "Free";
+              const featureKey = getFeatureKey(plan);
               const disabled =
-                planMatchesCurrent(plan) || checkingOut === plan.code;
-              const ctaLabel = planMatchesCurrent(plan)
+                planMatchesCurrent(featureKey) || checkingOut === plan.code;
+              const ctaLabel = planMatchesCurrent(featureKey)
                 ? "Current Plan"
                 : plan.amount > 0
                   ? "Subscribe"
                   : "Get Started";
-              const featureKey = getFeatureKey(plan);
 
               return (
                 <Card
                   key={plan.code}
                   className={`relative ${popular ? "border-red-400 shadow-md" : ""}`}
                 >
-                  {popular && (
-                    <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-600 text-xs">
-                      Most Popular
-                    </Badge>
-                  )}
-                  {limited && (
-                    <Badge
-                      variant="outline"
-                      className="absolute -top-2 right-4 text-xs"
-                    >
-                      Limited
-                    </Badge>
-                  )}
                   <CardHeader className="text-center pb-3 sm:pb-6">
                     <CardTitle className="text-xl sm:text-2xl">
                       {plan.amount <= 0 ? "Freemium" : plan.name}
@@ -428,7 +419,7 @@ const Subscription = () => {
                       {plan.amount > 0 && (
                         <span className="text-muted-foreground text-sm">
                           {" "}
-                          one-time
+                          {plan.occurrence_type}
                         </span>
                       )}
                     </div>
@@ -442,26 +433,28 @@ const Subscription = () => {
                         </li>
                       ))}
                     </ul>
-                    <Button
-                      className="w-full"
-                      variant={
-                        popular && !planMatchesCurrent(plan)
-                          ? "default"
-                          : "outline"
-                      }
-                      disabled={disabled}
-                      onClick={() => handleSubscribe(plan.code)}
-                      size="sm"
-                    >
-                      {checkingOut === plan.code ? (
-                        <span className="inline-flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                          Processing
-                        </span>
-                      ) : (
-                        ctaLabel
-                      )}
-                    </Button>
+                    {plan.name !== "Freemium" && (
+                      <Button
+                        className="w-full"
+                        variant={
+                          popular && !planMatchesCurrent(featureKey)
+                            ? "default"
+                            : "outline"
+                        }
+                        disabled={disabled}
+                        onClick={() => handleSubscribe(plan.code)}
+                        size="sm"
+                      >
+                        {checkingOut === plan.code ? (
+                          <span className="inline-flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                            Processing
+                          </span>
+                        ) : (
+                          ctaLabel
+                        )}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               );

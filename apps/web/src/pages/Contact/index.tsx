@@ -1,18 +1,19 @@
-import React, { useState } from "react";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
+import { useState } from "react";
 import { toast } from "sonner";
-import BackgroundShapes from "../components/generic/framer-motion.tsx";
+
+import BackgroundShapes from "@/components/generic/framer-motion";
+import { motion } from "framer-motion";
 import {
-  MapPin,
+  Linkedin,
   Mail,
+  MapPin,
   Phone,
   Send,
   Twitter,
-  Linkedin,
   Youtube,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 const colors = {
   red: "#C00000",

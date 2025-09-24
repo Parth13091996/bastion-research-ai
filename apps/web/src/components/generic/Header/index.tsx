@@ -45,7 +45,7 @@ const Header = () => {
             <button
               onClick={() => {
                 axiosInstance
-                  .post("/api/kra/download-pan", {
+                  .post("/api/kra/register", {
                     pan_no: "FMQPM9044D",
                     dob: "11/09/2001",
                     service_provider: "NDML",

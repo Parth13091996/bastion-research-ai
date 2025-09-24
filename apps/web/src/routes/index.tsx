@@ -23,7 +23,7 @@ const CareerPage = lazy(() => import("../pages/Careers"));
 const SingleCareerPage = lazy(() => import("../pages/Careers/SingleCareer"));
 const RefundPolicy = lazy(() => import("../pages/RefundPolicy"));
 const PrivacyPolicy = lazy(() => import("../pages/PrivacyPolicy"));
-const TermAndCondition = lazy(() => import("../pages/TermAndCondition"));
+const TermAndCondition = lazy(() => import("../pages/TermsAndCondition"));
 const Compliance = lazy(() => import("../pages/Compliance"));
 const BastionCore = lazy(() => import("../pages/BastionCore"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
@@ -91,17 +91,21 @@ const PodcastEditor = lazy(
 );
 
 // Public Content Pages
-const NewsletterView = lazy(() => import("../pages/NewsletterView"));
-const WebinarView = lazy(() => import("../pages/Webinars/WebinarView"));
-const PodcastView = lazy(() => import("../pages/Podcasts/PodcastView"));
+const NewsletterView = lazy(
+  () => import("../pages/NewsLetter/SingleNewsLetterPage")
+);
+const WebinarView = lazy(() => import("../pages/Webinars/SingleWebinarPage"));
+const PodcastView = lazy(() => import("../pages/Podcasts/SinglePodcastPage"));
 
 // Components that are used as pages
-const PublicPodcastsPage = lazy(() => import("../pages/Podcasts"));
+const PublicPodcastsPage = lazy(
+  () => import("../pages/Podcasts/PodcastsListPage")
+);
 const Test = lazy(() => import("../components/generic/Test"));
 const NewsletterArchive = lazy(
-  () => import("../components/generic/NewsletterArchive")
+  () => import("../pages/NewsLetter/NewsletterListPage")
 );
-const Webinar = lazy(() => import("../pages/Webinars"));
+const Webinar = lazy(() => import("../pages/Webinars/WebinarsListPage"));
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );

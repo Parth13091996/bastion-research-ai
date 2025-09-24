@@ -6,30 +6,7 @@ export const getJobs = async (req: Request, res: Response) => {
   if (error) {
     return res.status(500).json({ error: error.message });
   }
-  if (data && data.length > 0) {
-    return res.status(200).json(data);
-  }
-  const dummyData = [
-    {
-      job_id: 1,
-      job_title: "Software Engineer",
-      author: "Admin",
-      applications: 0,
-      expiry: "2024-12-31",
-      views: 0,
-      conversion: 0,
-    },
-    {
-      job_id: 2,
-      job_title: "Product Manager",
-      author: "Admin",
-      applications: 0,
-      expiry: "2024-11-30",
-      views: 0,
-      conversion: 0,
-    },
-  ];
-  res.status(200).json(dummyData);
+  return res.status(200).json(data || []);
 };
 
 export const getJobById = async (req: Request, res: Response) => {
@@ -66,11 +43,11 @@ export const createJob = async (req: Request, res: Response) => {
     Array.isArray(val)
       ? val
       : typeof val === "string"
-      ? val
-          .split(/\r?\n/)
-          .map((s: string) => s.trim())
-          .filter(Boolean)
-      : [];
+        ? val
+            .split(/\r?\n/)
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : [];
 
   const payload: any = {
     job_title,
@@ -121,11 +98,11 @@ export const updateJob = async (req: Request, res: Response) => {
     Array.isArray(val)
       ? val
       : typeof val === "string"
-      ? val
-          .split(/\r?\n/)
-          .map((s: string) => s.trim())
-          .filter(Boolean)
-      : undefined; // If not provided, don't send
+        ? val
+            .split(/\r?\n/)
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : undefined; // If not provided, don't send
 
   const updatePayload: any = {};
   if (job_title !== undefined) updatePayload.job_title = job_title;
