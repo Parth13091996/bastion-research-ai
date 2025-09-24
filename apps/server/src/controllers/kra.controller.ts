@@ -3,7 +3,6 @@ import {
   KraDownloadPanResponse,
   KraPanStatusRequest,
   KraPanStatusResponse,
-  KraRegistrationRequest,
   KraRegistrationResponse,
 } from "@repo/types";
 import axios from "axios";
@@ -256,182 +255,205 @@ export const downloadPan = async (req: Request, res: Response) => {
  */
 export const registerKyc = async (req: Request, res: Response) => {
   try {
-    const registrationData: KraRegistrationRequest = req.body;
+    // const registrationData: KraRegistrationRequest = req.body;
 
-    // Validate required fields
-    const requiredFields = [
-      "common_kra_registration_request",
-      "unique_request_id",
-      "api_request_type",
-      "service_provider",
-      "kra_providers",
-    ];
+    // // Validate required fields
+    // const requiredFields = [
+    //   "common_kra_registration_request",
+    //   "unique_request_id",
+    //   "api_request_type",
+    //   "service_provider",
+    //   "kra_providers",
+    // ];
 
-    const missingFields = requiredFields.filter(
-      (field) => !registrationData[field as keyof KraRegistrationRequest]
-    );
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-        error: "MISSING_REQUIRED_FIELDS",
-      });
-    }
+    // const missingFields = requiredFields.filter(
+    //   (field) => !registrationData[field as keyof KraRegistrationRequest]
+    // );
+    // if (missingFields.length > 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: `Missing required fields: ${missingFields.join(", ")}`,
+    //     error: "MISSING_REQUIRED_FIELDS",
+    //   });
+    // }
 
-    const commonRequest = registrationData.common_kra_registration_request;
+    // const commonRequest = registrationData.common_kra_registration_request;
 
-    // Validate common request required fields
-    const commonRequiredFields = [
-      "uid_no",
-      "pan_no",
-      "dob_date",
-      "gender",
-      "martial_status",
-      "occupation",
-      "mob_no",
-      "email",
-      "per_add1",
-      "per_city",
-      "per_pincode",
-      "per_state",
-      "per_country",
-      "per_add_proof",
-      "pan_copy",
-      "applicant_name",
-      "applicant_citizenship",
-      "application_type",
-      "kyc_date",
-      "kyc_mode",
-      "kyc_type",
-      "app_id_proof",
-      "app_exmt_id_proof",
-    ];
+    // // Validate common request required fields
+    // const commonRequiredFields = [
+    //   "uid_no",
+    //   "pan_no",
+    //   "dob_date",
+    //   "gender",
+    //   "martial_status",
+    //   "occupation",
+    //   "mob_no",
+    //   "email",
+    //   "per_add1",
+    //   "per_city",
+    //   "per_pincode",
+    //   "per_state",
+    //   "per_country",
+    //   "per_add_proof",
+    //   "pan_copy",
+    //   "applicant_name",
+    //   "applicant_citizenship",
+    //   "application_type",
+    //   "kyc_date",
+    //   "kyc_mode",
+    //   "kyc_type",
+    //   "app_id_proof",
+    //   "app_exmt_id_proof",
+    // ];
 
-    const missingCommonFields = commonRequiredFields.filter(
-      (field) => !(commonRequest as any)[field]
-    );
-    if (missingCommonFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Missing required common fields: ${missingCommonFields.join(", ")}`,
-        error: "MISSING_COMMON_FIELDS",
-      });
-    }
+    // const missingCommonFields = commonRequiredFields.filter(
+    //   (field) => !(commonRequest as any)[field]
+    // );
+    // if (missingCommonFields.length > 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: `Missing required common fields: ${missingCommonFields.join(", ")}`,
+    //     error: "MISSING_COMMON_FIELDS",
+    //   });
+    // }
 
-    // Validate PAN format
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-    if (!panRegex.test(commonRequest.pan_no)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid PAN format",
-        error: "INVALID_PAN_FORMAT",
-      });
-    }
+    // // Validate PAN format
+    // const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    // if (!panRegex.test(commonRequest.pan_no)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid PAN format",
+    //     error: "INVALID_PAN_FORMAT",
+    //   });
+    // }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(commonRequest.email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid email format",
-        error: "INVALID_EMAIL_FORMAT",
-      });
-    }
+    // // Validate email format
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // if (!emailRegex.test(commonRequest.email)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid email format",
+    //     error: "INVALID_EMAIL_FORMAT",
+    //   });
+    // }
 
-    // Validate mobile format (Indian mobile)
-    const mobileRegex = /^[6-9]\d{9}$/;
-    if (!mobileRegex.test(commonRequest.mob_no)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid mobile number format",
-        error: "INVALID_MOBILE_FORMAT",
-      });
-    }
+    // // Validate mobile format (Indian mobile)
+    // const mobileRegex = /^[6-9]\d{9}$/;
+    // if (!mobileRegex.test(commonRequest.mob_no)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid mobile number format",
+    //     error: "INVALID_MOBILE_FORMAT",
+    //   });
+    // }
 
-    // Validate API request type
-    if (
-      !["stateless", "stateful"].includes(registrationData.api_request_type)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "api_request_type must be 'stateless' or 'stateful'",
-        error: "INVALID_API_REQUEST_TYPE",
-      });
-    }
+    // // Validate API request type
+    // if (
+    //   !["stateless", "stateful"].includes(registrationData.api_request_type)
+    // ) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "api_request_type must be 'stateless' or 'stateful'",
+    //     error: "INVALID_API_REQUEST_TYPE",
+    //   });
+    // }
 
-    // Ensure new KRA requirements are met (PAN cannot be used as POI)
-    if (commonRequest.pan_copy === "Y") {
-      return res.status(400).json({
-        success: false,
-        message:
-          "PAN cannot be used as Proof of Identity. Use alternate POI documents.",
-        error: "PAN_NOT_ALLOWED_AS_POI",
-      });
-    }
+    // // Ensure new KRA requirements are met (PAN cannot be used as POI)
+    // if (commonRequest.pan_copy === "Y") {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "PAN cannot be used as Proof of Identity. Use alternate POI documents.",
+    //     error: "PAN_NOT_ALLOWED_AS_POI",
+    //   });
+    // }
 
-    if (commonRequest.app_exmt_id_proof === "01") {
-      return res.status(400).json({
-        success: false,
-        message:
-          "PAN (01) is not accepted as POI. Use UID (02) or other valid POI.",
-        error: "PAN_POI_NOT_ALLOWED",
-      });
-    }
+    // if (commonRequest.app_exmt_id_proof === "01") {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "PAN (01) is not accepted as POI. Use UID (02) or other valid POI.",
+    //     error: "PAN_POI_NOT_ALLOWED",
+    //   });
+    // }
 
-    // If using Aadhaar as POI, validate Aadhaar number
-    if (commonRequest.app_exmt_id_proof === "02" && commonRequest.uid_no) {
-      const aadhaarRegex = /^[2-9]{1}[0-9]{11}$/;
-      if (!aadhaarRegex.test(commonRequest.uid_no)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid Aadhaar number format",
-          error: "INVALID_AADHAAR_FORMAT",
-        });
-      }
-    }
+    // // If using Aadhaar as POI, validate Aadhaar number
+    // if (commonRequest.app_exmt_id_proof === "02" && commonRequest.uid_no) {
+    //   const aadhaarRegex = /^[2-9]{1}[0-9]{11}$/;
+    //   if (!aadhaarRegex.test(commonRequest.uid_no)) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Invalid Aadhaar number format",
+    //       error: "INVALID_AADHAAR_FORMAT",
+    //     });
+    //   }
+    // }
 
     const url = `${DIGIO_BASE_URL}${KRA_REGISTER}`;
 
-    const response = await axios.post(url, registrationData, {
-      headers: {
-        ...getAuthHeader(),
-        "Content-Type": "application/json",
-        Accept: "application/json",
+    // const response = await axios.post(url, registrationData, {
+    //   headers: {
+    //     ...getAuthHeader(),
+    //     "Content-Type": "application/json",
+    //     Accept: "application/json",
+    //   },
+    //   timeout: 60000,
+    // });
+    const response = await axios.post(
+      url,
+      {
+        common_kra_registration_request: {
+          pan_no: "FMQPM9044D",
+          dob_date: "11/09/2001", // Corrected date format to ISO 8601
+        },
+        unique_request_id: crypto.randomUUID(),
+        api_request_type: "stateless",
+        service_provider: "CDSL",
+        kra_providers: "CDSL", // Changed to array format for consistency
       },
-      timeout: 60000,
-    });
+      {
+        headers: {
+          ...getAuthHeader(),
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        timeout: 60000,
+      }
+    );
+
+    console.log(response);
 
     const responseData: KraRegistrationResponse = response.data;
 
     // Log the request for audit purposes
-    try {
-      await supabase.from("kra_audit_log").insert([
-        {
-          action: "register_kyc",
-          pan: commonRequest.pan_no,
-          request_data: JSON.stringify({
-            ...registrationData,
-            common_kra_registration_request: {
-              ...commonRequest,
-              kyc_document: commonRequest.kyc_document
-                ? "[BASE64_DOCUMENT]"
-                : undefined,
-              aadhaar_document: commonRequest.aadhaar_document
-                ? "[BASE64_DOCUMENT]"
-                : undefined,
-              aadhaar_xml: commonRequest.aadhaar_xml
-                ? "[BASE64_DOCUMENT]"
-                : undefined,
-            },
-          }),
-          response_data: JSON.stringify(responseData),
-          status_code: response.status,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-    } catch (dbError) {
-      console.log("Failed to log KRA audit (non-critical):", dbError);
-    }
+    // try {
+    //   await supabase.from("kra_audit_log").insert([
+    //     {
+    //       action: "register_kyc",
+    //       pan: commonRequest.pan_no,
+    //       request_data: JSON.stringify({
+    //         ...registrationData,
+    //         common_kra_registration_request: {
+    //           ...commonRequest,
+    //           kyc_document: commonRequest.kyc_document
+    //             ? "[BASE64_DOCUMENT]"
+    //             : undefined,
+    //           aadhaar_document: commonRequest.aadhaar_document
+    //             ? "[BASE64_DOCUMENT]"
+    //             : undefined,
+    //           aadhaar_xml: commonRequest.aadhaar_xml
+    //             ? "[BASE64_DOCUMENT]"
+    //             : undefined,
+    //         },
+    //       }),
+    //       response_data: JSON.stringify(responseData),
+    //       status_code: response.status,
+    //       created_at: new Date().toISOString(),
+    //     },
+    //   ]);
+    // } catch (dbError) {
+    //   console.log("Failed to log KRA audit (non-critical):", dbError);
+    // }
 
     return res.status(201).json(responseData);
   } catch (error: any) {

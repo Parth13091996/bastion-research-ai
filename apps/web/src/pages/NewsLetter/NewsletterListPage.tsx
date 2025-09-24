@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Crown, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BackgroundShapes from "./framer-motion.tsx";
+import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { newsletterApi } from "@/api/content";
 import { toast } from "sonner";
 

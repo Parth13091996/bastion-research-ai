@@ -1,0 +1,32 @@
+interface SubscriptionData {
+  isPremium: boolean;
+  currentPlan: string;
+  subscription: {
+    name: string;
+    startDate: string;
+    expireDate: string | null;
+    amount: number;
+    transactionId: string;
+    occurrence_type: string | null;
+  } | null;
+  lastPayment: {
+    amount: number;
+    status: string;
+    planId: number;
+    email: string;
+    date: string;
+  } | null;
+}
+
+interface AuthContextType {
+  user: any;
+  login: (user: User) => void;
+  logout: () => Promise<void>;
+  refetchUser: () => Promise<void>;
+  refetchSubscription: () => Promise<void>;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isLoading: boolean;
+  subscription: SubscriptionData | null;
+  isSubscriptionLoading: boolean;
+}

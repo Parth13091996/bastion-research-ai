@@ -13,38 +13,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-interface SubscriptionData {
-  isPremium: boolean;
-  currentPlan: string;
-  subscription: {
-    name: string;
-    startDate: string;
-    expireDate: string | null;
-    amount: number;
-    transactionId: string;
-  } | null;
-  lastPayment: {
-    amount: number;
-    status: string;
-    planId: number;
-    email: string;
-    date: string;
-  } | null;
-}
-
-interface AuthContextType {
-  user: any;
-  login: (user: User) => void;
-  logout: () => Promise<void>;
-  refetchUser: () => Promise<void>;
-  refetchSubscription: () => Promise<void>;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  isLoading: boolean;
-  subscription: SubscriptionData | null;
-  isSubscriptionLoading: boolean;
-}
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
