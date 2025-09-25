@@ -115,6 +115,7 @@ export const signIn = async (req: Request, res: Response) => {
       .select("*")
       .eq("email", email)
       .single();
+    console.log(user, "user");
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -134,7 +135,9 @@ export const signIn = async (req: Request, res: Response) => {
     if (isAdminLogin && user.role !== config.roles.admin) {
       return res
         .status(401)
-        .json({ message: "Only administrators can sign in to the admin panel." });
+        .json({
+          message: "Only administrators can sign in to the admin panel.",
+        });
     }
 
     const token = generateToken(user.id, user.email);

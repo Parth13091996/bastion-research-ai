@@ -22,3 +22,16 @@ interface Podcast {
   video_url?: string;
   created_at: string;
 }
+
+interface Research {
+  id: string;
+  company: string;
+  coverage_initiation_date?: string; // ISO date string
+  sector?: string;
+  action?: string;
+  comments?: string;
+  percent_return_since_recommendation?: number;
+  percent_irr_potential_from_cmp?: number;
+  research_material_url?: string; // public URL to PDF
+  created_at: string;
+}

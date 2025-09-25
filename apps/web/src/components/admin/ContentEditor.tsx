@@ -157,7 +157,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
           <Input
             id="is_premium"
             type="checkbox"
-            value={formData.is_premium as any}
+            checked={formData.is_premium}
             className="w-4 h-4 cursor-pointer"
             onChange={(e) => handleInputChange("is_premium", e.target.checked)}
             placeholder="Is this premium?"
@@ -184,22 +184,20 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
           <h1 className="text-2xl font-bold text-secondary">{getTitle()}</h1>
         </div>
         <div className="flex space-x-2">
-          {type !== "webinars" && (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setFormData((prev) => ({
-                  ...prev,
-                  html_content: editorStore.editor.getHTML(),
-                }));
-                setIsPreview(!isPreview);
-              }}
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              {isPreview ? "Edit" : "Preview"}
-            </Button>
-          )}
-          <Button onClick={handleSave} disabled={isLoading}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setFormData((prev) => ({
+                ...prev,
+                html_content: editorStore.editor.getHTML(),
+              }));
+              setIsPreview(!isPreview);
+            }}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            {isPreview ? "Edit" : "Preview"}
+          </Button>
+          <Button onClick={handleSave} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white">
             <Save className="h-4 w-4 mr-2" />
             {isLoading ? "Saving..." : "Save"}
           </Button>
@@ -242,31 +240,29 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         </div>
 
         {/* Editor */}
-        {type !== "webinars" && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Content Editor</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isPreview ? (
-                  <div className="simple-editor-wrapper">
-                    <div className="simple-editor-content">
-                      <div
-                        className="tiptap ProseMirror simple-editor prose max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: formData.contents,
-                        }}
-                      />
-                    </div>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Content Editor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isPreview ? (
+                <div className="simple-editor-wrapper">
+                  <div className="simple-editor-content">
+                    <div
+                      className="tiptap ProseMirror simple-editor prose max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: formData.contents,
+                      }}
+                    />
                   </div>
-                ) : (
-                  <Editor contents={formData?.contents} />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                </div>
+              ) : (
+                <Editor contents={formData?.contents} />
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

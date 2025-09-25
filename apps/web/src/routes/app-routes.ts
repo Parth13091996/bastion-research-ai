@@ -23,6 +23,7 @@ export const AppRoutes = {
   newsletter: () => "/newsletters-archive",
   webinar: () => "/webinars",
   smartFrameworks: () => "/smart-frameworks",
+  research: () => "/research",
   paymentSuccess: () => "/payment/success",
   admin: () => "/admin",
   adminLogin: () => "/admin/login",
@@ -50,10 +51,14 @@ export const AppRoutes = {
   adminWebinarEdit: () => "/admin/content/webinars/:id/edit",
   adminPodcastCreate: () => "/admin/content/podcasts/create",
   adminPodcastEdit: () => "/admin/content/podcasts/:id/edit",
+  adminResearchManagement: () => "/admin/content/research",
+  adminResearchCreate: () => "/admin/content/research/create",
+  adminResearchEdit: () => "/admin/content/research/:id/edit",
   // Public content routes
   newsletterView: () => "/newsletters/:id",
   webinarView: () => "/webinars/:id",
   podcastView: () => "/podcasts/:id",
+  researchView: () => "/research/:id",
 };
 
 export const AuthRoutes = [

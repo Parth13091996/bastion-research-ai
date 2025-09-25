@@ -12,6 +12,7 @@ interface Webinar {
   id: string;
   title: string;
   video_url?: string;
+  contents?: string;
   created_at: string;
 }
 
@@ -20,5 +21,18 @@ interface Podcast {
   title: string;
   html_content?: string;
   video_url?: string;
+  created_at: string;
+}
+
+interface Research {
+  id: string;
+  company: string;
+  coverage_initiation_date?: string; // ISO date string
+  sector?: string;
+  action?: string;
+  comments?: string;
+  percent_return_since_recommendation?: number;
+  percent_irr_potential_from_cmp?: number;
+  research_material_url?: string; // public URL to PDF
   created_at: string;
 }

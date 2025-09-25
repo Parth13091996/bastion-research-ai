@@ -18,6 +18,7 @@ import contactRoutes from "./routes/contact.routes";
 import otpRoutes from "./routes/otp.routes";
 import kraRoutes from "./routes/kra.routes";
 import imagesRoutes from "./routes/images.routes";
+import filesRoutes from "./routes/files.routes";
 
 dotenv.config();
 
@@ -61,6 +62,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/content", contentRoutes);
 app.use("/api", contactRoutes);
 app.use("/api/images", imagesRoutes);
+app.use("/api/files", filesRoutes);
 
 app.set("trust proxy", 1); // if you use secure cookies or rely on req.protocol
 

@@ -2,18 +2,23 @@ import { Router } from 'express';
 import { protect, admin } from '../middleware/auth.middleware';
 import { getAnalyticsSummary } from '../controllers/analytics.controller';
 import {
+  createResearch,
   createNewsletter,
   createPodcast,
   createWebinar,
+  updateResearch,
   updateNewsletter,
   updateWebinar,
   updatePodcast,
   deleteNewsletter,
   deleteWebinar,
   deletePodcast,
+  deleteResearch,
   getNewsletter,
   getWebinar,
   getPodcast,
+  getResearch,
+  listResearch,
   listNewsletters,
   listWebinars,
   listPodcasts,
@@ -33,6 +38,13 @@ router.get('/analytics/summary', protect, admin, getAnalyticsSummary);
 // Settings: Contact recipient email
 router.get('/settings/contact-email', protect, admin, getContactRecipientEmail);
 router.put('/settings/contact-email', protect, admin, updateContactRecipientEmail);
+
+// Content management - Newsletters
+router.get('/content/research', protect, admin, listResearch);
+router.get('/content/research/:id', protect, admin, getResearch);
+router.post('/content/research', protect, admin, createResearch);
+router.put('/content/research/:id', protect, admin, updateResearch);
+router.delete('/content/research/:id', protect, admin, deleteResearch);
 
 // Content management - Newsletters
 router.get('/content/newsletters', protect, admin, listNewsletters);

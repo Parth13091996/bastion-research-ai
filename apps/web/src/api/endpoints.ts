@@ -58,6 +58,14 @@ export const endpoints = {
     },
   },
   content: {
+    research: {
+      base: "/content/research",
+      byId: (id: string) => `/content/research/${id}`,
+      admin: {
+        base: "/api/admin/content/research",
+        byId: (id: string) => `/api/admin/content/research/${id}`,
+      },
+    },
     newsletters: {
       base: "/content/newsletters",
       byId: (id: string) => `/content/newsletters/${id}`,

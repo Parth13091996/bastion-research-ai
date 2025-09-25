@@ -1,6 +1,137 @@
 import { Request, Response } from "express";
 import { supabase } from "../supabase";
 
+// Research
+export async function createResearch(req: Request, res: Response) {
+  try {
+    const {
+      company,
+      coverage_initiation_date,
+      sector,
+      action,
+      comments,
+      percent_return_since_recommendation,
+      percent_irr_potential_from_cmp,
+      research_material_url,
+    } = req.body;
+
+    if (!company)
+      return res.status(400).json({ error: "company is required" });
+
+    const { data, error } = await supabase
+      .from("research")
+      .insert({
+        company,
+        coverage_initiation_date: coverage_initiation_date ?? null,
+        sector: sector ?? null,
+        action: action ?? null,
+        comments: comments ?? null,
+        percent_return_since_recommendation:
+          percent_return_since_recommendation ?? null,
+        percent_irr_potential_from_cmp:
+          percent_irr_potential_from_cmp ?? null,
+        research_material_url: research_material_url ?? null,
+      })
+      .select("*")
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(201).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function listResearch(_req: Request, res: Response) {
+  try {
+    const { data, error } = await supabase
+      .from("research")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data ?? []);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function getResearch(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const { data, error } = await supabase
+      .from("research")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    if (!data) return res.status(404).json({ error: "Research not found" });
+
+    return res.status(200).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function updateResearch(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const {
+      company,
+      coverage_initiation_date,
+      sector,
+      action,
+      comments,
+      percent_return_since_recommendation,
+      percent_irr_potential_from_cmp,
+      research_material_url,
+    } = req.body;
+
+    if (!company)
+      return res.status(400).json({ error: "company is required" });
+
+    const { data, error } = await supabase
+      .from("research")
+      .update({
+        company,
+        coverage_initiation_date: coverage_initiation_date ?? null,
+        sector: sector ?? null,
+        action: action ?? null,
+        comments: comments ?? null,
+        percent_return_since_recommendation:
+          percent_return_since_recommendation ?? null,
+        percent_irr_potential_from_cmp:
+          percent_irr_potential_from_cmp ?? null,
+        research_material_url: research_material_url ?? null,
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function deleteResearch(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const { error } = await supabase.from("research").delete().eq("id", id);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ message: "Research deleted successfully" });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
 // Newsletters
 export async function createNewsletter(req: Request, res: Response) {
   try {
@@ -42,12 +173,12 @@ export async function listNewsletters(_req: Request, res: Response) {
 // Webinars
 export async function createWebinar(req: Request, res: Response) {
   try {
-    const { title, video_url, is_premium } = req.body;
+    const { title, video_url, is_premium, contents } = req.body;
     if (!title) return res.status(400).json({ error: "title is required" });
 
     const { data, error } = await supabase
       .from("webinars")
-      .insert({ title, video_url: video_url ?? null, is_premium })
+      .insert({ title, video_url: video_url ?? null, is_premium, contents: contents ?? null })
       .select("*")
       .single();
     if (error) return res.status(500).json({ error: error.message });
@@ -196,7 +327,7 @@ export async function getWebinar(req: Request, res: Response) {
 export async function updateWebinar(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { title, video_url, is_premium } = req.body;
+    const { title, video_url, is_premium, contents } = req.body;
 
     if (!id) return res.status(400).json({ error: "ID is required" });
     if (!title) return res.status(400).json({ error: "title is required" });
@@ -207,6 +338,7 @@ export async function updateWebinar(req: Request, res: Response) {
         title,
         video_url: video_url ?? null,
         is_premium,
+        contents: contents ?? null,
       })
       .eq("id", id)
       .select("*")

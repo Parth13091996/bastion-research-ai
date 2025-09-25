@@ -78,6 +78,11 @@ const navItems = [
         icon: Video, // Changed to Video icon
         path: AppRoutes.adminWebinarManagement(),
       },
+      {
+        name: "Research",
+        icon: FileText,
+        path: AppRoutes.adminResearchManagement(),
+      },
     ],
   },
   {

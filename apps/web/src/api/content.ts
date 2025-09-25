@@ -87,3 +87,33 @@ export const podcastApi = {
       .delete(endpoints.content.podcasts.admin.byId(id))
       .then((res) => res.data),
 };
+
+export const researchApi = {
+  // Public APIs
+  getAll: (): Promise<Research[]> =>
+    axiosInstance.get(endpoints.content.research.base).then((res) => res.data),
+
+  getById: (id: string): Promise<Research> =>
+    axiosInstance.get(endpoints.content.research.byId(id)).then((res) => res.data),
+
+  // Admin APIs
+  create: (
+    data: Omit<Research, "id" | "created_at">
+  ): Promise<Research> =>
+    axiosInstance
+      .post(endpoints.content.research.admin.base, data)
+      .then((res) => res.data),
+
+  update: (
+    id: string,
+    data: Partial<Omit<Research, "id" | "created_at">>
+  ): Promise<Research> =>
+    axiosInstance
+      .put(endpoints.content.research.admin.byId(id), data)
+      .then((res) => res.data),
+
+  delete: (id: string): Promise<{ message: string }> =>
+    axiosInstance
+      .delete(endpoints.content.research.admin.byId(id))
+      .then((res) => res.data),
+};

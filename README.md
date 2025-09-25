@@ -134,3 +134,21 @@ Learn more about the power of Turborepo:
 - [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
 - [Configuration Options](https://turborepo.com/docs/reference/configuration)
 - [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+
+## Research Feature (Admin + Public)
+
+This repository includes a Research feature similar to Newsletters/Webinars/Podcasts.
+
+- Backend
+  - New Supabase table: `public.research` with snake_case columns.
+  - Endpoints:
+    - Public: `GET /content/research`, `GET /content/research/:id`
+    - Admin (auth required): `GET/POST/PUT/DELETE /api/admin/content/research` and `GET/PUT/DELETE /api/admin/content/research/:id`
+  - File uploads: `POST /api/files/upload` expects multipart/form-data field `file` (PDF), returns a public URL.
+
+- Database setup
+  - Apply SQL at `apps/server/sql/2025-09-25_create_research_table.sql` to your Supabase/Postgres instance.
+
+- Frontend
+  - Admin pages: `/admin/content/research`, `/admin/content/research/create`, `/admin/content/research/:id/edit`
+  - Public pages: `/research`, `/research/:id` (renders PDF via react-pdf)
