@@ -8,17 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash2, Plus } from "lucide-react";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
+import { queryKeys } from "@/api/queryKeys";
 
 const Applications = () => {
   const queryClient = useQueryClient();
   const { data: rowData, isLoading } = useQuery({
-    queryKey: ["applications"],
-    queryFn: () =>
-      axiosInstance.get(endpoints.applications.base).then((res) => res.data),
+    queryKey: [queryKeys.applications],
+    queryFn: async () => {
+      const response = await axiosInstance.get(endpoints.applications.base);
+      return response.data.map(({ job_openings, ...rest }) => ({
+        ...rest,
+        job_title: job_openings.job_title,
+      }));
+    },
   });
 
   const [form, setForm] = useState({
     job_id: "",
+    job_title: '',
     applicant_name: "",
     email: "",
     phone: "",
@@ -40,6 +47,7 @@ const Applications = () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       setForm({
         job_id: "",
+        job_title: '',
         applicant_name: "",
         email: "",
         phone: "",
@@ -110,7 +118,7 @@ const Applications = () => {
 
   const columnDefs: ColDef[] = [
     { headerName: "ID", field: "application_id" },
-    { headerName: "Job ID", field: "job_id" },
+    { headerName: "Job Title", field: "job_title" },
     { headerName: "Applicant Name", field: "applicant_name" },
     { headerName: "Email", field: "email" },
     { headerName: "Phone", field: "phone" },

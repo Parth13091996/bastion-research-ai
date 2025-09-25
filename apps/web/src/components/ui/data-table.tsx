@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import {
   ColDef,
@@ -70,39 +71,41 @@ const ActionsRenderer = ({ data, context }: { data: any; context: any }) => {
   const { onEdit, onDelete, onView } = context;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <MoreHorizontal className="h-4 w-4" />
+    <div className="flex items-center space-x-1">
+      {onView && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => onView(data)}
+          title="View"
+        >
+          <Eye className="h-4 w-4" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {onView && (
-          <DropdownMenuItem onClick={() => onView(data)}>
-            <Eye className="mr-2 h-4 w-4" />
-            View
-          </DropdownMenuItem>
-        )}
-        {onEdit && (
-          <DropdownMenuItem onClick={() => onEdit(data)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-        )}
-        {onDelete && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(data)}
-              className="text-red-600 focus:text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      )}
+      {onEdit && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => onEdit(data)}
+          title="Edit"
+        >
+          <Edit className="h-4 w-4 text-blue-600 hover:text-blue-800" />
+        </Button>
+      )}
+      {onDelete && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => onDelete(data)}
+          title="Delete"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
   );
 };
 
@@ -140,7 +143,7 @@ export function DataTable<T = any>({
         cellRenderer: ActionsRenderer,
         sortable: false,
         filter: false,
-        width: 80,
+        width: 120,
         pinned: "right",
       });
     }

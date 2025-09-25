@@ -9,7 +9,7 @@ const AuthCallback = () => {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated && user) {
-        navigate('/dashboard');
+        navigate('/user/app/dashboard');
       } else {
         // This case handles when the cookie is not set or invalid.
         // The checkUser in AuthProvider would have failed.

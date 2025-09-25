@@ -10,6 +10,7 @@ const AdminHeader = () => {
   const homeRedirect = () => {
     navigate(AppRoutes.home());
   };
+
   return (
     <header className="bg-gray-800 text-white shadow-md">
       <div className="mx-auto px-6 md:px-8 lg:px-8">

@@ -6,26 +6,7 @@ export const getCoupons = async (req: Request, res: Response) => {
   if (error) {
     return res.status(500).json({ error: error.message });
   }
-  if (data && data.length > 0) {
-    return res.status(200).json(data);
-  }
-  const dummyData = [
-    {
-      coupon_id: 1,
-      coupon_code: "SUMMER2024",
-      discount_type: "percentage",
-      discount_value: 10,
-      expiry_date: "2024-08-31",
-    },
-    {
-      coupon_id: 2,
-      coupon_code: "WELCOME10",
-      discount_type: "fixed",
-      discount_value: 10,
-      expiry_date: "2024-12-31",
-    },
-  ];
-  res.status(200).json(dummyData);
+  return res.status(200).json(data || []);
 };
 
 export const createCoupon = async (req: Request, res: Response) => {
@@ -67,5 +48,34 @@ export const deleteCoupon = async (req: Request, res: Response) => {
   if (error) {
     return res.status(500).json({ error: error.message });
   }
+  res.status(200).json(data);
+};
+
+export const validateCoupon = async (req: Request, res: Response) => {
+  const { code } = req.query;
+
+  if (!code) {
+    return res.status(400).json({ error: "Coupon code is required" });
+  }
+
+  const { data, error } = await supabase
+    .from("coupons")
+    .select("*")
+    .eq("coupon_code", code)
+    .eq("active", true)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return res.status(404).json({ error: "Coupon not found" });
+    }
+    return res.status(500).json({ error: error.message });
+  }
+
+  // Check if coupon is expired
+  if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+    return res.status(400).json({ error: "Coupon has expired" });
+  }
+
   res.status(200).json(data);
 };

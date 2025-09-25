@@ -1,9 +1,10 @@
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check, X, Tag } from "lucide-react";
 import { load } from "@cashfreepayments/cashfree-js";
 import { useNavigate } from "react-router-dom";
 import { AppRoutes } from "@/routes/app-routes";
+import { useState } from "react";
 
 const PaymentStep: React.FC<PaymentStepProps> = ({
   plans,
@@ -18,6 +19,64 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 }) => {
   const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
   const navigate = useNavigate();
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+  // Calculate discount amount
+  const calculateDiscount = (coupon, originalAmount) => {
+    if (!coupon) return 0;
+    
+    if (coupon.discount_type === "percentage") {
+      return (originalAmount * coupon.discount_value) / 100;
+    } else if (coupon.discount_type === "fixed") {
+      return Math.min(coupon.discount_value, originalAmount);
+    }
+    return 0;
+  };
+
+  // Get final amount after discount
+  const getFinalAmount = () => {
+    if (!selectedPlanDetails) return 0;
+    const originalAmount = selectedPlanDetails.amount;
+    const discount = calculateDiscount(appliedCoupon, originalAmount);
+    return Math.max(0, originalAmount - discount);
+  };
+
+  // Validate and apply coupon
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+    setCouponError("");
+
+    try {
+      const response = await axiosInstance.get(`${endpoints.coupons.base}/validate?code=${couponCode.trim()}`);
+      const coupon = response.data;
+      
+      setAppliedCoupon(coupon);
+      setCouponError("");
+    } catch (error) {
+      console.error("Coupon validation error:", error);
+      const errorMessage = error.response?.data?.error || "Failed to validate coupon. Please try again.";
+      setCouponError(errorMessage);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  // Remove applied coupon
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+  };
 
   const handlePayment = async () => {
     setError(null);
@@ -45,6 +104,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           customer_phone: formData.phone,
           source: "register",
           return_url: location.origin + "/login",
+          coupon_code: appliedCoupon?.coupon_code || null,
+          discount_amount: appliedCoupon ? calculateDiscount(appliedCoupon, selectedPlanDetails.amount) : 0,
         }
       );
 
@@ -159,13 +220,78 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             <span>Setup fee</span>
             <span>₹0</span>
           </div>
+          
+          {/* Coupon discount */}
+          {appliedCoupon && (
+            <div className="flex justify-between items-center text-sm text-green-600 mb-2">
+              <span>Discount ({appliedCoupon.coupon_code})</span>
+              <span>-₹{calculateDiscount(appliedCoupon, selectedPlanDetails.amount).toFixed(2)}</span>
+            </div>
+          )}
+          
           <hr className="my-2" />
           <div className="flex justify-between items-center font-semibold">
             <span>Total</span>
-            <span>₹{selectedPlanDetails.amount}</span>
+            <span>₹{getFinalAmount()}</span>
           </div>
         </div>
       )}
+
+      {/* Coupon Code Input */}
+      <div className="border rounded-lg p-4 bg-white">
+        <div className="flex items-center mb-2">
+          <Tag size={16} className="text-gray-500 mr-2" />
+          <span className="text-sm font-medium text-gray-700">Coupon Code</span>
+        </div>
+        
+        {!appliedCoupon ? (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Enter coupon code"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isValidatingCoupon}
+            />
+            <button
+              onClick={validateCoupon}
+              disabled={isValidatingCoupon || !couponCode.trim()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+            >
+              {isValidatingCoupon ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                "Apply"
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center">
+              <Check size={16} className="text-green-600 mr-2" />
+              <span className="text-green-800 font-medium">
+                {appliedCoupon.coupon_code} applied
+              </span>
+              <span className="text-green-600 text-sm ml-2">
+                ({appliedCoupon.discount_type === "percentage" 
+                  ? `${appliedCoupon.discount_value}% off` 
+                  : `₹${appliedCoupon.discount_value} off`})
+              </span>
+            </div>
+            <button
+              onClick={removeCoupon}
+              className="text-green-600 hover:text-green-800 p-1"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+        
+        {couponError && (
+          <p className="text-red-500 text-sm mt-2">{couponError}</p>
+        )}
+      </div>
 
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
@@ -185,7 +311,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             ? "Processing..."
             : selectedPlanDetails?.code === "free"
               ? "Complete Signup"
-              : `Pay ₹${selectedPlanDetails?.amount || ""}`}
+              : `Pay ₹${getFinalAmount()}`}
         </button>
       </div>
     </div>

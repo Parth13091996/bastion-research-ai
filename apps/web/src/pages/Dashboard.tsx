@@ -1,24 +1,24 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import CashfreePayment from '@/components/CashfreePayment';
-import PaymentHistory from './Admin/AR/PaymentHistory';
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    // Redirect authenticated users to UserAdmin sidebar
+    if (isAuthenticated && !isLoading) {
+      navigate("/user/app/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  // Show loading while redirecting
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Welcome, {user?.name || user?.email}</h1>
-        <button
-          onClick={logout}
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Logout
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <CashfreePayment />
-        <PaymentHistory />
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Redirecting to your dashboard...</p>
       </div>
     </div>
   );

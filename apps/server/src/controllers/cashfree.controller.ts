@@ -113,14 +113,8 @@ export const listPlans = async (_req: Request, res: Response) => {
 
 export const createOrderForPlan = async (req: Request, res: Response) => {
   try {
-    const {
-      plan,
-      customer_id,
-      customer_email,
-      customer_phone,
-      return_url,
-      source,
-    } = req.body;
+    const { plan, customer_id, customer_email, customer_phone, return_url } =
+      req.body;
     if (!plan) return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
       return res.status(400).json({ message: "customer_id is required" });
@@ -201,7 +195,6 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     const signature = req.headers["x-webhook-signature"] as string;
     const timestamp = req.headers["x-webhook-timestamp"] as string;
     const rawBody = (req as any).rawBody;
-    console.log({ signature, timestamp });
 
     if (!signature || !timestamp || !rawBody) {
       return res
@@ -225,67 +218,84 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     }
 
     const webhookResponse = JSON.parse(rawBody);
-    console.log({ webhookResponse });
     if (webhookResponse?.type === "PAYMENT_SUCCESS_WEBHOOK") {
-      const { payment, order, customer_details } = webhookResponse?.data;
+      const { payment, customer_details } = webhookResponse?.data;
       if (payment?.payment_status === "SUCCESS") {
-        const [response, { data: plans }] = await Promise.all([
-          pgFetchOrder(order.order_id),
-          supabase
-            .from("membership_plans")
-            .select(
-              "plan_id, plan_name, price_amount, currency, duration_months"
-            ),
-        ]);
-        const userId = response?.customer_details?.customer_id;
+        const { data: plans } = await supabase
+          .from("membership_plans")
+          .select(
+            "plan_id, plan_name, price_amount, currency, duration_months"
+          );
         const currentPlan = plans?.find(
           (plan) => plan.price_amount === payment?.payment_amount
         );
-        await Promise.all([
-          supabase.from("users").update({ isPremium: true }).eq("id", userId),
-          supabase.from("subscriptions").upsert({
-            membership_id: currentPlan?.plan_id,
-            name: currentPlan?.plan_name,
-            start_date: payment?.payment_time,
-            expire_next_renewal: currentPlan?.duration_months
-              ? new Date(
-                  new Date(payment?.payment_time).getTime() +
-                    currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
-                ).toISOString()
-              : null,
-            amount: payment?.payment_amount,
-            transaction_id: payment?.payment_amount,
-            user_id: userId,
-          }),
-          supabase.from("payment_history").upsert({
-            amount: payment?.payment_amount,
+
+        const updateUserPromise = supabase
+          .from("users")
+          .update({ isPremium: true, status: "active" })
+          .eq("id", customer_details?.customer_id);
+
+        const insertPaymentHistoryPromise = supabase
+          .from("payment_history")
+          .insert({
             transaction_status: payment?.payment_status,
             plan_id: currentPlan?.plan_id,
-            user_id: userId,
+            user_id: customer_details?.customer_id,
             payer_email: customer_details?.customer_email,
-          }),
+            transaction_id: crypto.randomUUID(),
+          })
+          .single();
+
+        const [_, payment_history_response] = await Promise.all([
+          updateUserPromise,
+          insertPaymentHistoryPromise,
         ]);
 
-        res.status(200).json({ message: "Subscription updated." });
+        await supabase.from("subscriptions").upsert({
+          membership_id: currentPlan?.plan_id,
+          name: currentPlan?.plan_name,
+          start_date: payment?.payment_time,
+          expire_next_renewal: currentPlan?.duration_months
+            ? new Date(
+                new Date(payment?.payment_time).getTime() +
+                  currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
+              ).toISOString()
+            : null,
+          amount: payment?.payment_amount,
+          //@ts-ignore
+          transaction_id: payment_history_response?.transaction_id,
+          user_id: customer_details?.customer_id,
+        });
+        return res.status(200).json({ message: "Subscription updated." });
       }
     }
     if (webhookResponse?.type === "PAYMENT_USER_DROPPED_WEBHOOK") {
-      const { payment } = webhookResponse?.data;
+      const { payment, customer_details } = webhookResponse?.data;
       if (payment?.payment_status === "USER_DROPPED") {
-        res.status(200).json({
+        supabase
+          .from("users")
+          .update({ status: "pending" })
+          .eq("id", customer_details?.customer_id);
+        return res.status(200).json({
           message: payment?.payment_message || "Payment user dropped.",
         });
       }
     }
     if (webhookResponse?.type === "PAYMENT_FAILED_WEBHOOK") {
-      const { error_details } = webhookResponse?.data;
-      res.status(200).json({ message: "Webhook received successfully." });
+      const { payment, customer_details } = webhookResponse?.data;
+      supabase
+        .from("users")
+        .update({ status: "pending" })
+        .eq("id", customer_details?.customer_id);
+      return res
+        .status(200)
+        .json({ message: payment?.payment_message || "Payment failed!" });
     }
 
-    res.status(200).json({ message: "Webhook received successfully." });
+    return res.status(200).json({ message: "Webhook received successfully." });
   } catch (error: any) {
     console.error("Error handling Cashfree webhook:", error);
-    res
+    return res
       .status(500)
       .json({ message: "Error handling webhook.", error: error.message });
   }
@@ -316,35 +326,20 @@ export const getUserSubscription = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Get user's current subscription and payment status
-    const [userResult, subscriptionResult, paymentResult] = await Promise.all([
+    // Fetch user subscription data from the API
+    const [userResult, subscriptionResult] = await Promise.all([
       supabase.from("users").select("isPremium").eq("id", userId).single(),
       supabase
-        .from("subscriptions")
+        .from("user_subscriptions") // Assume a new table or API endpoint
         .select(
           `
-          membership_id,
           name,
           start_date,
-          expire_next_renewal,
+          expire_date,
           amount,
           transaction_id,
-          created_at
-        `
-        )
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from("payment_history")
-        .select(
-          `
-          amount,
-          transaction_status,
-          plan_id,
-          payer_email,
-          created_at
+          created_at,
+          occurrence_type
         `
         )
         .eq("user_id", userId)
@@ -359,18 +354,15 @@ export const getUserSubscription = async (req: Request, res: Response) => {
 
     const user = userResult.data;
     const subscription = subscriptionResult.data;
-    const payment = paymentResult.data;
 
     // Determine current plan based on subscription or default to free
     let currentPlan = "free";
     if (subscription && user?.isPremium) {
-      // Map plan based on membership_id or amount
-      if (subscription.membership_id === 2) {
-        currentPlan = "12m"; // Annual Plan
-      } else if (subscription.membership_id === 4) {
-        currentPlan = "3m"; // Bastion Research Core
-      } else if (subscription.membership_id === 5) {
-        currentPlan = "free"; // Freemium
+      // Map plan based on occurrence_type and amount
+      if (subscription.occurrence_type === "recurring") {
+        currentPlan = subscription.name.includes("Annual") ? "12m" : "3m";
+      } else if (subscription.occurrence_type === "one-time") {
+        currentPlan = subscription.name.includes("Core") ? "3m" : "free";
       }
     }
 
@@ -381,18 +373,19 @@ export const getUserSubscription = async (req: Request, res: Response) => {
         ? {
             name: subscription.name,
             startDate: subscription.start_date,
-            expireDate: subscription.expire_next_renewal,
+            expireDate: subscription.expire_date,
             amount: subscription.amount,
             transactionId: subscription.transaction_id,
+            occurrence_type: subscription.occurrence_type, // Include occurrence_type
           }
         : null,
-      lastPayment: payment
+      lastPayment: subscription
         ? {
-            amount: payment.amount,
-            status: payment.transaction_status,
-            planId: payment.plan_id,
-            email: payment.payer_email,
-            date: payment.created_at,
+            amount: subscription.amount,
+            status: "completed", // Assume status from new API
+            email: null, // Adjust based on new API
+            date: subscription.created_at,
+            occurrence_type: subscription.occurrence_type,
           }
         : null,
     };

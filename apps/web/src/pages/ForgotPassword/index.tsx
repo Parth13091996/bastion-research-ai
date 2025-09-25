@@ -29,7 +29,6 @@ const ForgotPassword = () => {
         endpoints.auth.forgotPassword,
         data
       );
-      console.log(response, "respnse");
       if (response?.data?.sentStatus === "failed") {
         setError(response?.data?.message || "Mail sending failed");
       }

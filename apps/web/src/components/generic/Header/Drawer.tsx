@@ -161,11 +161,21 @@ const Drawer = ({
                 <HiX />
               </button>
 
-              {/* My Account - Always Open */}
+              {/* My Account - Redirect to UserAdmin Sidebar */}
               <div>
                 <div className="flex items-center space-x-2 font-medium text-lg mb-2">
                   <HiOutlineUser /> <span>My Account</span>
                 </div>
+                <div className="ml-4">
+                  <Link
+                    to="/user/app/dashboard"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors bg-red-50 border border-red-200"
+                  >
+                    Go to My Account Dashboard
+                  </Link>
+                </div>
+                {/* OLD ACCOUNT LINKS - COMMENTED OUT (Now using UserAdmin sidebar)
                 <ul className="flex flex-col space-y-2 ml-4">
                   <li>
                     <a
@@ -208,6 +218,7 @@ const Drawer = ({
                     </a>
                   </li>
                 </ul>
+                */}
               </div>
             </div>
 

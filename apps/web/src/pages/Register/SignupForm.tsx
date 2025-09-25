@@ -277,24 +277,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
               <h1 className="text-2xl font-bold text-gray-900 mb-1">
                 TripleEdge
               </h1>
-              <div className="text-sm text-gray-600 space-y-1">
-                <div className="flex items-center">
-                  <span className="mr-2">📅</span>
-                  <span>Creation date: 31 Jul 2025</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="mr-2">📈</span>
-                  <span>Returns: 58.15%</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="mr-2">⚡</span>
-                  <span>Risk: Aggressive</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="mr-2">📊</span>
-                  <span>Volatility: High</span>
-                </div>
-              </div>
             </div>
 
             <div className="space-y-2">

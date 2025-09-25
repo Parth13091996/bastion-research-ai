@@ -1,3 +1,8 @@
+// DEPRECATED COMPONENT - COMMENTED OUT
+// This component is no longer used. Users are now redirected to the UserAdmin sidebar.
+// Keeping this file for reference but all functionality has been moved to UserAdmin layout.
+
+/*
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,3 +103,4 @@ const MyAccountDropdown = () => {
 };
 
 export default MyAccountDropdown;
+*/

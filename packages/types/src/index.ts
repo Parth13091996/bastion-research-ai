@@ -45,7 +45,7 @@ export interface KraPanStatusResponse {
 export interface KraDownloadPanRequest {
   pan_no: string;
   dob: string;
-  fetch_type?: "I" | "B";
+  fetch_type?: "I" | "E";
   unique_request_id?: string;
   service_provider?: string;
   mobile?: string;

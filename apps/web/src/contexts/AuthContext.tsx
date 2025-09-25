@@ -13,43 +13,12 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-interface SubscriptionData {
-  isPremium: boolean;
-  currentPlan: string;
-  subscription: {
-    name: string;
-    startDate: string;
-    expireDate: string | null;
-    amount: number;
-    transactionId: string;
-  } | null;
-  lastPayment: {
-    amount: number;
-    status: string;
-    planId: number;
-    email: string;
-    date: string;
-  } | null;
-}
-
-interface AuthContextType {
-  user: any;
-  login: (user: User) => void;
-  logout: () => Promise<void>;
-  refetchUser: () => Promise<void>;
-  refetchSubscription: () => Promise<void>;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  isLoading: boolean;
-  subscription: SubscriptionData | null;
-  isSubscriptionLoading: boolean;
-}
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // Start in loading state to avoid premature redirects on refresh
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     data,
@@ -76,13 +45,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     enabled: !!user, // Only fetch when user is authenticated
     staleTime: 30 * 1000, // 30 seconds cache freshness for subscription
     gcTime: 5 * 60 * 1000, // 5 minutes cache retention
-    refetchInterval: 10 * 1000, // Poll every 10 seconds when payment is pending
-    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {
     setUser(data?.user ?? null);
-    console.log(sessionLoading, "load");
     setIsLoading(sessionLoading);
   }, [data, sessionLoading]);
 
@@ -92,11 +58,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (newUser: User) => {
     setUser(newUser);
+    // Force a refetch to ensure session is properly established
+    refetch();
   };
 
   const logout = async () => {
     try {
       const response = await axiosInstance.post(endpoints.auth.logout);
+      await refetch();
       toast.success(response?.data?.message || "Logged out successfully");
     } catch (error) {
       console.error("Logout failed", error);

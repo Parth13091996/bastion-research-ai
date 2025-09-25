@@ -1,7 +1,8 @@
 // components/Header/DesktopNav.jsx
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import MyAccountDropdown from "./MyAccountDropdown";
+// OLD DROPDOWN - COMMENTED OUT (Now redirecting to UserAdmin sidebar)
+// import MyAccountDropdown from "./MyAccountDropdown";
 
 const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
   const { user, isLoading } = useAuth();
@@ -90,7 +91,28 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
           </svg>
         </div>
       ) : user?.id ? (
-        <MyAccountDropdown />
+        // OLD DROPDOWN - COMMENTED OUT (Now redirecting to UserAdmin sidebar)
+        // <MyAccountDropdown />
+        <Link
+          to="/user/app/dashboard"
+          className="text-gray-700 hover:text-red-600 flex items-center transition-colors"
+        >
+          {/* User Profile Picture or Initials */}
+          {user?.profile_picture ? (
+            <img
+              src={user.profile_picture}
+              alt={`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User'}
+              className="h-6 w-6 rounded-full object-cover mr-2 border border-gray-300"
+            />
+          ) : (
+            <div className="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center mr-2 border border-gray-300">
+              <span className="text-xs font-medium text-gray-700">
+                {user?.first_name?.[0] || user?.username?.[0] || 'U'}
+              </span>
+            </div>
+          )}
+          My Account
+        </Link>
       ) : (
         <Link
           to="/login"

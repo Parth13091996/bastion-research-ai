@@ -40,6 +40,20 @@ export const AppRoutes = {
   adminProfile: () => "/admin/users/profile",
   adminSettings: () => "/admin/settings",
   editor: () => "/admin/editor",
+  // Content management routes
+  adminNewsletterManagement: () => "/admin/content/newsletters",
+  adminWebinarManagement: () => "/admin/content/webinars",
+  adminPodcastManagement: () => "/admin/content/podcasts",
+  adminNewsletterCreate: () => "/admin/content/newsletters/create",
+  adminNewsletterEdit: () => "/admin/content/newsletters/:id/edit",
+  adminWebinarCreate: () => "/admin/content/webinars/create",
+  adminWebinarEdit: () => "/admin/content/webinars/:id/edit",
+  adminPodcastCreate: () => "/admin/content/podcasts/create",
+  adminPodcastEdit: () => "/admin/content/podcasts/:id/edit",
+  // Public content routes
+  newsletterView: () => "/newsletters/:id",
+  webinarView: () => "/webinars/:id",
+  podcastView: () => "/podcasts/:id",
 };
 
 export const AuthRoutes = [
@@ -48,3 +62,5 @@ export const AuthRoutes = [
   AppRoutes.forgotPassword(),
   AppRoutes.resetPassword(),
 ];
+
+export const AdminAuthRoutes = [AppRoutes.adminLogin()];

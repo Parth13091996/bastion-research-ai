@@ -2,48 +2,14 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import sendEmail from "../utils/email";
 import { supabase } from "../supabase";
+import { config } from "../utils/config";
 
 export const getUsers = async (req: Request, res: Response) => {
   const { data, error } = await supabase.from("users").select("*");
   if (error) {
     return res.status(500).json({ error: error.message });
   }
-  if (data && data.length > 0) {
-    return res.status(200).json(data);
-  }
-  const dummyData = [
-    {
-      id: "1",
-      username: "johndoe",
-      first_name: "John",
-      last_name: "Doe",
-      email: "john.doe@example.com",
-      role: "user",
-      isPremium: true,
-      cameFromOAuth: false,
-    },
-    {
-      id: "2",
-      username: "janesmith",
-      first_name: "Jane",
-      last_name: "Smith",
-      email: "jane.smith@example.com",
-      role: "user",
-      isPremium: false,
-      cameFromOAuth: true,
-    },
-    {
-      id: "3",
-      username: "admin",
-      first_name: "Admin",
-      last_name: "User",
-      email: "admin@example.com",
-      role: "admin",
-      isPremium: true,
-      cameFromOAuth: false,
-    },
-  ];
-  res.status(200).json(dummyData);
+  return res.status(200).json(data || []);
 };
 
 export const getUserById = async (req: Request, res: Response) => {
@@ -126,7 +92,37 @@ export const createUser = async (req: Request, res: Response) => {
         to: email,
         subject: "Welcome to Bastion Research!",
         text: `Hello ${first_name},\n\nWelcome to Bastion Research! Your account has been created successfully.\n\nYour username is: ${username}\n\nYou can now log in with the password you set.\n\nBest regards,\nThe Bastion Research Team`,
-        html: `<p>Hello ${first_name},</p><p>Welcome to Bastion Research! Your account has been created successfully.</p><p>Your username is: <strong>${username}</strong></p><p>You can now log in with the password you set.</p><p>Best regards,<br>The Bastion Research Team</p>`,
+        html: `
+          <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7f7f9; padding: 40px 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+              <tr>
+                <td style="padding: 32px 32px 16px 32px; border-bottom: 1px solid #eaeaea;">
+                  <img src="${config.app_url}/media/header-logo.webp" alt="Bastion Research" style="height: 40px; display: block; margin-bottom: 16px;">
+                  <h2 style="margin: 0 0 8px 0; color: #222;">Welcome to Bastion Research!</h2>
+                  <p style="margin: 0; color: #666; font-size: 15px;">Your account has been created successfully.</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 24px 32px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 15px; color: #222;">
+                    <tr>
+                      <td style="padding: 8px 0; width: 120px; color: #888;">Username:</td>
+                      <td style="padding: 8px 0;"><strong>${username}</strong></td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="padding: 8px 0; color: #888;">You can now log in with the password you set.</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 16px 32px 24px 32px; color: #888; font-size: 13px; border-top: 1px solid #eaeaea;">
+                  <p style="margin: 0;">Best regards,<br>The Bastion Research Team</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        `,
       });
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError);

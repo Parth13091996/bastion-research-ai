@@ -1,6 +1,9 @@
 @import "ag-grid-community/styles/ag-grid.css";
 @import "ag-grid-community/styles/ag-theme-alpine.css";
 @import "./styles/ag-grid-custom.css";
+@import "./styles/_variables.scss";
+@import "./styles/_keyframe-animations.scss";
+@import "./styles/tiptap.scss";
 
 @tailwind base;
 @tailwind components;
@@ -28,6 +31,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --highlight: oklch(0.852 0.199 91.936);
   }
 
   .dark {
@@ -50,6 +54,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 210 40% 98%;
+    --highlight: oklch(0.852 0.199 91.936);
   }
 }
 
@@ -129,4 +134,3 @@
 .animate-slide-in {
   animation: slideIn 0.2s ease-out;
 }
-

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Search, Plus, Eye, FileText, Trash2, X } from "lucide-react";
+import { Search, Plus, Eye, FileText, Trash2, X, Edit } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,7 +14,7 @@ const SubscriptionGrid = ({
   columnDefs: ColDef[];
 }) => {
   return (
-    <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
+    <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
       <AgGridReact
         theme="legacy"
         rowData={rowData}
@@ -34,31 +34,47 @@ const SubscriptionGrid = ({
 };
 
 const SubscriptionsActionsRenderer = (params: any) => (
-  <button
-    className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 flex items-center gap-1"
-    onClick={() => params?.context?.cancel?.(params?.data)}
-  >
-    <X size={12} />
-    Cancel
-  </button>
+  <div className="flex items-center space-x-2">
+    <button
+      className="text-blue-600 hover:text-blue-800 p-1"
+      title="Edit"
+      onClick={() => params?.context?.edit?.(params?.data)}
+    >
+      <Edit size={16} className="text-blue-600" />
+    </button>
+    <button
+      className="text-red-600 hover:text-red-800 p-1"
+      title="Cancel"
+      onClick={() => params?.context?.cancel?.(params?.data)}
+    >
+      <X size={16} />
+    </button>
+  </div>
 );
 
-const ActivitiesActionsRenderer = () => (
-  <div className="flex space-x-1">
+const ActivitiesActionsRenderer = (params: any) => (
+  <div className="flex items-center space-x-2">
+    <button
+      className="text-blue-600 hover:text-blue-800 p-1"
+      title="Edit"
+      onClick={() => params?.context?.edit?.(params?.data)}
+    >
+      <Edit size={16} className="text-blue-600" />
+    </button>
     <button
       title="View Invoice"
-      className="p-1 text-gray-600 hover:text-blue-600"
+      className="text-blue-600 hover:text-blue-800 p-1"
     >
-      <Eye size={14} />
+      <Eye size={16} />
     </button>
     <button
       title="View Details"
-      className="p-1 text-gray-600 hover:text-blue-600"
+      className="text-blue-600 hover:text-blue-800 p-1"
     >
-      <FileText size={14} />
+      <FileText size={16} />
     </button>
-    <button title="Delete" className="p-1 text-gray-600 hover:text-red-600">
-      <Trash2 size={14} />
+    <button title="Delete" className="text-red-600 hover:text-red-800 p-1">
+      <Trash2 size={16} />
     </button>
   </div>
 );
@@ -243,6 +259,12 @@ const ManageSubscriptions = () => {
 
   const cancel = (row: any) => cancelMutation.mutate(row);
 
+  const edit = (row: any) => {
+    console.log("Edit subscription/activity:", row);
+    // TODO: Implement edit functionality - could open a modal or navigate to edit page
+    // For now, just log the row data for demonstration
+  };
+
   const renderCurrentTable = () => {
     switch (activeTab) {
       case "subscriptions":
@@ -272,7 +294,7 @@ const ManageSubscriptions = () => {
   };
 
   return (
-    <div className=" mx-auto max-w-[80rem]  bg-gray-50 min-h-screen">
+    <div className=" mx-auto bg-gray-50 min-h-screen">
       <div className="flex p-6 justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
           Manage Subscriptions
@@ -345,7 +367,7 @@ const ManageSubscriptions = () => {
           </div>
         </div>
         <div className="p-4">
-          <div className="ag-theme-alpine">
+          <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
             <AgGridReact
               theme="legacy"
               rowData={filteredData}
@@ -365,7 +387,7 @@ const ManageSubscriptions = () => {
               pagination={true}
               paginationPageSize={10}
               paginationPageSizeSelector={[10, 25, 50, 100]}
-              context={{ cancel }}
+              context={{ cancel, edit }}
             />
           </div>
         </div>

@@ -10,11 +10,14 @@ import couponRoutes from "./routes/coupon.routes";
 import applicationRoutes from "./routes/application.routes";
 import adminRoutes from "./routes/admin.routes";
 import analyticsRoutes from "./routes/analytics.routes";
+import contentRoutes from "./routes/content.routes";
 import authRoutes from "./routes/auth.routes";
 import digioRoutes from "./routes/digio.routes";
 import cashfreeRoutes from "./routes/cashfree.routes";
+import contactRoutes from "./routes/contact.routes";
 import otpRoutes from "./routes/otp.routes";
 import kraRoutes from "./routes/kra.routes";
+import imagesRoutes from "./routes/images.routes";
 
 dotenv.config();
 
@@ -55,6 +58,9 @@ app.use("/api", jobRoutes);
 app.use("/api", applicationRoutes);
 app.use("/api", membershipRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/content", contentRoutes);
+app.use("/api", contactRoutes);
+app.use("/api/images", imagesRoutes);
 
 app.set("trust proxy", 1); // if you use secure cookies or rely on req.protocol
 
@@ -65,8 +71,8 @@ app.get("/", (req: Request, res: Response) => {
     .json({ status: "ok", message: "Express + TypeScript Server running!" });
 });
 
-const host = "0.0.0.0"
-app.listen(port,host, () => {
+const host = "0.0.0.0";
+app.listen(port, host, () => {
   console.log(`[server]: Server is running at http://${host}:${port}`);
 });
 

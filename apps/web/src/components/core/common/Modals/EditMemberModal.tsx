@@ -89,7 +89,6 @@ const EditMemberModal = () => {
       return axiosInstance.put(endpoints.users.byId(member.id), values);
     },
     onSuccess: (data) => {
-      console.log(data, "response");
       queryClient.invalidateQueries({ queryKey: ["users"] });
       close();
     },
