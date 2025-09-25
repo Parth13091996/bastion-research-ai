@@ -173,12 +173,12 @@ export async function listNewsletters(_req: Request, res: Response) {
 // Webinars
 export async function createWebinar(req: Request, res: Response) {
   try {
-    const { title, video_url, is_premium } = req.body;
+    const { title, video_url, is_premium, contents } = req.body;
     if (!title) return res.status(400).json({ error: "title is required" });
 
     const { data, error } = await supabase
       .from("webinars")
-      .insert({ title, video_url: video_url ?? null, is_premium })
+      .insert({ title, video_url: video_url ?? null, is_premium, contents: contents ?? null })
       .select("*")
       .single();
     if (error) return res.status(500).json({ error: error.message });
@@ -327,7 +327,7 @@ export async function getWebinar(req: Request, res: Response) {
 export async function updateWebinar(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { title, video_url, is_premium } = req.body;
+    const { title, video_url, is_premium, contents } = req.body;
 
     if (!id) return res.status(400).json({ error: "ID is required" });
     if (!title) return res.status(400).json({ error: "title is required" });
@@ -338,6 +338,7 @@ export async function updateWebinar(req: Request, res: Response) {
         title,
         video_url: video_url ?? null,
         is_premium,
+        contents: contents ?? null,
       })
       .eq("id", id)
       .select("*")

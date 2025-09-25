@@ -13,19 +13,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Plus,
   Search,
-  MoreHorizontal,
+  Eye,
   Edit,
   Trash2,
-  Eye,
   Calendar,
+  Music,
+  Video,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -41,6 +37,7 @@ interface ContentItem {
   footer_content?: string;
   video_url?: string;
   created_at: string;
+  is_premium?: boolean; // Added for webinars
 }
 
 interface ContentManagementProps {
@@ -104,10 +101,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) {
-      return;
-    }
-
+    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
     try {
       await api.delete(id);
       toast.success("Item deleted successfully");
@@ -125,19 +119,18 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
   const getTypeIcon = () => {
     switch (type) {
       case "newsletters":
-        return "📧";
+        return <Mail className="h-6 w-6 text-blue-500" />;
       case "webinars":
-        return "🎥";
+        return <Video className="h-6 w-6 text-red-500" />;
       case "podcasts":
-        return "🎧";
+        return <Music className="h-6 w-6 text-green-500" />;
       default:
         return "📄";
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "MMM dd, yyyy");
-  };
+  const formatDate = (dateString: string) =>
+    format(new Date(dateString), "MMM dd, yyyy");
 
   if (isLoading) {
     return (
@@ -157,11 +150,11 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <span className="text-2xl">{getTypeIcon()}</span>
+          <span>{getTypeIcon()}</span>
           <h1 className="text-2xl font-bold">{title}</h1>
           <Badge variant="secondary">{filteredItems.length} items</Badge>
         </div>
-        <Button onClick={handleCreate}>
+        <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
           <Plus className="h-4 w-4 mr-2" />
           Create {type.charAt(0).toUpperCase() + type.slice(1)}
         </Button>
@@ -198,7 +191,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                   : `Get started by creating your first ${type}`}
               </p>
               {!searchQuery && (
-                <Button onClick={handleCreate}>
+                <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Create {type.charAt(0).toUpperCase() + type.slice(1)}
                 </Button>
@@ -210,8 +203,9 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                 <TableRow>
                   <TableHead>Title</TableHead>
                   {type === "newsletters" && <TableHead>Sub Title</TableHead>}
+                  {type === "webinars" && <TableHead>Premium/Free</TableHead>}
                   <TableHead>Created</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="w-[220px] text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -222,6 +216,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                         {item.title}
                       </div>
                     </TableCell>
+
                     {type === "newsletters" && (
                       <TableCell>
                         <div
@@ -232,37 +227,52 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                         </div>
                       </TableCell>
                     )}
+
+                    {type === "webinars" && (
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded text-white ${item.is_premium ? "bg-green-500" : "bg-gray-500"}`}
+                        >
+                          {item.is_premium ? "Premium" : "Free"}
+                        </span>
+                      </TableCell>
+                    )}
+
                     <TableCell>
                       <div className="flex items-center text-sm text-gray-600">
                         <Calendar className="h-4 w-4 mr-1" />
                         {formatDate(item.created_at)}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onView(item.id)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit(item.id)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(item.id, item.title)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+
+                    <TableCell className="flex justify-center space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="View"
+                        className="hover:bg-blue-100 hover:text-blue-600"
+                        onClick={() => onView(item.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="Edit"
+                        className="hover:bg-yellow-100 hover:text-yellow-600"
+                        onClick={() => onEdit(item.id)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        title="Delete"
+                        className="hover:bg-red-600 hover:text-white"
+                        onClick={() => handleDelete(item.id, item.title)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
