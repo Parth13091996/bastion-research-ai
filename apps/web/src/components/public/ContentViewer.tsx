@@ -131,77 +131,94 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Title and Meta */}
-          <Card>
-            <CardHeader>
+          {/* Combined Content Container */}
+          <div className="bg-white rounded-lg shadow p-6">
+            {/* Title and Meta */}
+            <div className={
+              " " +
+              ((content.headline_image_url || content.contents || content.video_url || content.footer_content)
+                ? "mb-6"
+                : "")
+            }>
               <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
                 <Calendar className="h-4 w-4" />
                 <span>{formatDate(content.created_at)}</span>
               </div>
-              <CardTitle className="text-3xl">{content.title}</CardTitle>
+              <h1 className="text-3xl font-semibold">{content.title}</h1>
               {content.sub_title && (
-                <p className="text-lg text-gray-600 mt-2">
-                  {content.sub_title}
-                </p>
+                <p className="text-lg text-gray-600 mt-2">{content.sub_title}</p>
               )}
-            </CardHeader>
+            </div>
+
+            {/* Image */}
             {content.headline_image_url && (
-              <CardContent className="pt-0">
+              <div className={
+                " " +
+                ((content.contents || content.video_url || content.footer_content)
+                  ? "mb-6"
+                  : "")
+              }>
                 <img
                   src={content.headline_image_url}
                   alt={content.title}
                   className="w-full h-64 object-cover rounded-lg"
                 />
-              </CardContent>
+              </div>
             )}
-          </Card>
 
-          {/* Main Content */}
-          {content.contents && (
-            <CardContentComponent contents={content.contents} />
-          )}
+            {/* Editor Content */}
+            {content.contents && (
+              <div className={
+                "simple-editor-wrapper " +
+                ((content.video_url || content.footer_content)
+                  ? "mb-6"
+                  : "")} style={{ marginLeft: "1.5rem", marginRight: "1.5rem" }}>
+                <div className="simple-editor-content">
+                  <div
+                    className="tiptap ProseMirror simple-editor prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: content.contents }}
+                  />
+                </div>
+              </div>
+            )}
 
-          {/* Video (for webinars and podcasts) */}
-          {content.video_url && (type === "webinar" || type === "podcast") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Video</CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Video (for webinars and podcasts) */}
+            {content.video_url && (type === "webinar" || type === "podcast") && (
+              <div className={
+                " " +
+                (content.footer_content
+                  ? "mb-6"
+                  : "")
+              }>
+                <h2 className="text-2xl font-semibold mb-4">Video</h2>
                 <div
-                  className="aspect-video"
-                  style={{
-                    background: videoUrlWithEmbed(content.video_url),
-                  }}
+                  className="aspect-video rounded-lg overflow-hidden"
+                  style={{ background: videoUrlWithEmbed(content.video_url) }}
                 >
                   <iframe
                     src={videoUrlWithEmbed(content.video_url)}
-                    className="w-full h-full rounded-lg"
+                    className="w-full h-full"
                     allowFullScreen
                     title={content.title}
                   />
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
 
-          {/* Footer Content (for newsletters) */}
-          {content.footer_content && type === "newsletter" && (
-            <Card>
-              <CardContent className="pt-6">
+            {/* Footer Content (for newsletters) */}
+            {content.footer_content && type === "newsletter" && (
+              <div>
                 <div className="simple-editor-wrapper">
                   <div className="simple-editor-content">
                     <div
                       className="tiptap ProseMirror simple-editor prose max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: content.footer_content,
-                      }}
+                      dangerouslySetInnerHTML={{ __html: content.footer_content }}
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Sidebar */}
