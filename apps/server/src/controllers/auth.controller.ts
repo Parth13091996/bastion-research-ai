@@ -130,6 +130,13 @@ export const signIn = async (req: Request, res: Response) => {
         .json({ message: "You can't login with admin credentials." });
     }
 
+    // If trying to login via admin portal, enforce admin role explicitly
+    if (isAdminLogin && user.role !== config.roles.admin) {
+      return res
+        .status(401)
+        .json({ message: "Only administrators can sign in to the admin panel." });
+    }
+
     const token = generateToken(user.id, user.email);
 
     res.cookie("token", token, {

@@ -8,8 +8,10 @@ const AdminLayout = () => {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const location = useLocation();
 
+  // If already authenticated as admin, prevent seeing admin login page
   if (
     isAuthenticated &&
+    isAdmin &&
     AdminAuthRoutes.includes(location.pathname) &&
     !isLoading
   ) {

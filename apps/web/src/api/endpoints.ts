@@ -1,33 +1,3 @@
-import axiosInstance from "./axios";
-
-// Types
-export interface Newsletter {
-  id: string;
-  title: string;
-  sub_title?: string;
-  headline_image_url?: string;
-  html_content?: string;
-  footer_content?: string;
-  created_at: string;
-}
-
-export interface Webinar {
-  id: string;
-  title: string;
-  video_url?: string;
-  created_at: string;
-}
-
-export interface Podcast {
-  id: string;
-  title: string;
-  html_content?: string;
-  video_url?: string;
-  created_at: string;
-}
-
-// Centralized API endpoint paths used across the app
-// Grouped by domain for clarity; values remain the same to avoid breaking behavior
 export const endpoints = {
   auth: {
     session: "/api/auth/session",

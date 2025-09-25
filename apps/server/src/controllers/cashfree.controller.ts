@@ -243,13 +243,15 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
             user_id: customer_details?.customer_id,
             payer_email: customer_details?.customer_email,
             transaction_id: crypto.randomUUID(),
+            created_at: payment?.payment_time,
           })
-          .single();
+          .maybeSingle();
 
-        const [_, payment_history_response] = await Promise.all([
+        const [_, paymentHistoryResult] = await Promise.all([
           updateUserPromise,
           insertPaymentHistoryPromise,
         ]);
+        console.log(paymentHistoryResult, "result");
 
         await supabase.from("subscriptions").upsert({
           membership_id: currentPlan?.plan_id,
@@ -263,7 +265,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
             : null,
           amount: payment?.payment_amount,
           //@ts-ignore
-          transaction_id: payment_history_response?.transaction_id,
+          transaction_id: paymentHistoryResult?.transaction_id,
           user_id: customer_details?.customer_id,
         });
         return res.status(200).json({ message: "Subscription updated." });
@@ -330,16 +332,17 @@ export const getUserSubscription = async (req: Request, res: Response) => {
     const [userResult, subscriptionResult] = await Promise.all([
       supabase.from("users").select("isPremium").eq("id", userId).single(),
       supabase
-        .from("user_subscriptions") // Assume a new table or API endpoint
+        .from("subscriptions") // Assume a new table or API endpoint
         .select(
           `
           name,
           start_date,
-          expire_date,
+          expire_next_renewal,
           amount,
           transaction_id,
+          membership_id,
           created_at,
-          occurrence_type
+          membership_plans(occurrence_type)
         `
         )
         .eq("user_id", userId)
@@ -353,7 +356,14 @@ export const getUserSubscription = async (req: Request, res: Response) => {
     }
 
     const user = userResult.data;
-    const subscription = subscriptionResult.data;
+    const subscription = !subscriptionResult?.data
+      ? null
+      : {
+          ...subscriptionResult.data,
+          occurrence_type:
+            //@ts-ignore
+            subscriptionResult?.data?.membership_plans?.occurrence_type,
+        };
 
     // Determine current plan based on subscription or default to free
     let currentPlan = "free";
@@ -365,6 +375,8 @@ export const getUserSubscription = async (req: Request, res: Response) => {
         currentPlan = subscription.name.includes("Core") ? "3m" : "free";
       }
     }
+    //@ts-ignore
+    delete subscription?.membership_plans;
 
     const response = {
       isPremium: user?.isPremium || false,
@@ -373,7 +385,7 @@ export const getUserSubscription = async (req: Request, res: Response) => {
         ? {
             name: subscription.name,
             startDate: subscription.start_date,
-            expireDate: subscription.expire_date,
+            expireNextRenewal: subscription.expire_next_renewal,
             amount: subscription.amount,
             transactionId: subscription.transaction_id,
             occurrence_type: subscription.occurrence_type, // Include occurrence_type

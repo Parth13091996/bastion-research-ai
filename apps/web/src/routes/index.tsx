@@ -1,4 +1,3 @@
-import Editor from "@/components/core/editor";
 import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
 import { AppRoutes } from "./app-routes";
@@ -204,11 +203,6 @@ export const routes: RouteObject[] = [
         path: AppRoutes.adminSettings(),
         element: <AdminSettings />,
       },
-      {
-        path: AppRoutes.editor(),
-        element: <Editor />,
-      },
-      // Content Management Routes
       {
         path: AppRoutes.adminNewsletterManagement(),
         element: <NewsletterManagement />,

@@ -23,7 +23,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import logo from "../../public/media/favicon.webp";
 
 // Brand Colors
 const BrandColors = {
@@ -163,7 +162,7 @@ export default function Sidebar() {
         {!isCollapsed ? (
           <div className="flex items-center">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <img src={logo} alt="Logo" className="h-5 w-5" />
+              <img src={""} alt="Logo" className="h-5 w-5" />
             </div>
             <div className="ml-3">
               <h1 className="text-lg font-semibold text-white">
@@ -174,7 +173,7 @@ export default function Sidebar() {
         ) : (
           <div className="flex items-center justify-center w-full">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <img src={logo} alt="Logo" className="h-5 w-5" />
+              <img src={"/media/favicon.webp"} alt="Logo" className="h-5 w-5" />
             </div>
           </div>
         )}

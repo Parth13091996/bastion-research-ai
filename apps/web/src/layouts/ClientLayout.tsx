@@ -1,16 +1,16 @@
-import { Navigate, Outlet, useLocation, useParams } from "react-router-dom";
-import Header from "@/components/generic/Header";
 import Footer from "@/components/generic/Footer";
+import Header from "@/components/generic/Header";
 import BackToTop from "@/components/generic/backToTop";
 import { useAuth } from "@/contexts/AuthContext";
-import { AuthRoutes } from "@/routes/app-routes";
+import { AppRoutes, AuthRoutes } from "@/routes/app-routes";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 const ClientLayout = () => {
   const { user } = useAuth();
   const location = useLocation();
 
   if (user && AuthRoutes.includes(location.pathname)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={AppRoutes.home()} replace />;
   }
 
   return (
