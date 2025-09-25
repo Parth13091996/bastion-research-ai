@@ -154,7 +154,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
           <h1 className="text-2xl font-bold">{title}</h1>
           <Badge variant="secondary">{filteredItems.length} items</Badge>
         </div>
-        <Button onClick={handleCreate}>
+        <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
           <Plus className="h-4 w-4 mr-2" />
           Create {type.charAt(0).toUpperCase() + type.slice(1)}
         </Button>
@@ -191,7 +191,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                   : `Get started by creating your first ${type}`}
               </p>
               {!searchQuery && (
-                <Button onClick={handleCreate}>
+                <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Create {type.charAt(0).toUpperCase() + type.slice(1)}
                 </Button>
@@ -205,7 +205,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                   {type === "newsletters" && <TableHead>Sub Title</TableHead>}
                   {type === "webinars" && <TableHead>Premium/Free</TableHead>}
                   <TableHead>Created</TableHead>
-                  <TableHead className="w-[220px]">Actions</TableHead>
+                  <TableHead className="w-[220px] text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,7 +245,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                       </div>
                     </TableCell>
 
-                    <TableCell className="flex space-x-2">
+                    <TableCell className="flex justify-center space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
