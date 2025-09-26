@@ -172,10 +172,10 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
                 "simple-editor-wrapper " +
                 ((content.video_url || content.footer_content)
                   ? "mb-6"
-                  : "")} style={{ marginLeft: "1.5rem", marginRight: "1.5rem" }}>
+                  : "")}>
                 <div className="simple-editor-content">
                   <div
-                    className="tiptap ProseMirror simple-editor prose max-w-none"
+                    className={content.contents ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5" : ""}
                     dangerouslySetInnerHTML={{ __html: content.contents }}
                   />
                 </div>
@@ -211,7 +211,7 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
                 <div className="simple-editor-wrapper">
                   <div className="simple-editor-content">
                     <div
-                      className="tiptap ProseMirror simple-editor prose max-w-none"
+                      className={content.footer_content ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5" : ""}
                       dangerouslySetInnerHTML={{ __html: content.footer_content }}
                     />
                   </div>
@@ -273,7 +273,7 @@ export const CardContentComponent = ({ contents }) => {
         <div className="simple-editor-wrapper">
           <div className="simple-editor-content">
             <div
-              className="tiptap ProseMirror simple-editor prose max-w-none"
+              className={contents ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5" : ""}
               dangerouslySetInnerHTML={{
                 __html: contents,
               }}

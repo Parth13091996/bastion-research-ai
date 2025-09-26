@@ -250,7 +250,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                 <div className="simple-editor-wrapper">
                   <div className="simple-editor-content">
                     <div
-                      className="tiptap ProseMirror simple-editor prose max-w-none"
+                      className={formData.contents ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5" : ""}
                       dangerouslySetInnerHTML={{
                         __html: formData.contents,
                       }}
