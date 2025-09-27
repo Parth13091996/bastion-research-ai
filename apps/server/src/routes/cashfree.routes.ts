@@ -6,10 +6,16 @@ import {
   handleCashfreeWebhook,
   getUserSubscription,
   testCashfreeWebhook,
+  verifyPan,
+  getPanVerificationStatus,
 } from "../controllers/cashfree.controller";
 import { protect } from "../middleware/auth.middleware";
 
 const router = Router();
+
+// Verification APIs
+router.post("/verification/pan", verifyPan);
+router.get("/verification/pan/:referenceId", getPanVerificationStatus);
 
 // Plans
 router.get("/plans", listPlans);

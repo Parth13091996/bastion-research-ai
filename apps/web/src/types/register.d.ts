@@ -16,9 +16,22 @@ interface OnboardingFormData {
   pinCode?: string;
   company?: string;
   panCard: string;
+  panVerification?: PanVerificationSummary | null;
   agreeToTerms: boolean;
   selectedPlan: string;
-  digioDocId?: string;
+  agreementSignatureUrl?: string;
+  agreementSignaturePath?: string;
+  agreementSignedAt?: string;
+}
+
+interface PanVerificationSummary {
+  referenceId?: string;
+  valid?: boolean;
+  status?: "VALID" | "INVALID" | "PENDING" | "FAILED";
+  registeredName?: string;
+  nameMatchScore?: string;
+  message?: string;
+  checkedAt?: string;
 }
 
 interface SignUpFormProps {
@@ -47,7 +60,7 @@ interface RegisterStepProps {
   error: string | null;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setError: React.Dispatch<React.SetStateAction<string>>;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 interface VerifyStepProps {
@@ -58,7 +71,7 @@ interface VerifyStepProps {
   nextStep: () => void;
   updateFormData: (field: string, value: any) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setError: React.Dispatch<React.SetStateAction<string>>;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
   formData: OnboardingFormData;
   email: string;
   phone: string;
@@ -84,6 +97,9 @@ interface OnboardStepProps {
 interface KYCStepProps {
   formData: {
     panCard: string;
+    firstName: string;
+    lastName: string;
+    panVerification?: PanVerificationSummary | null;
   };
   updateFormData: UpdateFormFn;
   onBack: () => void;
@@ -98,7 +114,6 @@ interface PlansStepProps {
   onNext: () => void;
   isLoading: boolean;
   error: string | null;
-  setCurrentStep: any;
 }
 
 interface AgreementStepProps {
@@ -106,7 +121,7 @@ interface AgreementStepProps {
   updateFormData: UpdateFormFn;
   onBack: () => void;
   onNext: () => void;
-  // Access to identifier for Digio (email/phone)
+  // Access to identifier for the agreement upload (email/phone)
   formData?: { email: string; phone: string };
 }
 
@@ -120,5 +135,4 @@ interface PaymentStepProps {
   onClose: () => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string>>;
-  setCurrentStep: any;
 }

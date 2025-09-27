@@ -2,10 +2,12 @@ import { Router } from 'express';
 import {
   listResearch,
   listNewsletters,
+  listMailchimpNewsletters,
   listPodcasts,
   listWebinars,
   getResearch,
   getNewsletter,
+  getMailchimpNewsletter,
   getWebinar,
   getPodcast,
   createResearch,
@@ -27,10 +29,12 @@ const router = Router();
 // Public routes (no auth required)
 router.get('/research', listResearch);
 router.get('/newsletters', listNewsletters);
+router.get('/mailchimp/newsletters', listMailchimpNewsletters);
 router.get('/webinars', listWebinars);
 router.get('/podcasts', listPodcasts);
 router.get('/research/:id', getResearch);
 router.get('/newsletters/:id', getNewsletter);
+router.get('/mailchimp/newsletters/:id', getMailchimpNewsletter);
 router.get('/webinars/:id', getWebinar);
 router.get('/podcasts/:id', getPodcast);
 
@@ -49,4 +53,3 @@ router.delete('/webinars/:id', deleteWebinar);
 router.delete('/podcasts/:id', deletePodcast);
 
 export default router;
-

@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
 import { supabase } from "../supabase";
+import {
+  fetchMailchimpNewsletters,
+  getMailchimpNewsletterById,
+} from "../services/mailchimp.service";
 
 // Research
 export async function createResearch(req: Request, res: Response) {
@@ -165,6 +169,31 @@ export async function listNewsletters(_req: Request, res: Response) {
       .order("created_at", { ascending: false });
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data ?? []);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function listMailchimpNewsletters(req: Request, res: Response) {
+  try {
+    const force = req.query.force === "true";
+    const data = await fetchMailchimpNewsletters({
+      forceRefresh: force,
+    });
+    return res.status(200).json(data ?? []);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function getMailchimpNewsletter(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const data = await getMailchimpNewsletterById(id);
+    if (!data) {
+      return res.status(404).json({ error: "Newsletter not found" });
+    }
+    return res.status(200).json(data);
   } catch (e: any) {
     return res.status(500).json({ error: e.message });
   }

@@ -20,8 +20,10 @@ import {
   getResearch,
   listResearch,
   listNewsletters,
+  listMailchimpNewsletters,
   listWebinars,
   listPodcasts,
+  getMailchimpNewsletter,
 } from '../controllers/content.controller';
 import { getContactRecipientEmail, updateContactRecipientEmail } from '../controllers/settings.controller';
 
@@ -52,6 +54,8 @@ router.get('/content/newsletters/:id', protect, admin, getNewsletter);
 router.post('/content/newsletters', protect, admin, createNewsletter);
 router.put('/content/newsletters/:id', protect, admin, updateNewsletter);
 router.delete('/content/newsletters/:id', protect, admin, deleteNewsletter);
+router.get('/content/mailchimp/newsletters', protect, admin, listMailchimpNewsletters);
+router.get('/content/mailchimp/newsletters/:id', protect, admin, getMailchimpNewsletter);
 
 // Content management - Webinars
 router.get('/content/webinars', protect, admin, listWebinars);

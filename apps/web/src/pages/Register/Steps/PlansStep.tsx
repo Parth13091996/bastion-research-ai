@@ -9,20 +9,14 @@ const PlansStep: React.FC<PlansStepProps> = ({
   onNext,
   isLoading,
   error,
-  setCurrentStep,
 }) => {
   const plansStepNextHandler = () => {
-    const currentPlan = plans.find((r) => r.code === formData?.selectedPlan);
-    if (currentPlan?.name !== undefined && currentPlan?.name == "Freemium") {
-      setCurrentStep(7);
-      return;
-    }
     onNext();
   };
 
   useEffect(() => {
     if (formData && formData?.selectedPlan !== undefined) {
-      delete formData?.selectedPlan;
+      updateFormData("selectedPlan", "");
     }
   }, []);
 

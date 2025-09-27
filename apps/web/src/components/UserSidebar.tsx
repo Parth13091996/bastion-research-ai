@@ -126,7 +126,6 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success("Logged out successfully");
       navigate("/");
       setIsMobileOpen(false);
     } catch (error) {

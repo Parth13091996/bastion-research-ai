@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ContentViewer from '@/components/public/ContentViewer';
-import { newsletterApi } from '@/api/content';
+import { mailchimpNewsletterApi } from '@/api/mailchimp';
 
 const NewsletterView: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const NewsletterView: React.FC = () => {
   return (
     <ContentViewer
       type="newsletter"
-      api={newsletterApi}
+      api={mailchimpNewsletterApi}
       onBack={handleBack}
     />
   );

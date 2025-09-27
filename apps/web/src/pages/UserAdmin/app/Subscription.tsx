@@ -32,7 +32,9 @@ type ApiPlan = {
 type UpgradeFormState = {
   panCard: string;
   agreeToTerms: boolean;
-  digioDocId?: string;
+  agreementSignatureUrl?: string;
+  agreementSignaturePath?: string;
+  agreementSignedAt?: string;
 };
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -108,12 +110,16 @@ const Subscription = () => {
   const [kycError, setKycError] = useState<string | null>(null);
   const [kycSubmitting, setKycSubmitting] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<ApiPlan | null>(null);
+  const [kycVerification, setKycVerification] =
+    useState<PanVerificationSummary | null>(null);
 
   const userPan = (user?.pan_card_number || "").toUpperCase();
   const [upgradeForm, setUpgradeForm] = useState<UpgradeFormState>({
     panCard: userPan,
     agreeToTerms: false,
-    digioDocId: undefined,
+    agreementSignatureUrl: undefined,
+    agreementSignaturePath: undefined,
+    agreementSignedAt: undefined,
   });
 
   const currentPlanCode = subscription?.currentPlan || "free";
@@ -149,7 +155,11 @@ const Subscription = () => {
       ...prev,
       panCard: userPan,
       agreeToTerms: false,
+      agreementSignatureUrl: undefined,
+      agreementSignaturePath: undefined,
+      agreementSignedAt: undefined,
     }));
+    setKycVerification(null);
     setKycStep("kyc");
     setKycError(null);
     setKycSubmitting(false);
@@ -165,7 +175,11 @@ const Subscription = () => {
       ...prev,
       agreeToTerms: false,
       panCard: userPan,
+      agreementSignatureUrl: undefined,
+      agreementSignaturePath: undefined,
+      agreementSignedAt: undefined,
     }));
+    setKycVerification(null);
     setPendingPlan(null);
   };
 
@@ -179,10 +193,47 @@ const Subscription = () => {
       setKycError("User details not available. Please re-login and try again.");
       return;
     }
+    const fullName = `${user?.first_name || ""} ${user?.last_name || ""}`
+      .trim()
+      .replace(/\s+/g, " ");
+    if (!fullName) {
+      setKycError("Please update your name in the profile before proceeding.");
+      return;
+    }
 
     setKycSubmitting(true);
     setKycError(null);
     try {
+      const verificationResponse = await axiosInstance.post(
+        endpoints.cashfreeVerification.verifyPan,
+        {
+          pan,
+          name: fullName,
+        }
+      );
+
+      const data = verificationResponse?.data || {};
+      const verification: PanVerificationSummary = {
+        referenceId: data.referenceId,
+        valid: Boolean(data.valid),
+        status: data.status,
+        registeredName: data.registeredName,
+        nameMatchScore: data.nameMatchScore,
+        message: data.message,
+        checkedAt: new Date().toISOString(),
+      };
+      setKycVerification(verification);
+
+      if (!verification.valid) {
+        setKycError(
+          verification.message ||
+            "We could not verify this PAN. Please double-check the details."
+        );
+        return;
+      }
+
+      toast.success("PAN verified successfully");
+
       await axiosInstance.put(endpoints.users.byId(user.id), {
         pan_card_number: pan,
       });
@@ -200,21 +251,39 @@ const Subscription = () => {
 
   const handleAgreementBack = () => {
     setKycStep("kyc");
-    setUpgradeForm((prev) => ({ ...prev, agreeToTerms: false }));
+    setUpgradeForm((prev) => ({
+      ...prev,
+      agreeToTerms: false,
+      agreementSignatureUrl: undefined,
+      agreementSignaturePath: undefined,
+      agreementSignedAt: undefined,
+    }));
     setKycError(null);
   };
 
   const handleAgreementComplete = () => {
     const planToCheckout = pendingPlan;
+    const verification = kycVerification;
     setKycModalOpen(false);
     setKycStep("kyc");
     setKycError(null);
-    setUpgradeForm((prev) => ({ ...prev, agreeToTerms: false }));
+    setUpgradeForm((prev) => ({
+      ...prev,
+      agreeToTerms: false,
+      agreementSignatureUrl: undefined,
+      agreementSignaturePath: undefined,
+      agreementSignedAt: undefined,
+    }));
     setPendingPlan(null);
+    setKycVerification(null);
 
     if (planToCheckout) {
       setTimeout(
-        () => handleSubscribe(planToCheckout.code, { bypassKyc: true }),
+        () =>
+          handleSubscribe(planToCheckout.code, {
+            bypassKyc: true,
+            panVerification: verification,
+          }),
         0
       );
     }
@@ -222,7 +291,7 @@ const Subscription = () => {
 
   const handleSubscribe = async (
     code: string,
-    opts?: { bypassKyc?: boolean }
+    opts?: { bypassKyc?: boolean; panVerification?: PanVerificationSummary | null }
   ) => {
     if (!user) return;
     const selectedPlan = plans.find((p) => p.code === code);
@@ -250,6 +319,12 @@ const Subscription = () => {
           customer_phone: user.phone,
           return_url: location.href,
           source: "subscription",
+          metadata: opts?.panVerification
+            ? {
+                panReference: opts?.panVerification?.referenceId || null,
+                panStatus: opts?.panVerification?.status || null,
+              }
+            : undefined,
         }),
         "Processing payment..."
       );
@@ -489,12 +564,15 @@ const Subscription = () => {
               <Input
                 id="subscription-pan"
                 value={upgradeForm.panCard}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase();
                   setUpgradeForm((prev) => ({
                     ...prev,
-                    panCard: e.target.value.toUpperCase(),
-                  }))
-                }
+                    panCard: value,
+                  }));
+                  setKycVerification(null);
+                  setKycError(null);
+                }}
                 maxLength={10}
                 placeholder="ABCDE1234F"
                 className="text-sm"
@@ -503,6 +581,34 @@ const Subscription = () => {
                 Use uppercase letters exactly as they appear on your PAN card.
               </p>
             </div>
+            {kycVerification && (
+              <div
+                className={`border rounded-lg p-3 text-sm ${
+                  kycVerification.valid
+                    ? "border-green-200 bg-green-50"
+                    : "border-yellow-200 bg-yellow-50"
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <p className="font-medium flex items-center">
+                    {kycVerification.valid ? "PAN verified" : "Verification pending"}
+                  </p>
+                  {kycVerification.referenceId && (
+                    <span className="text-xs text-muted-foreground">
+                      Ref: {kycVerification.referenceId}
+                    </span>
+                  )}
+                </div>
+                {kycVerification.registeredName && (
+                  <p className="text-gray-700 mt-1">
+                    Registered Name: <strong>{kycVerification.registeredName}</strong>
+                  </p>
+                )}
+                {kycVerification.message && (
+                  <p className="text-gray-600 mt-1">{kycVerification.message}</p>
+                )}
+              </div>
+            )}
             {kycError && <p className="text-sm text-red-600">{kycError}</p>}
             <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
               <Button
@@ -518,7 +624,7 @@ const Subscription = () => {
                 disabled={kycSubmitting}
                 className="w-full sm:w-auto"
               >
-                {kycSubmitting ? "Saving..." : "Continue"}
+                {kycSubmitting ? "Verifying..." : "Verify & Continue"}
               </Button>
             </div>
           </div>

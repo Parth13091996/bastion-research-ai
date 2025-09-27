@@ -45,8 +45,14 @@ export const endpoints = {
     orderById: (id: string | number) => `/api/cashfree/orders/${id}`,
     subscription: "/api/cashfree/subscription",
   },
-  digio: {
-    uploadJson: "/api/digio/esign/uploadjson",
+  cashfreeVerification: {
+    verifyPan: "/api/cashfree/verification/pan",
+    panStatus: (referenceId: string | number) =>
+      `/api/cashfree/verification/pan/${referenceId}`,
+  },
+  files: {
+    upload: "/api/files/upload",
+    signatures: "/api/files/signatures",
   },
   contact: {
     send: "/api/contact",
@@ -72,6 +78,16 @@ export const endpoints = {
       admin: {
         base: "/api/admin/content/newsletters",
         byId: (id: string) => `/api/admin/content/newsletters/${id}`,
+      },
+    },
+    mailchimp: {
+      newsletters: {
+        base: "/content/mailchimp/newsletters",
+        byId: (id: string) => `/content/mailchimp/newsletters/${id}`,
+        admin: {
+          base: "/api/admin/content/mailchimp/newsletters",
+          byId: (id: string) => `/api/admin/content/mailchimp/newsletters/${id}`,
+        },
       },
     },
     webinars: {

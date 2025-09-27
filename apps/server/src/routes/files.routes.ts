@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { uploadPdf } from "../controllers/files.controller";
+import { uploadPdf, uploadSignature } from "../controllers/files.controller";
 
 const router = Router();
 
@@ -21,6 +21,6 @@ const upload = multer({
 });
 
 router.post("/upload", upload.single("file"), uploadPdf);
+router.post("/signatures", uploadSignature);
 
 export default router;
-

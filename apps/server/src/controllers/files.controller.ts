@@ -45,3 +45,53 @@ export async function uploadPdf(req: Request, res: Response) {
   }
 }
 
+/**
+ * Persist a base64 encoded signature image to Supabase storage.
+ * - Expects JSON payload: { dataUrl: string, identifier?: string }
+ * - Accepts common image MIME types (PNG/JPEG/WebP)
+ */
+export async function uploadSignature(req: Request, res: Response) {
+  try {
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || "public";
+    const { dataUrl } = req.body as { dataUrl?: string };
+
+    if (!dataUrl || typeof dataUrl !== "string") {
+      return res.status(400).json({ message: "dataUrl is required" });
+    }
+
+    const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (!match) {
+      return res
+        .status(400)
+        .json({ message: "Signature dataUrl must be a base64 encoded image" });
+    }
+
+    const mimeType = match[1];
+    const base64 = match[2];
+    const buffer = Buffer.from(base64, "base64");
+    const extension = mimeType.split("/")[1] || "png";
+    const filename = `signatures/${randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filename, buffer, {
+        contentType: mimeType,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      return res.status(500).json({ message: uploadError.message });
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(bucket).getPublicUrl(filename);
+
+    return res.status(201).json({ url: publicUrl, path: filename });
+  } catch (e: any) {
+    console.error("Signature upload error", e);
+    return res
+      .status(500)
+      .json({ message: e?.message || "Failed to store signature" });
+  }
+}

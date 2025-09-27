@@ -1,16 +1,15 @@
-import React from "react";
-import { ArrowLeft } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, RotateCcw, Check } from "lucide-react";
+import SignaturePad from "signature_pad";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
 
-declare global {
-  interface Window {
-    Digio?: any;
-  }
-}
-
-const DIGIO_PDF_BASE64 =
-  "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCAzMDAgMTQ0XSAvQ29udGVudHMgNCAwIFIgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNSAwIFIgPj4gPj4gPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCA0NCA+PgpzdHJlYW0KQlQgL0YxIDI0IFRmIDcyIDcyIFRkIChBZ3JlZW1lbnQpIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PCAvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jhc2VGb250IC9IZWx2ZXRpY2EgPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxMCAwMDAwMCBuIAowMDAwMDAwMDYxIDAwMDAwIG4gCjAwMDAwMDAxMTcgMDAwMDAgbiAKMDAwMDAwMDI3OCAwMDAwMCBuIAowMDAwMDAwMzc3IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNDQ2CiUlRU9GCg==";
+const AGREEMENT_SUMMARY = [
+  "Investment Risks: All investments carry risk of loss. Past performance does not guarantee future results.",
+  "Service Agreement: You agree to pay applicable fees for the services provided.",
+  "Privacy: We will protect your personal information as outlined in our privacy policy.",
+  "Compliance: You confirm that the provided KYC details are accurate and authorize Bastion to retain a digital signature of this agreement.",
+];
 
 const AgreementStep: React.FC<AgreementStepProps> = ({
   agreeToTerms,
@@ -19,119 +18,147 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   onNext,
   formData,
 }) => {
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const digioRef = React.useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const signaturePadRef = useRef<SignaturePad | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [existingSignatureUrl, setExistingSignatureUrl] = useState<string | null>(
+    () => formData?.agreementSignatureUrl || null
+  );
 
-  const env =
-    (import.meta as any)?.env?.VITE_DIGIO_ENV === "production"
-      ? "production"
-      : "sandbox";
-  const sdkSrc =
-    env === "production"
-      ? "https://app.digio.in/sdk/v11/digio.js"
-      : "https://ext-gateway.digio.in/sdk/v11/digio.js";
-
-  const loadDigioScript = React.useCallback(() => {
-    return new Promise<void>((resolve, reject) => {
-      if (window.Digio) return resolve();
-      const existing = document.querySelector(`script[src='${sdkSrc}']`);
-      if (existing) {
-        existing.addEventListener("load", () => resolve());
-        existing.addEventListener("error", () =>
-          reject(new Error("Failed to load Digio SDK"))
-        );
-        return;
-      }
-      const s = document.createElement("script");
-      s.type = "text/javascript";
-      s.src = sdkSrc;
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error("Failed to load Digio SDK"));
-      document.body.appendChild(s);
-    });
-  }, [sdkSrc]);
-
-  const identifier = React.useMemo(() => {
+  const identifier = useMemo(() => {
     const email = formData?.email?.trim();
     const phone = formData?.phone?.trim();
     return email || phone || "";
   }, [formData]);
 
-  const handleSign = async () => {
+  const handleBeginStroke = useCallback(() => {
     setError(null);
-    if (!agreeToTerms) return;
-    if (!identifier) {
-      setError("Missing customer identifier (email or phone)");
-      return;
+    setIsDrawing(true);
+    setExistingSignatureUrl(null);
+  }, []);
+
+  const handleEndStroke = useCallback(() => {
+    setIsDrawing(false);
+  }, []);
+
+  const initialiseSignaturePad = React.useCallback(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const width = parent.clientWidth;
+    const height = 220;
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.scale(ratio, ratio);
+      ctx.clearRect(0, 0, width, height);
     }
-    setLoading(true);
-    try {
-      await loadDigioScript();
 
-      // 1) Initiate signature by uploading a tiny PDF via our server
-      const initResp = await axiosInstance.post(endpoints.digio.uploadJson, {
-        file_data: DIGIO_PDF_BASE64,
-        file_name: "agreement.pdf",
-        will_self_sign: true,
-        include_authentication_url: false,
-        display_on_page: "first",
-        signers: [
-          {
-            identifier,
-          },
-        ],
-        // generate_access_token: true, // Enable if you prefer token approach
-      });
-      const data = initResp?.data?.data || {};
-      const documentId = data?.id || data?.document_id;
-      if (!documentId) {
-        throw new Error("Failed to initiate eSign: no document id returned");
-      }
+    signaturePadRef.current?.off();
+    signaturePadRef.current?.removeEventListener("beginStroke", handleBeginStroke);
+    signaturePadRef.current?.removeEventListener("endStroke", handleEndStroke);
 
-      // 2) Create Digio instance
-      const options = {
-        environment: env,
-        callback: function (response: any) {
-          if (response && response.error_code) {
-            console.error("Digio error:", response);
-            setError(response.message || "eSign failed");
-            setLoading(false);
-            return;
-          }
-          try {
-            updateFormData("digioDocId", response?.digio_doc_id || documentId);
-          } catch {}
-          setLoading(false);
-          onNext();
-        },
-        logo: "/favicon.ico",
-        theme: {
-          primaryColor: "#AB3498",
-          secondaryColor: "#000000",
-        },
-        is_iframe: true,
-      };
-      const digio = new window.Digio(options);
-      digioRef.current = digio;
+    const pad = new SignaturePad(canvas, {
+      minWidth: 0.5,
+      maxWidth: 2.5,
+      penColor: "#111827",
+    });
+    const padAny = pad as any;
+    padAny.addEventListener?.("beginStroke", handleBeginStroke);
+    padAny.addEventListener?.("endStroke", handleEndStroke);
+    signaturePadRef.current = pad;
+  }, [handleBeginStroke, handleEndStroke]);
 
-      // 3) Launch popup/iframe and submit
-      digio.init();
-      // If using token approach, call: digio.submit(requestId, identifier, token_id)
-      digio.submit(documentId, identifier);
-    } catch (e: any) {
-      console.error(e);
-      setError(
-        e?.response?.data?.message || e?.message || "Failed to start eSign"
-      );
-      setLoading(false);
-    }
+  useEffect(() => {
+    initialiseSignaturePad();
+    const handleResize = () => initialiseSignaturePad();
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      const padAny = signaturePadRef.current as any;
+      padAny?.removeEventListener?.("beginStroke", handleBeginStroke);
+      padAny?.removeEventListener?.("endStroke", handleEndStroke);
+      signaturePadRef.current?.off();
+      signaturePadRef.current = null;
+    };
+  }, [handleBeginStroke, handleEndStroke, initialiseSignaturePad]);
+
+  const clearSignature = () => {
+    signaturePadRef.current?.clear();
+    setExistingSignatureUrl(null);
+    updateFormData("agreementSignatureUrl", "");
+    updateFormData("agreementSignaturePath", "");
+    updateFormData("agreementSignedAt", "");
+    setError(null);
   };
 
-  const handleCancel = () => {
+  const handleSubmit = async () => {
+    setError(null);
+    if (!agreeToTerms) {
+      setError("Please accept the terms before continuing.");
+      return;
+    }
+
+    if (!identifier) {
+      setError("Missing customer identifier (email or phone).");
+      return;
+    }
+
+    const signaturePad = signaturePadRef.current;
+    const hasNewSignature = signaturePad && !signaturePad.isEmpty();
+
+    if (!hasNewSignature && !existingSignatureUrl) {
+      setError("Please provide your signature to continue.");
+      return;
+    }
+
+    // Reuse signature already uploaded (user navigating back)
+    if (!hasNewSignature && existingSignatureUrl) {
+      updateFormData("agreementSignedAt", new Date().toISOString());
+      onNext();
+      return;
+    }
+
     try {
-      digioRef.current?.cancel?.();
-    } catch {}
+      setIsSubmitting(true);
+      const dataUrl = signaturePad!.toDataURL("image/png");
+      const response = await axiosInstance.post(endpoints.files.signatures, {
+        dataUrl,
+        identifier,
+      });
+
+      const url = response?.data?.url as string | undefined;
+      const path = response?.data?.path as string | undefined;
+      if (!url) {
+        throw new Error("Signature upload did not return a URL");
+      }
+
+      updateFormData("agreementSignatureUrl", url);
+      updateFormData("agreementSignaturePath", path || "");
+      updateFormData("agreementSignedAt", new Date().toISOString());
+      setExistingSignatureUrl(url);
+      signaturePad?.clear();
+      onNext();
+    } catch (err: any) {
+      console.error("Signature upload failed", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Failed to store signature. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -141,41 +168,71 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
           Terms & Agreement
         </h2>
         <p className="text-gray-600 text-sm">
-          Review, accept and eSign the agreement
+          Review the agreement and sign digitally to proceed.
         </p>
       </div>
 
       <div className="max-h-48 overflow-y-auto border rounded-lg p-4 text-sm text-gray-700">
-        <h3 className="font-semibold mb-2">Terms of Service</h3>
-        <p className="mb-4">
-          By using TripleEdge services, you agree to the following terms and
-          conditions...
-        </p>
-        <p className="mb-4">
-          1. Investment Risks: All investments carry risk of loss. Past
-          performance does not guarantee future results.
-        </p>
-        <p className="mb-4">
-          2. Service Agreement: You agree to pay applicable fees for the
-          services provided.
-        </p>
-        <p className="mb-4">
-          3. Privacy Policy: We will protect your personal information as
-          outlined in our privacy policy.
-        </p>
+        <h3 className="font-semibold mb-3">Summary</h3>
+        <ul className="list-disc list-inside space-y-2">
+          {AGREEMENT_SUMMARY.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ul>
       </div>
 
-      <label className="flex items-start">
-        <input
-          type="checkbox"
-          checked={agreeToTerms}
-          onChange={(e) => updateFormData("agreeToTerms", e.target.checked)}
-          className="mt-1 mr-2"
-        />
-        <span className="text-sm text-gray-700">
-          I agree to the Terms of Service and Privacy Policy
-        </span>
-      </label>
+      <div className="space-y-3">
+        <label className="flex items-start">
+          <input
+            type="checkbox"
+            checked={agreeToTerms}
+            onChange={(e) => updateFormData("agreeToTerms", e.target.checked)}
+            className="mt-1 mr-2"
+          />
+          <span className="text-sm text-gray-700">
+            I have read the summary above and agree to the full Terms of Service
+            and Privacy Policy.
+          </span>
+        </label>
+
+        <div className="border border-dashed border-gray-300 rounded-xl p-4 bg-white">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              Draw your signature below
+            </span>
+            <button
+              type="button"
+              onClick={clearSignature}
+              className="flex items-center text-xs text-gray-500 hover:text-gray-700"
+            >
+              <RotateCcw size={14} className="mr-1" /> Reset
+            </button>
+          </div>
+
+          {existingSignatureUrl ? (
+            <div className="flex flex-col items-center space-y-2">
+              <img
+                src={existingSignatureUrl}
+                alt="Existing signature"
+                className="max-h-40 object-contain"
+              />
+              <p className="text-xs text-gray-500 flex items-center">
+                <Check size={14} className="mr-1 text-green-600" /> Signature on
+                file
+              </p>
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-lg">
+              <canvas ref={canvasRef} className="w-full rounded-lg bg-white" />
+              {!isDrawing && (
+                <p className="text-xs text-gray-500 text-center py-2">
+                  Sign inside the box using your mouse or touch input.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
@@ -187,18 +244,11 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
           <ArrowLeft size={20} className="mr-1" /> Back
         </button>
         <button
-          onClick={handleCancel}
-          className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
-          type="button"
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
         >
-          Cancel eSign
-        </button>
-        <button
-          onClick={handleSign}
-          disabled={!agreeToTerms || loading}
-          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          {loading ? "Starting eSign..." : "Accept & eSign"}
+          {isSubmitting ? "Saving signature..." : "Accept & Continue"}
         </button>
       </div>
     </div>

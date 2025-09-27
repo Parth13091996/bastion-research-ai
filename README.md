@@ -152,3 +152,19 @@ This repository includes a Research feature similar to Newsletters/Webinars/Podc
 - Frontend
   - Admin pages: `/admin/content/research`, `/admin/content/research/create`, `/admin/content/research/:id/edit`
   - Public pages: `/research`, `/research/:id` (renders PDF via react-pdf)
+
+## Mailchimp Newsletter Integration
+
+The newsletters experience now consumes your Mailchimp campaign RSS feed end-to-end:
+
+- **Server configuration**
+  - `MAILCHIMP_RSS_URL` (required) — Mailchimp RSS feed URL (e.g. `https://<dc>.campaign-archive.com/feed?...`).
+  - `MAILCHIMP_RSS_CACHE_SECONDS` (optional) — In-memory cache TTL for the feed. Defaults to 300 seconds.
+- **Web app configuration**
+  - `VITE_MAILCHIMP_MANAGE_URL` (optional) — Direct link to your Mailchimp dashboard. Used by the admin panel “Open Mailchimp” buttons. Falls back to `https://login.mailchimp.com/` when omitted.
+
+Admin users can visit `/admin/content/newsletters` to:
+
+- Browse Mailchimp-sourced campaigns with search and quick links to the public page or Mailchimp archive.
+- Trigger a manual “Sync Latest” to bypass the cache after updating a campaign in Mailchimp.
+- Follow the guided workflow (at `/admin/content/newsletters/create` or `/:id/edit`) explaining that authoring happens in Mailchimp while the React app stays in sync via the RSS feed.

@@ -11,7 +11,7 @@ import VerifyStep from "./Steps/VerifyStep";
 import { endpoints } from "@/api/endpoints";
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(5);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<OnboardingFormData>({
     email: "",
@@ -29,8 +29,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     pinCode: "",
     company: "",
     panCard: "",
+    panVerification: null,
     agreeToTerms: false,
     selectedPlan: "",
+    agreementSignatureUrl: "",
+    agreementSignaturePath: "",
+    agreementSignedAt: "",
   });
   const stepsValues = [
     { id: 1, name: "Register", icon: "👤" },
@@ -39,11 +43,13 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     { id: 4, name: "Plans", icon: "📋" },
     { id: 5, name: "KYC", icon: "🆔" },
     { id: 6, name: "Agreement", icon: "📄" },
+    { id: 7, name: "Payment", icon: "💳" },
   ];
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [steps, setSteps] = useState(stepsValues);
+  const maxStep = stepsValues.length;
 
   useEffect(() => {
     const formDataFromStorage = localStorage.getItem("onboardingFormData");
@@ -55,7 +61,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     }
     if (stepFromStorage) {
       const step = parseInt(stepFromStorage, 10);
-      if (!Number.isNaN(step) && step >= 1 && step <= 7) {
+      if (!Number.isNaN(step) && step >= 1 && step <= maxStep) {
         setCurrentStep(step);
       }
     }
@@ -63,12 +69,23 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   }, []);
 
   const updateFormData = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value } as OnboardingFormData;
+
+      if (
+        (field === "firstName" || field === "lastName" || field === "panCard") &&
+        prev.panVerification
+      ) {
+        next.panVerification = null;
+      }
+
+      return next;
+    });
   };
 
   const nextStep = () => {
     setError(null);
-    if (currentStep < 8) {
+    if (currentStep < maxStep) {
       const next = currentStep + 1;
       setCurrentStep(next);
       try {
@@ -94,15 +111,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       localStorage.setItem("onboardingFormData", JSON.stringify(formData));
       localStorage.setItem("onboardingStep", JSON.stringify(currentStep));
     }
-    if (!formData?.selectedPlan) return;
-    if (
-      plans.find((r) => r.code === formData?.selectedPlan)?.name === "Freemium"
-    ) {
-      setSteps((prev) => prev.slice(0, 4));
-    } else {
-      setSteps(stepsValues);
-    }
   }, [formData]);
+
+  useEffect(() => {
+    setSteps(stepsValues);
+  }, [plans.length]);
 
   // Persist current step
   useEffect(() => {
@@ -151,6 +164,9 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     };
     const kycFormData = {
       panCard: formData.panCard,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      panVerification: formData.panVerification || null,
     };
     switch (currentStep) {
       case 1:
@@ -202,7 +218,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             onBack={prevStep}
             onNext={nextStep}
             updateFormData={updateFormData}
-            setCurrentStep={setCurrentStep}
           />
         );
       case 5:
@@ -236,7 +251,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             onClose={onClose}
             setError={setError}
             setIsLoading={setIsLoading}
-            setCurrentStep={setCurrentStep}
           />
         );
       default:

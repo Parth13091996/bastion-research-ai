@@ -6,6 +6,12 @@ interface Newsletter {
   html_content?: string;
   footer_content?: string;
   created_at: string;
+  contents?: string;
+  link?: string;
+  guid?: string;
+  author?: string;
+  plain_text?: string;
+  source?: "mailchimp" | "cms";
 }
 
 interface Webinar {

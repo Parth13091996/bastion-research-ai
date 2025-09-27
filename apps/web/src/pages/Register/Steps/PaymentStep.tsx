@@ -15,7 +15,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   onBack,
   setError,
   setIsLoading,
-  setCurrentStep,
 }) => {
   const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
   const navigate = useNavigate();
@@ -80,6 +79,18 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
   const handlePayment = async () => {
     setError(null);
+
+    if (!formData?.panVerification?.valid) {
+      setError(
+        "Please complete PAN verification before proceeding to payment."
+      );
+      return;
+    }
+    if (!formData?.agreementSignatureUrl) {
+      setError("Please sign the agreement before continuing.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       if (selectedPlanDetails?.name === "Freemium") {
@@ -95,6 +106,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         navigate(AppRoutes.login(), { replace: true });
         return;
       }
+
       const orderResponse = await axiosInstance.post(
         endpoints.cashfree.orders,
         {
@@ -105,18 +117,22 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           source: "register",
           return_url: location.origin + "/login",
           coupon_code: appliedCoupon?.coupon_code || null,
-          discount_amount: appliedCoupon ? calculateDiscount(appliedCoupon, selectedPlanDetails.amount) : 0,
+          discount_amount: appliedCoupon
+            ? calculateDiscount(appliedCoupon, selectedPlanDetails.amount)
+            : 0,
+          metadata: {
+            panReference: formData.panVerification?.referenceId || null,
+            panStatus: formData.panVerification?.status || null,
+          },
         }
       );
 
       const { payment_session_id } = orderResponse.data.order;
 
-      // Persist a flag so success page knows to finalize onboarding
       try {
         localStorage.setItem("onboardingPending", "true");
       } catch {}
 
-      // Initialize Cashfree SDK and redirect to hosted checkout
       const cashfree = await load({ mode: "sandbox" });
       await cashfree.checkout({
         paymentSessionId: payment_session_id,
@@ -126,16 +142,12 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       const errorMessage =
         err.response?.data?.message || "An unexpected error occurred.";
       setError(errorMessage);
-      setIsLoading(false); // Set loading to false on error
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const onBackHandler = () => {
-    if (selectedPlanDetails?.name === "Freemium") {
-      setCurrentStep(3);
-      setError("");
-      return;
-    }
     onBack();
   };
 
