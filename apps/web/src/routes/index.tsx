@@ -118,6 +118,7 @@ const SmartFrameworks = lazy(
 const ResearchView = lazy(
   () => import("../pages/Research/SingleResearchPage")
 );
+const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
 
 export const routes: RouteObject[] = [
   {
@@ -150,6 +151,10 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.researchView(), element: <ResearchView /> },
       { path: AppRoutes.dashboard(), element: <Dashboard /> },
     ],
+  },
+  {
+    path: AppRoutes.ipoLanding(),
+    element: <IpoLandingPage />,
   },
   {
     element: <AdminLogin />,
