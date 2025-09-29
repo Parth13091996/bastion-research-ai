@@ -61,7 +61,7 @@ export const AppRoutes = {
   podcastView: () => "/podcasts/:id",
   researchView: () => "/research/:id",
   ipoLanding: () => "/ipo-landing",
-  ipoUserDashboard: () => "/ipo-dashboard",
+  
 };
 
 export const AuthRoutes = [
