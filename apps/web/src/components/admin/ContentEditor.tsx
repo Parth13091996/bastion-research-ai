@@ -36,6 +36,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     footer_content: "",
     video_url: "",
     is_premium: false,
+    category: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +52,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         footer_content: initialData.footer_content || "",
         video_url: initialData.video_url || "",
         is_premium: initialData.is_premium || false,
+        category: initialData.category || "",
       });
     }
   }, [initialData]);
@@ -132,6 +134,37 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             }
             placeholder="Enter image URL"
           />
+        </div>
+      );
+    }
+
+    // Category (newsletter only)
+    if (type === "newsletters") {
+      fields.push(
+        <div key="category" className="space-y-2">
+          <Label>Category</Label>
+          <div className="space-y-2">
+            {[
+              { value: "learning-of-the-week", label: "Learning of the Week" },
+              { value: "scratch-pad", label: "Scratch Pad" },
+              { value: "topical-update", label: "Topical Update" },
+            ].map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id={option.value}
+                  name="category"
+                  value={option.value}
+                  checked={formData.category === option.value}
+                  onChange={(e) => handleInputChange("category", e.target.value)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                />
+                <Label htmlFor={option.value} className="text-sm font-normal cursor-pointer">
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </div>
         </div>
       );
     }

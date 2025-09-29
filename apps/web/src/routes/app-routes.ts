@@ -59,6 +59,7 @@ export const AppRoutes = {
   webinarView: () => "/webinars/:id",
   podcastView: () => "/podcasts/:id",
   researchView: () => "/research/:id",
+  ipoLanding: () => "/ipo-landing",
 };
 
 export const AuthRoutes = [

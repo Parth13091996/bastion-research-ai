@@ -38,6 +38,7 @@ interface ContentItem {
   video_url?: string;
   created_at: string;
   is_premium?: boolean; // Added for webinars
+  category?: string; // Added for newsletters
 }
 
 interface ContentManagementProps {
@@ -203,6 +204,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                 <TableRow>
                   <TableHead>Title</TableHead>
                   {type === "newsletters" && <TableHead>Sub Title</TableHead>}
+                  {type === "newsletters" && <TableHead>Category</TableHead>}
                   {type === "webinars" && <TableHead>Premium/Free</TableHead>}
                   <TableHead>Created</TableHead>
                   <TableHead className="w-[220px] text-center">Actions</TableHead>
@@ -225,6 +227,14 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                         >
                           {item.sub_title || "-"}
                         </div>
+                      </TableCell>
+                    )}
+
+                    {type === "newsletters" && (
+                      <TableCell>
+                        <span className="px-2 py-1 rounded text-sm bg-gray-100 text-gray-700">
+                          {item.category ? item.category.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase()) : "-"}
+                        </span>
                       </TableCell>
                     )}
 

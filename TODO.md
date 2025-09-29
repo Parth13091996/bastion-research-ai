@@ -1,0 +1,2 @@
+- [x] Add ipoLanding route to apps/web/src/routes/app-routes.ts
+- [x] Import IpoLandingPage and add route to apps/web/src/routes/index.tsx outside ClientLayout

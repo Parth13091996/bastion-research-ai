@@ -1,3 +1,12 @@
+export interface Newsletter {
+  id: string;
+  title: string;
+  sub_title?: string;
+  headline_image_url?: string;
+  created_at: string;
+  category?: string;
+}
+
 export interface User {
   id: string;
   username: string;

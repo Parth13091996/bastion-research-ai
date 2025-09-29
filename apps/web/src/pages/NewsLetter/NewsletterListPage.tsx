@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { mailchimpNewsletterApi } from "@/api/mailchimp";
 import { toast } from "sonner";
+import { Newsletter } from "@packages/types";
 
 // Brand Colors
 const COLORS = {
@@ -73,8 +74,12 @@ const NewsletterArchive = () => {
       });
     }
 
-    // For now, we'll show all newsletters since we don't have categories in the database
-    // You can add a category field to the database later if needed
+    if (activeFilter !== "all") {
+      filtered = filtered.filter(
+        (newsletter) => newsletter.category === activeFilter
+      );
+    }
+
     return filtered;
   }, [newsletters, searchQuery, activeFilter]);
 
@@ -120,6 +125,22 @@ const NewsletterArchive = () => {
     });
   };
 
+<<<<<<< HEAD
+  const filters = useMemo(() => {
+    const categoryCounts = newsletters.reduce((acc, newsletter) => {
+      const category = newsletter.category || "uncategorized";
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return [
+      { id: "all", label: "All", count: newsletters.length },
+      { id: "learning-of-the-week", label: "Learning of the Week", count: categoryCounts["learning-of-the-week"] || 0 },
+      { id: "scratch-pad", label: "Scratch Pad", count: categoryCounts["scratch-pad"] || 0 },
+      { id: "topical-update", label: "Topical Update", count: categoryCounts["topical-update"] || 0 },
+    ];
+  }, [newsletters]);
+=======
   const getSubtitle = (newsletter: Newsletter) =>
     newsletter.sub_title || newsletter.plain_text || "";
 
@@ -128,6 +149,7 @@ const NewsletterArchive = () => {
     // For now, we'll show all newsletters since we don't have categories in the database
     // You can add a category field to the database later if needed
   ];
+>>>>>>> 32ac28218429a3fd7a4a0a59b4ca059d8d4f39e2
 
   return (
     <div
@@ -180,7 +202,7 @@ const NewsletterArchive = () => {
                 {/* Filter Pills */}
                 <div className="flex items-center px-2 gap-3 flex-wrap">
                   {filters.map((filter) => {
-                    if (filter.id === "Scratch Pad") {
+                    if (filter.id === "scratch-pad") {
                       // 🔥 Special design but still acts as filter
                       return (
                         <button
