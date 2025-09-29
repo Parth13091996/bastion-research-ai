@@ -41,6 +41,7 @@ export const AppRoutes = {
   adminProfile: () => "/admin/users/profile",
   adminSettings: () => "/admin/settings",
   editor: () => "/admin/editor",
+  ipoUserDashboard: () => "/ipo-dashboard",
   // Content management routes
   adminNewsletterManagement: () => "/admin/content/newsletters",
   adminWebinarManagement: () => "/admin/content/webinars",
@@ -60,6 +61,7 @@ export const AppRoutes = {
   podcastView: () => "/podcasts/:id",
   researchView: () => "/research/:id",
   ipoLanding: () => "/ipo-landing",
+  ipoUserDashboard: () => "/ipo-dashboard",
 };
 
 export const AuthRoutes = [
