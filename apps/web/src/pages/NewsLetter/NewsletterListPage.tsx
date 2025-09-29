@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { mailchimpNewsletterApi } from "@/api/mailchimp";
 import { toast } from "sonner";
-import { Newsletter } from "@packages/types";
+import { Newsletter } from "@repo/types";
 
 // Brand Colors
 const COLORS = {
@@ -43,8 +43,9 @@ const NewsletterArchive = () => {
     try {
       setIsLoading(true);
       const data = await mailchimpNewsletterApi.getAll();
-      const sorted = [...data].sort((a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      const sorted = [...data].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       setNewsletters(sorted);
     } catch (error: any) {
@@ -61,15 +62,12 @@ const NewsletterArchive = () => {
     if (searchQuery) {
       const term = searchQuery.toLowerCase();
       filtered = filtered.filter((newsletter) => {
-        const titleMatch = newsletter.title
-          ?.toLowerCase()
-          .includes(term);
+        const titleMatch = newsletter.title?.toLowerCase().includes(term);
         const subtitleMatch = newsletter.sub_title
           ?.toLowerCase()
           .includes(term);
-        const plainMatch = newsletter.plain_text
-          ?.toLowerCase()
-          .includes(term);
+        //@ts-ignore
+        const plainMatch = newsletter?.plain_text?.toLowerCase().includes(term);
         return Boolean(titleMatch || subtitleMatch || plainMatch);
       });
     }
@@ -125,31 +123,39 @@ const NewsletterArchive = () => {
     });
   };
 
-<<<<<<< HEAD
   const filters = useMemo(() => {
-    const categoryCounts = newsletters.reduce((acc, newsletter) => {
-      const category = newsletter.category || "uncategorized";
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const categoryCounts = newsletters.reduce(
+      (acc, newsletter) => {
+        const category = newsletter.category || "uncategorized";
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return [
       { id: "all", label: "All", count: newsletters.length },
-      { id: "learning-of-the-week", label: "Learning of the Week", count: categoryCounts["learning-of-the-week"] || 0 },
-      { id: "scratch-pad", label: "Scratch Pad", count: categoryCounts["scratch-pad"] || 0 },
-      { id: "topical-update", label: "Topical Update", count: categoryCounts["topical-update"] || 0 },
+      {
+        id: "learning-of-the-week",
+        label: "Learning of the Week",
+        count: categoryCounts["learning-of-the-week"] || 0,
+      },
+      {
+        id: "scratch-pad",
+        label: "Scratch Pad",
+        count: categoryCounts["scratch-pad"] || 0,
+      },
+      {
+        id: "topical-update",
+        label: "Topical Update",
+        count: categoryCounts["topical-update"] || 0,
+      },
     ];
   }, [newsletters]);
-=======
-  const getSubtitle = (newsletter: Newsletter) =>
-    newsletter.sub_title || newsletter.plain_text || "";
 
-  const filters = [
-    { id: "all", label: "All", count: newsletters.length },
-    // For now, we'll show all newsletters since we don't have categories in the database
-    // You can add a category field to the database later if needed
-  ];
->>>>>>> 32ac28218429a3fd7a4a0a59b4ca059d8d4f39e2
+  const getSubtitle = (newsletter: Newsletter) =>
+    //@ts-ignore
+    newsletter.sub_title || newsletter.plain_text || "";
 
   return (
     <div
@@ -266,69 +272,71 @@ const NewsletterArchive = () => {
                     return (
                       <div
                         key={newsletter.id}
-                      className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col"
-                    >
-                      {/* Image */}
-                      <div className="aspect-video overflow-hidden bg-gray-100">
-                        {newsletter.headline_image_url ? (
-                          <img
-                            src={newsletter.headline_image_url}
-                            alt={newsletter.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                            <span className="text-gray-400 text-4xl">📧</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-4 flex flex-col flex-1">
-                        {/* Top (date + title) */}
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                              Newsletter
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {formatDate(newsletter.created_at)}
-                            </span>
-                          </div>
-
-                          {/* Title */}
-                          <h3
-                            className="text-lg font-bold mb-2 leading-tight"
-                            style={{ color: COLORS.blue }}
-                          >
-                            {newsletter.title}
-                          </h3>
-
-                          {/* Sub Title */}
-                          {summary && (
-                            <p className="text-gray-600 mb-2 text-sm">
-                              {summary}
-                            </p>
+                        className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col"
+                      >
+                        {/* Image */}
+                        <div className="aspect-video overflow-hidden bg-gray-100">
+                          {newsletter.headline_image_url ? (
+                            <img
+                              src={newsletter.headline_image_url}
+                              alt={newsletter.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <span className="text-gray-400 text-4xl">📧</span>
+                            </div>
                           )}
                         </div>
 
-                        {/* Buttons pinned at bottom */}
-                        <div className="flex gap-3 mt-auto">
-                          <button
-                            onClick={() => handleViewNewsletter(newsletter.id)}
-                            className="flex-1 bg-red-600 text-white text-center py-2 rounded-lg font-medium"
-                          >
-                            Read Now
-                          </button>
-                          <button
-                            onClick={() => handleShare(newsletter.id)}
-                            className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium"
-                          >
-                            Share Link
-                          </button>
+                        {/* Content */}
+                        <div className="p-4 flex flex-col flex-1">
+                          {/* Top (date + title) */}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                Newsletter
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                {formatDate(newsletter.created_at)}
+                              </span>
+                            </div>
+
+                            {/* Title */}
+                            <h3
+                              className="text-lg font-bold mb-2 leading-tight"
+                              style={{ color: COLORS.blue }}
+                            >
+                              {newsletter.title}
+                            </h3>
+
+                            {/* Sub Title */}
+                            {summary && (
+                              <p className="text-gray-600 mb-2 text-sm">
+                                {summary}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Buttons pinned at bottom */}
+                          <div className="flex gap-3 mt-auto">
+                            <button
+                              onClick={() =>
+                                handleViewNewsletter(newsletter.id)
+                              }
+                              className="flex-1 bg-red-600 text-white text-center py-2 rounded-lg font-medium"
+                            >
+                              Read Now
+                            </button>
+                            <button
+                              onClick={() => handleShare(newsletter.id)}
+                              className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium"
+                            >
+                              Share Link
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
                     );
                   })}
                 </div>
