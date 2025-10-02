@@ -64,8 +64,10 @@ const AdminLogin = () => {
   });
 
   useEffect(() => {
+    console.log(isLoading,'loading hai')
     if (isLoading) {
       loader.start("Checking session...");
+
     } else {
       loader.stop();
     }
