@@ -24,7 +24,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   const [pdfUrlWithAddress, setPdfUrlWithAddress] = useState('');
   const [isEsignSubmitting, setIsEsignSubmitting] = useState(false);
   const storedFormData = JSON.parse(localStorage.getItem("onboardingFormData") || "")
-  const {refetchUser} = useAuth()
+  const {refetchUserAfterAgreement} = useAuth()
 
   const actualAddress = `
   Name: ${storedFormData.firstName} ${storedFormData.lastName}\n
@@ -54,7 +54,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
         setIsEsignSubmitting(false);
         return;
       }
-      refetchUser().then(async (user: User) => {
+      refetchUserAfterAgreement().then(async (user: User) => {
         if (response?.digio_doc_id && response?.message === "Signed Successfully") {
           await axiosInstance.put(endpoints.users.update(user?.id), {
             status: "agreement_signed"

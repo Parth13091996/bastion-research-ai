@@ -54,6 +54,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refetchUser = async () => {
     await refetch();
+  };
+
+  const refetchUserAfterAgreement = async () => {
+    const data = (await axiosInstance.get(endpoints.auth.session)).data
+    setUser(data?.user)
     return data?.user
   };
 
@@ -92,6 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           isLoading,
           subscription: subscriptionData || null,
           isSubscriptionLoading,
+          refetchUserAfterAgreement
         } as any
       }
     >

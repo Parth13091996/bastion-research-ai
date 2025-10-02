@@ -94,7 +94,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         endpoints.cashfree.orders,
         {
           plan: formData.selectedPlan,
-          customer_id: user?.id || formData.email,
+          customer_id: user?.id || formData.firstName + "_" + formData.lastName,
           customer_email: formData.email,
           customer_phone: formData.phone,
           source: "register",

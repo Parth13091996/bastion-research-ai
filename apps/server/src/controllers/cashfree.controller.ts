@@ -50,7 +50,6 @@ const getVerificationHeaders = () => {
   }
 
   return {
-    "x-api-version": CF_VERIFICATION_API_VERSION,
     "x-client-id": CF_VERIFICATION_CLIENT_ID,
     "x-client-secret": CF_VERIFICATION_CLIENT_SECRET,
     "Content-Type": "application/json",
