@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refetchUser = async () => {
     await refetch();
+    return data?.user
   };
 
   const login = (newUser: User) => {

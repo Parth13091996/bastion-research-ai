@@ -3,6 +3,7 @@ import { endpoints } from "@/api/endpoints";
 import { useAuth } from "@/contexts/AuthContext";
 import useDigioSdk from "@/hooks/use-digio-sdk";
 import { handlePersonalizedPdf } from "@/utils/pdf";
+import { User } from "@repo/types";
 import { ArrowLeft } from "lucide-react";
 import React, {
   useEffect,
@@ -20,12 +21,10 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 }) => {
   const pdfUrl = 'https://ftuuyfhfrhvlllfwfbjx.supabase.co/storage/v1/object/public/system_docs/INVESTMENT%20RESEARCH%20SERVICE%20AGREEMENT.pdf';
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pdfUrlWithAddress, setPdfUrlWithAddress] = useState('');
   const [isEsignSubmitting, setIsEsignSubmitting] = useState(false);
-  const [documentId, setDocumentId] = useState('');
   const storedFormData = JSON.parse(localStorage.getItem("onboardingFormData") || "")
-  const {user} = useAuth()
+  const {refetchUser} = useAuth()
 
   const actualAddress = `
   Name: ${storedFormData.firstName} ${storedFormData.lastName}\n
@@ -46,7 +45,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   const { init: initDigio, submit: submitDigio } = useDigioSdk({
     environment: "sandbox",
     is_iframe: true,
-    callback: async (response: any) => {
+    callback: (response: any) => {
       if (
         response &&
         Object.prototype.hasOwnProperty.call(response, "error_code")
@@ -55,14 +54,16 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
         setIsEsignSubmitting(false);
         return;
       }
-      if(response?.digio_doc_id && response?.message === "Signed Successfully") {
-        await axiosInstance.put(endpoints.users.update(user?.id), {
-          status: "agreement_signed"
-        })
-        updateFormData("agreementSignedAt", new Date().toISOString());
-        setIsEsignSubmitting(false);
-        onNext();
-      }
+      refetchUser().then(async (user: User) => {
+        if (response?.digio_doc_id && response?.message === "Signed Successfully") {
+          await axiosInstance.put(endpoints.users.update(user?.id), {
+            status: "agreement_signed"
+          })
+          updateFormData("agreementSignedAt", new Date().toISOString());
+          setIsEsignSubmitting(false);
+          onNext();
+        }
+      })
     },
   });
 
@@ -104,8 +105,6 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
       const _documentId =
         resp?.data?.data?.id || resp?.data?.data?.document_id || resp?.data?.id;
-        console.log(_documentId, 'check id')
-        setDocumentId(_documentId)
       if (!_documentId) {
         throw new Error("Failed to create e-sign request (no document id)");
       }

@@ -204,6 +204,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
                 resetVerification();
               }
               updateFormData("panCard", e.target.value.toUpperCase());
+              setFormData(p => ({...p, panCard: e.target.value.toUpperCase()}))
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 tracking-widest"
             placeholder="ABCDE1234F"

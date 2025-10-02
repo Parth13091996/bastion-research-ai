@@ -32,10 +32,6 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
     if (file) {
       // Convert file buffer to raw base64 string
       file_data = file.buffer.toString("base64");
-      console.log(
-        "Converted uploaded file to raw base64, length:",
-        file_data.length
-      );
     }
 
     if (!file_data) {
@@ -47,7 +43,6 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
     const base64Prefix = "data:application/pdf;base64,";
     if (file_data.startsWith(base64Prefix)) {
       file_data = file_data.substring(base64Prefix.length);
-      console.log("Stripped data URL prefix from file_data.");
     }
 
     if (typeof file_data !== "string" || file_data.length < 10) {
@@ -144,10 +139,8 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
 
       }
     } catch (dbError) {
-      console.log("Database save failed (non-critical):", dbError);
     }
 
-    console.log(data, 'data hai ====>')
     return res.status(201).json({
       success: true,
       message: "Document uploaded for signature successfully (JSON)",

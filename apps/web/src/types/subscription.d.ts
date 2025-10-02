@@ -24,7 +24,7 @@ interface AuthContextType {
   user: any;
   login: (user: User) => void;
   logout: () => Promise<void>;
-  refetchUser: () => Promise<void>;
+  refetchUser: () => Promise<User>;
   refetchSubscription: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;

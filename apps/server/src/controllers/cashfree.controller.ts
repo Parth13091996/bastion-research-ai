@@ -143,16 +143,10 @@ export const verifyPan = async (req: Request, res: Response) => {
       pan: pan.trim().toUpperCase(),
       name: name.trim(),
     };
-    console.log("Using Cashfree creds:", {
-      clientId: process.env.CASHFREE_VERIFICATION_CLIENT_ID,
-      clientSecret: process.env.CASHFREE_VERIFICATION_CLIENT_SECRET,
-    });
 
     const url = `${getVerificationBaseUrl()}/pan`;
     const headers = getVerificationHeaders();
     const response = await axios.post(url, payload, { headers });
-    console.log("url from verify pan", url);
-    console.log(headers);
     return res.status(200).json({
       ...normalizePanResponse(response?.data),
     });
@@ -249,7 +243,6 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       discount_amount
     } = req.body;
 
-     console.log(req.body, '==========')
 
     if (!plan) return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
@@ -415,7 +408,6 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
           updateUserPromise,
           insertPaymentHistoryPromise,
         ]);
-        console.log(paymentHistoryResult, "result");
 
         await supabase.from("subscriptions").upsert({
           membership_id: currentPlan?.plan_id,

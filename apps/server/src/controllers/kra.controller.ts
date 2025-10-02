@@ -98,7 +98,7 @@ export const getPanStatus = async (req: Request, res: Response) => {
         },
       ]);
     } catch (dbError) {
-      console.log("Failed to log KRA audit (non-critical):", dbError);
+      console.error("Failed to log KRA audit (non-critical):", dbError);
     }
 
     return res.status(200).json(responseData);
@@ -126,7 +126,7 @@ export const getPanStatus = async (req: Request, res: Response) => {
         },
       ]);
     } catch (dbError) {
-      console.log("Failed to log KRA error audit (non-critical):", dbError);
+      console.error("Failed to log KRA error audit (non-critical):", dbError);
     }
 
     return res.status(status).json(errorData);
@@ -179,7 +179,6 @@ export const downloadPan = async (req: Request, res: Response) => {
 
     const url = `${DIGIO_BASE_URL}${KRA_DOWNLOAD_PAN}`;
 
-    console.log({ url, requestData });
     const response = await axios.post(url, requestData, {
       headers: {
         ...getAuthHeader(),
@@ -214,7 +213,7 @@ export const downloadPan = async (req: Request, res: Response) => {
         },
       ]);
     } catch (dbError) {
-      console.log("Failed to log KRA audit (non-critical):", dbError);
+      console.error("Failed to log KRA audit (non-critical):", dbError);
     }
 
     return res.status(200).json(responseData);
@@ -242,7 +241,7 @@ export const downloadPan = async (req: Request, res: Response) => {
         },
       ]);
     } catch (dbError) {
-      console.log("Failed to log KRA error audit (non-critical):", dbError);
+      console.error("Failed to log KRA error audit (non-critical):", dbError);
     }
 
     return res.status(status).json(errorData);
@@ -421,7 +420,7 @@ export const registerKyc = async (req: Request, res: Response) => {
       }
     );
 
-    console.log(response);
+    console.error(response);
 
     const responseData: KraRegistrationResponse = response.data;
 
@@ -452,7 +451,7 @@ export const registerKyc = async (req: Request, res: Response) => {
     //     },
     //   ]);
     // } catch (dbError) {
-    //   console.log("Failed to log KRA audit (non-critical):", dbError);
+    //   console.error("Failed to log KRA audit (non-critical):", dbError);
     // }
 
     return res.status(201).json(responseData);
@@ -480,7 +479,7 @@ export const registerKyc = async (req: Request, res: Response) => {
         },
       ]);
     } catch (dbError) {
-      console.log("Failed to log KRA error audit (non-critical):", dbError);
+      console.error("Failed to log KRA error audit (non-critical):", dbError);
     }
 
     return res.status(status).json(errorData);

@@ -29,7 +29,7 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
       const data = await api.getById(id!);
       setContent(data);
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
       toast.error("Failed to load content");
     } finally {
       setIsLoading(false);
