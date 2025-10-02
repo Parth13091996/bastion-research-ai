@@ -38,7 +38,7 @@ const UserDashboard = () => {
               ) : (
                 <div className="flex items-center gap-2 bg-gray-100 text-gray-600 px-3 py-2 rounded-lg">
                   <Shield className="h-4 w-4" />
-                  <span className="text-sm font-medium">Free Member</span>
+                  <span className="text-sm font-medium">No Active Plan</span>
                 </div>
               )}
             </div>

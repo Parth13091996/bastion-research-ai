@@ -10,6 +10,7 @@ export const Config = {
     spotify:
       "https://open.spotify.com/show/4tBUa0orTDn3C76Yr16o5s?si=iiEnjhIWTv-pvG-xdqFB6w&nd=1&dlsi=9ed8c13e79a14aef",
   },
+  logo: 'https://dev.bastionresearch.in/media/header-logo.webp',
   roles: {
     admin: "admin",
     employee: "employee",

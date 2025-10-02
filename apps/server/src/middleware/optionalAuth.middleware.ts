@@ -14,26 +14,28 @@ export const optionalAuth = async (
 ) => {
   try {
     const token = req.cookies?.token;
-    if (!token) return next();
-
-    const secret = process.env.JWT_SECRET;
-    if (!secret) return next();
-
-    const decoded = jwt.verify(token, secret) as { id: string; email: string };
-    if (!decoded?.id) return next();
-
-    const { data: user } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", decoded.id)
-      .single();
-
-    if (user) (req as AuthRequest).user = user;
-  } catch {}
-  finally {
-    next();
+    if (token) {
+      const secret = process.env.JWT_SECRET;
+      if (secret) {
+        const decoded = jwt.verify(token, secret) as {
+          id: string;
+          email: string;
+        };
+        if (decoded?.id) {
+          const { data: user } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", decoded.id)
+            .single();
+          if (user) (req as AuthRequest).user = user;
+        }
+      }
+    }
+  } catch {
+    // Intentionally ignore auth errors for optional auth
   }
+  // Ensure next() is called exactly once
+  next();
 };
 
 export default optionalAuth;
-

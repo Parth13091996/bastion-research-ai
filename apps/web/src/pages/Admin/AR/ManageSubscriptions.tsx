@@ -325,9 +325,9 @@ const ManageSubscriptions = () => {
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select Memberships</option>
-            <option value="Freemium">Freemium</option>
-            <option value="Annual Plan">Annual Plan</option>
-            <option value="Bastion Research Core">Bastion Research Core</option>
+            <option value="Bastion CORE Plan">Bastion CORE Plan</option>
+            <option value="Bastion CORE Annual Plan">Bastion CORE Annual Plan</option>
+            <option value="Research Hub Plan">Research Hub Plan</option>
           </select>
           <select
             value={statusFilter}

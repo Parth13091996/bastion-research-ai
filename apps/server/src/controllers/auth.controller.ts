@@ -157,8 +157,6 @@ export const createUserAfterOnboarding = async (userData: any) => {
   return newUser;
 };
 
-// --- Standard Authentication ---
-
 export const signIn = async (req: Request, res: Response) => {
   const { email, password, isAdminLogin } = req.body;
 
@@ -174,7 +172,6 @@ export const signIn = async (req: Request, res: Response) => {
       .select("*")
       .eq("email", email)
       .single();
-    console.log(user, "user");
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
@@ -215,6 +212,7 @@ export const signIn = async (req: Request, res: Response) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        status: user.status,
       },
     });
   } catch (error) {
@@ -338,6 +336,127 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
+// Create or update a user after KYC (PAN) verification succeeds
+// This allows resuming onboarding later (e.g., agreement, plans, payment).
+export const createOrUpdateUserAfterKYC = async (req: Request, res: Response) => {
+  try {
+    const {
+      email,
+      phone,
+      password,
+      firstName,
+      lastName,
+      dateOfBirth,
+      address1,
+      address2,
+      state,
+      city,
+      pinCode,
+      company,
+      panCard,
+      panVerification,
+    } = req.body || {};
+
+    if (!email || !phone || !password || !firstName || !lastName || !dateOfBirth || !panCard) {
+      return res.status(400).json({ message: "Missing required fields to start onboarding." });
+    }
+    if (!panVerification || panVerification.valid !== true) {
+      return res.status(400).json({ message: "PAN verification is required and must be valid." });
+    }
+
+    // Check existing user by email
+    const { data: existingUserByEmail } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    // If not found by email, try phone
+    const existingUser = existingUserByEmail;
+
+    const baseUpdate: any = {
+      phone,
+      first_name: firstName,
+      last_name: lastName,
+      date_of_birth: dateOfBirth,
+      address_1: address1 || null,
+      address_2: address2 || null,
+      state: state || null,
+      city: city || null,
+      pin_code: pinCode || null,
+      company: company || null,
+      pan_card_number: panCard,
+      status: "onboarding",
+      isPremium: false,
+    };
+
+    let userId: string | null = null;
+    if (existingUser && existingUser.id) {
+      // Update existing
+      const { data: upd, error: updError } = await supabase
+        .from("users")
+        .update(baseUpdate)
+        .eq("id", existingUser.id)
+        .select("id, email")
+        .single();
+      if (updError) {
+        return res.status(500).json({ message: updError.message });
+      }
+      userId = upd?.id || existingUser.id;
+    } else {
+      // Create new user with hashed password
+      const hashedPassword = await bcrypt.hash(password, config.saltRounds);
+      const username = email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
+      const { data: inserted, error: insError } = await supabase
+        .from("users")
+        .insert({
+          email,
+          phone,
+          password: hashedPassword,
+          username,
+          ...baseUpdate,
+        })
+        .select("id, email")
+        .single();
+      if (insError) {
+        return res.status(500).json({ message: insError.message });
+      }
+      userId = inserted?.id || null;
+    }
+
+    // Try to persist optional PAN verification metadata if columns exist
+    try {
+      if (userId) {
+        const optionalPayload: Record<string, any> = {};
+        if (panVerification?.referenceId) optionalPayload.pan_verification_reference = panVerification.referenceId;
+        if (panVerification?.status) optionalPayload.pan_verification_status = panVerification.status;
+        if (panVerification?.checkedAt) optionalPayload.pan_verified_at = panVerification.checkedAt;
+
+        if (Object.keys(optionalPayload).length > 0) {
+          await supabase.from("users").update(optionalPayload).eq("id", userId);
+        }
+      }
+    } catch (e) {
+      // ignore schema errors as optional
+    }
+
+    // Issue a session cookie so subsequent steps are authenticated
+    try {
+      const token = generateToken(userId as string, email);
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+    } catch {}
+
+    return res.status(200).json({ message: "Onboarding started. User saved.", user: { id: userId, email, status: "onboarding" } });
+  } catch (error: any) {
+    return res.status(500).json({ message: error?.message || "Failed to start onboarding" });
+  }
+};
+
 export const getUserSession = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.token;
@@ -354,7 +473,7 @@ export const getUserSession = async (req: Request, res: Response) => {
     const { data: user, error } = await supabase
       .from("users")
       .select(
-        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, isPremium, status, role`
+        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, isPremium, status, role, digio_documents(document_id)`
       )
       .eq("id", decoded.id)
       .single();

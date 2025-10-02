@@ -50,7 +50,6 @@ const getVerificationHeaders = () => {
   }
 
   return {
-    "x-api-version": CF_VERIFICATION_API_VERSION,
     "x-client-id": CF_VERIFICATION_CLIENT_ID,
     "x-client-secret": CF_VERIFICATION_CLIENT_SECRET,
     "Content-Type": "application/json",
@@ -102,16 +101,23 @@ const pgFetchOrder = async (orderId: string) => {
 };
 
 type PublicPlan = {
-  code: string;
+  code: string; // legacy: plan_id as string
   name: string;
   amount: number;
   currency: string;
+  plan_code?: string; // new canonical code: core | core_annual | research_hub
+  tier?: number; // 1 < 2 < 3
 };
 
 const normalizePanResponse = (data: any = {}) => ({
   referenceId: data.reference_id ?? data.referenceId,
   valid: data.valid ?? false,
-  status: data.valid === true ? "VALID" : data.valid === false ? "INVALID" : "PENDING",
+  status:
+    data.valid === true
+      ? "VALID"
+      : data.valid === false
+        ? "INVALID"
+        : "PENDING",
   registeredName: data.registered_name,
   nameProvided: data.name_provided,
   nameMatchScore: data.name_match_score,
@@ -136,17 +142,11 @@ export const verifyPan = async (req: Request, res: Response) => {
       pan: pan.trim().toUpperCase(),
       name: name.trim(),
     };
-    console.log("Using Cashfree creds:", {
-      clientId: process.env.CASHFREE_VERIFICATION_CLIENT_ID,
-      clientSecret: process.env.CASHFREE_VERIFICATION_CLIENT_SECRET,
-    });
-  
+
     const url = `${getVerificationBaseUrl()}/pan`;
     const headers = getVerificationHeaders();
     const response = await axios.post(url, payload, { headers });
-console.log("url from verify pan",url)
-console.log(headers)
-return res.status(200).json({
+    return res.status(200).json({
       ...normalizePanResponse(response?.data),
     });
   } catch (error: any) {
@@ -190,30 +190,43 @@ export const getPanVerificationStatus = async (req: Request, res: Response) => {
 
 export const listPlans = async (_req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from("membership_plans")
-      .select("plan_id, plan_name, price_amount, currency");
+    // Try to fetch canonical plans; if none found, fallback to all
+    let plansRows: any[] | null = null;
+    let qError: any = null;
 
-    if (error) {
-      return res.status(500).json({ message: error.message });
+    const { data: filtered, error: filteredErr } = await supabase
+      .from("membership_plans")
+      .select("plan_id, plan_name, price_amount, currency, plan_code, tier")
+      .in("plan_code", ["core", "core_annual", "research_hub"]);
+    if (!filteredErr && filtered && filtered.length > 0) {
+      plansRows = filtered;
+    } else {
+      const { data: allData, error: allErr } = await supabase
+        .from("membership_plans")
+        .select("plan_id, plan_name, price_amount, currency, plan_code, tier")
+        .order("plan_id", { ascending: true });
+      plansRows = allData || [];
+      qError = allErr;
     }
 
-    const plans: PublicPlan[] = (data || [])
-      .filter(
-        (p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0
-      )
+    if (qError) {
+      return res.status(500).json({ message: qError.message });
+    }
+
+    const plans: PublicPlan[] = (plansRows || [])
+      .filter((p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0)
       .map((p: any) => ({
         code: String(p.plan_id),
         name: p.plan_name,
         amount: p.price_amount,
         currency: p.currency || "INR",
+        plan_code: p.plan_code,
+        tier: p.tier,
       }));
 
     return res.status(200).json({ plans });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ message: err?.message || "Failed to fetch plans" });
+    return res.status(500).json({ message: err?.message || "Failed to fetch plans" });
   }
 };
 
@@ -226,7 +239,10 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       customer_phone,
       return_url,
       metadata,
+      discount_amount
     } = req.body;
+
+
     if (!plan) return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
       return res.status(400).json({ message: "customer_id is required" });
@@ -241,7 +257,7 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
 
     const { data: planRows, error } = await supabase
       .from("membership_plans")
-      .select("plan_id, plan_name, price_amount, currency")
+      .select("plan_id, plan_name, price_amount, currency, tier")
       .eq("plan_id", planId)
       .limit(1);
 
@@ -252,26 +268,16 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
     const selected: PublicPlan = {
       code: String(planRow.plan_id),
       name: planRow.plan_name,
-      amount: planRow.price_amount,
+      amount: discount_amount,
       currency: planRow.currency || "INR",
+      tier: planRow.tier,
     };
     const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const frontendUrl = (
       process.env.FRONTEND_URL || "http://localhost:5173"
     ).replace(/\/$/, "");
-    // Build return URL with optional context so client can branch behavior
     let returnUrl =
       return_url || `${frontendUrl}/payment/success?order_id=${orderId}`;
-
-    const orderTags =
-      metadata && typeof metadata === "object"
-        ? Object.fromEntries(
-            Object.entries(metadata).filter(
-              ([, value]) =>
-                value !== undefined && value !== null && value !== ""
-            )
-          )
-        : undefined;
 
     const request = {
       order_id: orderId,
@@ -286,12 +292,8 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       order_meta: {
         return_url: returnUrl,
       },
-      order_tags: orderTags,
     };
 
-    if (!orderTags || Object.keys(orderTags).length === 0) {
-      delete (request as any).order_tags;
-    }
 
     const response = await pgCreateOrder(request);
     await supabase.from("payment_history").upsert({
@@ -348,18 +350,45 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
     if (webhookResponse?.type === "PAYMENT_SUCCESS_WEBHOOK") {
       const { payment, customer_details } = webhookResponse?.data;
       if (payment?.payment_status === "SUCCESS") {
-        const { data: plans } = await supabase
-          .from("membership_plans")
-          .select(
-            "plan_id, plan_name, price_amount, currency, duration_months"
+        const tagPlanId = payment?.order_tags?.plan_id;
+        const tagPlanCode = payment?.order_tags?.plan_code;
+        let currentPlan: any = null;
+        if (tagPlanId || tagPlanCode) {
+          const { data } = await supabase
+            .from("membership_plans")
+            .select(
+              "plan_id, plan_name, price_amount, currency, duration_months, plan_code, tier"
+            )
+            .or(
+              [
+                tagPlanId ? `plan_id.eq.${tagPlanId}` : "",
+                tagPlanCode ? `plan_code.eq.${tagPlanCode}` : "",
+              ]
+                .filter(Boolean)
+                .join(",")
+            )
+            .limit(1);
+          currentPlan = data?.[0] || null;
+        }
+        // Fallback by amount (not reliable with coupons)
+        if (!currentPlan) {
+          const { data: plans } = await supabase
+            .from("membership_plans")
+            .select(
+              "plan_id, plan_name, price_amount, currency, duration_months, plan_code, tier"
+            );
+          currentPlan = plans?.find(
+            (plan) => plan.price_amount === payment?.payment_amount
           );
-        const currentPlan = plans?.find(
-          (plan) => plan.price_amount === payment?.payment_amount
-        );
+        }
 
         const updateUserPromise = supabase
           .from("users")
-          .update({ isPremium: true, status: "active" })
+          .update({
+            isPremium: true,
+            status: "active",
+            plan_code: currentPlan?.plan_code || null,
+          })
           .eq("id", customer_details?.customer_id);
 
         const insertPaymentHistoryPromise = supabase
@@ -378,7 +407,6 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
           updateUserPromise,
           insertPaymentHistoryPromise,
         ]);
-        console.log(paymentHistoryResult, "result");
 
         await supabase.from("subscriptions").upsert({
           membership_id: currentPlan?.plan_id,
@@ -394,6 +422,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
           //@ts-ignore
           transaction_id: paymentHistoryResult?.transaction_id,
           user_id: customer_details?.customer_id,
+          plan_code: currentPlan?.plan_code || null,
         });
         return res.status(200).json({ message: "Subscription updated." });
       }
@@ -457,19 +486,22 @@ export const getUserSubscription = async (req: Request, res: Response) => {
 
     // Fetch user subscription data from the API
     const [userResult, subscriptionResult] = await Promise.all([
-      supabase.from("users").select("isPremium").eq("id", userId).single(),
       supabase
-        .from("subscriptions") // Assume a new table or API endpoint
+        .from("users")
+        .select("isPremium, plan_code")
+        .eq("id", userId)
+        .single(),
+      supabase
+        .from("subscriptions")
         .select(
           `
-          name,
           start_date,
           expire_next_renewal,
           amount,
           transaction_id,
           membership_id,
           created_at,
-          membership_plans(occurrence_type)
+          membership_plans(plan_code, tier, plan_name)
         `
         )
         .eq("user_id", userId)
@@ -485,37 +517,35 @@ export const getUserSubscription = async (req: Request, res: Response) => {
     const user = userResult.data;
     const subscription = !subscriptionResult?.data
       ? null
-      : {
+      : ({
           ...subscriptionResult.data,
-          occurrence_type:
-            //@ts-ignore
-            subscriptionResult?.data?.membership_plans?.occurrence_type,
-        };
+          plan_code:
+            // @ts-ignore
+            subscriptionResult?.data?.membership_plans?.plan_code || null,
+          plan_name:
+            // @ts-ignore
+            subscriptionResult?.data?.membership_plans?.plan_name || null,
+          tier:
+            // @ts-ignore
+            subscriptionResult?.data?.membership_plans?.tier || null,
+        } as any);
 
-    // Determine current plan based on subscription or default to free
-    let currentPlan = "free";
-    if (subscription && user?.isPremium) {
-      // Map plan based on occurrence_type and amount
-      if (subscription.occurrence_type === "recurring") {
-        currentPlan = subscription.name.includes("Annual") ? "12m" : "3m";
-      } else if (subscription.occurrence_type === "one-time") {
-        currentPlan = subscription.name.includes("Core") ? "3m" : "free";
-      }
-    }
-    //@ts-ignore
-    delete subscription?.membership_plans;
+    // Determine current plan code
+    const currentPlan: string | null =
+      subscription?.plan_code || user?.plan_code || null;
 
     const response = {
-      isPremium: user?.isPremium || false,
+      isPremium: Boolean(user?.plan_code) || Boolean(user?.isPremium),
       currentPlan,
       subscription: subscription
         ? {
-            name: subscription.name,
+            name: subscription.plan_name,
             startDate: subscription.start_date,
             expireNextRenewal: subscription.expire_next_renewal,
             amount: subscription.amount,
             transactionId: subscription.transaction_id,
-            occurrence_type: subscription.occurrence_type, // Include occurrence_type
+            plan_code: subscription.plan_code,
+            tier: subscription.tier,
           }
         : null,
       lastPayment: subscription
@@ -524,7 +554,7 @@ export const getUserSubscription = async (req: Request, res: Response) => {
             status: "completed", // Assume status from new API
             email: null, // Adjust based on new API
             date: subscription.created_at,
-            occurrence_type: subscription.occurrence_type,
+            plan_code: subscription.plan_code,
           }
         : null,
     };

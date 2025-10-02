@@ -6,6 +6,7 @@ import {
   getUserSession,
   logout,
   registerFromOnboarding,
+  createOrUpdateUserAfterKYC,
 } from "../controllers/auth.controller";
 
 const router = Router();
@@ -15,6 +16,7 @@ router.post("/signin", signIn);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/onboard", registerFromOnboarding);
+router.post("/onboard/start", createOrUpdateUserAfterKYC);
 
 // User session routes
 router.get("/session", getUserSession);

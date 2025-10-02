@@ -6,10 +6,12 @@ export const endpoints = {
     forgotPassword: "/api/auth/forgot-password",
     resetPassword: "/api/auth/reset-password",
     onboard: "/api/auth/onboard",
+    onboardStart: "/api/auth/onboard/start",
   },
   users: {
     base: "/api/users",
     byId: (id: string | number) => `/api/users/${id}`,
+    update: (id) => `/api/users/${id}`,
   },
   jobs: {
     base: "/api/jobs",
@@ -54,6 +56,13 @@ export const endpoints = {
     upload: "/api/files/upload",
     signatures: "/api/files/signatures",
   },
+  digio: {
+    esignUpload: "/api/digio/esign/upload",
+    esignUploadJson: "/api/digio/esign/uploadjson",
+    documentById: (id: string) => `/api/digio/esign/${id}`,
+    downloadById: (id: string) => `/api/digio/esign/${id}/download`,
+    cancelById: (id: string) => `/api/digio/esign/${id}/cancel`,
+  },
   contact: {
     send: "/api/contact",
   },
@@ -86,7 +95,8 @@ export const endpoints = {
         byId: (id: string) => `/content/mailchimp/newsletters/${id}`,
         admin: {
           base: "/api/admin/content/mailchimp/newsletters",
-          byId: (id: string) => `/api/admin/content/mailchimp/newsletters/${id}`,
+          byId: (id: string) =>
+            `/api/admin/content/mailchimp/newsletters/${id}`,
         },
       },
     },

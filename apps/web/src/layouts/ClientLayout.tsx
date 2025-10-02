@@ -3,13 +3,14 @@ import Header from "@/components/generic/Header";
 import BackToTop from "@/components/generic/backToTop";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppRoutes, AuthRoutes } from "@/routes/app-routes";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { data, Navigate, Outlet, useLocation } from "react-router-dom";
 
 const ClientLayout = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const isActive = user?.status === "active"
 
-  if (user && AuthRoutes.includes(location.pathname)) {
+  if (user && isActive && AuthRoutes.includes(location.pathname)) {
     return <Navigate to={AppRoutes.home()} replace />;
   }
 

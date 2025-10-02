@@ -71,7 +71,9 @@ export const verifyOtp = async (req: Request, res: Response) => {
     const entry = otpStore.get(phone);
 
     if (!entry) {
-      return res.status(400).json({ message: "No OTP found. Please request one." });
+      return res
+        .status(400)
+        .json({ message: "No OTP found. Please request one." });
     }
 
     const { otp: storedOtp, expiresAt } = entry;

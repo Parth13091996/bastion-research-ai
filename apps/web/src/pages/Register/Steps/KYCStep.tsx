@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CheckCircle2, AlertCircle, Loader2, RefreshCcw } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  RefreshCcw,
+} from "lucide-react";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
 import { toast } from "sonner";
@@ -7,17 +13,18 @@ import { toast } from "sonner";
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 
 const KYCStep: React.FC<KYCStepProps> = ({
-  formData,
   updateFormData,
   onBack,
   onNext,
 }) => {
+  const formDataFromStorage = JSON.parse(localStorage.getItem("onboardingFormData") || '{}');
+  const [formData, setFormData] = useState(formDataFromStorage);
+
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [verification, setVerification] = useState<PanVerificationSummary | null>(
-    formData.panVerification || null
-  );
+  const [verification, setVerification] =
+    useState<PanVerificationSummary | null>(formData.panVerification || null);
 
   useEffect(() => {
     setVerification(formData.panVerification || null);
@@ -49,7 +56,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
         endpoints.cashfreeVerification.verifyPan,
         {
           pan,
-          name: fullName,
+          name: "Gurav",
         }
       );
 
@@ -133,12 +140,37 @@ const KYCStep: React.FC<KYCStepProps> = ({
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!verification?.valid) {
       setError("Please complete PAN verification before continuing.");
       return;
     }
-    onNext();
+    try {
+      await axiosInstance.post(endpoints.auth.onboardStart, {
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth,
+        address1: formData.address1,
+        address2: formData.address2,
+        state: formData.state,
+        city: formData.city,
+        pinCode: formData.pinCode,
+        company: formData.company,
+        panCard: formData.panCard,
+        panVerification: verification,
+      });
+      try {
+        localStorage.setItem("onboardingOpen", "true");
+        localStorage.setItem("onboardingCurrentStep", String(5));
+      } catch {}
+      onNext();
+    } catch (e: any) {
+      const m = e?.response?.data?.message || e?.message || "Failed to save onboarding";
+      setError(m);
+    }
   };
 
   const resetVerification = () => {
@@ -172,6 +204,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
                 resetVerification();
               }
               updateFormData("panCard", e.target.value.toUpperCase());
+              setFormData(p => ({...p, panCard: e.target.value.toUpperCase()}))
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 tracking-widest"
             placeholder="ABCDE1234F"

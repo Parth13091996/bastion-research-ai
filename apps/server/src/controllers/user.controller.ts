@@ -126,8 +126,6 @@ export const createUser = async (req: Request, res: Response) => {
       });
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError);
-      // Do not block the response for email failure.
-      // The user is created, but we should log the email error.
     }
   }
 
@@ -137,7 +135,6 @@ export const createUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  // Whitelist of updatable fields
   const allowedFields = [
     "username",
     "email",
@@ -152,6 +149,7 @@ export const updateUser = async (req: Request, res: Response) => {
     "date_of_birth",
     "company",
     "pan_card_number",
+    "status"
   ] as const;
 
   const body = req.body ?? {};

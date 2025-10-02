@@ -22,11 +22,12 @@ import { toast } from "sonner";
 import AgreementStep from "../../Register/Steps/AgreementStep";
 
 type ApiPlan = {
-  code: string;
+  code: string; // plan_id as string
   name: string;
   amount: number;
   currency: string;
-  occurrence_type: "one-time" | "recurring";
+  plan_code?: "core" | "core_annual" | "research_hub" | string;
+  tier?: number;
 };
 
 type UpgradeFormState = {
@@ -47,37 +48,30 @@ const formatINR = (amount: number) =>
   }).format(amount);
 
 const planFeatures: Record<string, string[]> = {
-  free: [
-    "Access to public research posts",
-    "Community newsletter",
-    "Email support",
+  core: [
+    "Core premium research access",
+    "Member webinars",
+    "Standard support",
   ],
-  "3m": [
-    "Full access to premium research",
-    "Expert Q&A sessions",
-    "Priority email support",
-  ],
-  "12m": [
-    "Everything in 3 months plan",
-    "Exclusive annual insights",
-    "Early access to new features",
+  core_annual: [
+    "All CORE features",
+    "Annual insights bundle",
+    "Early feature access",
     "Priority support",
+  ],
+  research_hub: [
+    "All CORE + CORE Annual features",
+    "Research Hub exclusives",
+    "Advanced tools & datasets",
   ],
 };
 
 const getFeatureKey = (plan: ApiPlan) => {
-  if (plan.amount <= 0) return "free";
+  if (plan.plan_code) return plan.plan_code;
   const normalized = plan.name.toLowerCase();
-  if (plan.occurrence_type === "recurring" && normalized.includes("annual")) {
-    return "12m";
-  }
-  if (
-    plan.occurrence_type === "one-time" ||
-    normalized.includes("core") ||
-    normalized.includes("quarter")
-  ) {
-    return "3m";
-  }
+  if (normalized.includes("research hub")) return "research_hub";
+  if (normalized.includes("annual")) return "core_annual";
+  if (normalized.includes("core")) return "core";
   return plan.code;
 };
 
@@ -122,7 +116,7 @@ const Subscription = () => {
     agreementSignedAt: undefined,
   });
 
-  const currentPlanCode = subscription?.currentPlan || "free";
+  const currentPlanCode = subscription?.currentPlan || null;
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -297,12 +291,7 @@ const Subscription = () => {
     const selectedPlan = plans.find((p) => p.code === code);
     if (!selectedPlan) return;
 
-    if (selectedPlan.amount <= 0) {
-      toast.info("The freemium plan is already available without checkout.");
-      return;
-    }
-
-    const upgradingFromFree = currentPlanCode === "free";
+    const upgradingFromFree = !currentPlanCode;
     const hasKyc = PAN_REGEX.test(userPan);
     if (upgradingFromFree && !hasKyc && !opts?.bypassKyc) {
       startUpgradeFlow(selectedPlan);
@@ -391,15 +380,16 @@ const Subscription = () => {
                   <h3 className="text-base sm:text-lg font-semibold">
                     {subscription?.subscription?.name ||
                       (onFreePlan
-                        ? "Freemium"
-                        : currentPlanCode.toUpperCase())}{" "}
+                        ? "No Active"
+                        //@ts-ignore
+                        : String(currentPlanCode).replaceAll("_", " ").toUpperCase())}{" "}
                     Plan
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {onFreePlan
-                      ? "Limited access to public content"
+                      ? "No active subscription"
                       : subscription?.isPremium
-                        ? `Active ${subscription?.subscription?.occurrence_type} subscription`
+                        ? `Active subscription`
                         : "Subscription pending"}
                   </p>
                 </div>
@@ -423,22 +413,17 @@ const Subscription = () => {
                       </p>
                       {subscription.subscription.expireDate && (
                         <p>
-                          {subscription.subscription.occurrence_type ===
-                          "recurring"
-                            ? "Renews"
-                            : "Expires"}
-                          :{" "}
+                          Expires: {" "}
                           {new Date(
                             subscription.subscription.expireDate
                           ).toLocaleDateString()}
                         </p>
                       )}
-                      <p>Type: {subscription.subscription.occurrence_type}</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          )}
           </CardContent>
         </Card>
 
@@ -457,19 +442,14 @@ const Subscription = () => {
             plans.map((plan) => {
               const normalizedName = plan.name.toLowerCase();
               const popular =
-                plan.occurrence_type === "recurring" &&
-                normalizedName.includes("annual");
-              const limited = plan.occurrence_type === "one-time";
-              const priceLabel =
-                plan.amount > 0 ? formatINR(plan.amount) : "Free";
+                (plan.plan_code === "core_annual") || normalizedName.includes("annual");
+              const priceLabel = formatINR(plan.amount);
               const featureKey = getFeatureKey(plan);
               const disabled =
                 planMatchesCurrent(featureKey) || checkingOut === plan.code;
               const ctaLabel = planMatchesCurrent(featureKey)
                 ? "Current Plan"
-                : plan.amount > 0
-                  ? "Subscribe"
-                  : "Get Started";
+                : "Subscribe";
 
               return (
                 <Card
@@ -477,26 +457,14 @@ const Subscription = () => {
                   className={`relative ${popular ? "border-red-400 shadow-md" : ""}`}
                 >
                   <CardHeader className="text-center pb-3 sm:pb-6">
-                    <CardTitle className="text-xl sm:text-2xl">
-                      {plan.amount <= 0 ? "Freemium" : plan.name}
-                    </CardTitle>
+                    <CardTitle className="text-xl sm:text-2xl">{plan.name}</CardTitle>
                     <CardDescription className="text-sm">
-                      {plan.amount <= 0
-                        ? "Try before you upgrade"
-                        : limited
-                          ? "One-time availability for lifetime"
-                          : "Best value for serious investors"}
+                      {popular ? "Best value for serious investors" : "Flexible membership"}
                     </CardDescription>
                     <div className="mt-3 sm:mt-4">
                       <span className="text-2xl sm:text-3xl font-bold">
                         {priceLabel}
                       </span>
-                      {plan.amount > 0 && (
-                        <span className="text-muted-foreground text-sm">
-                          {" "}
-                          {plan.occurrence_type}
-                        </span>
-                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3 sm:space-y-4">
@@ -508,28 +476,26 @@ const Subscription = () => {
                         </li>
                       ))}
                     </ul>
-                    {plan.name !== "Freemium" && (
-                      <Button
-                        className="w-full"
-                        variant={
-                          popular && !planMatchesCurrent(featureKey)
-                            ? "default"
-                            : "outline"
-                        }
-                        disabled={disabled}
-                        onClick={() => handleSubscribe(plan.code)}
-                        size="sm"
-                      >
-                        {checkingOut === plan.code ? (
-                          <span className="inline-flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                            Processing
-                          </span>
-                        ) : (
-                          ctaLabel
-                        )}
-                      </Button>
-                    )}
+                    <Button
+                      className="w-full"
+                      variant={
+                        popular && !planMatchesCurrent(featureKey)
+                          ? "default"
+                          : "outline"
+                      }
+                      disabled={disabled}
+                      onClick={() => handleSubscribe(plan.code)}
+                      size="sm"
+                    >
+                      {checkingOut === plan.code ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                          Processing
+                        </span>
+                      ) : (
+                        ctaLabel
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               );
@@ -631,6 +597,7 @@ const Subscription = () => {
         ) : (
           <AgreementStep
             agreeToTerms={upgradeForm.agreeToTerms}
+            //@ts-ignore
             formData={{ email: user?.email || "", phone: user?.phone || "" }}
             onBack={handleAgreementBack}
             onNext={handleAgreementComplete}

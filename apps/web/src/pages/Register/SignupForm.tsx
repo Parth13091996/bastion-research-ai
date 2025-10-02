@@ -9,9 +9,12 @@ import PlansStep from "./Steps/PlansStep";
 import RegisterStep from "./Steps/RegisterStep";
 import VerifyStep from "./Steps/VerifyStep";
 import { endpoints } from "@/api/endpoints";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
-  const [currentStep, setCurrentStep] = useState(5);
+  const { user } = useAuth();
+
+  const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<OnboardingFormData>({
     email: "",
@@ -40,9 +43,9 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     { id: 1, name: "Register", icon: "👤" },
     { id: 2, name: "Verify", icon: "✓" },
     { id: 3, name: "Onboard", icon: "📋" },
-    { id: 4, name: "Plans", icon: "📋" },
-    { id: 5, name: "KYC", icon: "🆔" },
-    { id: 6, name: "Agreement", icon: "📄" },
+    { id: 4, name: "KYC", icon: "🆔" },
+    { id: 5, name: "Agreement", icon: "📄" },
+    { id: 6, name: "Plans", icon: "📋" },
     { id: 7, name: "Payment", icon: "💳" },
   ];
   const [isLoading, setIsLoading] = useState(false);
@@ -53,27 +56,34 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     const formDataFromStorage = localStorage.getItem("onboardingFormData");
-    const stepFromStorage = localStorage.getItem("onboardingCurrentStep");
     if (formDataFromStorage) {
       try {
         setFormData(JSON.parse(formDataFromStorage));
       } catch {}
     }
-    if (stepFromStorage) {
-      const step = parseInt(stepFromStorage, 10);
-      if (!Number.isNaN(step) && step >= 1 && step <= maxStep) {
-        setCurrentStep(step);
-      }
+  }, [currentStep]);
+
+
+  useEffect(() => {
+    const shouldResumeOnboarding = user?.status === "onboarding";
+    const agreementSigned = user?.status === "agreement_signed";
+    if(shouldResumeOnboarding) {
+      setCurrentStep(5)
     }
-    // otp timer now handled inside VerifyStep
-  }, []);
+    if(agreementSigned) {
+      setCurrentStep(6)
+    }
+  }, [user])
+
 
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as OnboardingFormData;
 
       if (
-        (field === "firstName" || field === "lastName" || field === "panCard") &&
+        (field === "firstName" ||
+          field === "lastName" ||
+          field === "panCard") &&
         prev.panVerification
       ) {
         next.panVerification = null;
@@ -117,7 +127,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     setSteps(stepsValues);
   }, [plans.length]);
 
-  // Persist current step
   useEffect(() => {
     try {
       localStorage.setItem("onboardingCurrentStep", String(currentStep));
@@ -126,7 +135,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     const fetchPlans = async () => {
-      if (currentStep === 4) {
+      if (currentStep >= 5) {
         setIsLoading(true);
         try {
           const response = await axiosInstance.get(endpoints.cashfree.plans);
@@ -210,18 +219,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         );
       case 4:
         return (
-          <PlansStep
-            plans={plans}
-            error={error}
-            isLoading={isLoading}
-            formData={formData}
-            onBack={prevStep}
-            onNext={nextStep}
-            updateFormData={updateFormData}
-          />
-        );
-      case 5:
-        return (
+
           <KYCStep
             formData={kycFormData}
             onBack={prevStep}
@@ -229,11 +227,24 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             updateFormData={updateFormData}
           />
         );
-      case 6:
+      case 5:
         return (
           <AgreementStep
             agreeToTerms={formData.agreeToTerms}
+            //@ts-ignore
             formData={{ email: formData.email, phone: formData.phone }}
+            onBack={prevStep}
+            onNext={nextStep}
+            updateFormData={updateFormData}
+          />
+        );
+      case 6:
+        return (
+          <PlansStep
+            plans={plans}
+            error={error}
+            isLoading={isLoading}
+            formData={formData}
             onBack={prevStep}
             onNext={nextStep}
             updateFormData={updateFormData}

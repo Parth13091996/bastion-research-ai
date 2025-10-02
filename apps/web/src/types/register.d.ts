@@ -122,7 +122,7 @@ interface AgreementStepProps {
   onBack: () => void;
   onNext: () => void;
   // Access to identifier for the agreement upload (email/phone)
-  formData?: { email: string; phone: string };
+  formData?: OnboardingFormData;
 }
 
 interface PaymentStepProps {

@@ -89,7 +89,7 @@ export default function Sidebar() {
     role: user?.role || "User",
     avatarUrl: null, // You can add avatar URL to user object later
     isPremium: subscription?.isPremium || false,
-    currentPlan: subscription?.currentPlan || "free",
+    currentPlan: subscription?.currentPlan || null,
   };
 
   const sidebarRef = useRef(null);
@@ -442,7 +442,7 @@ export default function Sidebar() {
                 ) : (
                   <>
                     <Shield className="h-3 w-3 text-gray-400" />
-                    <span className="text-xs text-gray-400">Free Member</span>
+                    <span className="text-xs text-gray-400">No Active Plan</span>
                   </>
                 )}
               </div>

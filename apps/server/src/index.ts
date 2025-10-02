@@ -17,6 +17,7 @@ import contactRoutes from "./routes/contact.routes";
 import otpRoutes from "./routes/otp.routes";
 import imagesRoutes from "./routes/images.routes";
 import filesRoutes from "./routes/files.routes";
+import digioRoutes from "./routes/digio.routes";
 
 dotenv.config();
 
@@ -30,11 +31,11 @@ app.use(
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       const allowedOrigins = [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-        process.env.FRONTEND_URL?.trim() || ''
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        process.env.FRONTEND_URL?.trim() || "",
       ];
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -42,7 +43,7 @@ app.use(
       callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
-    optionsSuccessStatus: 200 // For legacy browser support
+    optionsSuccessStatus: 200, // For legacy browser support
   })
 );
 app.use(
@@ -75,6 +76,7 @@ app.use("/content", contentRoutes);
 app.use("/api", contactRoutes);
 app.use("/api/images", imagesRoutes);
 app.use("/api/files", filesRoutes);
+app.use("/api/digio", digioRoutes);
 
 app.set("trust proxy", 1); // if you use secure cookies or rely on req.protocol
 

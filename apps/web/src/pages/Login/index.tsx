@@ -79,11 +79,22 @@ const Login = () => {
       axiosInstance.post(endpoints.auth.signin, data).then((res) => res.data),
     onSuccess: (data) => {
       login(data.user);
-      toast.success("Login successful! Redirecting to dashboard...");
-      // Use setTimeout to ensure the login state is properly set before navigation
-      setTimeout(() => {
-        navigate("/user/app/dashboard", { replace: true });
-      }, 100);
+      const shouldResumeOnboarding = data?.user?.status === "onboarding";
+      if (shouldResumeOnboarding) {
+        try {
+          localStorage.setItem("onboardingOpen", "true");
+          localStorage.setItem("onboardingCurrentStep", String(5));
+        } catch {}
+        toast.success("Welcome back! Let’s finish your onboarding.");
+        setTimeout(() => {
+          navigate("/register", { replace: true });
+        }, 100);
+      } else {
+        toast.success("Login successful! Redirecting to dashboard...");
+        setTimeout(() => {
+          navigate("/user/app/dashboard", { replace: true });
+        }, 100);
+      }
     },
     onError(error: any) {
       toast.error(error?.response?.data?.message || error.message);

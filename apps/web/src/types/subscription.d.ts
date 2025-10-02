@@ -7,7 +7,8 @@ interface SubscriptionData {
     expireDate: string | null;
     amount: number;
     transactionId: string;
-    occurrence_type: string | null;
+    plan_code?: string | null;
+    tier?: number | null;
   } | null;
   lastPayment: {
     amount: number;
@@ -15,6 +16,7 @@ interface SubscriptionData {
     planId: number;
     email: string;
     date: string;
+    plan_code?: string | null;
   } | null;
 }
 
@@ -22,7 +24,8 @@ interface AuthContextType {
   user: any;
   login: (user: User) => void;
   logout: () => Promise<void>;
-  refetchUser: () => Promise<void>;
+  refetchUser: () => Promise<User>;
+  refetchUserAfterAgreement: () => Promise<User>;
   refetchSubscription: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;

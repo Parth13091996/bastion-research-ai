@@ -28,8 +28,6 @@ const sendEmail = async (options: EmailOptions) => {
     html: options.html,
   };
 
-  console.log(mailOptions, 'optios')
-
   // 3. Actually send the email
   await transporter.sendMail(mailOptions);
 };
