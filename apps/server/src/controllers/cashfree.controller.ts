@@ -495,15 +495,13 @@ export const getUserSubscription = async (req: Request, res: Response) => {
         .from("subscriptions")
         .select(
           `
-          name,
           start_date,
           expire_next_renewal,
           amount,
           transaction_id,
           membership_id,
           created_at,
-          plan_code,
-          membership_plans(plan_code, tier)
+          membership_plans(plan_code, tier, plan_name)
         `
         )
         .eq("user_id", userId)
@@ -522,13 +520,13 @@ export const getUserSubscription = async (req: Request, res: Response) => {
       : ({
           ...subscriptionResult.data,
           plan_code:
-            //@ts-ignore
-            subscriptionResult?.data?.plan_code ||
             // @ts-ignore
-            subscriptionResult?.data?.membership_plans?.plan_code ||
-            null,
+            subscriptionResult?.data?.membership_plans?.plan_code || null,
+          plan_name:
+            // @ts-ignore
+            subscriptionResult?.data?.membership_plans?.plan_name || null,
           tier:
-            //@ts-ignore
+            // @ts-ignore
             subscriptionResult?.data?.membership_plans?.tier || null,
         } as any);
 
@@ -541,7 +539,7 @@ export const getUserSubscription = async (req: Request, res: Response) => {
       currentPlan,
       subscription: subscription
         ? {
-            name: subscription.name,
+            name: subscription.plan_name,
             startDate: subscription.start_date,
             expireNextRenewal: subscription.expire_next_renewal,
             amount: subscription.amount,
