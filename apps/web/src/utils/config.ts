@@ -8,6 +8,8 @@ export const Config = {
       ? "production"
       : ("sandbox" as "production" | "sandbox"),
   connect_url: "connect@bastionresearch.in",
+  agreement_file_name: (formData) =>
+    `${formData.firstName}_${formData.lastName}_Agreement.pdf`,
   social_links: {
     twitter: "https://x.com/bastionresearch",
     linkedin: "https://www.linkedin.com/company/bastion-research-house/",

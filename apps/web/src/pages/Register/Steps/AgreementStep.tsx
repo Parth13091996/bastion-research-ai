@@ -81,11 +81,10 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
     }
     try {
       setIsEsignSubmitting(true);
-      // Must be called on user gesture to avoid popup blockers
       initDigio();
       const resp = await axiosInstance.post(endpoints.digio.esignUploadJson, {
         file_data: pdfUrlWithAddress,
-        file_name: "Agreement.pdf",
+        file_name: Config.agreement_file_name(formData),
         will_self_sign: true,
         include_authentication_url: true,
         signers: [
