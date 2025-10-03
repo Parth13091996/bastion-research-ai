@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
-  const [currentStep, setCurrentStep] = useState(5);
+  const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<OnboardingFormData>({
     email: "",
