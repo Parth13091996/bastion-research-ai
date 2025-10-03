@@ -7,7 +7,8 @@ import { supabase } from "../supabase";
 // Environment/config
 const CF_APP_ID = process.env.CASHFREE_APP_ID;
 const CF_SECRET = process.env.CASHFREE_SECRET;
-const CF_ENV = (process.env.CASHFREE_ENV || "SANDBOX").toUpperCase() as
+console.log(process.env.CASHFREE_ENV, "environment");
+const CF_ENV = process.env.CASHFREE_ENV!.toUpperCase() as
   | "SANDBOX"
   | "PRODUCTION";
 const CF_API_VERSION = "2023-08-01";
@@ -15,8 +16,6 @@ const CF_VERIFICATION_CLIENT_ID =
   process.env.CASHFREE_VERIFICATION_CLIENT_ID || CF_APP_ID;
 const CF_VERIFICATION_CLIENT_SECRET =
   process.env.CASHFREE_VERIFICATION_CLIENT_SECRET || CF_SECRET;
-const CF_VERIFICATION_API_VERSION =
-  process.env.CASHFREE_VERIFICATION_API_VERSION || "2022-09-12";
 
 const getBaseUrl = () =>
   CF_ENV === "PRODUCTION"
@@ -75,6 +74,7 @@ const pgCreateOrder = async (request: any) => {
       "x-client-secret": CF_SECRET as string,
       "Content-Type": "application/json",
     };
+
     const resp = await axios.post(url, request, { headers });
     return { data: resp.data };
   }
@@ -214,7 +214,9 @@ export const listPlans = async (_req: Request, res: Response) => {
     }
 
     const plans: PublicPlan[] = (plansRows || [])
-      .filter((p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0)
+      .filter(
+        (p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0
+      )
       .map((p: any) => ({
         code: String(p.plan_id),
         name: p.plan_name,
@@ -226,7 +228,9 @@ export const listPlans = async (_req: Request, res: Response) => {
 
     return res.status(200).json({ plans });
   } catch (err: any) {
-    return res.status(500).json({ message: err?.message || "Failed to fetch plans" });
+    return res
+      .status(500)
+      .json({ message: err?.message || "Failed to fetch plans" });
   }
 };
 
@@ -239,9 +243,8 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       customer_phone,
       return_url,
       metadata,
-      discount_amount
+      discount_amount,
     } = req.body;
-
 
     if (!plan) return res.status(400).json({ message: "plan is required" });
     if (!customer_id)
@@ -293,7 +296,6 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
         return_url: returnUrl,
       },
     };
-
 
     const response = await pgCreateOrder(request);
     await supabase.from("payment_history").upsert({
