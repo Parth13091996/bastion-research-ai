@@ -119,6 +119,7 @@ const ResearchView = lazy(
   () => import("../pages/Research/SingleResearchPage")
 );
 const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
+const IpoUserDashboardPage = lazy(() => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard"));
 
 export const routes: RouteObject[] = [
   {
@@ -270,6 +271,10 @@ export const routes: RouteObject[] = [
       },
     ],
   },
+  {
+    path: AppRoutes.ipoUserDashboard(),
+    element: <IpoUserDashboardPage />,
+  },
 
   {
     path: "/user",
@@ -295,6 +300,7 @@ export const routes: RouteObject[] = [
             element: <UserAdminTransactionHistory />,
           },
           { path: "app/account/logout", element: <UserAdminLogout /> },
+          // { path: "app/ipo-dashboard", element: <IpoUserDashboardPage /> },
         ],
       },
     ],
