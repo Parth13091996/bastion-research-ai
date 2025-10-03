@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(5);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<OnboardingFormData>({
     email: "",
@@ -63,18 +63,16 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     }
   }, [currentStep]);
 
-
   useEffect(() => {
     const shouldResumeOnboarding = user?.status === "onboarding";
     const agreementSigned = user?.status === "agreement_signed";
-    if(shouldResumeOnboarding) {
-      setCurrentStep(5)
+    if (shouldResumeOnboarding) {
+      setCurrentStep(5);
     }
-    if(agreementSigned) {
-      setCurrentStep(6)
+    if (agreementSigned) {
+      setCurrentStep(6);
     }
-  }, [user])
-
+  }, [user]);
 
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => {
@@ -219,7 +217,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         );
       case 4:
         return (
-
           <KYCStep
             formData={kycFormData}
             onBack={prevStep}

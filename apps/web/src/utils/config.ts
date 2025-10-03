@@ -1,6 +1,12 @@
+console.log(import.meta.env.MODE, "mode");
+
 export const Config = {
   app_name: "Bastion Research",
   app_url: import.meta.env.BASE_URL,
+  digio_environment:
+    import.meta.env.MODE === "production"
+      ? "production"
+      : ("sandbox" as "production" | "sandbox"),
   connect_url: "connect@bastionresearch.in",
   social_links: {
     twitter: "https://x.com/bastionresearch",
@@ -10,7 +16,7 @@ export const Config = {
     spotify:
       "https://open.spotify.com/show/4tBUa0orTDn3C76Yr16o5s?si=iiEnjhIWTv-pvG-xdqFB6w&nd=1&dlsi=9ed8c13e79a14aef",
   },
-  logo: 'https://dev.bastionresearch.in/media/header-logo.webp',
+  logo: "https://dev.bastionresearch.in/media/header-logo.webp",
   roles: {
     admin: "admin",
     employee: "employee",

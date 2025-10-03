@@ -1,8 +1,6 @@
 import { Config } from "@/utils/config";
 import { useRef, useCallback } from "react";
 
-// Digio SDK is loaded globally via <script> in index.html
-
 interface DigioOptions {
   environment: "production" | "sandbox";
   callback?: (response: any) => void;
@@ -21,7 +19,7 @@ interface DigioOptions {
 }
 
 const DEFAULT_OPTIONS: DigioOptions = {
-  environment: "sandbox",
+  environment: Config.digio_environment,
   logo: Config.logo,
   theme: {
     primaryColor: "#c9122d",
@@ -43,7 +41,7 @@ const useDigioSdk = (options?: Partial<DigioOptions>) => {
       throw new Error("Digio SDK not loaded");
     }
     if (!digioRef.current) {
-      const actualOptions = { ...DEFAULT_OPTIONS, ...options }
+      const actualOptions = { ...DEFAULT_OPTIONS, ...options };
       digioRef.current = new window.Digio(actualOptions);
     }
     return digioRef.current;

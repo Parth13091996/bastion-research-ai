@@ -136,10 +136,8 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
           .from("digio_documents")
           .insert([{ document_id, status: doc_status, user_id }])
           .select();
-
       }
-    } catch (dbError) {
-    }
+    } catch (dbError) {}
 
     return res.status(201).json({
       success: true,
@@ -219,9 +217,10 @@ export const digioWebhook = async (req: Request, res: Response) => {
 
     // Optional HMAC verification (enable by setting DIGIO_WEBHOOK_SECRET)
     const secret = process.env.DIGIO_WEBHOOK_SECRET;
-    const requireSig = (process.env.DIGIO_WEBHOOK_REQUIRE_SIGNATURE || "false")
-      .toString()
-      .toLowerCase() === "true";
+    const requireSig =
+      (process.env.DIGIO_WEBHOOK_REQUIRE_SIGNATURE || "false")
+        .toString()
+        .toLowerCase() === "true";
 
     const headers = Object.fromEntries(
       Object.entries(req.headers).map(([k, v]) => [k.toLowerCase(), v])
@@ -280,14 +279,16 @@ export const digioWebhook = async (req: Request, res: Response) => {
         });
         if (!matched) {
           if (requireSig) {
-            return res.status(401).json({ message: "Invalid webhook signature" });
+            return res
+              .status(401)
+              .json({ message: "Invalid webhook signature" });
           }
         }
       }
     }
 
     const event = body;
-    console.log(event, 'event=====>')
+    console.log(event, "event=====>");
 
     // Normalize fields from Digio style payloads
     const documentId =
@@ -327,5 +328,7 @@ export const digioWebhook = async (req: Request, res: Response) => {
 };
 
 export const testDigioWebhook = async (req: Request, res: Response) => {
-  return res.status(200).json({ message: "Digio Webhook configured successfully!" });
-}
+  return res
+    .status(200)
+    .json({ message: "Digio Webhook configured successfully!" });
+};

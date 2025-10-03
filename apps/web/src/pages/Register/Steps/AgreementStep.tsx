@@ -2,15 +2,12 @@ import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
 import { useAuth } from "@/contexts/AuthContext";
 import useDigioSdk from "@/hooks/use-digio-sdk";
+import { getUserInfoToShowInPdf } from "@/utils";
+import { Config } from "@/utils/config";
 import { handlePersonalizedPdf } from "@/utils/pdf";
 import { User } from "@repo/types";
 import { ArrowLeft } from "lucide-react";
-import React, {
-  useEffect,
-  useMemo,
-  useState
-} from "react";
-
+import React, { useEffect, useMemo, useState } from "react";
 
 const AgreementStep: React.FC<AgreementStepProps> = ({
   agreeToTerms,
@@ -19,31 +16,22 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   onNext,
   formData,
 }) => {
-  const pdfUrl = 'https://ftuuyfhfrhvlllfwfbjx.supabase.co/storage/v1/object/public/system_docs/INVESTMENT%20RESEARCH%20SERVICE%20AGREEMENT.pdf';
+  const pdfUrl =
+    "https://ftuuyfhfrhvlllfwfbjx.supabase.co/storage/v1/object/public/system_docs/INVESTMENT%20RESEARCH%20SERVICE%20AGREEMENT.pdf";
   const [error, setError] = useState<string | null>(null);
-  const [pdfUrlWithAddress, setPdfUrlWithAddress] = useState('');
+  const [pdfUrlWithAddress, setPdfUrlWithAddress] = useState("");
   const [isEsignSubmitting, setIsEsignSubmitting] = useState(false);
-  const storedFormData = JSON.parse(localStorage.getItem("onboardingFormData") || "")
-  const {refetchUserAfterAgreement} = useAuth()
 
-  const actualAddress = `
-  Name: ${storedFormData.firstName} ${storedFormData.lastName}\n
-  PAN: ${storedFormData.panCard}\n
-  Address: ${storedFormData.address1}\n
-  ${storedFormData.address2}\n
-  Email: ${storedFormData.email}\n
-  Phone Number: ${storedFormData.phone}
-  `
-  
+  const { refetchUserAfterAgreement } = useAuth();
+
   const identifier = useMemo(() => {
     const email = formData?.email?.trim();
     const phone = formData?.phone?.trim();
     return email || phone || "";
   }, [formData]);
 
-  // Configure Digio to open in an iframe (popup within the page)
   const { init: initDigio, submit: submitDigio } = useDigioSdk({
-    environment: "sandbox",
+    environment: Config.digio_environment,
     is_iframe: true,
     callback: (response: any) => {
       if (
@@ -55,26 +43,31 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
         return;
       }
       refetchUserAfterAgreement().then(async (user: User) => {
-        if (response?.digio_doc_id && response?.message === "Signed Successfully") {
+        if (
+          response?.digio_doc_id &&
+          response?.message === "Signed Successfully"
+        ) {
           await axiosInstance.put(endpoints.users.update(user?.id), {
-            status: "agreement_signed"
-          })
+            status: "agreement_signed",
+          });
           updateFormData("agreementSignedAt", new Date().toISOString());
           setIsEsignSubmitting(false);
           onNext();
         }
-      })
+      });
     },
   });
 
   useEffect(() => {
     (async () => {
-      const base64Value = await handlePersonalizedPdf(pdfUrl, actualAddress);
+      const base64Value = await handlePersonalizedPdf(
+        pdfUrl,
+        getUserInfoToShowInPdf()
+      );
       const pdfDataUrl = `data:application/pdf;base64,${base64Value}`;
       setPdfUrlWithAddress(pdfDataUrl);
     })();
   }, []);
-
 
   const handleEsign = async () => {
     setError(null);
@@ -134,7 +127,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
       <div className="max-h-[300px] overflow-y-auto border rounded-lg p-4 text-sm text-gray-700">
         <h3 className="font-semibold mb-3">Summary</h3>
-       <PdfPreview pdfUrl={pdfUrlWithAddress} />
+        <PdfPreview pdfUrl={pdfUrlWithAddress} />
       </div>
 
       <div className="space-y-3">
@@ -174,13 +167,6 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
         >
           <ArrowLeft size={20} className="mr-1" /> Back
         </button>
-        {/* <button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
-        >
-          {isSubmitting ? "Saving signature..." : "Accept & Continue"}
-        </button> */}
       </div>
     </div>
   );
@@ -188,14 +174,14 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
 export default AgreementStep;
 
-function PdfPreview({pdfUrl,}: {pdfUrl: string}) {
+function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
   return (
-    <div style={{ width: '100%', height: '120vh' }}>
+    <div style={{ width: "100%", height: "120vh" }}>
       <iframe
         src={pdfUrl}
         width="100%"
         height="100%"
-        style={{ border: 'none' }}
+        style={{ border: "none" }}
         title="PDF Preview"
       />
     </div>
