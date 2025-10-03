@@ -119,7 +119,7 @@ const ResearchView = lazy(
   () => import("../pages/Research/SingleResearchPage")
 );
 const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
-const IpoUserDashboardPage = lazy(() => import("../pages/IpoUserDashboardPage"));
+const IpoUserDashboardPage = lazy(() => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard"));
 
 export const routes: RouteObject[] = [
   {

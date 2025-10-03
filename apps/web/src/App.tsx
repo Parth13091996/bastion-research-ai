@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BrowserRouter as Router, useRoutes } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { routes } from "./routes";
@@ -14,7 +15,9 @@ function App() {
   return (
     <Router>
       <RouteAnalytics />
-      <AppRoutes />
+      <Suspense fallback={<div>Loading...</div>}>
+        <AppRoutes />
+      </Suspense>
       <ModalsLayout />
       <Loader />
       <Toaster />

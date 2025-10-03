@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Calendar, BarChart3, FileText, TrendingUp, AlertTriangle } from 'lucide-react';
-import Header from '../components/Header';
+import Header from './Header';
 import Footer from '../../IpoLandingPage/components/Footer';
-
+import AllIpos from './AllIPOs';
 
 const IpoUserDashboard = () => {
+  const [showAllIpos, setShowAllIpos] = useState(false);
+
+  const handleAllIposClick = () => {
+    setShowAllIpos(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-<Header/>
-        {/* Main Content */}
+      <Header onAllIposClick={handleAllIposClick} />
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         {/* Trial Banner */}
         <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 flex items-center justify-between mb-6">
