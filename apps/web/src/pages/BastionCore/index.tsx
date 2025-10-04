@@ -121,33 +121,38 @@ export default function BastionCoreProductPage() {
   // 👇 Move items array here
   const items = [
     {
-      title: "Detailed Business Understanding Note",
-      desc: "Get access to detailed business understanding notes on companies under active coverage.",
+      title: "Detailed Business Notes",
+      desc: "Clear, in-depth breakdowns of businesses we initiate coverage on, so you understand the story behind them.",
       img: "https://cdn.shopify.com/s/media/1/0723/2415/3587/media/businessUnderstanding.jpg?v=1756568173",
     },
     {
-      title: "Regular Updates",
-      desc: "Stay updated with all relevant updates including quarterly results, key announcements and special situations on companies under active coverage.",
+      title: "Regular Company Updates",
+      desc: "From quarterly results to key announcements and special situations, stay on top of every company under our active coverage.",
       img: "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&w=1600&q=60",
     },
     {
       title: "Scratch Pad Access",
-      desc: "Sometimes, we pass the idea but the learning stays with us. We communicate these useful learnings via. Scratch Pad.",
+      desc: "Not every idea makes the cut. We share the ones we passed on and the lessons behind those decisions so you learn as much from the misses as the hits.",
       img: "https://images.unsplash.com/photo-1543286386-2e659306cd6c?auto=format&fit=crop&w=1600&q=60",
     },
     {
-      title: "Model Portfolio",
-      desc: "Don't just want access to research but also ready to execute portfolio? We have got you covered.",
+      title: "Quarterly Interactions",
+      desc: "Every quarter, we sit down with you to discuss how our covered businesses are progressing, share updated views, and answer your questions directly.",
       img: "https://cdn.shopify.com/s/media/1/0723/2415/3587/media/businessUnderstanding.jpg?v=1756568173",
     },
     {
-      title: "Quarterly Interactions",
-      desc: "As a subscriber, we speak to you at least once a quarter. In this discussion, we discuss the business progress of our investments, communicate our views with respect to new incoming information and clear your queries.",
+      title: "Premium Webinars",
+      desc: "Gain free access to our exclusive webinars, where we bring sharp perspectives and practical insights to the investing community.",
       img: "https://images.unsplash.com/photo-1510070009289-b5bc34383727?auto=format&fit=crop&w=1600&q=60",
     },
     {
-      title: "Access to Premium Webinars",
-      desc: "From time to time, we conduct enriching webinars, Bastion CORE subscribers get access to all our premium webinars.",
+      title: "Subscriber-Only Model Portfolio Discounts",
+      desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
+      img: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=60",
+    },
+    {
+      title: "Premium IPO Coverage",
+      desc: "Get free access to our in-depth IPO notes, covering the positives, risks, and our perspective on businesses going public.",
       img: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=60",
     },
   ];
@@ -224,24 +229,45 @@ export default function BastionCoreProductPage() {
     <div>
       <BackgroundShapes />
       <div className="min-h-screen w-full" style={{ background: COLORS.gray }}>
-        {/* Sub-header typing banner */}
         <section className="mx-auto max-w-7xl px-4 pt-10 md:pt-14">
           <div
-            className="rounded-3xl p-6 md:p-10 shadow-lg text-center"
+            className="rounded-3xl p-6 md:p-10 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6"
             style={{ background: COLORS.white }}
           >
-            <TypingLoop phrases={["Comprehensive Objective Research Edge"]} />
-            <div
-              className="mt-3 text-sm md:text-base opacity-70"
-              style={{ color: COLORS.blue }}
-            >
-              Built for DIY investors who want serious, clean, decision-useful
-              research.
+
+            {/* section:-- 1 */}
+            {/* Left Text: Typing Loop */}
+            <div className="md:flex-1 text-center md:text-left">
+              <TypingLoop
+                phrases={[
+                  "Research You Can Act With Conviction",
+                  // "Detailed Insights For Smarter Decisions",
+                  // "Invest With Clarity And Confidence",
+                ]}
+                typingSpeed={40}
+                pauseTime={2000}
+              />
+            </div>
+
+            {/* Right Buttons:*/}
+            <div className="flex flex-col md:flex-row gap-3 justify-center md:justify-start mt-4 md:mt-0">
+              <a
+                href="/register"
+                className="px-4 py-2 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors whitespace-nowrap text-center"
+              >
+                Subscribe to Trial Plan at Rs. 5,000 /-
+              </a>
+              <a
+                href="/register"
+                className="px-4 py-2 border border-[#C00000] text-[#C00000] rounded-xl hover:bg-[#C00000] hover:text-white transition-colors whitespace-nowrap text-center"
+              >
+                View Research
+              </a>
             </div>
           </div>
         </section>
 
-        {/* Section 4: Pricing */}
+        {/* Section 2: Pricing */}
         <section className="max-w-7xl px-4 mx-auto  py-10">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
             Choose your plan
@@ -289,128 +315,7 @@ export default function BastionCoreProductPage() {
           </div>
         </section>
 
-        {/* Section 1: Importance of Research */}
-        <section
-          id="research"
-          className="mx-auto max-w-7xl px-4 py-12 md:py-16"
-        >
-          <div className="grid md:grid-cols-1 gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="rounded-3xl p-6 md:p-8 shadow-lg flex flex-col justify-center text-left"
-              style={{ background: COLORS.white }}
-            >
-              <h2
-                className="text-2xl md:text-3xl font-bold w-max mb-4 relative"
-                style={{ color: COLORS.blue }}
-              >
-                Why Research Matters
-                <div
-                  className="absolute bottom-[-28%] left-0 w-full h-1"
-                  style={{ background: COLORS.red }}
-                ></div>
-              </h2>
-              <p
-                className="mt-4 leading-relaxed"
-                style={{ color: COLORS.blue }}
-              >
-                Research constitutes the <strong>FUNDAMENTAL</strong> component
-                of an investor's investing endeavours. Our unwavering commitment
-                with Bastion CORE lies in providing best research while ensuring
-                its accessibility to investors, irrespective of the size of
-                their capital.
-              </p>
-              <p
-                className="mt-3 leading-relaxed"
-                style={{ color: COLORS.blue }}
-              >
-                With thorough business comprehension and insights aiding your
-                investment decisions, we guide you through your investment
-                journey with detailed research reports and timely updates
-                through our proprietary <strong>SMART Framework</strong>.
-              </p>
-              <div
-                className="mt-6 border-l-4 pl-4 italic text-sm md:text-base"
-                style={{ borderColor: COLORS.red, color: COLORS.blue }}
-              >
-                “Know What you Own and know why you own it” –{" "}
-                <span className="font-semibold">Peter Lynch</span>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Section 2: SMART Framework */}
-        <section id="smart" className="mx-auto max-w-7xl px-4 py-12 md:py-16">
-          <div className="flex items-end justify-between mb-8">
-            <h2
-              className="text-2xl md:text-3xl font-bold"
-              style={{ color: COLORS.blue }}
-            >
-              SMART Framework
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-            <FlipCard
-              front={{ letter: "S", caption: "Strong Business" }}
-              back={{
-                title: "Strong Business",
-                text: "Avoid businesses exhibiting signs of weakness",
-              }}
-              color={COLORS.blue}
-            />
-
-            <FlipCard
-              front={{ letter: "M", caption: "Strong Management" }}
-              back={{
-                title: "Strong Management",
-                text: "Not partnering with managements unwilling to share upside",
-              }}
-              color={COLORS.red}
-            />
-
-            <FlipCard
-              front={{ letter: "A", caption: "Clean Accounts" }}
-              back={{
-                title: "Clean Accounts",
-                text: "Making sure the numbers are reliable to form decisions",
-              }}
-              color={COLORS.blue}
-            />
-
-            <FlipCard
-              front={{ letter: "R", caption: "Reasonable Valuations" }}
-              back={{
-                title: "Reasonable Valuations",
-                text: "Not buying anything at any price",
-              }}
-              color={COLORS.red}
-            />
-
-            <FlipCard
-              front={{ letter: "T", caption: "Business Tailwinds" }}
-              back={{
-                title: "Business Tailwinds",
-                text: "Steer clear of businesses belonging to a dying or stagnant industry",
-              }}
-              color={COLORS.blue}
-            />
-          </div>
-        </section>
-
-        {/* Section 3: Testimonials */}
-        <section
-          id="testimonials"
-          className="mx-auto max-w-7xl px-4 py-12 md:py-16"
-        >
-          <Testimonial />
-        </section>
-
-        {/* Section 4: Content */}
-        {/* Section 4: Content */}
+        {/* Section 3: Content */}
         <section className="max-w-7xl px-4 mx-auto  pb-16">
           <div className="rounded-3xl border border-[#E6E6E6] overflow-hidden">
             {/* Grid: 60/40 split on md+ */}
@@ -503,8 +408,126 @@ export default function BastionCoreProductPage() {
             </div>
           </div>
         </section>
+                   {/* Section 4: Testimonials */}
+        <section
+          id="testimonials"
+          className="mx-auto max-w-7xl px-4 py-12 md:py-16"
+        >
+          <Testimonial />
+        </section>
 
-        {/* Section 5: FAQs */}
+        {/* Section 5: Importance of Research */}
+        <section
+          id="research"
+          className="mx-auto max-w-7xl px-4 py-12 md:py-16"
+        >
+          <div className="grid md:grid-cols-1 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="rounded-3xl p-6 md:p-8 shadow-lg flex flex-col justify-center text-left"
+              style={{ background: COLORS.white }}
+            >
+              <h2
+                className="text-2xl md:text-3xl font-bold w-max mb-4 relative"
+                style={{ color: COLORS.blue }}
+              >
+                Why Research Matters
+                <div
+                  className="absolute bottom-[-28%] left-0 w-full h-1"
+                  style={{ background: COLORS.red }}
+                ></div>
+              </h2>
+              <p
+                className="mt-4 leading-relaxed"
+                style={{ color: COLORS.blue }}
+              >
+                Research constitutes the <strong>FUNDAMENTAL</strong> component
+                of an investor's investing endeavours. Our unwavering commitment
+                with Bastion CORE lies in providing best research while ensuring
+                its accessibility to investors, irrespective of the size of
+                their capital.
+              </p>
+              <p
+                className="mt-3 leading-relaxed"
+                style={{ color: COLORS.blue }}
+              >
+                With thorough business comprehension and insights aiding your
+                investment decisions, we guide you through your investment
+                journey with detailed research reports and timely updates
+                through our proprietary <strong>SMART Framework</strong>.
+              </p>
+              <div
+                className="mt-6 border-l-4 pl-4 italic text-sm md:text-base"
+                style={{ borderColor: COLORS.red, color: COLORS.blue }}
+              >
+                “Know What you Own and know why you own it” –{" "}
+                <span className="font-semibold">Peter Lynch</span>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Section 6: SMART Framework */}
+        <section id="smart" className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+          <div className="flex items-end justify-between mb-8">
+            <h2
+              className="text-2xl md:text-3xl font-bold"
+              style={{ color: COLORS.blue }}
+            >
+              SMART Framework
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+            <FlipCard
+              front={{ letter: "S", caption: "Strong Business" }}
+              back={{
+                title: "Strong Business",
+                text: "Avoid businesses exhibiting signs of weakness",
+              }}
+              color={COLORS.blue}
+            />
+
+            <FlipCard
+              front={{ letter: "M", caption: "Strong Management" }}
+              back={{
+                title: "Strong Management",
+                text: "Not partnering with managements unwilling to share upside",
+              }}
+              color={COLORS.red}
+            />
+
+            <FlipCard
+              front={{ letter: "A", caption: "Clean Accounts" }}
+              back={{
+                title: "Clean Accounts",
+                text: "Making sure the numbers are reliable to form decisions",
+              }}
+              color={COLORS.blue}
+            />
+
+            <FlipCard
+              front={{ letter: "R", caption: "Reasonable Valuations" }}
+              back={{
+                title: "Reasonable Valuations",
+                text: "Not buying anything at any price",
+              }}
+              color={COLORS.red}
+            />
+
+            <FlipCard
+              front={{ letter: "T", caption: "Business Tailwinds" }}
+              back={{
+                title: "Business Tailwinds",
+                text: "Steer clear of businesses belonging to a dying or stagnant industry",
+              }}
+              color={COLORS.blue}
+            />
+          </div>
+        </section>
+        {/* Section 7: FAQs */}
         <section className="mx-auto max-w-7xl px-4 pb-4">
           <h2 className="text-3xl font-bold text-left mb-4">FAQs</h2>
           <div className="space-y-4">
