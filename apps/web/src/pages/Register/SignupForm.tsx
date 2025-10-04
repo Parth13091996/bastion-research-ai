@@ -348,3 +348,5 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 };
 
 export default SignUpForm;
+
+

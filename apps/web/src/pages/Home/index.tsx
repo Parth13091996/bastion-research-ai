@@ -6,9 +6,10 @@ const NAVY = "#1C2852";
 const MAROON = "#C00000";
 
 const tabs = [
-  { key: "qualified", label: "Qualified Investor" },
-  { key: "diy", label: "DIY Individual" },
-  { key: "non_diy", label: "Non-DIY Individual" },
+  { key: "qualified", label: "Fund Manager / Family Office" },
+  { key: "diy", label: "DIY Individual Investor" },
+  { key: "non_diy", label: "Effortless Investor" },
+  //  { key: "ipo", label: "IPO Investor" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
@@ -100,11 +101,10 @@ export default function LandingPage() {
                     className="px-6 py-4 text-center font-semibold text-xl md:text-2xl"
                     style={{ color: "black" }}
                   >
-                    What type of Investor are you?
+                    Which type of Investor are you?
                   </div>
-                  <p className="mb-4 text-base md:text-lg opacity-80 max-w-3xl mx-auto">
-                    Pick the option that fits you best and we will show you the
-                    right Bastion product.
+                  <p className="mb-4 p-2 text-base md:text-lg opacity-80 max-w-3xl mx-auto">
+                    We’ve built different Bastion products for different kinds of investors. Pick the profile that feels closest to you and see what’s a fit.
                   </p>
 
                   {/* Enhanced tab bar */}
@@ -164,19 +164,23 @@ export default function LandingPage() {
                           className="h-full flex flex-col md:flex-row gap-6"
                         >
                           <Panel
-                            title="Institutional-Grade Coverage"
+                            title="Product Suitability"
                             bullets={[
-                              "Deep dives built for CIOs, PMs, and analysts",
-                              "Source-first: filings, transcripts, and on-ground checks",
-                              "Actionable scenarios with base/bull/bear valuations",
+                              "I take independent allocation decisions",
+                              "I need high-quality, bespoke equity research",
+                              "I manage public or family money",
+                              "I want a full-stack research partner",
                             ]}
                           />
                           <Panel
-                            title="What You Get"
+                            title="Product Features"
                             bullets={[
-                              "Weekly notes + event-driven briefs",
-                              "Allocator-ready models & tear sheets",
-                              "Priority access for management Q&A",
+                              "End-to-end research solutions: from idea generation to allocation support",
+                              "Access to fresh investment ideas",
+                              "Ongoing maintenance research on covered names",
+                              "Knowledge transfer (business understanding + data packs)",
+                              "Analyst access across multiple sectors",
+
                             ]}
                           />
                         </motion.div>
@@ -192,19 +196,25 @@ export default function LandingPage() {
                           className="h-full flex flex-col md:flex-row gap-6"
                         >
                           <Panel
-                            title="For Self-Directed Investors"
+                            title="Product Suitability"
                             bullets={[
-                              "Plain-English breakdowns of complex businesses",
-                              "Templates for thesis, risk, and exit rules",
-                              "Curated learning paths for 30 minutes a week",
+                              "I want to invest with quality research at the core",
+                              "I have time to read serious and decision-useful research",
+                              "I am willing to learn and track the businesses I invest in",
+                              "I want expert handholding, not tips and noise",
+                              "I think in 3–5 year horizons",
+
                             ]}
                           />
                           <Panel
-                            title="Tools Included"
+                            title="Product Features"
                             bullets={[
-                              "Idea checklists & red-flag scanner",
-                              "Quarterly result explainers you'll actually read",
-                              "Workspace to track positions & catalysts",
+                              "Business understanding notes (clear, in-depth breakdowns)",
+                              "Regular company updates and quarterly reports",
+                              "Access to our Scratchpad (near-miss ideas with reasons)",
+                              "IPO notes on interesting listings",
+                              "Discounted access to Adaptive Quality portfolios",
+
                             ]}
                           />
                         </motion.div>
@@ -220,20 +230,28 @@ export default function LandingPage() {
                           className="h-full flex flex-col md:flex-row gap-6"
                         >
                           <Panel
-                            title="Hands-Off, High-Conviction"
+                            title="Product Suitability"
                             bullets={[
-                              "Model portfolios with disciplined risk controls",
-                              "Clear rationale for every add/trim/exit",
-                              "Quarterly calls to align goals & risk",
+                              "I want research-backed investing without the heavy lifting",
+                              "I don’t have time to read reports or track businesses",
+                              "I prefer ready-to-execute portfolios with a 3–5 year view",
+
                             ]}
                           />
                           <Panel
-                            title="White-Glove Experience"
+                            title="Product Features"
                             bullets={[
-                              "Concise updates—no jargon, no noise",
-                              "Access to our research vault on demand",
-                              "Dedicated point of contact",
+                              "Curated, execution-ready portfolios matched to your risk appetite",
+                              {
+                                text: "Portfolio choices:",
+                                sublist: [
+                                  "Adaptive Quality (Techno-Funda)",
+                                  "Triple Edge (Quant-based)",
+                                  "ETF Optimiser (Smart ETF investing)",
+                                ],
+                              },
                             ]}
+
                           />
                         </motion.div>
                       )}
@@ -364,11 +382,11 @@ export default function LandingPage() {
               </motion.section>
 
               <footer className="pt-4 text-lg opacity-60 text-center relative">
-                Not sure where you fit?{" "}
-                <a href="/contact" className="underline">
+                Don’t fit neatly into these categories?You can still join in. {" "}
+                <a href="/contact-us" className="underline">
                   Contact us
                 </a>{" "}
-                and we will guide you.
+                Read our free newsletters and watch our podcast (Made in India), deep dives into India’s most fascinating companies and their untold stories.
               </footer>
             </div>
           </div>
@@ -378,7 +396,9 @@ export default function LandingPage() {
   );
 }
 
-function Panel({ title, bullets }: { title: string; bullets: string[] }) {
+type BulletItem = string | { text: string; sublist: string[] };
+
+function Panel({ title, bullets }: { title: string; bullets: BulletItem[] }) {
   return (
     <motion.div
       className="flex-1 min-w-[260px] border rounded-2xl p-5 md:p-6 flex flex-col shadow-[0_10px_30px_rgba(28,40,82,0.08)] backdrop-blur-sm"
@@ -404,22 +424,51 @@ function Panel({ title, bullets }: { title: string; bullets: string[] }) {
         </h3>
       </div>
       <ul className="mt-3 space-y-2 text-sm md:text-base leading-relaxed">
-        {bullets.map((b, i) => (
-          <motion.li
-            key={i}
-            className="pl-5 relative"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <motion.span
-              className="absolute left-0 top-2 h-2 w-2 rounded-full"
-              style={{ background: MAROON }}
-              whileHover={{ scale: 1.5 }}
-            />
-            {b}
-          </motion.li>
-        ))}
+        {bullets.map((item, index) =>
+          typeof item === "string" ? (
+            <motion.li
+              key={index}
+              className="pl-5 relative"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <motion.span
+                className="absolute left-0 top-2 h-2 w-2 rounded-full"
+                style={{ background: MAROON }}
+                whileHover={{ scale: 1.5 }}
+              />
+              {item}
+            </motion.li>
+          ) : (
+            <motion.li
+              key={index}
+              className="pl-5 relative"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <motion.span
+                className="absolute left-0 top-2 h-2 w-2 rounded-full"
+                style={{ background: MAROON }}
+                whileHover={{ scale: 1.5 }}
+              />
+              {item.text}
+              <ul className="list-disc ml-6 mt-1 space-y-1">
+                {item.sublist.map((sub, i) => (
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (index * 0.1) + (i * 0.05) }}
+                  >
+                    {sub}
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.li>
+          )
+        )}
       </ul>
     </motion.div>
   );
