@@ -72,8 +72,7 @@
 }
 
 ::selection {
-  background-color: #c00000;
-  color: #fff;
+  background-color: transparent;
 }
 
 @keyframes slide-in-right {
