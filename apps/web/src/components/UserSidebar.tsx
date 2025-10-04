@@ -64,11 +64,6 @@ const navItems = [
   },
 ];
 
-const quickStats = [
-  { label: "Active Picks", value: "12", icon: Target },
-  { label: "Avg. Return", value: "+18.5%", icon: BarChart3 },
-  { label: "Win Rate", value: "87%", icon: Percent },
-];
 
 export default function Sidebar() {
   const { user, subscription, logout } = useAuth();
@@ -373,31 +368,6 @@ export default function Sidebar() {
             </div>
           );
         })}
-
-      {/* Quick Stats */}
-      {!isCollapsed && (
-        <div className="px-4 pt-8">
-          <h2 className="text-xs font-semibold uppercase tracking-wide mb-4 text-gray-300">
-            QUICK STATS
-          </h2>
-          <div className="space-y-3">
-            {quickStats.map((stat) => (
-              <div
-                key={stat.label}
-                className="flex items-center justify-between text-gray-200"
-              >
-                <div className="flex items-center">
-                  <stat.icon className="h-4 w-4 text-gray-400 mr-2" />
-                  <span className="text-sm">{stat.label}</span>
-                </div>
-                <span className="text-sm font-semibold text-white">
-                  {stat.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Profile */}
       <div className="mt-auto p-4 border-t border-gray-700">

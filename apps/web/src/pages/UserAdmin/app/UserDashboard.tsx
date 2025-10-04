@@ -126,264 +126,215 @@ const UserDashboard = () => {
 
         {/* Stats Cards */}
         {/* Live Recommendations Card */}
-         <div style={{ backgroundColor: COLORS.blue, minHeight: '100vh', padding: '48px 24px' }}>
+       <div
+  style={{
+    background: "linear-gradient(to bottom right, #101828, #1C2852)",
+    minHeight: "100vh",
+    padding: "64px 24px",
+  }}
+>
+  {/* Header */}
+  <div className="text-center mb-16">
+    <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
+      Every Hit. Every Miss. <span className="text-blue-300">Shared with Clarity</span>
+    </h1>
+    <p className="text-lg text-gray-300 font-light">
+      Confidence is built, not borrowed
+    </p>
+  </div>
+
+  {/* Main Content */}
+  <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+    {/* Live Recommendations */}
+    <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
       {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold mb-4" style={{ color: COLORS.white }}>
-         Every Hit. Every Miss. – Shared with Clarity
-        </h1>
-        <p className="text-lg" style={{ color: COLORS.gray }}>
-         Confidence is built, not borrowed
-        </p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-blue-400 animate-pulse"></div>
+          <h2 className="text-2xl font-semibold text-white">
+            44 Live Recommendations
+          </h2>
+        </div>
+        <span className="text-sm text-blue-300 font-medium">
+          3 New Recommendations
+        </span>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Live Recommendations Section */}
-          <div className="rounded-2xl p-8" style={{ backgroundColor: COLORS.white }}>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.blue }}></div>
-                <h2 className="text-xl font-semibold" style={{ color: COLORS.black }}>
-                  44 Live Recommendations
-                </h2>
-                <span className="text-xs" style={{ color: COLORS.blue }}>•</span>
-              </div>
-              <span className="text-sm" style={{ color: COLORS.blue }}>
-                3 New Recommendations
-              </span>
-            </div>
+      {/* Average Returns Card */}
+      <div className="rounded-xl p-6 mb-6 bg-gradient-to-r from-indigo-500 to-purple-500 shadow-md">
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp size={24} className="text-white" />
+          <span className="text-sm text-white">Average Live Returns</span>
+          <InfoIcon size={16} className="text-white opacity-70" />
+        </div>
+        <div className="flex items-center gap-2">
+          <TrendingUp size={20} className="text-white" />
+          <span className="text-4xl font-bold text-white">10.5%</span>
+        </div>
+      </div>
 
-            {/* Average Returns Card */}
-            <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: COLORS.beige }}>
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp size={24} style={{ color: COLORS.white }} />
-                <span className="text-sm" style={{ color: COLORS.white }}>
-                  Average Live Returns
-                </span>
-                <InfoIcon size={16} style={{ color: COLORS.white }} />
-              </div>
-              <div className="flex items-center gap-1">
-                <TrendingUp size={20} style={{ color: COLORS.white }} />
-                <span className="text-4xl font-bold" style={{ color: COLORS.white }}>
-                  10.5%
-                </span>
-              </div>
-            </div>
-
-            {/* Performance Chart */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-4" style={{ color: COLORS.black }}>
-                Live Stock Performance
-              </h3>
-              <div className="flex items-center gap-8">
-                <div className="relative w-32 h-32">
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke={COLORS.gray} strokeWidth="12" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke={COLORS.red} strokeWidth="12" 
-                      strokeDasharray="75.4 251.2" strokeLinecap="round" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke={COLORS.gray} strokeWidth="12" 
-                      strokeDasharray="90.48 251.2" strokeDashoffset="-75.4" strokeLinecap="round" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#4ADE80" strokeWidth="12" 
-                      strokeDasharray="85.44 251.2" strokeDashoffset="-165.88" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="text-sm">High ({'>'}15%)</span>
-                    </div>
-                    <span className="font-semibold">15</span>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.gray }}></div>
-                      <span className="text-sm">Medium (15% to -15%)</span>
-                    </div>
-                    <span className="font-semibold">18</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.red }}></div>
-                      <span className="text-sm">Low (&lt;-15%)</span>
-                    </div>
-                    <span className="font-semibold">11</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Top Gainer and Loser */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp size={16} />
-                  <span className="text-sm font-medium">Top Gainer</span>
-                </div>
-                <div className="relative">
-                  <svg viewBox="0 0 120 40" className="w-full">
-                    <polyline points="0,35 20,30 40,32 60,20 80,25 100,15 120,10" 
-                      fill="none" stroke={COLORS.blue} strokeWidth="2" />
-                  </svg>
-                  <span className="absolute top-0 right-0 px-2 py-1 text-xs font-semibold rounded" 
-                    style={{ backgroundColor: '#00BCD4', color: COLORS.white }}>BUY!</span>
-                </div>
-                <div className="mt-2">
-                  <div className="flex items-center gap-1">
-                    <TrendingUp size={16} className="text-green-500" />
-                    <span className="text-xl font-bold text-green-500">208.99%</span>
-                  </div>
-                  <p className="text-xs text-gray-500">in 2yr, 4mo</p>
-                  <p className="text-xs mt-1">🔥 Target 2 | <span style={{ color: '#FF9800' }}>Active</span></p>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown size={16} />
-                  <span className="text-sm font-medium">Top Loser</span>
-                </div>
-                <div className="relative">
-                  <svg viewBox="0 0 120 40" className="w-full">
-                    <polyline points="0,10 20,15 40,12 60,25 80,20 100,30 120,35" 
-                      fill="none" stroke={COLORS.blue} strokeWidth="2" />
-                  </svg>
-                  <span className="absolute top-0 right-0 px-2 py-1 text-xs font-semibold rounded" 
-                    style={{ backgroundColor: '#00BCD4', color: COLORS.white }}>BUY!</span>
-                </div>
-                <div className="mt-2">
-                  <div className="flex items-center gap-1">
-                    <TrendingDown size={16} style={{ color: COLORS.red }} />
-                    <span className="text-xl font-bold" style={{ color: COLORS.red }}>-46.11%</span>
-                  </div>
-                  <p className="text-xs text-gray-500">in 9 months</p>
-                  <p className="text-xs mt-1">🔥 Target 2 | <span style={{ color: '#FF9800' }}>Active</span></p>
-                </div>
-              </div>
+      {/* Live Stock Performance */}
+      <div className="mb-6">
+        <h3 className="font-semibold text-white mb-4 text-lg">
+          Live Stock Performance
+        </h3>
+        <div className="flex items-center gap-8">
+          {/* Chart */}
+          <div className="relative w-32 h-32">
+            <svg viewBox="0 0 100 100" className="transform -rotate-90">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#1E293B" strokeWidth="12" />
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#EF4444" strokeWidth="12" strokeDasharray="75.4 251.2" strokeLinecap="round" />
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#FACC15" strokeWidth="12" strokeDasharray="90.48 251.2" strokeDashoffset="-75.4" strokeLinecap="round" />
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#22C55E" strokeWidth="12" strokeDasharray="85.44 251.2" strokeDashoffset="-165.88" strokeLinecap="round" />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-lg font-semibold">44</span>
             </div>
           </div>
 
-          {/* Exits Section */}
-          <div className="rounded-2xl p-8" style={{ backgroundColor: COLORS.white }}>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+          {/* Legend */}
+          <div className="flex-1 text-gray-300 text-sm space-y-2">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#FF5722' }}></div>
-                <h2 className="text-xl font-semibold" style={{ color: COLORS.black }}>
-                  36 Exits (past)
-                </h2>
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                High {">"}15%
               </div>
-              <span className="text-sm" style={{ color: COLORS.blue }}>
-                3 New Exits
-              </span>
+              <span className="font-semibold text-white">15</span>
             </div>
-
-            {/* Average Returns Card */}
-            <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: COLORS.beige }}>
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp size={24} style={{ color: COLORS.white }} />
-                <span className="text-sm" style={{ color: COLORS.white }}>
-                  Average Exit Returns
-                </span>
-                <InfoIcon size={16} style={{ color: COLORS.white }} />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                Medium (15% to -15%)
               </div>
-              <div className="flex items-center gap-1">
-                <TrendingUp size={20} style={{ color: COLORS.white }} />
-                <span className="text-4xl font-bold" style={{ color: COLORS.white }}>
-                  62.37%
-                </span>
-              </div>
+              <span className="font-semibold text-white">18</span>
             </div>
-
-            {/* Performance Chart */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-4" style={{ color: COLORS.black }}>
-                Exited Stock Performance
-              </h3>
-              <div className="flex items-center gap-8">
-                <div className="relative w-32 h-32">
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke={COLORS.gray} strokeWidth="12" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#4ADE80" strokeWidth="12" 
-                      strokeDasharray="251.2 251.2" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="text-sm">Profit Exits</span>
-                    </div>
-                    <span className="font-semibold">36</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.red }}></div>
-                      <span className="text-sm">Loss Exits</span>
-                    </div>
-                    <span className="font-semibold">0</span>
-                  </div>
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                Low {"<"} -15%
               </div>
-            </div>
-
-            {/* Best Exit and Worst Exit */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp size={16} />
-                  <span className="text-sm font-medium">Best Exit</span>
-                </div>
-                <div className="relative">
-                  <svg viewBox="0 0 120 40" className="w-full">
-                    <polyline points="0,35 20,30 40,32 60,20 80,18 100,12 120,8" 
-                      fill="none" stroke={COLORS.blue} strokeWidth="2" />
-                  </svg>
-                  <span className="absolute top-0 right-0 px-2 py-1 text-xs font-semibold rounded" 
-                    style={{ backgroundColor: COLORS.red, color: COLORS.white }}>SELL!</span>
-                </div>
-                <div className="mt-2">
-                  <div className="flex items-center gap-1">
-                    <TrendingUp size={16} className="text-green-500" />
-                    <span className="text-xl font-bold text-green-500">269.17%</span>
-                  </div>
-                  <p className="text-xs text-gray-500">in 1yr, 6mo</p>
-                  <p className="text-xs mt-1 font-medium">Gravita India Ltd.</p>
-                  <p className="text-xs text-gray-400">Inactive</p>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown size={16} />
-                  <span className="text-sm font-medium">Worst Exit</span>
-                </div>
-                <div className="relative">
-                  <svg viewBox="0 0 120 40" className="w-full">
-                    <polyline points="0,20 20,18 40,22 60,19 80,21 100,20 120,22" 
-                      fill="none" stroke={COLORS.blue} strokeWidth="2" />
-                  </svg>
-                  <span className="absolute top-0 right-0 px-2 py-1 text-xs font-semibold rounded" 
-                    style={{ backgroundColor: COLORS.red, color: COLORS.white }}>SELL!</span>
-                </div>
-                <div className="mt-2">
-                  <div className="flex items-center gap-1">
-                    <TrendingUp size={16} className="text-green-500" />
-                    <span className="text-xl font-bold text-green-500">0.67%</span>
-                  </div>
-                  <p className="text-xs text-gray-500">in 1yr, 8mo</p>
-                  <p className="text-xs mt-1 font-medium">Monte Carlo Fashions Ltd.</p>
-                  <p className="text-xs text-gray-400">Inactive</p>
-                </div>
-              </div>
+              <span className="font-semibold text-white">11</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Top Gainer & Loser */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Gainer */}
+        <div className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp size={16} className="text-green-400" />
+            <span className="text-sm text-gray-300 font-medium">Top Gainer</span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-bold text-green-400">+208.99%</span>
+            <p className="text-xs text-gray-400">in 2yr, 4mo</p>
+            <p className="text-xs mt-1">🔥 Target 2 | <span className="text-yellow-400">Active</span></p>
+          </div>
+        </div>
+
+        {/* Loser */}
+        <div className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingDown size={16} className="text-red-400" />
+            <span className="text-sm text-gray-300 font-medium">Top Loser</span>
+          </div>
+          <div className="mt-2">
+            <span className="text-2xl font-bold text-red-400">-46.11%</span>
+            <p className="text-xs text-gray-400">in 9 months</p>
+            <p className="text-xs mt-1">🔥 Target 2 | <span className="text-yellow-400">Active</span></p>
+          </div>
+        </div>
+      </div>
     </div>
+
+    {/* Exits */}
+    <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
+          <h2 className="text-2xl font-semibold text-white">
+            36 Exits (past)
+          </h2>
+        </div>
+        <span className="text-sm text-blue-300 font-medium">3 New Exits</span>
+      </div>
+
+      <div className="rounded-xl p-6 mb-6 bg-gradient-to-r from-pink-500 to-orange-400 shadow-md">
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp size={24} className="text-white" />
+          <span className="text-sm text-white">Average Exit Returns</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <TrendingUp size={20} className="text-white" />
+          <span className="text-4xl font-bold text-white">62.37%</span>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="font-semibold text-white mb-4 text-lg">
+          Exited Stock Performance
+        </h3>
+        <div className="flex items-center gap-8">
+          <div className="relative w-32 h-32">
+            <svg viewBox="0 0 100 100" className="transform -rotate-90">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#1E293B" strokeWidth="12" />
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#22C55E" strokeWidth="12" strokeDasharray="251.2 251.2" strokeLinecap="round" />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-lg font-semibold">100%</span>
+            </div>
+          </div>
+          <div className="flex-1 text-gray-300 text-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                Profit Exits
+              </div>
+              <span className="font-semibold text-white">36</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                Loss Exits
+              </div>
+              <span className="font-semibold text-white">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Best & Worst Exit */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp size={16} className="text-green-400" />
+            <span className="text-sm text-gray-300 font-medium">Best Exit</span>
+          </div>
+          <span className="text-2xl font-bold text-green-400">+269.17%</span>
+          <p className="text-xs text-gray-400">in 1yr, 6mo</p>
+          <p className="text-xs mt-1 font-medium text-white">Gravita India Ltd.</p>
+          <p className="text-xs text-gray-400">Inactive</p>
+        </div>
+
+        <div className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingDown size={16} className="text-red-400" />
+            <span className="text-sm text-gray-300 font-medium">Worst Exit</span>
+          </div>
+          <span className="text-2xl font-bold text-green-400">+0.67%</span>
+          <p className="text-xs text-gray-400">in 1yr, 8mo</p>
+          <p className="text-xs mt-1 font-medium text-white">
+            Monte Carlo Fashions Ltd.
+          </p>
+          <p className="text-xs text-gray-400">Inactive</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -398,9 +349,12 @@ const UserDashboard = () => {
                   Latest stock picks and analysis
                 </p>
               </div>
-              <button className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium self-start sm:self-auto">
+              <Link
+                to="/user/app/recommendation"
+                className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium self-start sm:self-auto"
+              >
                 View All →
-              </button>
+              </Link>
             </div>
 
             {/* Stock Recommendations */}
@@ -510,15 +464,17 @@ const UserDashboard = () => {
                   Recent market insights
                 </p>
               </div>
-              <button className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium self-start sm:self-auto">
-                View All →
-              </button>
             </div>
 
             {/* Updates */}
             <div className="space-y-4 sm:space-y-6">
               {/* NVIDIA Update */}
-              <div className="border-l-4 border-red-200 pl-3 sm:pl-4">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block border-l-4 border-red-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
+              >
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
                   <span className="font-medium text-gray-900 text-sm sm:text-base">
@@ -533,10 +489,15 @@ const UserDashboard = () => {
                   thesis - raising price target to $180
                 </p>
                 <div className="text-xs text-gray-500">Jan 15 • Sarah Chen</div>
-              </div>
+              </a>
 
               {/* Market Update */}
-              <div className="border-l-4 border-yellow-200 pl-3 sm:pl-4">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block border-l-4 border-yellow-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
+              >
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
                   <span className="font-medium text-gray-900 text-sm sm:text-base">
@@ -553,10 +514,15 @@ const UserDashboard = () => {
                 <div className="text-xs text-gray-500">
                   Jan 12 • Research Team
                 </div>
-              </div>
+              </a>
 
               {/* CrowdStrike Update */}
-              <div className="border-l-4 border-yellow-200 pl-3 sm:pl-4">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block border-l-4 border-yellow-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
+              >
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
                   <span className="font-medium text-gray-900 text-sm sm:text-base">
@@ -569,13 +535,15 @@ const UserDashboard = () => {
                 <p className="text-xs sm:text-sm text-gray-600 mb-2">
                   Strong enterprise momentum supports our bullish thesis
                 </p>
-              </div>
+                <div className="text-xs text-gray-500">
+                  Jan 10 • Analyst Team
+                </div>
+              </a>
             </div>
           </div>
         </div>
 
         {/* Portfolio Performance Chart */}
-    
       </div>
     </div>
   );

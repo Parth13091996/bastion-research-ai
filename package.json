@@ -32,5 +32,9 @@
     "onlyBuiltDependencies": [
       "@swc/core"
     ]
+  },
+  "dependencies": {
+    "rechart": "^0.0.1",
+    "recharts": "^3.2.1"
   }
 }
