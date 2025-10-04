@@ -10,6 +10,7 @@ import RegisterStep from "./Steps/RegisterStep";
 import VerifyStep from "./Steps/VerifyStep";
 import { endpoints } from "@/api/endpoints";
 import { useAuth } from "@/contexts/AuthContext";
+import favicon from "../../../../server/public/favicon.webp";
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
@@ -77,7 +78,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const updateFormData = (field: string, value: any) => {
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as OnboardingFormData;
-
       if (
         (field === "firstName" ||
           field === "lastName" ||
@@ -86,7 +86,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       ) {
         next.panVerification = null;
       }
-
       return next;
     });
   };
@@ -284,70 +283,64 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className="flex h-full">
-          {/* Left Sidebar */}
-          <div className="w-80 bg-gray-50 p-6 border-r">
-            <div className="mb-8">
-              <div className="flex items-center mb-2">
-                <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center text-white font-bold text-sm mr-3">
-                  B
-                </div>
-                <span className="font-bold text-lg">BASTION</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                TripleEdge
-              </h1>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden flex flex-col sm:flex-row">
+        {/* Sidebar */}
+        <div className="w-full sm:w-80 bg-gray-50 p-4 sm:p-6 border-b sm:border-b-0 sm:border-r overflow-y-auto pt-8 sm:pt-6">
+          {/* ↑ Added pt-8 for mobile spacing */}
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center mb-2">
+              <img src={favicon} alt="BASTION" className="w-8 h-8 mr-3" />
+              <span className="font-bold text-lg">BASTION</span>
             </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+              TripleEdge
+            </h1>
+          </div>
 
-            <div className="space-y-2">
-              {steps.map((step) => (
+          <div className="space-y-2">
+            {steps.map((step) => (
+              <div
+                key={step.id}
+                className={`flex items-center p-3 rounded-lg transition-colors text-sm sm:text-base ${
+                  currentStep === step.id
+                    ? "bg-red-100 text-red-700 border-l-4 border-red-500"
+                    : currentStep > step.id
+                      ? "bg-green-50 text-green-700"
+                      : "text-gray-500"
+                }`}
+              >
                 <div
-                  key={step.id}
-                  className={`flex items-center p-3 rounded-lg transition-colors ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${
                     currentStep === step.id
-                      ? "bg-red-100 text-red-700 border-l-4 border-red-500"
+                      ? "bg-red-500 text-white"
                       : currentStep > step.id
-                        ? "bg-green-50 text-green-700"
-                        : "text-gray-500"
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300 text-gray-600"
                   }`}
                 >
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${
-                      currentStep === step.id
-                        ? "bg-red-500 text-white"
-                        : currentStep > step.id
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-300 text-gray-600"
-                    }`}
-                  >
-                    {currentStep > step.id ? <Check size={12} /> : step.id}
-                  </div>
-                  <span className="font-medium">{step.name}</span>
+                  {currentStep > step.id ? <Check size={12} /> : step.id}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 p-8 overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">
-                  Subscribe to invest in <strong>TripleEdge</strong>
-                </p>
+                <span className="font-medium">{step.name}</span>
               </div>
-              <button
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {renderStep()}
+            ))}
           </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <p className="text-xs sm:text-sm text-gray-600">
+              Subscribe to invest in <strong>TripleEdge</strong>
+            </p>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X size={22} />
+            </button>
+          </div>
+          {renderStep()}
         </div>
       </div>
     </div>
