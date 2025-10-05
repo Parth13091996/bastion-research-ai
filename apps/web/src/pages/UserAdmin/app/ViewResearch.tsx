@@ -1,237 +1,337 @@
-import React, { useState } from 'react';
-import { TrendingUp, FileText, Video, ExternalLink, X } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+import React, { useState } from "react";
+import { Link } from 'react-router-dom';
+import {
+  TrendingUp,
+  FileText,
+  Video,
+  ExternalLink,
+  X,
+  Bell,
+  ClipboardList,
+  Building2,
+  ShoppingCart,
+} from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const ViewResearch = () => {
-  const [selectedUpdate, setSelectedUpdate] = useState(null);
+  const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
+  const [timeRange, setTimeRange] = useState("ALL");
 
-  // Sample data for the chart
-  const chartData = [
-    { date: 'Jan', stock: 100, bse500: 100 },
-    { date: 'Feb', stock: 105, bse500: 102 },
-    { date: 'Mar', stock: 110, bse500: 104 },
-    { date: 'Apr', stock: 115, bse500: 106 },
-    { date: 'May', stock: 125, bse500: 108 },
-    { date: 'Jun', stock: 135, bse500: 110 },
+  // Simulated data for 6 months
+  const allData = [
+    { date: "2024-01-01", stock: 100, bse500: 100 },
+    { date: "2024-02-01", stock: 105, bse500: 102 },
+    { date: "2024-03-01", stock: 110, bse500: 104 },
+    { date: "2024-04-01", stock: 115, bse500: 106 },
+    { date: "2024-05-01", stock: 125, bse500: 108 },
+    { date: "2024-06-01", stock: 135, bse500: 110 },
+    { date: "2024-07-01", stock: 140, bse500: 113 },
+    { date: "2024-08-01", stock: 150, bse500: 115 },
+    { date: "2024-09-01", stock: 155, bse500: 118 },
+    { date: "2024-10-01", stock: 160, bse500: 120 },
   ];
 
-  // Sample updates data
+  // Function to filter data based on time range
+  const getFilteredData = () => {
+    const now = new Date("2024-10-01");
+    let cutoff: Date;
+    switch (timeRange) {
+      case "1M":
+        cutoff = new Date(now);
+        cutoff.setMonth(cutoff.getMonth() - 1);
+        break;
+      case "3M":
+        cutoff = new Date(now);
+        cutoff.setMonth(cutoff.getMonth() - 3);
+        break;
+      case "1Y":
+        cutoff = new Date(now);
+        cutoff.setFullYear(cutoff.getFullYear() - 1);
+        break;
+      default:
+        return allData;
+    }
+    return allData.filter((d) => new Date(d.date) >= cutoff);
+  };
+
   const updates = [
     {
       id: 1,
-      date: '15 Sep 2024',
-      heading: 'Q2 FY24 Results Analysis',
-      preview: 'Strong revenue growth of 24% YoY driven by increased demand in domestic markets. EBITDA margins improved by 180 bps...',
-      hasPdf: true
+      date: "15 Sep 2024",
+      heading: "Q2 FY24 Results Analysis",
+      preview:
+        "Strong revenue growth of 24% YoY driven by increased demand in domestic markets. EBITDA margins improved by 180 bps...",
+      hasPdf: true,
     },
     {
       id: 2,
-      date: '10 Aug 2024',
-      heading: 'Management Commentary Update',
-      preview: 'Management remains optimistic about H2 outlook. Capacity expansion on track for Q3 completion. New product launches expected...',
-      hasPdf: true
+      date: "10 Aug 2024",
+      heading: "Management Commentary Update",
+      preview:
+        "Management remains optimistic about H2 outlook. Capacity expansion on track for Q3 completion...",
+      hasPdf: true,
     },
     {
       id: 3,
-      date: '05 Jul 2024',
-      heading: 'Industry Tailwinds Analysis',
-      preview: 'Sector showing strong momentum with government policy support. Key beneficiaries identified across value chain...',
-      hasPdf: false
-    },
-    {
-      id: 4,
-      date: '20 Jun 2024',
-      heading: 'Quarterly Business Review',
-      preview: 'Order book visibility remains strong at 12+ months. Operating leverage playing out well with volume growth...',
-      hasPdf: true
+      date: "05 Jul 2024",
+      heading: "Industry Tailwinds Analysis",
+      preview:
+        "Sector showing strong momentum with government policy support. Key beneficiaries identified...",
+      hasPdf: false,
     },
   ];
 
-  const stockMetrics = {
-    recommendationDate: '12 Jan 2024',
-    recommendationPrice: '₹285',
-    targetPrice: '₹420',
-    cmp: '₹385',
-    totalReturn: '+35.1%',
-    upsideLeft: '+9.1%'
-  };
+  const stockMetrics = [
+    { label: "Recommendation Date", value: "12 Jan 2024" },
+    { label: "Recommendation Price", value: "₹285" },
+    { label: "Target Price", value: "₹420" },
+    { label: "CMP", value: "₹385" },
+    { label: "Total Return", value: "+35.1%", color: "text-green-600" },
+    { label: "Upside Left", value: "+9.1%", color: "text-blue-600" },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Section 1 - Header */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Company Name Ltd.</h1>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors">
-              Raise a Query
-            </button>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* HEADER */}
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Building2 size={28} className="text-blue-600" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight">
+              Company Name Ltd.
+            </h1>
           </div>
-          
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-6 gap-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">Recommendation Date</div>
-              <div className="text-sm font-semibold text-gray-900">{stockMetrics.recommendationDate}</div>
+            <div className="flex items-center gap-3">
+              <button className="bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1">
+                <ShoppingCart size={14} />
+                Buy
+              </button>
+              <Link
+                to="/contact-us"
+                className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium inline-block text-center"
+              >
+                Raise a Query
+              </Link>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">Recommendation Price</div>
-              <div className="text-sm font-semibold text-gray-900">{stockMetrics.recommendationPrice}</div>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">Target Price</div>
-              <div className="text-sm font-semibold text-gray-900">{stockMetrics.targetPrice}</div>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">CMP</div>
-              <div className="text-sm font-semibold text-gray-900">{stockMetrics.cmp}</div>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">Total Return</div>
-              <div className="text-sm font-semibold text-green-600">{stockMetrics.totalReturn}</div>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-xs text-gray-500 mb-1">Upside Left</div>
-              <div className="text-sm font-semibold text-blue-600">{stockMetrics.upsideLeft}</div>
-            </div>
-          </div>
         </div>
-      </div>
 
-      {/* Section 2 - Chart and Resources */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-2 gap-6">
-          {/* Left Side - Chart */}
+        {/* METRICS */}
+        <div className="max-w-7xl mx-auto px-6 pb-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {stockMetrics.map((m, i) => (
+            <div
+              key={i}
+              className="bg-gray-50 p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center hover:bg-gray-100 transition"
+            >
+              <p className="text-xs text-gray-500 mb-1">{m.label}</p>
+              <p className={`text-sm font-semibold ${m.color || "text-gray-900"}`}>
+                {m.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </header>
+
+      {/* BODY */}
+      <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
+        {/* CHART + RESOURCES */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Chart */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Stock Performance vs BSE 500
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">Since Recommendation Date</p>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Stock Performance vs BSE 500
+                </h2>
+                <p className="text-sm text-gray-500">Since 12 Jan 2024</p>
+              </div>
+              <div className="flex gap-2">
+                {["1M", "3M", "1Y", "ALL"].map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-3 py-1 text-xs rounded-full border shadow-sm ${
+                      timeRange === range
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
+                    }`}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={getFilteredData()}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" stroke="#9ca3af" />
                 <YAxis stroke="#9ca3af" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#fff', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px'
-                  }} 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                  }}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="stock" 
-                  stroke="#2563eb" 
+                <Line
+                  type="monotone"
+                  dataKey="stock"
+                  stroke="#2563eb"
                   strokeWidth={2}
                   name="Stock"
-                  dot={{ fill: '#2563eb', r: 4 }}
+                  dot={{ fill: "#2563eb", r: 4 }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="bse500" 
-                  stroke="#10b981" 
+                <Line
+                  type="monotone"
+                  dataKey="bse500"
+                  stroke="#10b981"
                   strokeWidth={2}
                   name="BSE 500"
-                  dot={{ fill: '#10b981', r: 4 }}
+                  dot={{ fill: "#10b981", r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Right Side - Resources and Updates */}
+          {/* Resources + Quarterly Updates */}
           <div className="space-y-6">
-            {/* Resource Buttons */}
+            {/* Resources */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <button className="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-lg font-medium transition-colors">
-                  <FileText size={18} />
-                  <span className="text-sm">Business Note</span>
-                </button>
-                <button className="flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 px-4 py-3 rounded-lg font-medium transition-colors">
-                  <FileText size={18} />
-                  <span className="text-sm">Quick Bite</span>
-                </button>
-                <button className="flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-3 rounded-lg font-medium transition-colors">
-                  <Video size={18} />
-                  <span className="text-sm">Watch Video</span>
-                </button>
-                <button className="flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-3 rounded-lg font-medium transition-colors">
-                  <FileText size={18} />
-                  <span className="text-sm">Exit Rationale</span>
-                </button>
+            <div className="space-y-3">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-6 py-4 rounded-lg font-semibold shadow-sm"
+              >
+                <FileText size={18} />
+                Read Business Understanding Note
+              </a>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Quick Bite", color: "purple", icon: <FileText size={16} /> },
+                  { label: "Watch Video", color: "red", icon: <Video size={16} /> },
+                  { label: "Exit Rationale", color: "orange", icon: <FileText size={16} /> },
+                ].map((btn) => {
+                  if (btn.label === "Watch Video") {
+                    return (
+                      <a
+                        key={btn.label}
+                        href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
+                      >
+                        {btn.icon}
+                        {btn.label}
+                      </a>
+                    );
+                  } else {
+                    return (
+                      <a
+                        key={btn.label}
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
+                      >
+                        {btn.icon}
+                        {btn.label}
+                      </a>
+                    );
+                  }
+                })}
               </div>
+            </div>
             </div>
 
             {/* Quarterly Updates */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quarterly Updates</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <ClipboardList className="text-blue-600" size={20} />
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Quarterly Updates
+                </h3>
+              </div>
               <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
-                {updates.slice(0, 3).map((update) => (
+                {updates.map((u) => (
                   <div
-                    key={update.id}
-                    onClick={() => setSelectedUpdate(update)}
-                    className="p-4 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors border border-gray-200"
+                    key={u.id}
+                    onClick={() => setSelectedUpdate(u)}
+                    className="p-4 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer border border-gray-200 shadow-sm transition-all"
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs text-gray-500">{update.date}</span>
-                      {update.hasPdf && (
-                        <FileText size={14} className="text-gray-400" />
-                      )}
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">
+                        {u.date}
+                      </span>
+                      {u.hasPdf && <FileText size={14} className="text-gray-400" />}
                     </div>
                     <h4 className="font-semibold text-gray-900 mb-1 text-sm">
-                      {update.heading}
+                      {u.heading}
                     </h4>
-                    <p className="text-xs text-gray-600 line-clamp-2">
-                      {update.preview}
-                    </p>
+                    <p className="text-xs text-gray-600 line-clamp-2">{u.preview}</p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Section 3 - All Updates */}
-      <div className="max-w-7xl mx-auto px-6 pb-12">
+        {/* All Updates */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">All Updates</h2>
-          <div className="grid grid-cols-3 gap-4">
-            {updates.map((update) => (
+          <div className="flex items-center gap-2 mb-6">
+            <Bell className="text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">
+              Important Announcements and Updates
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {updates.map((u) => (
               <div
-                key={update.id}
-                onClick={() => setSelectedUpdate(update)}
-                className="p-5 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-all border border-gray-200 hover:shadow-md"
+                key={u.id}
+                onClick={() => setSelectedUpdate(u)}
+                className="p-5 bg-gray-50 hover:bg-white border border-gray-200 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md"
               >
-                <div className="flex justify-between items-start mb-3">
-                  <span className="text-xs text-gray-500 font-medium">{update.date}</span>
-                  {update.hasPdf && (
-                    <FileText size={16} className="text-blue-600" />
-                  )}
+                <div className="flex justify-between items-center mb-3">
+                  <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">
+                    {u.date}
+                  </span>
+                  {u.hasPdf && <FileText size={16} className="text-blue-600" />}
                 </div>
                 <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                  {update.heading}
+                  {u.heading}
                 </h4>
-                <p className="text-xs text-gray-600 line-clamp-3">
-                  {update.preview}
-                </p>
+                <p className="text-xs text-gray-600 line-clamp-3">{u.preview}</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Modal Popup */}
+      {/* MODAL */}
       {selectedUpdate && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-start">
               <div>
-                <div className="text-sm text-gray-500 mb-2">{selectedUpdate.date}</div>
-                <h3 className="text-xl font-bold text-gray-900">{selectedUpdate.heading}</h3>
+                <div className="text-sm text-gray-500 mb-2">
+                  {selectedUpdate.date}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {selectedUpdate.heading}
+                </h3>
               </div>
               <button
                 onClick={() => setSelectedUpdate(null)}
