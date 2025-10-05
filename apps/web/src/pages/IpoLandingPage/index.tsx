@@ -7,8 +7,8 @@ import Pricing from "./components/Pricing";
 import Pilot from "./components/Pilot";
 import Faq from "./components/Faq";
 import Testimonials from "./components/Testimonials";
-import Footer from "./components/Footer";
 import Hero from "./components/Hero";
+import Footer from "./components/footer";
 
 const Landing: React.FC = () => {
   const [activeSection, setActiveSection] = useState("fit");

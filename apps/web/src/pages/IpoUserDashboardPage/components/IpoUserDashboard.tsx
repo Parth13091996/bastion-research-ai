@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, Calendar, BarChart3, FileText, TrendingUp, AlertTriangle } from 'lucide-react';
 import Header from './Header';
-import Footer from '../../IpoLandingPage/components/Footer';
-import AllIpos from './AllIPOs';
+import Footer from '@/components/generic/Footer';
 
 const IpoUserDashboard = () => {
   const [showAllIpos, setShowAllIpos] = useState(false);
