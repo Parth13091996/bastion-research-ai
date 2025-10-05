@@ -1,4 +1,6 @@
+
 import React, { useState } from "react";
+import { Link } from 'react-router-dom';
 import {
   TrendingUp,
   FileText,
@@ -109,15 +111,18 @@ const ViewResearch = () => {
               Company Name Ltd.
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1">
-              <ShoppingCart size={14} />
-              Buy
-            </button>
-            <button className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium">
-              Raise a Query
-            </button>
-          </div>
+            <div className="flex items-center gap-3">
+              <button className="bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1">
+                <ShoppingCart size={14} />
+                Buy
+              </button>
+              <Link
+                to="/contact-us"
+                className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium inline-block text-center"
+              >
+                Raise a Query
+              </Link>
+            </div>
         </div>
 
         {/* METRICS */}
@@ -147,7 +152,7 @@ const ViewResearch = () => {
                 <h2 className="text-lg font-semibold text-gray-900">
                   Stock Performance vs BSE 500
                 </h2>
-                <p className="text-sm text-gray-500">Since Recommendation Date</p>
+                <p className="text-sm text-gray-500">Since 12 Jan 2024</p>
               </div>
               <div className="flex gap-2">
                 {["1M", "3M", "1Y", "ALL"].map((range) => (
@@ -166,7 +171,7 @@ const ViewResearch = () => {
               </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={400}>
               <LineChart data={getFilteredData()}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" stroke="#9ca3af" />
@@ -204,27 +209,52 @@ const ViewResearch = () => {
             {/* Resources */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
-              <div className="space-y-3">
-                <button className="w-full flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-6 py-4 rounded-lg font-semibold shadow-sm">
-                  <FileText size={18} />
-                  Read Business Understanding Note
-                </button>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: "Quick Bite", color: "purple", icon: <FileText size={16} /> },
-                    { label: "Watch Video", color: "red", icon: <Video size={16} /> },
-                    { label: "Exit Rationale", color: "orange", icon: <FileText size={16} /> },
-                  ].map((btn) => (
-                    <button
-                      key={btn.label}
-                      className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
-                    >
-                      {btn.icon}
-                      {btn.label}
-                    </button>
-                  ))}
-                </div>
+            <div className="space-y-3">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-6 py-4 rounded-lg font-semibold shadow-sm"
+              >
+                <FileText size={18} />
+                Read Business Understanding Note
+              </a>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Quick Bite", color: "purple", icon: <FileText size={16} /> },
+                  { label: "Watch Video", color: "red", icon: <Video size={16} /> },
+                  { label: "Exit Rationale", color: "orange", icon: <FileText size={16} /> },
+                ].map((btn) => {
+                  if (btn.label === "Watch Video") {
+                    return (
+                      <a
+                        key={btn.label}
+                        href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
+                      >
+                        {btn.icon}
+                        {btn.label}
+                      </a>
+                    );
+                  } else {
+                    return (
+                      <a
+                        key={btn.label}
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
+                      >
+                        {btn.icon}
+                        {btn.label}
+                      </a>
+                    );
+                  }
+                })}
               </div>
+            </div>
             </div>
 
             {/* Quarterly Updates */}
