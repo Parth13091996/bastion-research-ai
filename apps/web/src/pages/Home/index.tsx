@@ -45,6 +45,28 @@ export default function LandingPage() {
     setProgress(0);
   }, [active]);
 
+  // pdf download functionality
+  const PDF_URL = "/media/Research-Ally-Product-Note-BRH.pdf";
+
+  const downloadPdf = async (filename = "Research-Ally-Product-Note-BRH.pdf") => {
+    try {
+      const res = await fetch(PDF_URL, { cache: "no-cache" });
+      if (!res.ok) throw new Error("Network response was not ok");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      window.open(PDF_URL, "_blank");
+    }
+  };
+
+
   return (
     <>
       <BackgroundShapes />
@@ -101,9 +123,9 @@ export default function LandingPage() {
                     className="px-6 py-4 text-center font-semibold text-xl md:text-2xl"
                     style={{ color: "black" }}
                   >
-                    Which type of Investor are you?
+                    Which type of Investor are you ?
                   </div>
-                  <p className="mb-4 p-2 text-base md:text-lg opacity-80 max-w-3xl mx-auto items-center">
+                  <p className="mb-4 p-2 text-base md:text-lg opacity-80 max-w-3xl mx-auto items-center text-center">
                     We’ve built different Bastion products for different kinds
                     of investors. Pick the profile that feels closest to you and
                     see what’s a fit.
@@ -276,6 +298,7 @@ export default function LandingPage() {
                           boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => window.location.href = "/contact-us"}
                       >
                         Request a Call
                       </motion.button>
@@ -291,6 +314,7 @@ export default function LandingPage() {
                           boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => downloadPdf()}
                       >
                         Download Product Note
                       </motion.button>
@@ -307,8 +331,8 @@ export default function LandingPage() {
                     >
                       {[
                         { label: "Bastion CORE", href: "/bastion-core" },
-                        { label: "Access Research", href: "/spotlights" },
-                        { label: "Subscribe Now", href: "/subscribe" },
+                        { label: "Access Research", href: "/register" },
+                        { label: "Subscribe Now", href: "/bastion-core" },
                       ].map((item, i) => (
                         <motion.a
                           key={item.label}
@@ -355,6 +379,7 @@ export default function LandingPage() {
                           boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => window.location.href = "https://bastionresearch.gridkey.in/dashboard"}
                       >
                         View Product Page
                       </motion.button>
@@ -370,6 +395,7 @@ export default function LandingPage() {
                           boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => window.location.href = "https://bastionresearch.gridkey.in/dashboard"}
                       >
                         Subscribe Portfolio
                       </motion.button>
@@ -379,7 +405,7 @@ export default function LandingPage() {
               </motion.section>
 
               <footer className="pt-4 text-lg opacity-60 text-center items-center relative">
-                Don’t fit neatly into these categories? You can still join in.{" "}
+                Don’t fit neatly into these categories ? You can still join in.{" "}
                 <a href="/contact-us" className="underline">
                   Contact us
                 </a>
