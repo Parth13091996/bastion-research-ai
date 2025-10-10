@@ -28,7 +28,9 @@ const PublicWebinarsPage = () => {
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.webinars],
     queryFn: () =>
-      axiosInstance.get(endpoints.content.webinars.base).then((res) => res.data),
+      axiosInstance
+        .get(endpoints.content.webinars.base)
+        .then((res) => res.data),
   });
 
   const { start, stop } = useLoader();
@@ -52,7 +54,7 @@ const PublicWebinarsPage = () => {
   };
 
   const handleShare = (id: string) => {
-    const link = `${window.location.origin}/webinar/${id}`;
+    const link = AppRoutes.webinarView().replace(":id", id);
     navigator.clipboard.writeText(link);
     toast.success("Link copied!");
   };
@@ -74,12 +76,16 @@ const PublicWebinarsPage = () => {
       <div className="relative px-6 max-w-7xl z-10 mx-auto">
         {/* Header */}
         <div className="pt-8 pb-4">
-          <h1 className="text-4xl font-bold mb-4" style={{ color: COLORS.blue }}>
+          <h1
+            className="text-4xl font-bold mb-4"
+            style={{ color: COLORS.blue }}
+          >
             Bastion Webinars
           </h1>
           <p className="text-gray-600 max-w-2xl">
-            Stay informed with Bastion Webinars, your go-to source for the latest
-            insights, trends, and updates in the world of business and technology.
+            Stay informed with Bastion Webinars, your go-to source for the
+            latest insights, trends, and updates in the world of business and
+            technology.
           </p>
         </div>
 
@@ -111,7 +117,9 @@ const PublicWebinarsPage = () => {
           {currentWebinars.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {currentWebinars.map((webinar) => {
-                const videoId = new URL(webinar.video_url).pathname.split("/").at(-1);
+                const videoId = new URL(webinar.video_url).pathname
+                  .split("/")
+                  .at(-1);
                 const link = AppRoutes.webinarView().replace(":id", webinar.id);
 
                 return (

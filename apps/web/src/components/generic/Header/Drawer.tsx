@@ -7,6 +7,7 @@ import {
   FaTwitter,
   FaLinkedinIn,
 } from "react-icons/fa";
+import { AppRoutes } from "@/routes/app-routes";
 
 const Drawer = ({
   isNavOpen,
@@ -21,7 +22,12 @@ const Drawer = ({
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const targetNode = event.target as Node | null;
 
-      if (isNavOpen && navDrawerRef.current && targetNode && !navDrawerRef.current.contains(targetNode)) {
+      if (
+        isNavOpen &&
+        navDrawerRef.current &&
+        targetNode &&
+        !navDrawerRef.current.contains(targetNode)
+      ) {
         setIsNavOpen(false);
       }
       if (
@@ -92,7 +98,10 @@ const Drawer = ({
             onClick={() => setIsNavOpen(false)}
           ></div>
 
-          <div ref={navDrawerRef} className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right">
+          <div
+            ref={navDrawerRef}
+            className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right"
+          >
             {/* Content */}
             <div className="flex-1 p-6 flex flex-col space-y-4 overflow-y-auto">
               <button
@@ -130,7 +139,7 @@ const Drawer = ({
               </div>
 
               <Link
-                to="/contact"
+                to={AppRoutes.contact()}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg text-center font-medium"
                 onClick={() => setIsNavOpen(false)}
               >
@@ -151,7 +160,10 @@ const Drawer = ({
             onClick={() => setIsProfileOpen(false)}
           ></div>
 
-          <div ref={profileDrawerRef} className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right">
+          <div
+            ref={profileDrawerRef}
+            className="relative w-72 bg-white/70 backdrop-blur-md flex flex-col shadow-lg animate-slide-in-right"
+          >
             {/* Content */}
             <div className="flex-1 p-6 flex flex-col space-y-4 overflow-y-auto">
               <button

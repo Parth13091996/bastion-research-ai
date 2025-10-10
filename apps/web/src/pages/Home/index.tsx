@@ -103,8 +103,10 @@ export default function LandingPage() {
                   >
                     Which type of Investor are you?
                   </div>
-                  <p className="mb-4 p-2 text-base md:text-lg opacity-80 max-w-3xl mx-auto">
-                    We’ve built different Bastion products for different kinds of investors. Pick the profile that feels closest to you and see what’s a fit.
+                  <p className="mb-4 p-2 text-base md:text-lg opacity-80 max-w-3xl mx-auto items-center">
+                    We’ve built different Bastion products for different kinds
+                    of investors. Pick the profile that feels closest to you and
+                    see what’s a fit.
                   </p>
 
                   {/* Enhanced tab bar */}
@@ -180,7 +182,6 @@ export default function LandingPage() {
                               "Ongoing maintenance research on covered names",
                               "Knowledge transfer (business understanding + data packs)",
                               "Analyst access across multiple sectors",
-
                             ]}
                           />
                         </motion.div>
@@ -203,7 +204,6 @@ export default function LandingPage() {
                               "I am willing to learn and track the businesses I invest in",
                               "I want expert handholding, not tips and noise",
                               "I think in 3–5 year horizons",
-
                             ]}
                           />
                           <Panel
@@ -214,7 +214,6 @@ export default function LandingPage() {
                               "Access to our Scratchpad (near-miss ideas with reasons)",
                               "IPO notes on interesting listings",
                               "Discounted access to Adaptive Quality portfolios",
-
                             ]}
                           />
                         </motion.div>
@@ -235,7 +234,6 @@ export default function LandingPage() {
                               "I want research-backed investing without the heavy lifting",
                               "I don’t have time to read reports or track businesses",
                               "I prefer ready-to-execute portfolios with a 3–5 year view",
-
                             ]}
                           />
                           <Panel
@@ -251,7 +249,6 @@ export default function LandingPage() {
                                 ],
                               },
                             ]}
-
                           />
                         </motion.div>
                       )}
@@ -381,12 +378,15 @@ export default function LandingPage() {
                 </div>
               </motion.section>
 
-              <footer className="pt-4 text-lg opacity-60 text-center relative">
-                Don’t fit neatly into these categories?You can still join in. {" "}
+              <footer className="pt-4 text-lg opacity-60 text-center items-center relative">
+                Don’t fit neatly into these categories? You can still join in.{" "}
                 <a href="/contact-us" className="underline">
                   Contact us
-                </a>{" "}
-                Read our free newsletters and watch our podcast (Made in India), deep dives into India’s most fascinating companies and their untold stories.
+                </a>
+                <br />
+                Read our free newsletters and watch our podcast (Made in India),
+                deep dives into India’s most fascinating companies and their
+                untold stories.
               </footer>
             </div>
           </div>
@@ -460,7 +460,7 @@ function Panel({ title, bullets }: { title: string; bullets: BulletItem[] }) {
                     key={i}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: (index * 0.1) + (i * 0.05) }}
+                    transition={{ delay: index * 0.1 + i * 0.05 }}
                   >
                     {sub}
                   </motion.li>

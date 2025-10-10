@@ -1,5 +1,6 @@
 // components/Header/DesktopNav.jsx
 import { useAuth } from "@/contexts/AuthContext";
+import { AppRoutes } from "@/routes/app-routes";
 import { Link } from "react-router-dom";
 // OLD DROPDOWN - COMMENTED OUT (Now redirecting to UserAdmin sidebar)
 // import MyAccountDropdown from "./MyAccountDropdown";
@@ -8,15 +9,6 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
   const { user, isLoading } = useAuth();
   return (
     <nav className="hidden md:flex items-center space-x-8">
-      <Link
-        to="/"
-        className="relative text-gray-700 hover:text-red-600 transition-colors group"
-      >
-        Home
-        <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-      </Link>
-
-      {/* Knowledge Center Dropdown (Hover) */}
       <div className="relative group">
         <div
           className="relative text-gray-700 hover:text-red-600 transition-colors flex items-center cursor-pointer"
@@ -101,13 +93,16 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
           {user?.profile_picture ? (
             <img
               src={user.profile_picture}
-              alt={`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User'}
+              alt={
+                `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+                "User"
+              }
               className="h-6 w-6 rounded-full object-cover mr-2 border border-gray-300"
             />
           ) : (
             <div className="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center mr-2 border border-gray-300">
               <span className="text-xs font-medium text-gray-700">
-                {user?.first_name?.[0] || user?.username?.[0] || 'U'}
+                {user?.first_name?.[0] || user?.username?.[0] || "U"}
               </span>
             </div>
           )}
@@ -137,7 +132,7 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
       )}
 
       <Link
-        to="/contact"
+        to={AppRoutes.contact()}
         className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
       >
         Contact Us

@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom"; // Import Link
 import { useState, useEffect } from "react";
 import SocialIcons from "./SocialIcons";
+import { AppRoutes } from "@/routes/app-routes";
 
 // Brand Colors
 const COLORS = {
@@ -108,7 +109,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    to="/contact"
+                    to={AppRoutes.contact()}
                     className="relative group hover:text-red-200 transition-colors inline-block"
                   >
                     Contact

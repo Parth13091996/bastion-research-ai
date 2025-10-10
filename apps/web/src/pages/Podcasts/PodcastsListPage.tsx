@@ -27,7 +27,9 @@ const PublicPodcastsPage = () => {
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.podcasts],
     queryFn: () =>
-      axiosInstance.get(endpoints.content.podcasts.base).then((res) => res.data),
+      axiosInstance
+        .get(endpoints.content.podcasts.base)
+        .then((res) => res.data),
   });
 
   const { start, stop } = useLoader();
@@ -45,7 +47,7 @@ const PublicPodcastsPage = () => {
   };
 
   const handleShare = (id: string) => {
-    const link = `${window.location.origin}/podcast/${id}`;
+    const link = AppRoutes.podcastView().replace(":id", id);
     navigator.clipboard.writeText(link);
     toast.success("Link copied!");
   };
