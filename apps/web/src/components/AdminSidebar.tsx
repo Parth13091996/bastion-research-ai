@@ -19,7 +19,8 @@ import {
   Mail,
   Mic,
   Video,
-} from "lucide-react"; // Added Mail, Mic, and Video icons
+  Star,
+} from "lucide-react";
 import { AppRoutes } from "../routes/app-routes";
 
 const navItems = [
@@ -65,23 +66,28 @@ const navItems = [
     subItems: [
       {
         name: "News Letter",
-        icon: Mail, // Changed to Mail icon
+        icon: Mail,
         path: AppRoutes.adminNewsletterManagement(),
       },
       {
         name: "Podcasts",
-        icon: Mic, // Changed to Mic icon
+        icon: Mic,
         path: AppRoutes.adminPodcastManagement(),
       },
       {
         name: "Webinars",
-        icon: Video, // Changed to Video icon
+        icon: Video,
         path: AppRoutes.adminWebinarManagement(),
       },
       {
         name: "Research",
         icon: FileText,
         path: AppRoutes.adminResearchManagement(),
+      },
+      {
+        name: "Testimonials",
+        icon: Star,
+        path: AppRoutes.adminTestimonialManagement(),
       },
     ],
   },

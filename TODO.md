@@ -1,3 +1,6 @@
-- [x] Update TeamProfile component container classes to match Contact page width
-  - Change outer div to `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-white`
-  - Remove `max-w-7xl mx-auto` from inner div
+- [x] Import useEffect and useRef in BastionCore/index.tsx
+- [ ] Add showSticky state
+- [ ] Add section2Ref
+- [ ] Add useEffect for scroll detection
+- [ ] Add conditional sticky header JSX with Quarterly subscribe button
+- [ ] Attach ref to Section 2 (pricing section)

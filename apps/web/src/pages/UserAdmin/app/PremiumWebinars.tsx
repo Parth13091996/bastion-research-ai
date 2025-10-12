@@ -60,16 +60,19 @@ export default function PremiumWebinarsPage() {
   }, [loading]);
 
   // Access guard: only allow users with premium subscription
-  const { user, subscription } = useAuth();
+  const { user, subscription, isLoading, isSubscriptionLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If not logged in or not premium, redirect to subscription/upgrade page
-    if (!user || !subscription || !subscription.isPremium) {
-      toast.error("Premium access required. Redirecting to subscription page.");
-      navigate(AppRoutes.subscription());
+    // Wait for auth and subscription to load before checking
+    if (!isLoading && !isSubscriptionLoading) {
+      // If not logged in or not premium, redirect to subscription/upgrade page
+      if (!user || !subscription || !subscription.isPremium) {
+        toast.error("Premium access required. Redirecting to subscription page.");
+        navigate(AppRoutes.subscription());
+      }
     }
-  }, [user, subscription]);
+  }, [user, subscription, isLoading, isSubscriptionLoading]);
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: COLORS.gray }}>
@@ -92,13 +95,23 @@ export default function PremiumWebinarsPage() {
           {currentWebinars.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {currentWebinars.map((webinar) => {
-                const videoId = new URL(webinar.video_url).pathname.split("/").at(-1);
+                let videoId = '';
+                if (webinar.video_url) {
+                  try {
+                    const url = new URL(webinar.video_url);
+                    videoId = url.pathname.split("/").at(-1) || '';
+                  } catch (error) {
+                    console.warn(`Invalid video URL for webinar ${webinar.id}: ${webinar.video_url}`);
+                    videoId = '';
+                  }
+                }
                 const link = AppRoutes.webinarView().replace(":id", webinar.id);
+                const thumbnailSrc = videoId ? `https://img.youtube.com/vi/${videoId}/sddefault.jpg` : '/placeholder.svg'; // Use placeholder if no valid videoId
 
                 return (
                   <Link to={link} key={webinar.id} className="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col transform transition-all hover:shadow-lg hover:-translate-y-1">
                         <div className="relative aspect-video overflow-hidden">
-                          <img src={`https://img.youtube.com/vi/${videoId}/sddefault.jpg`} alt={webinar.title} className="w-full h-full object-cover transition-transform duration-300" />
+                          <img src={thumbnailSrc} alt={webinar.title} className="w-full h-full object-cover transition-transform duration-300" />
                           {/* <span className="absolute top-3 right-3 bg-yellow-400 text-xs text-white px-2 py-0.5 rounded-full font-semibold">Premium</span> */}
                         </div>
 

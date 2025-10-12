@@ -459,3 +459,106 @@ export async function deletePodcast(req: Request, res: Response) {
     return res.status(500).json({ error: e.message });
   }
 }
+
+// Testimonials
+export async function createTestimonial(req: Request, res: Response) {
+  try {
+    const { title, text, name, position } = req.body;
+    if (!title || !text || !name || !position) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const { data, error } = await supabase
+      .from("testimonials")
+      .insert({
+        title,
+        text,
+        name,
+        position,
+      })
+      .select("*")
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(201).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function listTestimonials(_req: Request, res: Response) {
+  try {
+    const { data, error } = await supabase
+      .from("testimonials")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data ?? []);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function getTestimonial(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const { data, error } = await supabase
+      .from("testimonials")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    if (!data) return res.status(404).json({ error: "Testimonial not found" });
+
+    return res.status(200).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function updateTestimonial(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const { title, text, name, position } = req.body;
+
+    if (!id) return res.status(400).json({ error: "ID is required" });
+    if (!title || !text || !name || !position) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const { data, error } = await supabase
+      .from("testimonials")
+      .update({
+        title,
+        text,
+        name,
+        position,
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function deleteTestimonial(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const { error } = await supabase.from("testimonials").delete().eq("id", id);
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ message: "Testimonial deleted successfully" });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}

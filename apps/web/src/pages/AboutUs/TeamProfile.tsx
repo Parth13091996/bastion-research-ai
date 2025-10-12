@@ -1,4 +1,7 @@
 import React from 'react';
+import Profile1 from '../../../public/media/mithlesh-profile.png'
+import Profile2 from '../../../public/media/mith-profile.png';
+import Profile3 from '../../../public/media/parth-profile.png';
 
 const TeamBastion = () => {
   const teamMembers = [
@@ -9,7 +12,7 @@ const TeamBastion = () => {
       experience: '8+ Years',
       previousRole: 'Research Head, Concept Investwell Pvt. Ltd.',
       image:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
+        Profile1,
     },
     {
       name: 'Sanjay Ladha',
@@ -18,7 +21,7 @@ const TeamBastion = () => {
       experience: '8+ Years',
       previousRole: 'Research Analyst, Concept Investwell Pvt. Ltd.',
       image:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop',
+        Profile2,
     },
     {
       name: 'Parth Agarwal',
@@ -27,7 +30,7 @@ const TeamBastion = () => {
       experience: '7+ Years',
       previousRole: 'Quant Analyst, Angel One Ltd.',
       image:
-        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop',
+        Profile3,
     },
   ];
 

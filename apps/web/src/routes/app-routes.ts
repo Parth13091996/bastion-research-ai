@@ -56,6 +56,9 @@ export const AppRoutes = {
   adminResearchManagement: () => "/admin/content/research",
   adminResearchCreate: () => "/admin/content/research/create",
   adminResearchEdit: () => "/admin/content/research/:id/edit",
+  adminTestimonialManagement: () => "/admin/content/testimonials",
+  adminTestimonialCreate: () => "/admin/content/testimonials/create",
+  adminTestimonialEdit: () => "/admin/content/testimonials/:id/edit",
   // Public content routes
   newsletterView: () => "/newsletters/:id",
   webinarView: () => "/webinars/:id",

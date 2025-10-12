@@ -24,6 +24,11 @@ import {
   listWebinars,
   listPodcasts,
   getMailchimpNewsletter,
+  createTestimonial,
+  listTestimonials,
+  getTestimonial,
+  updateTestimonial,
+  deleteTestimonial,
 } from '../controllers/content.controller';
 import { getContactRecipientEmail, updateContactRecipientEmail } from '../controllers/settings.controller';
 
@@ -70,5 +75,12 @@ router.get('/content/podcasts/:id', protect, admin, getPodcast);
 router.post('/content/podcasts', protect, admin, createPodcast);
 router.put('/content/podcasts/:id', protect, admin, updatePodcast);
 router.delete('/content/podcasts/:id', protect, admin, deletePodcast);
+
+// Content management - Testimonials
+router.get('/content/testimonials', protect, admin, listTestimonials);
+router.get('/content/testimonials/:id', protect, admin, getTestimonial);
+router.post('/content/testimonials', protect, admin, createTestimonial);
+router.put('/content/testimonials/:id', protect, admin, updateTestimonial);
+router.delete('/content/testimonials/:id', protect, admin, deleteTestimonial);
 
 export default router;

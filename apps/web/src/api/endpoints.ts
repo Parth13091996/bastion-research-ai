@@ -116,6 +116,14 @@ export const endpoints = {
         byId: (id: string) => `/api/admin/content/podcasts/${id}`,
       },
     },
+    testimonials: {
+      base: "/content/testimonials",
+      byId: (id: string) => `/content/testimonials/${id}`,
+      admin: {
+        base: "/api/admin/content/testimonials",
+        byId: (id: string) => `/api/admin/content/testimonials/${id}`,
+      },
+    },
   },
 } as const;
 

@@ -96,6 +96,12 @@ const ResearchManagement = lazy(
 const ResearchEditor = lazy(
   () => import("../pages/Admin/Content/ResearchEditor")
 );
+const TestimonialManagement = lazy(
+  () => import("../pages/Admin/Content/TestimonialManagement")
+);
+const TestimonialEditor = lazy(
+  () => import("../pages/Admin/Content/TestimonialEditor")
+);
 
 // Public Content Pages
 const NewsletterView = lazy(
@@ -270,6 +276,18 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminResearchEdit(),
         element: <ResearchEditor />,
+      },
+      {
+        path: AppRoutes.adminTestimonialManagement(),
+        element: <TestimonialManagement />,
+      },
+      {
+        path: AppRoutes.adminTestimonialCreate(),
+        element: <TestimonialEditor />,
+      },
+      {
+        path: AppRoutes.adminTestimonialEdit(),
+        element: <TestimonialEditor />,
       },
     ],
   },

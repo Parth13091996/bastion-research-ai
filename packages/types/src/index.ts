@@ -314,3 +314,12 @@ export interface KraAuditLogResponse {
     totalPages: number;
   };
 }
+
+export interface Testimonial {
+  id: string;
+  title: string;
+  text: string;
+  name: string;
+  position: string;
+  created_at: string;
+}

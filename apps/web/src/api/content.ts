@@ -117,3 +117,31 @@ export const researchApi = {
       .delete(endpoints.content.research.admin.byId(id))
       .then((res) => res.data),
 };
+
+export const testimonialApi = {
+  getAll: (): Promise<Testimonial[]> =>
+    axiosInstance.get(endpoints.content.testimonials.base).then((res) => res.data),
+
+  getById: (id: string): Promise<Testimonial> =>
+    axiosInstance
+      .get(endpoints.content.testimonials.byId(id))
+      .then((res) => res.data),
+
+  create: (data: Omit<Testimonial, "id" | "created_at">): Promise<Testimonial> =>
+    axiosInstance
+      .post(endpoints.content.testimonials.admin.base, data)
+      .then((res) => res.data),
+
+  update: (
+    id: string,
+    data: Partial<Omit<Testimonial, "id" | "created_at">>
+  ): Promise<Testimonial> =>
+    axiosInstance
+      .put(endpoints.content.testimonials.admin.byId(id), data)
+      .then((res) => res.data),
+
+  delete: (id: string): Promise<{ message: string }> =>
+    axiosInstance
+      .delete(endpoints.content.testimonials.admin.byId(id))
+      .then((res) => res.data),
+};
