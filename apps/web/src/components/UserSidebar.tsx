@@ -8,6 +8,7 @@ import {
   CreditCard,
   Crown,
   FileText,
+  Play,
   Home,
   LayoutDashboard,
   LogOut,
@@ -40,6 +41,7 @@ const navItems = [
     path: "/user/app/recommendation",
   },
   { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
+  { name: "Premium Webinars", icon: Play, path: "/user/app/premium-webinars" },
   {
     name: "My Account",
     icon: User,

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import Lottie from "lottie-react";
 import React, { useRef, useState } from "react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
+import TeamProfile from "./TeamProfile";
 
 // Import your Lottie JSON files
 import adaptiveQualityAnim from "@/../public/media/adaptiveQuality.json";
@@ -99,9 +100,12 @@ const About: React.FC = () => {
       <div className="relative z-10">
         <BackgroundShapes />
 
+        {/* Team profiles */}
+        <TeamProfile />
+
         {/* Section 1 */}
         <section className="py-20">
-          <div className="container mx-auto px-8 max-w-4xl">
+          <div className="container mx-auto px-8 max-w-7xl">
             <h2 className="text-4xl font-bold text-blue-900 mb-12 text-center">
               Investing with Clarity and Conviction
             </h2>
@@ -150,9 +154,11 @@ const About: React.FC = () => {
           </div>
         </section>
 
+
+
         {/* Section 2 - static */}
         <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-8 max-w-5xl">
+          <div className="container mx-auto px-8 max-w-7xl">
             <h2 className="text-4xl font-bold text-blue-900 mb-12 text-center">
               Research Built Around You
             </h2>
@@ -187,7 +193,7 @@ const About: React.FC = () => {
 
         {/* Section 3 */}
         <section className="py-20">
-          <div className="container mx-auto px-8 max-w-4xl">
+          <div className="container mx-auto px-8 max-w-7xl">
             <h2 className="text-4xl font-bold text-blue-900 mb-12 text-center">
               More Than Just Reports
             </h2>

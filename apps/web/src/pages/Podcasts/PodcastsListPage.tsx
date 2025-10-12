@@ -47,9 +47,10 @@ const PublicPodcastsPage = () => {
   };
 
   const handleShare = (id: string) => {
-    const link = AppRoutes.podcastView().replace(":id", id);
+    const path = AppRoutes.podcastView().replace(":id", id);
+    const link = `${window.location.origin}${path}`;
     navigator.clipboard.writeText(link);
-    toast.success("Link copied!");
+    toast.success("Link copied to clipboard!");
   };
 
   useEffect(() => {
@@ -99,14 +100,14 @@ const PublicPodcastsPage = () => {
                   <Link
                     key={podcast.id}
                     to={link}
-                    className="group rounded-2xl shadow-sm overflow-hidden bg-[#F9FAFB] flex flex-col border border-gray-200 transform transition-all hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02]"
+                    className="group rounded-2xl shadow-sm overflow-hidden bg-[#F9FAFB] flex flex-col border border-gray-200 transform transition-all hover:shadow-lg hover:-translate-y-1"
                   >
                     {/* Thumbnail */}
                     <div className="relative aspect-video overflow-hidden">
                       <img
                         src={`https://img.youtube.com/vi/${videoId}/sddefault.jpg`}
                         alt={podcast.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-300"
                       />
                     </div>
 
@@ -128,11 +129,8 @@ const PublicPodcastsPage = () => {
 
                       <div className="flex items-center justify-between text-gray-600 text-sm mt-auto mb-2">
                         {/* Play Icon + Text */}
-                        <div className="flex items-center gap-2 cursor-pointer group/play hover:text-[#C00000] transition-colors duration-300hover:scale-105">
-                          <Play
-                            size={18}
-                            className="transition-transform group-hover/play:scale-110 group-hover/play:text-[#C00000]"
-                          />
+                        <div className="flex items-center gap-2 cursor-pointer group/play hover:text-[#C00000] transition-colors duration-300">
+                          <Play size={18} className="transition-transform group-hover/play:text-[#C00000]" />
                           <span className="transition-colors group-hover/play:text-[#C00000]">
                             {podcast.views || "Play Now"}
                           </span>

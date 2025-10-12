@@ -65,14 +65,23 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row flex-wrap justify-between gap-4">
           {/* Company Info - Always visible */}
           <div className="flex-1 min-w-72 mb-4">
-            <h3 className="text-2xl font-bold mb-4">BASTION RESEARCH</h3>
-            <p className="mb-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="inline-flex items-center justify-center bg-white p-1 rounded-md shadow-md ring-1 ring-white/20">
+                <img
+                  src="/media/header-logo.webp"
+                  alt="Bastion Research logo"
+                  className="h-8 md:h-10 w-auto block"
+                />
+              </div>
+              {/* <h3 className="text-2xl font-bold">BASTION RESEARCH</h3> */}
+            </div>
+            {/* <p className="mb-4">
               Maximizing Your Research Quality Per Unit Of Stress
-            </p>
+            </p> */}
             <div className="space-y-1 text-sm">
               <p>SEBI Registered Research Analyst</p>
-              <p>SEBI Registration No: INH000013712</p>
-              <p>BASL Membership ID: 5922</p>
+              <p>SEBI Registration No: INH000023199</p>
+              <p>BASL Membership ID: 5922**</p>
             </div>
           </div>
 
@@ -89,15 +98,8 @@ const Footer = () => {
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    to="/spotlights"
-                    className="relative group hover:text-red-200 transition-colors inline-block"
-                  >
-                    Spotlight
-                    <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
-                  </Link>
-                </li>
+             
+                {/* 
                 <li>
                   <Link
                     to="/spotlights"
@@ -106,7 +108,7 @@ const Footer = () => {
                     QUANT
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link
                     to={AppRoutes.contact()}
@@ -169,15 +171,15 @@ const Footer = () => {
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link
-                    to="/blog"
+                    to="/newsletters-archive"
                     className="relative group hover:text-red-200 transition-colors inline-block"
                   >
-                    Blog
+                    Newsletters
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </CollapsibleSection>
           </div>

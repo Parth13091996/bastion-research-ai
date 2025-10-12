@@ -21,19 +21,19 @@ const FooterTermAndCondition = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <main className="max-w-5xl mx-auto px-6 py-16 text-gray-900">
+    <div className="min-h-screen bg-white text-gray-800">
+      <main className="max-w-7xl text-lg mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-4xl font-bold mb-6">
           Terms And Conditions For Bastionresearch.In
         </h1>
-        <p className="mb-6">Effective Date: 1st August 2023</p>
+        <p className="mb-6 ">Effective Date: 1st August 2023</p>
 
         <p className="mb-6">
-          The Website Owner, including subsidiaries and affiliates (“Website” or
-          “Website Owner” or “we” or “us” or “our”) provides the information
+          The Website Owner, including subsidiaries and affiliates ("Website" or
+          "Website Owner" or "we" or "us" or "our") provides the information
           contained on the website or any of the pages comprising the website
-          (“website”) to visitors (“visitors”) (cumulatively referred to as
-          “you” or “your” hereinafter) subject to the terms and conditions set
+          ("website") to visitors ("visitors") (cumulatively referred to as
+          "you" or "your" hereinafter) subject to the terms and conditions set
           out in these website terms and conditions, the privacy policy and any
           other relevant terms and conditions, policies and notices which may be
           applicable to a specific section or module of the website.
@@ -43,19 +43,24 @@ const FooterTermAndCondition = () => {
           Welcome to our website. If you continue to browse and use this website
           you are agreeing to comply with and be bound by the following terms
           and conditions of use, which together with our{" "}
-          <a href="/privacy-policy" className="text-red-600 underline">
+          <a 
+            href="/privacy-policy" 
+            className="text-red-600 underline"
+          >
             privacy policy
           </a>{" "}
-          govern BASTION RESEARCH’s relationship with you in relation to this
+          govern BASTION RESEARCH's relationship with you in relation to this
           website.
         </p>
 
         <p className="mb-6">
-          The term ‘BASTION RESEARCH’ or ‘us’ or ‘we’ refers to the owner of the
-          website . The term ‘you’ refers to the user or viewer of our website.
+          The term 'BASTION RESEARCH' or 'us' or 'we' refers to the owner of the
+          website. The term 'you' refers to the user or viewer of our website.
         </p>
 
-        <p className="font-semibold mb-4">
+        <div className="mb-6">&nbsp;</div>
+
+        <p className="font-semibold text-2xl text-gray-800 mb-4">
           The use of this website is subject to the following terms of use:
         </p>
 
@@ -108,7 +113,7 @@ const FooterTermAndCondition = () => {
 
         <p className="mb-6">
           You may not create a link to this website from another website or
-          document without BASTION RESEARCH’s prior written consent.
+          document without BASTION RESEARCH's prior written consent.
         </p>
 
         <p className="mb-6">
@@ -122,14 +127,15 @@ const FooterTermAndCondition = () => {
           any loss or damage arising directly or indirectly out of the decline
           of authorization for any Transaction, on Account of the Cardholder
           having exceeded the preset limit mutually agreed by us with our
-          acquiring bank from time to time
+          acquiring bank from time to time.
         </p>
+
+        <div className="mb-6">&nbsp;</div>
       </main>
 
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-50"
           aria-label="Scroll to top"
         >
           <ChevronUp size={24} />

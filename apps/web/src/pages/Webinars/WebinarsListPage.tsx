@@ -23,7 +23,6 @@ const ITEMS_PER_PAGE = 12;
 
 const PublicWebinarsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState("free");
 
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.webinars],
@@ -35,11 +34,8 @@ const PublicWebinarsPage = () => {
 
   const { start, stop } = useLoader();
 
-  const filteredWebinars = rowData.filter(
-    (webinar) =>
-      (activeTab === "free" && !webinar.is_premium) ||
-      (activeTab === "premium" && webinar.is_premium)
-  );
+  // Only show free webinars on the public listing
+  const filteredWebinars = rowData.filter((webinar) => !webinar.is_premium);
 
   const totalPages = Math.ceil(filteredWebinars.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -54,9 +50,10 @@ const PublicWebinarsPage = () => {
   };
 
   const handleShare = (id: string) => {
-    const link = AppRoutes.webinarView().replace(":id", id);
+    const path = AppRoutes.webinarView().replace(":id", id);
+    const link = `${window.location.origin}${path}`;
     navigator.clipboard.writeText(link);
-    toast.success("Link copied!");
+    toast.success("Link copied to clipboard!");
   };
 
   useEffect(() => {
@@ -89,28 +86,7 @@ const PublicWebinarsPage = () => {
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex justify-center mb-8 gap-x-4">
-          {["free", "premium"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                setCurrentPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === tab
-                  ? "text-white shadow-md"
-                  : "text-gray-700 hover:bg-gray-100 border border-gray-300"
-              }`}
-              style={{
-                backgroundColor: activeTab === tab ? COLORS.red : COLORS.white,
-              }}
-            >
-              {tab === "free" ? "Free" : "Premium"}
-            </button>
-          ))}
-        </div>
+        {/* Tabs removed: public page now lists free webinars only */}
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto py-8">
@@ -126,14 +102,14 @@ const PublicWebinarsPage = () => {
                   <Link
                     to={link}
                     key={webinar.id}
-                    className="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col transform transition-all hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02]"
+                    className="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col transform transition-all hover:shadow-lg hover:-translate-y-1"
                   >
                     {/* Thumbnail */}
                     <div className="relative aspect-video overflow-hidden">
                       <img
                         src={`https://img.youtube.com/vi/${videoId}/sddefault.jpg`}
                         alt={webinar.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-300"
                       />
                     </div>
 
@@ -160,7 +136,7 @@ const PublicWebinarsPage = () => {
                       {/* Actions */}
                       <div className="flex items-center justify-between text-gray-600 text-sm mt-auto mb-2">
                         {/* Play button with hover effect */}
-                        <div className="flex items-center gap-2 cursor-pointer group/play transition-all duration-300 hover:scale-105">
+                        <div className="flex items-center gap-2 cursor-pointer group/play transition-all duration-300">
                           <Play
                             size={18}
                             className="text-gray-600 group-hover/play:text-[#C00000] transition-colors"
@@ -178,7 +154,7 @@ const PublicWebinarsPage = () => {
                             e.stopPropagation();
                             handleShare(webinar.id);
                           }}
-                          className="flex items-center gap-2 cursor-pointer group/share transition-all duration-300 hover:scale-105"
+                          className="flex items-center gap-2 cursor-pointer group/share transition-all duration-300"
                         >
                           <Share2
                             size={18}

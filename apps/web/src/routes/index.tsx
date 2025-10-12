@@ -50,6 +50,7 @@ const UserAdminTransactionHistory = lazy(
 );
 const UserAdminLogout = lazy(() => import("@/pages/UserAdmin/app/UserLogout"));
 const ViewResearch = lazy(() => import("@/pages/UserAdmin/app/ViewResearch"));
+const PremiumWebinars = lazy(() => import("@/pages/UserAdmin/app/PremiumWebinars"));
 
 // Admin Pages
 const AdminLogin = lazy(() => import("../pages/AdminLogin"));
@@ -289,6 +290,7 @@ export const routes: RouteObject[] = [
           { path: "app/recommendation", element: <UserAdminRecommendation /> },
           { path: "app/view-research", element: <ViewResearch /> },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
+          { path: "app/premium-webinars", element: <PremiumWebinars /> },
           {
             path: "app/account/edit-profile",
             element: <UserAdminEditProfile />,

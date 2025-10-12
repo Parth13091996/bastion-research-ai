@@ -22,7 +22,7 @@ const BastionPrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-5xl mx-auto px-6 py-16">
+      <main className="max-w-7xl mx-auto px-6 py-16">
         {/* Title */}
         <h1 className="text-5xl font-bold text-gray-800 mb-8">
           Privacy Policy For Bastion{" "}
@@ -269,7 +269,6 @@ const BastionPrivacyPolicy = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-50"
           aria-label="Scroll to top"
         >
           <ChevronUp size={24} />

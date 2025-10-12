@@ -1,6 +1,3 @@
-- [x] Import Link from 'react-router-dom'
-- [x] Wrap Raise a Query button in Link to "/contact-us"
-- [x] Convert Business Understanding Note button to <a> with href="#" target="_blank"
-- [x] Convert Quick Bite button to <a> with href="#" target="_blank"
-- [x] Convert Watch Video button to <a> with href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank"
-- [x] Convert Exit Rationale button to <a> with href="#" target="_blank"
+- [x] Update TeamProfile component container classes to match Contact page width
+  - Change outer div to `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-white`
+  - Remove `max-w-7xl mx-auto` from inner div
