@@ -18,7 +18,7 @@ const TestimonialEditor: React.FC = () => {
 
   const [formData, setFormData] = useState({
     title: "",
-    review: "",
+    text: "",
     name: "",
     position: "",
   });
@@ -35,7 +35,7 @@ const TestimonialEditor: React.FC = () => {
     if (initialData) {
       setFormData({
         title: initialData.title || "",
-        review: initialData.review || "",
+        text: initialData.text || "",
         name: initialData.name || "",
         position: initialData.position || "",
       });
@@ -63,7 +63,7 @@ const TestimonialEditor: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!formData.title.trim() || !formData.review.trim() || !formData.name.trim() || !formData.position.trim()) {
+    if (!formData.title.trim() || !formData.text.trim() || !formData.name.trim() || !formData.position.trim()) {
       toast.error("All fields are required");
       return;
     }
@@ -136,11 +136,11 @@ const TestimonialEditor: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="review">Review *</Label>
+            <Label htmlFor="text">Review *</Label>
             <textarea
-              id="review"
-              value={formData.review}
-              onChange={(e) => handleInputChange("review", e.target.value)}
+              id="text"
+              value={formData.text}
+              onChange={(e) => handleInputChange("text", e.target.value)}
               placeholder="Enter testimonial review"
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

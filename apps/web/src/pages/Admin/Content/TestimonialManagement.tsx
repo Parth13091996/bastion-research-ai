@@ -178,7 +178,7 @@ const TestimonialManagement: React.FC = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Position</TableHead>
                   <TableHead>Title</TableHead>
-                  <TableHead>Review</TableHead>
+                  <TableHead>Text</TableHead>
                   <TableHead className="w-[220px] text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -211,8 +211,8 @@ const TestimonialManagement: React.FC = () => {
                     </TableCell>
 
                     <TableCell>
-                      <div className="max-w-xs truncate text-gray-600" title={item.review}>
-                        {item.review}
+                      <div className="max-w-xs truncate text-gray-600" title={item.text}>
+                        {item.text}
                       </div>
                     </TableCell>
 

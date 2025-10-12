@@ -318,7 +318,7 @@ export interface KraAuditLogResponse {
 export interface Testimonial {
   id: string;
   title: string;
-  review: string;
+  text: string;
   name: string;
   position: string;
   created_at: string;
