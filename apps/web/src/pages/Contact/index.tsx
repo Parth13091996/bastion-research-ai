@@ -15,12 +15,7 @@ import {
   Youtube,
 } from "lucide-react";
 
-const colors = {
-  red: "#C00000",
-  blue: "#1C2852",
-  beige: "#C4B696",
-  light: "#E6E6E6",
-};
+// Use Tailwind theme colors (primary/secondary) defined in tailwind.config.ts
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -79,8 +74,7 @@ export default function ContactPage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-3xl md:text-4xl font-semibold tracking-tight"
-          style={{ color: colors.blue }}
+          className="text-3xl md:text-4xl font-semibold tracking-tight text-secondary"
         >
           Contact Bastion Research
         </motion.h1>
@@ -113,13 +107,9 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-white border rounded-2xl p-6 shadow-lg"
-            style={{ borderColor: colors.light }}
+            className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg"
           >
-            <h2
-              className="text-xl font-semibold"
-              style={{ color: colors.blue }}
-            >
+            <h2 className="text-xl font-semibold text-secondary">
               Send us a message
             </h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -138,8 +128,7 @@ export default function ContactPage() {
                       name="name"
                       value={form.name}
                       onChange={onChange}
-                      className="w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-                      style={{ borderColor: colors.light }}
+                      className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                       placeholder="Your full name"
                       required
                     />
@@ -157,8 +146,7 @@ export default function ContactPage() {
                       type="email"
                       value={form.email}
                       onChange={onChange}
-                      className="w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-                      style={{ borderColor: colors.light }}
+                      className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                       placeholder="name@example.com"
                       required
                     />
@@ -177,8 +165,7 @@ export default function ContactPage() {
                     type="tel"
                     value={form.phone}
                     onChange={onChange}
-                    className="w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2"
-                    style={{ borderColor: colors.light }}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     placeholder="e.g., +91 98765 43210"
                   />
                 }
@@ -194,8 +181,7 @@ export default function ContactPage() {
                     name="category"
                     value={form.category}
                     onChange={onChange}
-                    className="w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 bg-white"
-                    style={{ borderColor: colors.light }}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white"
                   >
                     <option>Research Ally</option>
                     <option>Bastion CORE</option>
@@ -214,8 +200,7 @@ export default function ContactPage() {
                     name="message"
                     value={form.message}
                     onChange={onChange}
-                    className="w-full rounded-xl border px-3 py-2 h-36 resize-y focus:outline-none focus:ring-2"
-                    style={{ borderColor: colors.light }}
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 h-36 resize-y focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     placeholder="How can we help?"
                   />
                 }
@@ -228,8 +213,7 @@ export default function ContactPage() {
                   type="checkbox"
                   checked={form.notRobot}
                   onChange={onChange}
-                  className="h-5 w-5 rounded-md border"
-                  style={{ accentColor: colors.red, borderColor: colors.light }}
+                  className="h-5 w-5 rounded-md border border-gray-300 accent-primary"
                 />
                 <label htmlFor="notRobot" className="text-sm text-gray-700">
                   I am not a robot
@@ -238,8 +222,7 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-white font-medium shadow-lg hover:opacity-95"
-                style={{ background: colors.red }}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-white font-medium shadow-lg bg-primary hover:bg-primary/90"
                 disabled={submitting}
               >
                 <Send className="w-4 h-4" />
@@ -252,8 +235,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="rounded-2xl overflow-hidden border shadow-lg h-full"
-            style={{ borderColor: colors.light }}
+            className="rounded-2xl overflow-hidden border border-gray-200 shadow-lg h-full"
           >
             <iframe
               title="Bastion Research Location Map"
@@ -268,14 +250,11 @@ export default function ContactPage() {
           </motion.div>
         </div>
       </section>
-      <section className="border-t" style={{ borderColor: colors.light }}>
+      <section className="border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h3
-                className="text-lg font-semibold"
-                style={{ color: colors.blue }}
-              >
+              <h3 className="text-lg font-semibold text-secondary">
                 Connect with us
               </h3>
               <p className="text-sm text-gray-600 mt-1">
@@ -314,20 +293,14 @@ function InfoCard({ icon, title, lines }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.45 }}
-      className="rounded-2xl border bg-white p-5 shadow-lg h-full"
-      style={{ borderColor: colors.light }}
+      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-lg h-full"
     >
       <div className="flex items-start gap-3">
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl"
-          style={{ background: colors.light }}
-        >
-          <span style={{ color: colors.red }}>{icon}</span>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
+          <span className="text-primary">{icon}</span>
         </div>
         <div>
-          <h4 className="font-semibold" style={{ color: colors.blue }}>
-            {title}
-          </h4>
+          <h4 className="font-semibold text-secondary">{title}</h4>
           <div className="mt-1 text-sm text-gray-700 space-y-0.5">
             {lines.map((l, i) => (
               <p key={i}>{l}</p>
@@ -342,8 +315,8 @@ function InfoCard({ icon, title, lines }) {
 function Field({ label, htmlFor, required, input }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium" style={{ color: colors.blue }}>
-        {label} {required ? <span className="text-red-600">*</span> : null}
+      <span className="text-sm font-medium text-secondary">
+        {label} {required ? <span className="text-primary">*</span> : null}
       </span>
       <div className="mt-1">{input}</div>
     </label>
@@ -357,8 +330,7 @@ function SocialButton({ href, label, icon }) {
       aria-label={label}
       target="_blank"
       rel="noreferrer noopener"
-      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium text-white shadow-lg hover:opacity-95"
-      style={{ background: colors.red }}
+      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium text-white shadow-lg bg-primary hover:bg-primary/90"
     >
       {icon}
       <span>{label}</span>
