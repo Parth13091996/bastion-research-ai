@@ -85,11 +85,19 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(500).json({ error: error.message });
   }
 
+  const welcomeSenderEmail = process.env.CONNECT_EMAIL;
+  if (!welcomeSenderEmail) {
+    return res
+      .status(500)
+      .json({ error: "Welcome Sender email is missing from backend/envs." });
+  }
+
   // Send signup email notification
   if (req.body.sendSignupEmail) {
     try {
       await sendEmail({
         to: email,
+        from: welcomeSenderEmail,
         subject: "Welcome to Bastion Research!",
         text: `Hello ${first_name},\n\nWelcome to Bastion Research! Your account has been created successfully.\n\nYour username is: ${username}\n\nYou can now log in with the password you set.\n\nBest regards,\nThe Bastion Research Team`,
         html: `
@@ -149,7 +157,7 @@ export const updateUser = async (req: Request, res: Response) => {
     "date_of_birth",
     "company",
     "pan_card_number",
-    "status"
+    "status",
   ] as const;
 
   const body = req.body ?? {};

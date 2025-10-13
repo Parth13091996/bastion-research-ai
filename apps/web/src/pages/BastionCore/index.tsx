@@ -4,6 +4,13 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Image1 from "../../../public/media/Detailed-Business-Notes.png";
+import Image2 from "../../../public/media/Regular-Company-Updates.png";
+import Image3 from "../../../public/media/Scratch-Pad-Access.png";
+import Image4 from "../../../public/media/Quarterly-Interactions.png";
+import Image5 from "../../../public/media/premium-webinars.png";
+import Image6 from "../../../public/media/modelPortfolio.png";
+import Image7 from "../../../public/media/premium-ipo-coverage.png";
 
 
 
@@ -65,37 +72,37 @@ export default function BastionCoreProductPage() {
     {
       title: "Detailed Business Notes",
       desc: "Clear, in-depth breakdowns of businesses we initiate coverage on, so you understand the story behind them.",
-      img: "https://cdn.shopify.com/s/media/1/0723/2415/3587/media/businessUnderstanding.jpg?v=1756568173",
+      img: Image1,
     },
     {
       title: "Regular Company Updates",
       desc: "From quarterly results to key announcements and special situations, stay on top of every company under our active coverage.",
-      img: "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&w=1600&q=60",
+      img: Image2,
     },
     {
       title: "Scratch Pad Access",
       desc: "Not every idea makes the cut. We share the ones we passed on and the lessons behind those decisions so you learn as much from the misses as the hits.",
-      img: "https://images.unsplash.com/photo-1543286386-2e659306cd6c?auto=format&fit=crop&w=1600&q=60",
+      img: Image3,
     },
     {
       title: "Quarterly Interactions",
       desc: "Every quarter, we sit down with you to discuss how our covered businesses are progressing, share updated views, and answer your questions directly.",
-      img: "https://cdn.shopify.com/s/media/1/0723/2415/3587/media/businessUnderstanding.jpg?v=1756568173",
+      img: Image4,
     },
     {
       title: "Premium Webinars",
       desc: "Gain free access to our exclusive webinars, where we bring sharp perspectives and practical insights to the investing community.",
-      img: "https://images.unsplash.com/photo-1510070009289-b5bc34383727?auto=format&fit=crop&w=1600&q=60",
+      img: Image5,
     },
     {
       title: "Subscriber-Only Model Portfolio Discounts",
       desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
-      img: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=60",
+      img:  Image6,
     },
     {
       title: "Premium IPO Coverage",
       desc: "Get free access to our in-depth IPO notes, covering the positives, risks, and our perspective on businesses going public.",
-      img: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=60",
+      img: Image7,
     },
   ];
 
