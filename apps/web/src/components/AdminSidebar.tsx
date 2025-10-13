@@ -152,7 +152,7 @@ const AdminSidebar = () => {
           />
         </button>
       </div>
-      <nav className="flex-1 mt-8 space-y-2 px-2">
+      <nav className="flex-1 mt-8 space-y-2 px-2 pb-10 overflow-y-auto">
         {navItems.map((item) => (
           <div key={item.name}>
             {item.subItems ? (

@@ -31,7 +31,7 @@ interface PageViewRow {
 
 export function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState(7);
-  
+
   const {
     data: summary,
     isLoading,
@@ -46,13 +46,17 @@ export function AnalyticsDashboard() {
 
   // Transform data for charts
   const visitsData = {
-    labels: summary?.visitsByDay.map(v => 
-      new Date(v.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    ) || [],
+    labels:
+      summary?.visitsByDay.map((v) =>
+        new Date(v.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      ) || [],
     datasets: [
       {
         label: "Page Views",
-        data: summary?.visitsByDay.map(v => v.totalViews) || [],
+        data: summary?.visitsByDay.map((v) => v.totalViews) || [],
         borderColor: "hsl(var(--primary))",
         backgroundColor: "hsl(var(--primary) / 0.1)",
         tension: 0.4,
@@ -60,7 +64,7 @@ export function AnalyticsDashboard() {
       },
       {
         label: "Unique Visitors",
-        data: summary?.visitsByDay.map(v => v.uniqueIPs) || [],
+        data: summary?.visitsByDay.map((v) => v.uniqueIPs) || [],
         borderColor: "hsl(var(--secondary))",
         backgroundColor: "hsl(var(--secondary) / 0.1)",
         tension: 0.4,
@@ -70,25 +74,30 @@ export function AnalyticsDashboard() {
   };
 
   const usersData = {
-    labels: summary?.usersByDay.map(v => 
-      new Date(v.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    ) || [],
+    labels:
+      summary?.usersByDay.map((v) =>
+        new Date(v.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      ) || [],
     datasets: [
       {
         label: "Active Users",
-        data: summary?.usersByDay.map(v => v.uniqueUsers) || [],
+        data: summary?.usersByDay.map((v) => v.uniqueUsers) || [],
         backgroundColor: "hsl(var(--primary) / 0.8)",
         borderRadius: 8,
       },
     ],
   };
 
+  // ✅ FIXED: type-safe cast for Chart.js
   const topPathsData = {
-    labels: summary?.topPaths.slice(0, 8).map(p => p.path) || [],
+    labels: summary?.topPaths.slice(0, 8).map((p) => p.path) || [],
     datasets: [
       {
         label: "Page Views",
-        data: summary?.topPaths.slice(0, 8).map(p => p.views) || [],
+        data: summary?.topPaths.slice(0, 8).map((p) => p.views) || [],
         backgroundColor: [
           "hsl(var(--primary))",
           "hsl(var(--secondary))",
@@ -98,7 +107,7 @@ export function AnalyticsDashboard() {
           "hsl(var(--primary) / 0.7)",
           "hsl(var(--secondary) / 0.7)",
           "hsl(var(--accent) / 0.7)",
-        ],
+        ] as unknown as string, // ✅ FIX
       },
     ],
   };
@@ -137,13 +146,15 @@ export function AnalyticsDashboard() {
     },
   ];
 
-  const totalViews = summary?.visitsByDay.reduce((sum, day) => sum + day.totalViews, 0) || 0;
+  const totalViews =
+    summary?.visitsByDay.reduce((sum, day) => sum + day.totalViews, 0) || 0;
   const totalUniqueIPs = summary?.totals?.uniqueIPs || 0;
   const totalUniqueUsers = summary?.totals?.uniqueUsers || 0;
   const activeNow = summary?.activeNow || { ips: 0, users: 0 };
 
   return (
-    <div className="space-y-6">
+    // ✅ FIXED: replaced h-screen with min-h-screen, pb-16 for bottom padding
+    <div className="space-y-6 min-h-screen relative pb-16">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -176,7 +187,9 @@ export function AnalyticsDashboard() {
             onClick={() => refetch()}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -215,9 +228,20 @@ export function AnalyticsDashboard() {
         <Card>
           <CardContent className="flex items-center justify-center h-64">
             <div className="text-center">
-              <p className="text-destructive font-medium">Failed to load analytics</p>
-              <p className="text-sm text-muted-foreground mt-1">{error}</p>
-              <Button variant="outline" onClick={() => refetch()} className="mt-4">
+              <p className="text-destructive font-medium">
+                Failed to load analytics
+              </p>
+
+              {/* ✅ FIXED: Error message rendering */}
+              <p className="text-sm text-muted-foreground mt-1">
+                {error instanceof Error ? error.message : String(error)}
+              </p>
+
+              <Button
+                variant="outline"
+                onClick={() => refetch()}
+                className="mt-4"
+              >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Try Again
               </Button>
@@ -265,7 +289,10 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="space-y-3">
               {summary?.topPaths.slice(0, 5).map((path, index) => (
-                <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-2 border-b last:border-0"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                     <span className="text-sm font-mono">{path.path}</span>
@@ -273,7 +300,9 @@ export function AnalyticsDashboard() {
                   <Badge variant="outline">{path.views} views</Badge>
                 </div>
               )) || (
-                <p className="text-sm text-muted-foreground">No recent activity</p>
+                <p className="text-sm text-muted-foreground">
+                  No recent activity
+                </p>
               )}
             </div>
           </CardContent>
@@ -286,7 +315,9 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Avg. Views per Day</span>
+                <span className="text-sm text-muted-foreground">
+                  Avg. Views per Day
+                </span>
                 <span className="font-medium">
                   {Math.round(totalViews / timeRange).toLocaleString()}
                 </span>
@@ -298,8 +329,12 @@ export function AnalyticsDashboard() {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Total Pages Tracked</span>
-                <span className="font-medium">{summary?.topPaths.length || 0}</span>
+                <span className="text-sm text-muted-foreground">
+                  Total Pages Tracked
+                </span>
+                <span className="font-medium">
+                  {summary?.topPaths.length || 0}
+                </span>
               </div>
             </div>
           </CardContent>

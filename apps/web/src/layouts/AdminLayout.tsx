@@ -24,7 +24,7 @@ const AdminLayout = () => {
 
   if (isLoading) {
     return (
-      <div className="relative flex h-screen bg-gray-100 ">
+      <div className="relative flex h-screen bg-gray-100 overflow-hidden">
         <div className="absolute left-[42%] top-[42%]">
           <main className="animate-pulse p-4">
             <img
@@ -39,11 +39,11 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-gray-100">
       <AdminSidebar />
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 min-h-0">
         <AdminHeader />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

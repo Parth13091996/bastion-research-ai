@@ -12,8 +12,6 @@ import Image5 from "../../../public/media/premium-webinars.png";
 import Image6 from "../../../public/media/modelPortfolio.png";
 import Image7 from "../../../public/media/premium-ipo-coverage.png";
 
-
-
 // Brand Colors
 const COLORS = {
   red: "#C00000",
@@ -97,7 +95,7 @@ export default function BastionCoreProductPage() {
     {
       title: "Subscriber-Only Model Portfolio Discounts",
       desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
-      img:  Image6,
+      img: Image6,
     },
     {
       title: "Premium IPO Coverage",
@@ -108,8 +106,6 @@ export default function BastionCoreProductPage() {
 
   // 👇 State for which item is active
   const [active, setActive] = useState(0);
-
-
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -186,7 +182,7 @@ export default function BastionCoreProductPage() {
             {/* Left Card: Text */}
             <div className="flex flex-col justify-center items-center md:items-start">
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-center md:text-left"
+                className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-center md:text-left"
                 style={{
                   background: "linear-gradient(90deg, #1C2852, #C00000)",
                   WebkitBackgroundClip: "text",
@@ -269,56 +265,46 @@ export default function BastionCoreProductPage() {
         </section>
 
         {/* Section 3: Content */}
-        <section className="max-w-7xl px-4 mx-auto  pb-16">
+        <section className="max-w-7xl px-4 mx-auto pb-16">
           <div className="rounded-3xl border border-[#E6E6E6] overflow-hidden">
-            {/* Grid: 60/40 split on md+ */}
-            <div className="grid grid-cols-1 md:grid-cols-5">
-              {/* Left: 60% (3/5 columns) */}
+            <div className="grid grid-cols-1 md:grid-cols-5 items-stretch">
+              {/* Left: Tabs */}
               <div className="md:col-span-2 bg-white">
                 <div className="divide-y divide-[#E6E6E6]">
                   {items.map((it, idx) => (
                     <div key={it.title}>
                       <button
-                        onClick={() => setActive(idx)} // click works for mobile + desktop
-                        onMouseEnter={() => setActive(idx)} // hover works for desktop
-                        className={`group w-full text-left p-5 focus:outline-none transition-colors ${active === idx
+                        onClick={() => setActive(idx)}
+                        onMouseEnter={() => setActive(idx)}
+                        className={`group w-full text-left p-5 focus:outline-none transition-colors ${
+                          active === idx
                             ? "bg-[#E6E6E6]/40"
                             : "bg-white hover:bg-[#E6E6E6]/30"
-                          }`}
+                        }`}
                         aria-current={active === idx}
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={` h-2.5 w-2.5 rounded-full transition-colors ${active === idx
+                            className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                              active === idx
                                 ? "bg-[#C00000]"
                                 : "bg-[#C4B696] group-hover:bg-[#C00000]"
-                              }`}
+                            }`}
                           />
-                          <div>
-                            <h4 className="text-base md:text-lg font-semibold">
-                              {it.title}
-                            </h4>
-                          </div>
+                          <h4 className="text-base md:text-lg font-semibold">
+                            {it.title}
+                          </h4>
                         </div>
-                        <div className="flex items-start gap-3">
-                          <div
-                            className={`mt-1  opacity-0 h-2.5 w-2.5 rounded-full transition-colors ${active === idx
-                                ? "bg-[#C00000]"
-                                : "bg-[#C4B696] group-hover:bg-[#C00000]"
-                              }`}
-                          />
-                          <div>
-                            <p className="mt-1 text-sm text-slate-600">
-                              {it.desc}
-                            </p>
-                          </div>
-                        </div>
+                        <p className="mt-1 ml-5 text-sm text-slate-600">
+                          {it.desc}
+                        </p>
                       </button>
 
-                      {/* Mobile collapsible image */}
+                      {/* Mobile Image */}
                       <div
-                        className={`md:hidden overflow-hidden transition-all duration-300 ${active === idx ? "max-h-[700px] mt-2" : "max-h-0"
-                          }`}
+                        className={`md:hidden overflow-hidden transition-all duration-300 ${
+                          active === idx ? "max-h-[700px] mt-2" : "max-h-0"
+                        }`}
                       >
                         <div className="relative bg-[#E6E6E6]">
                           <img
@@ -339,14 +325,16 @@ export default function BastionCoreProductPage() {
                 </div>
               </div>
 
-              {/* Right: 40% (2/5 columns) - Desktop image area */}
-              <div className="hidden md:block md:col-span-3 relative bg-[#E6E6E6] aspect-[16/10] md:aspect-auto">
-                <img
-                  key={items[active].img}
-                  src={items[active].img}
-                  alt={items[active].title}
-                  className="h-full w-full object-cover transition-opacity duration-300"
-                />
+              {/* Right: Image */}
+              <div className="hidden md:block md:col-span-3 relative bg-[#E6E6E6] h-full">
+                <div className="absolute inset-0">
+                  <img
+                    key={items[active].img}
+                    src={items[active].img}
+                    alt={items[active].title}
+                    className="h-full w-full object-cover object-center"
+                  />
+                </div>
                 <div className="absolute bottom-4 left-4 right-4 bg-white/85 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
                   <p className="text-sm font-medium text-[#1C2852]">
                     {items[active].title}
@@ -357,6 +345,8 @@ export default function BastionCoreProductPage() {
             </div>
           </div>
         </section>
+        
+
         {/* Section 4: Testimonials */}
         <section
           id="testimonials"
@@ -491,13 +481,15 @@ export default function BastionCoreProductPage() {
                 >
                   {faq.q}
                   <ChevronDown
-                    className={`w-6 h-6 transform transition-transform duration-500 ${openIndex === index ? "rotate-180" : "rotate-0"
-                      }`}
+                    className={`w-6 h-6 transform transition-transform duration-500 ${
+                      openIndex === index ? "rotate-180" : "rotate-0"
+                    }`}
                   />
                 </button>
                 <div
-                  className={`transition-[max-height] duration-300 ease-in-out overflow-hidden px-6 ${openIndex === index ? "max-h-96" : "max-h-0"
-                    }`}
+                  className={`transition-[max-height] duration-300 ease-in-out overflow-hidden px-6 ${
+                    openIndex === index ? "max-h-96" : "max-h-0"
+                  }`}
                 >
                   <div className="overflow-auto no-scrollbar max-h-96 pb-4">
                     <p className="text-gray-700 leading-relaxed">{faq.a}</p>
@@ -515,8 +507,6 @@ export default function BastionCoreProductPage() {
           © {new Date().getFullYear()} Bastion Research. All rights reserved.
         </footer>
       </div>
-
-
     </div>
   );
 }
