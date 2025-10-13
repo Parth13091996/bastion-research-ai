@@ -119,7 +119,7 @@ export default function Testimonial() {
   // Map dynamic testimonials to the expected format
   const allTestimonials = dynamicTestimonials.map(t => ({
     title: t.title,
-    text: t.review,
+    text: t.text,
     name: t.name,
     position: t.position,
   }));

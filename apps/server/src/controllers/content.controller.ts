@@ -463,8 +463,8 @@ export async function deletePodcast(req: Request, res: Response) {
 // Testimonials
 export async function createTestimonial(req: Request, res: Response) {
   try {
-    const { title, review, name, position } = req.body;
-    if (!title || !review || !name || !position) {
+    const { title, text, name, position } = req.body;
+    if (!title || !text || !name || !position) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
@@ -472,7 +472,7 @@ export async function createTestimonial(req: Request, res: Response) {
       .from("testimonials")
       .insert({
         title,
-        review,
+        text,
         name,
         position,
       })
@@ -523,10 +523,10 @@ export async function getTestimonial(req: Request, res: Response) {
 export async function updateTestimonial(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { title, review, name, position } = req.body;
+    const { title, text, name, position } = req.body;
 
     if (!id) return res.status(400).json({ error: "ID is required" });
-    if (!title || !review || !name || !position) {
+    if (!title || !text || !name || !position) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
@@ -534,7 +534,7 @@ export async function updateTestimonial(req: Request, res: Response) {
       .from("testimonials")
       .update({
         title,
-        review,
+        text,
         name,
         position,
       })
