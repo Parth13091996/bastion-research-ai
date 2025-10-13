@@ -1,20 +1,6 @@
 import { Request, Response } from "express";
 import sendEmail from "../utils/email";
-import { supabase } from "../supabase";
 import { config } from "../utils/config";
-
-const getRecipient = async (): Promise<string> => {
-  try {
-    const { data } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", process.env.CONTACT_RECIPIENT_EMAIL)
-      .maybeSingle();
-    return data?.value;
-  } catch {
-    return "";
-  }
-};
 
 export const submitContact = async (req: Request, res: Response) => {
   try {
@@ -26,17 +12,11 @@ export const submitContact = async (req: Request, res: Response) => {
         .json({ message: "name, email and message are required" });
     }
 
-    const to = await getRecipient();
-    if (!to) {
-      throw new Error("there is no contact recipient email");
-    }
-
     const safe = (v: any) => (v ? String(v) : "-");
 
     const subject = `[Contact Leads] ${safe(category)} - ${safe(name)}`;
     const text = `New contact submission\n\nName: ${safe(name)}\nEmail: ${safe(email)}\nPhone: ${safe(phone)}\nCategory: ${safe(category)}\n\nMessage:\n${safe(message)}\n`;
 
-    // Professional HTML email template
     const html = `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7f7f9; padding: 40px 0;">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
@@ -77,7 +57,7 @@ export const submitContact = async (req: Request, res: Response) => {
           </tr>
           <tr>
             <td style="padding: 16px 32px 24px 32px; color: #888; font-size: 13px; border-top: 1px solid #eaeaea;">
-              <p style="margin: 0 0 4px 0;">This message was sent from the <a href="https://bastionresearch.in" style="color: #1a73e8; text-decoration: none;">Bastion Research</a> website.</p>
+              <p style="margin: 0 0 4px 0;">This message was sent from the <a href="${config.app_url}" style="color: #1a73e8; text-decoration: none;">Bastion Research</a> website.</p>
               <p style="margin: 0;">&copy; ${new Date().getFullYear()} Bastion Research. All rights reserved.</p>
             </td>
           </tr>
@@ -85,7 +65,13 @@ export const submitContact = async (req: Request, res: Response) => {
       </div>
     `;
 
-    await sendEmail({ to, subject, text, html });
+    await sendEmail({
+      to: process.env.LEADS_EMAIL!,
+      from: process.env.LEADS_EMAIL!,
+      subject,
+      text,
+      html,
+    });
 
     return res.status(200).json({ message: "Message sent" });
   } catch (e: any) {

@@ -1,34 +1,32 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 interface EmailOptions {
   to: string;
+  from: string;
   subject: string;
   text: string;
   html: string;
 }
 
 const sendEmail = async (options: EmailOptions) => {
-  // 1. Create a transporter
-  // Note: These credentials should be stored in environment variables.
-  const transporter = nodemailer.createTransport({
+  const nodeMailerOptions = {
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
+    port: parseInt(process.env.SMTP_PORT || "587"),
     auth: {
       user: process.env.SMTP_USERNAME,
       pass: process.env.SMTP_PASSWORD,
     },
-  });
+  };
 
-  // 2. Define the email options
+  const transporter = nodemailer.createTransport(nodeMailerOptions);
   const mailOptions = {
-    from: '"Bastion Research" <no-reply@bastionresearch.in>',
     to: options.to,
+    from: options.from,
     subject: options.subject,
     text: options.text,
     html: options.html,
   };
 
-  // 3. Actually send the email
   await transporter.sendMail(mailOptions);
 };
 

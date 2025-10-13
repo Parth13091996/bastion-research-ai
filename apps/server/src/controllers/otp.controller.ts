@@ -37,7 +37,7 @@ export const sendOtp = async (req: Request, res: Response) => {
   try {
     // 1. Generate OTP and expiration
     const otp = generateOtp();
-    const expiresAt = Date.now() + config.OtpTtlMs;
+    const expiresAt = Date.now() + config.otp_ttl_ms;
 
     // 2. Save OTP in-memory store for the phone
     otpStore.set(phone, { otp, expiresAt });

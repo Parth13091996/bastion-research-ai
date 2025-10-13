@@ -68,7 +68,7 @@ export const createUserAfterOnboarding = async (userData: any) => {
     throw new Error(`Attempted to create a user that already exists: ${email}`);
   }
 
-  const hashedPassword = await bcrypt.hash(password, config.saltRounds);
+  const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
   const username =
     email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
 
@@ -189,11 +189,9 @@ export const signIn = async (req: Request, res: Response) => {
 
     // If trying to login via admin portal, enforce admin role explicitly
     if (isAdminLogin && user.role !== config.roles.admin) {
-      return res
-        .status(401)
-        .json({
-          message: "Only administrators can sign in to the admin panel.",
-        });
+      return res.status(401).json({
+        message: "Only administrators can sign in to the admin panel.",
+      });
     }
 
     const token = generateToken(user.id, user.email);
@@ -261,9 +259,16 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}`;
 
+    const resetSenderEmail = process.env.CONNECT_EMAIL;
+    if (!resetSenderEmail) {
+      return res
+        .status(500)
+        .json({ error: "Welcome Sender email is missing from backend/envs." });
+    }
     try {
       await sendEmail({
         to: user.email,
+        from: resetSenderEmail,
         subject: "Reset your Bastion Research password",
         text: `We received a request to reset your password.\n\nUse the link below to set a new password. This link expires in 15 minutes.\n\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`,
         html: `<p>We received a request to reset your password.</p><p>Use the link below to set a new password. This link expires in <strong>15 minutes</strong>.</p><p><a href="${resetUrl}">Reset your password</a></p><p>If you didn't request this, you can safely ignore this email.</p>`,
@@ -320,7 +325,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Reset link is no longer valid" });
     }
 
-    const hashed = await bcrypt.hash(password, config.saltRounds);
+    const hashed = await bcrypt.hash(password, config.salt_rounds);
     const { error: updError } = await supabase
       .from("users")
       .update({ password: hashed, updated_at: new Date().toISOString() })
@@ -338,7 +343,10 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 // Create or update a user after KYC (PAN) verification succeeds
 // This allows resuming onboarding later (e.g., agreement, plans, payment).
-export const createOrUpdateUserAfterKYC = async (req: Request, res: Response) => {
+export const createOrUpdateUserAfterKYC = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const {
       email,
@@ -357,11 +365,23 @@ export const createOrUpdateUserAfterKYC = async (req: Request, res: Response) =>
       panVerification,
     } = req.body || {};
 
-    if (!email || !phone || !password || !firstName || !lastName || !dateOfBirth || !panCard) {
-      return res.status(400).json({ message: "Missing required fields to start onboarding." });
+    if (
+      !email ||
+      !phone ||
+      !password ||
+      !firstName ||
+      !lastName ||
+      !dateOfBirth ||
+      !panCard
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Missing required fields to start onboarding." });
     }
     if (!panVerification || panVerification.valid !== true) {
-      return res.status(400).json({ message: "PAN verification is required and must be valid." });
+      return res
+        .status(400)
+        .json({ message: "PAN verification is required and must be valid." });
     }
 
     // Check existing user by email
@@ -405,8 +425,9 @@ export const createOrUpdateUserAfterKYC = async (req: Request, res: Response) =>
       userId = upd?.id || existingUser.id;
     } else {
       // Create new user with hashed password
-      const hashedPassword = await bcrypt.hash(password, config.saltRounds);
-      const username = email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
+      const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
+      const username =
+        email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
       const { data: inserted, error: insError } = await supabase
         .from("users")
         .insert({
@@ -428,9 +449,13 @@ export const createOrUpdateUserAfterKYC = async (req: Request, res: Response) =>
     try {
       if (userId) {
         const optionalPayload: Record<string, any> = {};
-        if (panVerification?.referenceId) optionalPayload.pan_verification_reference = panVerification.referenceId;
-        if (panVerification?.status) optionalPayload.pan_verification_status = panVerification.status;
-        if (panVerification?.checkedAt) optionalPayload.pan_verified_at = panVerification.checkedAt;
+        if (panVerification?.referenceId)
+          optionalPayload.pan_verification_reference =
+            panVerification.referenceId;
+        if (panVerification?.status)
+          optionalPayload.pan_verification_status = panVerification.status;
+        if (panVerification?.checkedAt)
+          optionalPayload.pan_verified_at = panVerification.checkedAt;
 
         if (Object.keys(optionalPayload).length > 0) {
           await supabase.from("users").update(optionalPayload).eq("id", userId);
@@ -451,9 +476,14 @@ export const createOrUpdateUserAfterKYC = async (req: Request, res: Response) =>
       });
     } catch {}
 
-    return res.status(200).json({ message: "Onboarding started. User saved.", user: { id: userId, email, status: "onboarding" } });
+    return res.status(200).json({
+      message: "Onboarding started. User saved.",
+      user: { id: userId, email, status: "onboarding" },
+    });
   } catch (error: any) {
-    return res.status(500).json({ message: error?.message || "Failed to start onboarding" });
+    return res
+      .status(500)
+      .json({ message: error?.message || "Failed to start onboarding" });
   }
 };
 
