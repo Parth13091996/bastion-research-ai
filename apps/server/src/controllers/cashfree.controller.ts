@@ -144,7 +144,6 @@ export const verifyPan = async (req: Request, res: Response) => {
 
     const url = `${getVerificationBaseUrl()}/pan`;
     const headers = getVerificationHeaders();
-    console.log(url, payload, headers, "url");
     const response = await axios.post(url, payload, { headers });
     return res.status(200).json({
       ...normalizePanResponse(response?.data),

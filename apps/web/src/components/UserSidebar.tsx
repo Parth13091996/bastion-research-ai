@@ -66,7 +66,6 @@ const navItems = [
   },
 ];
 
-
 export default function Sidebar() {
   const { user, subscription, logout } = useAuth();
   const navigate = useNavigate();
@@ -158,7 +157,7 @@ export default function Sidebar() {
         {!isCollapsed ? (
           <div className="flex items-center">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <img src={""} alt="Logo" className="h-5 w-5" />
+              <img src={"/media/favicon.webp"} alt="Logo" className="h-5 w-5" />
             </div>
             <div className="ml-3">
               <h1 className="text-lg font-semibold text-white">
@@ -414,7 +413,9 @@ export default function Sidebar() {
                 ) : (
                   <>
                     <Shield className="h-3 w-3 text-gray-400" />
-                    <span className="text-xs text-gray-400">No Active Plan</span>
+                    <span className="text-xs text-gray-400">
+                      No Active Plan
+                    </span>
                   </>
                 )}
               </div>

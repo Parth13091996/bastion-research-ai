@@ -67,7 +67,7 @@ const Login = () => {
 
   const sendOtpMutation = useMutation({
     mutationFn: (email: string) =>
-      axiosInstance.post(endpoints.otp.send, { email }),
+      axiosInstance.post(endpoints.otp.sendEmail, { email }),
     onSuccess: () => {
       toast.success("OTP sent to your email!");
       setOtpSent(true);
@@ -281,14 +281,13 @@ const Login = () => {
                   )}
 
                   <div className="flex items-center justify-between">
-                    <label className="flex items-center">
+                    <label className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
                         className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                       />
                       <span className="ml-2 text-sm text-gray-600">
-                        {" "}
-                        Remember me{" "}
+                        Remember me
                       </span>
                     </label>
                     <Link
@@ -300,19 +299,21 @@ const Login = () => {
                   </div>
 
                   {/* Toggle Login Method */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={useOtp}
-                      onChange={(e) => {
-                        setUseOtp(e.target.checked);
-                        setOtpSent(false);
-                      }}
-                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Login with Email OTP
-                    </span>
+                  <div className="flex items-center ">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useOtp}
+                        onChange={(e) => {
+                          setUseOtp(e.target.checked);
+                          setOtpSent(false);
+                        }}
+                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Login with Email OTP
+                      </span>
+                    </label>
                   </div>
 
                   {/* Submit */}

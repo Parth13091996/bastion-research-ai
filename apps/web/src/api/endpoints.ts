@@ -39,6 +39,7 @@ export const endpoints = {
   },
   otp: {
     send: "/api/otp/send",
+    sendEmail: "/api/otp/send-email",
     verify: "/api/otp/verify",
   },
   cashfree: {

@@ -5,6 +5,7 @@ import { config } from "../utils/config";
 import { supabase } from "../supabase";
 import crypto from "crypto";
 import sendEmail from "../utils/email";
+import { validateOtp } from "./otp.controller";
 
 const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   const secret = process.env.JWT_SECRET;
@@ -14,7 +15,6 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   return jwt.sign({ id, email }, secret, { expiresIn: expiresIn as any });
 };
 
-// This function will be called internally after successful payment.
 export const createUserAfterOnboarding = async (userData: any) => {
   const {
     email,
@@ -158,12 +158,17 @@ export const createUserAfterOnboarding = async (userData: any) => {
 };
 
 export const signIn = async (req: Request, res: Response) => {
-  const { email, password, isAdminLogin } = req.body;
+  const { email, password, otp, isAdminLogin } = req.body as {
+    email?: string;
+    password?: string;
+    otp?: string;
+    isAdminLogin?: boolean;
+  };
 
-  if (!email || !password) {
+  if (!email || (!password && !otp)) {
     return res
       .status(400)
-      .json({ message: "Please provide email and password." });
+      .json({ message: "Please provide email and password or email and OTP." });
   }
 
   try {
@@ -175,10 +180,24 @@ export const signIn = async (req: Request, res: Response) => {
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials." });
+    // If OTP provided, validate it; otherwise fallback to password validation
+    if (otp) {
+      const result = validateOtp(email, otp);
+      if (!result.valid) {
+        const reasonToMessage: Record<string, string> = {
+          not_found: "No OTP found. Please request one.",
+          mismatch: "Invalid OTP.",
+          expired: "OTP has expired. Please request a new one.",
+        };
+        return res
+          .status(400)
+          .json({ message: reasonToMessage[result.reason || "mismatch"] });
+      }
+    } else {
+      const isMatch = await bcrypt.compare(password as string, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ message: "Invalid credentials." });
+      }
     }
 
     if (!isAdminLogin && user.role === config.roles.admin) {
@@ -341,8 +360,6 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-// Create or update a user after KYC (PAN) verification succeeds
-// This allows resuming onboarding later (e.g., agreement, plans, payment).
 export const createOrUpdateUserAfterKYC = async (
   req: Request,
   res: Response
@@ -526,7 +543,6 @@ export const logout = (req: Request, res: Response) => {
   res.status(200).json({ message: "Logged out successfully" });
 };
 
-// Endpoint to finalize onboarding and create the user after payment success
 export const registerFromOnboarding = async (req: Request, res: Response) => {
   try {
     const userData = req.body;

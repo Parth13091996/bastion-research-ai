@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SignUpCard } from "./SignUpCard";
 import SignUpForm from "./SignupForm";
@@ -7,7 +6,6 @@ import SignUpForm from "./SignupForm";
 export default function Register() {
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
-  // Restore open state if user was mid-onboarding when they refreshed
   useEffect(() => {
     try {
       const wasOpen = localStorage.getItem("onboardingOpen");
@@ -29,7 +27,7 @@ export default function Register() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50">
+    <div className=" bg-gradient-to-br from-slate-50 via-white to-red-50">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-red-600/5 to-navy-600/5"></div>
@@ -82,22 +80,6 @@ export default function Register() {
                   </div>
                 ))}
               </motion.div>
-
-              {/* CTA */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-              >
-                <SignUpCard
-                  onSignUpClick={() => {
-                    try {
-                      localStorage.setItem("onboardingOpen", "true");
-                    } catch {}
-                    setIsSignUpOpen(true);
-                  }}
-                />
-              </motion.div>
             </motion.div>
 
             {/* Right Content - Visual */}
@@ -107,59 +89,14 @@ export default function Register() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
             >
-              <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-red-800 rounded-xl flex items-center justify-center">
-                      <span className="text-white font-bold text-xl">B</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">
-                        Bastion TripleEdge
-                      </h3>
-                      <p className="text-gray-600">
-                        Premium Investment Research
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">
-                        Institutional-grade research
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">
-                        Risk management tools
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">
-                        Personalized strategies
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">24/7 expert support</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">
-                        58.15%
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Average Annual Returns
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SignUpCard
+                onSignUpClick={() => {
+                  try {
+                    localStorage.setItem("onboardingOpen", "true");
+                  } catch {}
+                  setIsSignUpOpen(true);
+                }}
+              />
 
               {/* Background decoration */}
               <div className="absolute -top-4 -right-4 w-72 h-72 bg-gradient-to-r from-red-200 to-red-300 rounded-full opacity-20 blur-3xl"></div>
@@ -169,7 +106,6 @@ export default function Register() {
         </div>
       </section>
 
-      {/* Sign Up Modal */}
       {isSignUpOpen && (
         <SignUpForm
           isOpen={isSignUpOpen}
