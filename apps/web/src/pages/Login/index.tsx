@@ -48,7 +48,7 @@ const Login = () => {
         try {
           localStorage.setItem("onboardingOpen", "true");
           localStorage.setItem("onboardingCurrentStep", String(5));
-        } catch {}
+        } catch { }
         toast.success("Welcome back! Let’s finish your onboarding.");
         setTimeout(() => {
           navigate("/register", { replace: true });
@@ -355,47 +355,47 @@ const Login = () => {
         </div>
       </section>
       {/* CTA Section for New Users */}
-<section className="py-20 bg-gray-50">
-  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      viewport={{ once: true }}
-    >
-      {/* Card Container */}
-      <div className="bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-10 text-center space-y-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-          New to Bastion?
-        </h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Access the research that powers confident investment decisions.
-        </p>
+      <section className="py-20 bg-red-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            {/* Glass Card Container */}
+            <div className="backdrop-blur-md bg-white/20 border border-white/80 rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-10 text-center space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+                New to Bastion?
+              </h2>
+              <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+                Access the research that powers confident investment decisions.
+              </p>
 
-        {/* Buttons Wrapper */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link
-              to="/"
-              className="inline-flex items-center px-8 py-4 bg-[#C00000] text-white font-semibold rounded-2xl hover:bg-[#a00000] transition-colors duration-300 shadow-lg hover:shadow-xl"
-            >
-              Explore Services <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
-          </motion.div>
+              {/* Buttons Wrapper */}
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    to="/"
+                    className="inline-flex items-center px-8 py-4 bg-[#C00000] text-white font-semibold rounded-2xl hover:bg-[#a00000] transition-colors duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    Explore Services <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                </motion.div>
 
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link
-              to="/register"
-              className="inline-flex items-center px-8 py-4 bg-[#1C2852] text-white font-semibold rounded-2xl hover:bg-[#162044] transition-colors duration-300 shadow-lg hover:shadow-xl"
-            >
-              View Research <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center px-8 py-4 bg-[#1C2852] text-white font-semibold rounded-2xl hover:bg-[#162044] transition-colors duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    View Research <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
           </motion.div>
         </div>
-      </div>
-    </motion.div>
-  </div>
-</section>
+      </section>
 
     </div>
   );
