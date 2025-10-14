@@ -115,7 +115,6 @@ const PodcastView = lazy(() => import("../pages/Podcasts/SinglePodcastPage"));
 const PublicPodcastsPage = lazy(
   () => import("../pages/Podcasts/PodcastsListPage")
 );
-const Test = lazy(() => import("../components/generic/Test"));
 const NewsletterArchive = lazy(
   () => import("../pages/NewsLetter/NewsletterListPage")
 );
@@ -150,7 +149,6 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.about(), element: <About /> },
       { path: AppRoutes.spotlights(), element: <SpotLights /> },
       { path: AppRoutes.podcasts(), element: <PublicPodcastsPage /> },
-      { path: AppRoutes.test(), element: <Test /> },
       { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
       { path: AppRoutes.webinar(), element: <Webinar /> },
       { path: AppRoutes.research(), element: <ResearchList /> },

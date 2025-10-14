@@ -54,22 +54,21 @@ const TeamBastion = () => {
           <div className="flex justify-center items-start gap-0 min-w-max mx-auto">
             {teamMembers.map((member, index) => (
               <React.Fragment key={index}>
-                <div className="flex flex-col items-center text-center px-8 group">
+                <div className="flex flex-col items-center text-center px-4 py-1 group">
                   {/* Profile Image with gradient border */}
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#C00000] to-[#1C2852] rounded-full opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-300"></div>
-                    <div className="relative w-44 h-44 rounded-full overflow-hidden ring-4 ring-white shadow-2xl group-hover:ring-[#C00000] transition-all duration-300">
+                  <div className="relative p-2">
+                    <div className="relative w-44 h-44 rounded-full overflow-hidden ring-4 ring-white shadow-xl group-hover:ring-[#C00000] transition-all duration-500">
                       <img
                         src={member.image}
                         alt={member.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full object-cover  transition-transform duration-500"
                       />
                     </div>
                   </div>
 
                   {/* Name and Role */}
                   <h2 
-                    className="text-2xl font-bold mb-2 group-hover:scale-105 transition-transform duration-300" 
+                    className="text-2xl font-bold mb-2  transition-transform duration-300" 
                     style={{ color: '#1C2852' }}
                   >
                     {member.name}
@@ -81,7 +80,7 @@ const TeamBastion = () => {
                   </div>
 
                   {/* Values with improved styling */}
-                  <div className="flex flex-col gap-6 w-full max-w-xs">
+                  <div className="flex flex-col gap-6 w-full max-w-s">
                     <div className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
                       <p className="text-xs font-semibold text-[#C00000] uppercase tracking-wider mb-2">Academic Qualifications</p>
                       <p className="text-sm text-gray-700 leading-relaxed">{member.qualifications}</p>
