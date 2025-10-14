@@ -15,7 +15,21 @@ function App() {
   return (
     <Router>
       <RouteAnalytics />
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className="relative flex h-screen bg-gray-100 overflow-hidden">
+            <div className="absolute left-[42%] top-[42%]">
+              <main className="animate-pulse p-4">
+                <img
+                  src="/media/header-logo.webp"
+                  alt="Bastion Research"
+                  className="h-22 md:h-14"
+                />
+              </main>
+            </div>
+          </div>
+        }
+      >
         <AppRoutes />
       </Suspense>
       <ModalsLayout />

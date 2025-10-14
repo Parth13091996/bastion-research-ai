@@ -80,32 +80,32 @@ export default function BastionCoreProductPage() {
     {
       title: "Detailed Business Notes",
       desc: "Clear, in-depth breakdowns of businesses we initiate coverage on, so you understand the story behind them.",
-      img: "/public/media/Detailed-Business-Notes.png" as string,
+      img: "/media/Detailed-Business-Notes.png" as string,
     },
     {
       title: "Regular Company Updates",
       desc: "From quarterly results to key announcements and special situations, stay on top of every company under our active coverage.",
-      img: "/public/media/Regular-Company-Updates.png" as string,
+      img: "/media/Regular-Company-Updates.png" as string,
     },
     {
       title: "Scratch Pad Access",
       desc: "Not every idea makes the cut. We share the ones we passed on and the lessons behind those decisions so you learn as much from the misses as the hits.",
-      img: "/public/media/Scratch-Pad-Access.png" as string,
+      img: "/media/Scratch-Pad-Access.png" as string,
     },
     {
       title: "Quarterly Interactions",
       desc: "Every quarter, we sit down with you to discuss how our covered businesses are progressing, share updated views, and answer your questions directly.",
-      img: "/public/media/Quarterly-Interactions.png" as string,
+      img: "/media/Quarterly-Interactions.png" as string,
     },
     {
       title: "Premium Webinars",
       desc: "Gain free access to our exclusive webinars, where we bring sharp perspectives and practical insights to the investing community.",
-      img: "/public/media/premium-webinars.png" as string,
+      img: "/media/premium-webinars.png" as string,
     },
     {
       title: "Subscriber-Only Model Portfolio Discounts",
       desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
-      img: "/public/media/modelPortfolio-compressed.png" as string,
+      img: "/media/modelPortfolio-compressed.png" as string,
     },
     {
       title: "Premium IPO Coverage",

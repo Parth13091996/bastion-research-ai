@@ -63,3 +63,26 @@ The application will be available at `http://localhost:5173`.
 - `npm run build`: Builds the application for production.
 - `npm run lint`: Lints the code.
 - `npm run preview`: Previews the production build.
+
+## Build & Deploy (Hostinger)
+
+### Build
+
+From `apps/web`:
+
+```bash
+pnpm install
+pnpm run build
+```
+
+Ensure the built static assets are in `public_html/` (this repo ships a `public_html` directory used for deployment on the shared host). If your build outputs to `dist/`, copy the final assets to `public_html/` as needed.
+
+### Upload to Hostinger
+
+Run the following command from `apps/web` to sync the site to the remote server:
+
+```bash
+scp -r -P 65002 .\public_html\*   u268986054@89.117.188.211:/home/u268986054/domains/dev.bastionresearch.in/public_html/
+```
+
+This will overwrite the remote `public_html` with your local contents. Confirm paths and user before running.
