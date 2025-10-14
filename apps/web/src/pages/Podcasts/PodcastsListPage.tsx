@@ -3,7 +3,7 @@ import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
 import { queryKeys } from "@/api/queryKeys";
 import BackgroundShapes from "@/components/generic/framer-motion";
-import { useLoader } from "@/hooks/useLoader";
+import { useLoader } from "@/hooks/use-loader";
 import { useQuery } from "@tanstack/react-query";
 import { Play, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -130,7 +130,10 @@ const PublicPodcastsPage = () => {
                       <div className="flex items-center justify-between text-gray-600 text-sm mt-auto mb-2">
                         {/* Play Icon + Text */}
                         <div className="flex items-center gap-2 cursor-pointer group/play hover:text-[#C00000] transition-colors duration-300">
-                          <Play size={18} className="transition-transform group-hover/play:text-[#C00000]" />
+                          <Play
+                            size={18}
+                            className="transition-transform group-hover/play:text-[#C00000]"
+                          />
                           <span className="transition-colors group-hover/play:text-[#C00000]">
                             {podcast.views || "Play Now"}
                           </span>

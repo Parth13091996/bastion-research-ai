@@ -135,7 +135,7 @@ const MemberManagementDashboard = () => {
     },
     {
       headerName: "Premium",
-      field: "isPremium",
+      field: "is_premium",
       cellRenderer: (params: any) => (
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${

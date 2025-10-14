@@ -1,12 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SignUpCardProps {
   onSignUpClick: () => void;
@@ -24,7 +19,7 @@ export function SignUpCard({ onSignUpClick }: SignUpCardProps) {
         {/* Background decoration */}
         <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-red-200 to-red-300 rounded-full opacity-20 blur-xl"></div>
         <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full opacity-20 blur-xl"></div>
-        
+
         <CardHeader className="relative z-10 text-center pb-4">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-red-800 rounded-2xl flex items-center justify-center">
@@ -38,7 +33,7 @@ export function SignUpCard({ onSignUpClick }: SignUpCardProps) {
             Join thousands of successful investors
           </p>
         </CardHeader>
-        
+
         <CardContent className="relative z-10 space-y-6">
           {/* Benefits list */}
           <div className="space-y-3">
@@ -57,12 +52,9 @@ export function SignUpCard({ onSignUpClick }: SignUpCardProps) {
           </div>
 
           {/* CTA Button */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button 
-              onClick={onSignUpClick} 
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              onClick={onSignUpClick}
               className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Get Started
@@ -84,5 +76,5 @@ export function SignUpCard({ onSignUpClick }: SignUpCardProps) {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

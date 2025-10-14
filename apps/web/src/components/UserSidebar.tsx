@@ -84,7 +84,7 @@ export default function Sidebar() {
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null, // You can add avatar URL to user object later
-    isPremium: subscription?.isPremium || false,
+    is_premium: subscription?.is_premium || false,
     currentPlan: subscription?.currentPlan || null,
   };
 
@@ -403,7 +403,7 @@ export default function Sidebar() {
             {/* Premium Status & User Type */}
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                {profile.isPremium ? (
+                {profile.is_premium ? (
                   <>
                     <Crown className="h-3 w-3 text-yellow-400" />
                     <span className="text-xs text-yellow-400 font-medium">
@@ -434,7 +434,7 @@ export default function Sidebar() {
                 <span className="text-sm font-medium text-white">
                   {profile.name[0] || "B"}
                 </span>
-                {profile.isPremium && (
+                {profile.is_premium && (
                   <Crown className="h-3 w-3 text-yellow-400 absolute -top-1 -right-1" />
                 )}
               </div>

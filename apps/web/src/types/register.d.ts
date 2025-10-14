@@ -95,12 +95,7 @@ interface OnboardStepProps {
 }
 
 interface KYCStepProps {
-  formData: {
-    panCard: string;
-    firstName: string;
-    lastName: string;
-    panVerification?: PanVerificationSummary | null;
-  };
+  formData: OnboardingFormData;
   updateFormData: UpdateFormFn;
   onBack: () => void;
   onNext: () => void;
@@ -121,7 +116,6 @@ interface AgreementStepProps {
   updateFormData: UpdateFormFn;
   onBack: () => void;
   onNext: () => void;
-  // Access to identifier for the agreement upload (email/phone)
   formData?: OnboardingFormData;
 }
 

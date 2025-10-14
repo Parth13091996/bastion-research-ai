@@ -1,12 +1,11 @@
-// components/Header/DesktopNav.jsx
 import { useAuth } from "@/contexts/AuthContext";
 import { AppRoutes } from "@/routes/app-routes";
 import { Link } from "react-router-dom";
-// OLD DROPDOWN - COMMENTED OUT (Now redirecting to UserAdmin sidebar)
-// import MyAccountDropdown from "./MyAccountDropdown";
 
-const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
+const DesktopNav = ({ setOpenSubmenu }) => {
   const { user, isLoading } = useAuth();
+  const isActive = user?.status === "active";
+
   return (
     <nav className="hidden md:flex items-center space-x-8">
       <div className="relative group">
@@ -38,19 +37,19 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
           onMouseLeave={() => setOpenSubmenu(null)}
         >
           <Link
-            to="/newsletters-archive"
+            to={AppRoutes.newsletter()}
             className="block px-4 py-2 text-gray-700 hover:text-red-600"
           >
             Newsletter Archive
           </Link>
           <Link
-            to="/podcasts"
+            to={AppRoutes.podcasts()}
             className="block px-4 py-2 text-gray-700 hover:text-red-600"
           >
             Podcast (MADE IN INDIA)
           </Link>
           <Link
-            to="/webinars"
+            to={AppRoutes.webinar()}
             className="block px-4 py-2 text-gray-700 hover:text-red-600"
           >
             Webinars
@@ -82,11 +81,11 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
             ></path>
           </svg>
         </div>
-      ) : user?.id ? (
-        // OLD DROPDOWN - COMMENTED OUT (Now redirecting to UserAdmin sidebar)
-        // <MyAccountDropdown />
+      ) : isActive ? (
         <Link
-          to="/user/app/dashboard"
+          to={
+            AppRoutes.dashboard ? AppRoutes.dashboard() : "/user/app/dashboard"
+          }
           className="text-gray-700 hover:text-red-600 flex items-center transition-colors"
         >
           {/* User Profile Picture or Initials */}
@@ -110,7 +109,7 @@ const DesktopNav = ({ openSubmenu, setOpenSubmenu }) => {
         </Link>
       ) : (
         <Link
-          to="/login"
+          to={AppRoutes.login()}
           className="text-gray-700 hover:text-red-600 flex items-center transition-colors"
         >
           <svg

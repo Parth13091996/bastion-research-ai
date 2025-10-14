@@ -128,12 +128,12 @@ export const verifyOtp = async (req: Request, res: Response) => {
     email?: string;
   };
 
-  if (!phone || !otp || !email) {
+  if (!phone || !otp) {
     return res.status(400).json({ message: "phone and otp are required." });
   }
 
   try {
-    const entry = phone ? otpStore.get(phone) : otpStore.get(email);
+    const entry = otpStore.get(phone);
 
     if (!entry) {
       return res
@@ -166,8 +166,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
   }
 };
 
-// Helper for server-side login flow (email/phone based)
-export const validateOtp = (
+export const validateEmailOtp = (
   key: string,
   otp: string
 ): {
