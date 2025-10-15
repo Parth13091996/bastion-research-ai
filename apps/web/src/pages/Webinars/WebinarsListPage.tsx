@@ -2,7 +2,7 @@ import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
 import { queryKeys } from "@/api/queryKeys";
 import BackgroundShapes from "@/components/generic/framer-motion";
-import { useLoader } from "@/hooks/useLoader";
+import { useLoader } from "@/hooks/use-loader";
 import { AppRoutes } from "@/routes/app-routes";
 import { useQuery } from "@tanstack/react-query";
 import { Play, Share2, ChevronLeft, ChevronRight } from "lucide-react";

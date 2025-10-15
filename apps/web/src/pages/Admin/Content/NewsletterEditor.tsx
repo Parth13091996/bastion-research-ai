@@ -44,7 +44,7 @@ const NewsletterEditor: React.FC = () => {
             <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
               <li>Create or update a campaign inside Mailchimp.</li>
               <li>Return to the Bastion admin &gt; Newsletter Management page.</li>
-              <li>Click “Sync Latest” to pull the newest content from the RSS feed.</li>
+              <li>Click "Sync Latest" to pull the newest campaigns via the Mailchimp API.</li>
             </ol>
           </div>
 

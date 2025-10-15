@@ -46,10 +46,6 @@ const Login = () => {
       login(data.user);
       const shouldResumeOnboarding = data?.user?.status === "onboarding";
       if (shouldResumeOnboarding) {
-        try {
-          localStorage.setItem("onboardingOpen", "true");
-          localStorage.setItem("onboardingCurrentStep", String(5));
-        } catch {}
         toast.success("Welcome back! Let’s finish your onboarding.");
         setTimeout(() => {
           navigate(AppRoutes.register(), { replace: true });

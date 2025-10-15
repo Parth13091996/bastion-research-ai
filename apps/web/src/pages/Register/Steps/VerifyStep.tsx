@@ -80,25 +80,11 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
   };
 
   useEffect(() => {
-    // On initial render, delete the otp value and reset/restore the expires timer
+    // On initial render, delete the otp value and reset the expires timer
     if (formData && formData.otp !== undefined) {
       delete formData.otp;
     }
-    try {
-      const otpTimerFromStorage = localStorage.getItem("onboardingOtpTimer");
-      if (otpTimerFromStorage) {
-        const t = parseInt(otpTimerFromStorage, 10);
-        if (!Number.isNaN(t) && t >= 0) {
-          setOtpTimer(t);
-        } else {
-          setOtpTimer(600);
-        }
-      } else {
-        setOtpTimer(600);
-      }
-    } catch {
-      setOtpTimer(600);
-    }
+    setOtpTimer(600);
     setStartOtpTimer(true);
   }, []);
 
@@ -115,12 +101,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     };
   }, [startOtpTimer, otpTimer]);
 
-  // Persist timer
-  useEffect(() => {
-    try {
-      localStorage.setItem("onboardingOtpTimer", String(otpTimer));
-    } catch {}
-  }, [otpTimer]);
+  // Removed localStorage persistence of OTP timer
 
   return (
     <div className="space-y-6">

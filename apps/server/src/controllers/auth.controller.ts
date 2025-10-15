@@ -5,7 +5,7 @@ import { config } from "../utils/config";
 import { supabase } from "../supabase";
 import crypto from "crypto";
 import sendEmail from "../utils/email";
-import { validateOtp } from "./otp.controller";
+import { validateEmailOtp } from "./otp.controller";
 
 const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   const secret = process.env.JWT_SECRET;
@@ -92,7 +92,7 @@ export const createUserAfterOnboarding = async (userData: any) => {
       pin_code: pinCode || null,
       company: company || null,
       status: "active",
-      isPremium: true,
+      is_premium: true,
     })
     .select("id, email")
     .single();
@@ -182,7 +182,7 @@ export const signIn = async (req: Request, res: Response) => {
     }
     // If OTP provided, validate it; otherwise fallback to password validation
     if (otp) {
-      const result = validateOtp(email, otp);
+      const result = validateEmailOtp(email, otp);
       if (!result.valid) {
         const reasonToMessage: Record<string, string> = {
           not_found: "No OTP found. Please request one.",
@@ -408,7 +408,6 @@ export const createOrUpdateUserAfterKYC = async (
       .eq("email", email)
       .maybeSingle();
 
-    // If not found by email, try phone
     const existingUser = existingUserByEmail;
 
     const baseUpdate: any = {
@@ -424,7 +423,8 @@ export const createOrUpdateUserAfterKYC = async (
       company: company || null,
       pan_card_number: panCard,
       status: "onboarding",
-      isPremium: false,
+      is_premium: false,
+      pan_verification_metadata: panVerification,
     };
 
     let userId: string | null = null;
@@ -520,7 +520,7 @@ export const getUserSession = async (req: Request, res: Response) => {
     const { data: user, error } = await supabase
       .from("users")
       .select(
-        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, isPremium, status, role, digio_documents(document_id)`
+        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, is_premium, status, role, digio_documents(document_id)`
       )
       .eq("id", decoded.id)
       .single();

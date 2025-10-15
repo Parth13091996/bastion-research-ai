@@ -1,0 +1,110 @@
+import { supabase } from "../supabase";
+import { pgCreateOrder } from "./cashfree-pg.service";
+import { getFrontendBaseUrl } from "./cashfree-config";
+
+export type PublicPlan = {
+  code: string;
+  name: string;
+  amount: number;
+  currency: string;
+  plan_code?: string;
+  tier?: number;
+};
+
+export const fetchPlans = async (): Promise<PublicPlan[]> => {
+  let plansRows: any[] | null = null;
+  let qError: any = null;
+
+  const { data: filtered, error: filteredErr } = await supabase
+    .from("membership_plans")
+    .select("plan_id, plan_name, price_amount, currency, plan_code, tier")
+    .in("plan_code", ["freemium", "core", "core_annual", "research_hub"]);
+  if (!filteredErr && filtered && filtered.length > 0) {
+    plansRows = filtered;
+  } else {
+    const { data: allData, error: allErr } = await supabase
+      .from("membership_plans")
+      .select("plan_id, plan_name, price_amount, currency, plan_code, tier")
+      .order("plan_id", { ascending: true });
+    plansRows = allData || [];
+    qError = allErr;
+  }
+
+  if (qError) {
+    throw new Error(qError.message);
+  }
+
+  return (plansRows || [])
+    .filter(
+      (p: any) => typeof p?.price_amount === "number" && p.price_amount >= 0
+    )
+    .map((p: any) => ({
+      code: String(p.plan_id),
+      name: p.plan_name,
+      amount: p.price_amount,
+      currency: p.currency || "INR",
+      plan_code: p.plan_code,
+      tier: p.tier,
+    }));
+};
+
+export const resolvePlanById = async (planId: number) => {
+  const { data: planRows, error } = await supabase
+    .from("membership_plans")
+    .select("plan_id, plan_name, price_amount, currency, tier")
+    .eq("plan_id", planId)
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const planRow = planRows?.[0];
+  if (!planRow) throw new Error("Plan not found");
+  return planRow;
+};
+
+export const createOrderForPlanService = async (params: {
+  planId: number;
+  customer_id: string;
+  customer_email?: string;
+  customer_phone: string;
+  return_url?: string;
+  discount_amount: number;
+}) => {
+  const planRow = await resolvePlanById(params.planId);
+
+  const selected: PublicPlan = {
+    code: String(planRow.plan_id),
+    name: planRow.plan_name,
+    amount: params.discount_amount,
+    currency: planRow.currency || "INR",
+    tier: planRow.tier,
+  };
+
+  const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+  const frontendUrl = getFrontendBaseUrl();
+  const returnUrl =
+    params.return_url || `${frontendUrl}/payment/success?order_id=${orderId}`;
+
+  const request = {
+    order_id: orderId,
+    order_amount: selected.amount,
+    order_currency: selected.currency,
+    order_note: selected.name,
+    customer_details: {
+      customer_id: params.customer_id,
+      customer_email: params.customer_email || undefined,
+      customer_phone: params.customer_phone,
+    },
+    order_meta: {
+      return_url: returnUrl,
+    },
+  };
+
+  const response = await pgCreateOrder(request);
+  await supabase.from("payment_history").upsert({
+    payer_email: params.customer_email || null,
+    transaction_status: "PENDING",
+    user_id: params.customer_id,
+    plan_id: planRow.plan_id,
+  });
+
+  return { selected, order: response?.data || response };
+};

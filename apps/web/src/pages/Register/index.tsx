@@ -1,23 +1,10 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SignUpCard } from "./SignUpCard";
 import SignUpForm from "./SignupForm";
 
 export default function Register() {
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      const wasOpen = localStorage.getItem("onboardingOpen");
-      const step = parseInt(
-        localStorage.getItem("onboardingCurrentStep") || "1",
-        10
-      );
-      if (wasOpen === "true" || (step && step > 1)) {
-        setIsSignUpOpen(true);
-      }
-    } catch {}
-  }, []);
 
   const stats = [
     { number: "58.15%", label: "Average Returns" },
@@ -91,16 +78,9 @@ export default function Register() {
             >
               <SignUpCard
                 onSignUpClick={() => {
-                  try {
-                    localStorage.setItem("onboardingOpen", "true");
-                  } catch {}
                   setIsSignUpOpen(true);
                 }}
               />
-
-              {/* Background decoration */}
-              <div className="absolute -top-4 -right-4 w-72 h-72 bg-gradient-to-r from-red-200 to-red-300 rounded-full opacity-20 blur-3xl"></div>
-              <div className="absolute -bottom-4 -left-4 w-64 h-64 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full opacity-20 blur-3xl"></div>
             </motion.div>
           </div>
         </div>
@@ -110,9 +90,6 @@ export default function Register() {
         <SignUpForm
           isOpen={isSignUpOpen}
           onClose={() => {
-            try {
-              localStorage.setItem("onboardingOpen", "false");
-            } catch {}
             setIsSignUpOpen(false);
           }}
         />

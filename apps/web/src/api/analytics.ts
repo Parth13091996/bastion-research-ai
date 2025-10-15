@@ -17,6 +17,27 @@ export interface AnalyticsSummary {
   }[];
   activeNow: { ips: number; users: number };
   totals: { uniqueIPs: number; uniqueUsers: number };
+  subscribers?: {
+    totalActive: number;
+    totalPaidActive: number;
+    newPaid: { last7: number; last30: number; last90: number };
+    renewalPct: number; // percentage 0-100
+    nonRenewalPct: number; // percentage 0-100
+    churnRateMonthly: number; // percentage 0-100
+    nearingRenewal: {
+      userId: string;
+      membershipId: number | string | null;
+      planCode: string | null;
+      expiresAt: string;
+    }[];
+  };
+  revenue?: {
+    month: number;
+    quarter: number;
+    YTD: number;
+    byProduct: { product: string; revenue: number }[];
+  };
+  generatedAt?: string;
 }
 
 export async function fetchAnalyticsSummary(days = 7) {

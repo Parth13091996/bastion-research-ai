@@ -36,7 +36,7 @@ const UserDashboard = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {subscription?.isPremium ? (
+              {subscription?.is_premium ? (
                 <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg">
                   <Crown className="h-4 w-4" />
                   <span className="text-sm font-medium">Premium Member</span>
@@ -133,13 +133,51 @@ const UserDashboard = () => {
               <div className="flex items-center gap-6 mb-4">
                 <div className="relative w-24 h-24">
                   <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#1E293B" strokeWidth="10" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#EF4444" strokeWidth="10" strokeDasharray="75.4 251.2" strokeLinecap="round" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#FACC15" strokeWidth="10" strokeDasharray="90.48 251.2" strokeDashoffset="-75.4" strokeLinecap="round" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#22C55E" strokeWidth="10" strokeDasharray="85.44 251.2" strokeDashoffset="-165.88" strokeLinecap="round" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#1E293B"
+                      strokeWidth="10"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#EF4444"
+                      strokeWidth="10"
+                      strokeDasharray="75.4 251.2"
+                      strokeLinecap="round"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#FACC15"
+                      strokeWidth="10"
+                      strokeDasharray="90.48 251.2"
+                      strokeDashoffset="-75.4"
+                      strokeLinecap="round"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#22C55E"
+                      strokeWidth="10"
+                      strokeDasharray="85.44 251.2"
+                      strokeDashoffset="-165.88"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-base font-semibold">44</span>
+                    <span className="text-white text-base font-semibold">
+                      44
+                    </span>
                   </div>
                 </div>
                 <div className="flex-1 text-gray-300 text-xs space-y-1.5">
@@ -231,11 +269,29 @@ const UserDashboard = () => {
               <div className="flex items-center gap-6 mb-4">
                 <div className="relative w-24 h-24">
                   <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#1E293B" strokeWidth="10" />
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#22C55E" strokeWidth="10" strokeDasharray="251.2 251.2" strokeLinecap="round" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#1E293B"
+                      strokeWidth="10"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#22C55E"
+                      strokeWidth="10"
+                      strokeDasharray="251.2 251.2"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-base font-semibold">100%</span>
+                    <span className="text-white text-base font-semibold">
+                      100%
+                    </span>
                   </div>
                 </div>
                 <div className="flex-1 text-gray-300 text-xs space-y-1.5">
@@ -296,7 +352,7 @@ const UserDashboard = () => {
           </div>
         </div>
 
-          {/* Main Content Grid */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Recent Recommendations */}
           <div className="lg:col-span-2 bg-white rounded-lg p-3 sm:p-4 lg:p-6 shadow-sm">

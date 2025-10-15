@@ -11,15 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Plus,
-  Search,
-  Eye,
-  Edit,
-  Trash2,
-  Calendar,
-  Star,
-} from "lucide-react";
+import { Plus, Search, Eye, Edit, Trash2, Calendar, Star } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { testimonialApi } from "@/api/content";
@@ -127,7 +119,10 @@ const TestimonialManagement: React.FC = () => {
             {filteredItems.length} testimonials
           </span>
         </div>
-        <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
+        <Button
+          onClick={handleCreate}
+          className="bg-blue-500 hover:bg-blue-600 text-white"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Testimonial
         </Button>
@@ -157,14 +152,19 @@ const TestimonialManagement: React.FC = () => {
           {filteredItems.length === 0 ? (
             <div className="text-center py-8">
               <Star className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No testimonials found</h3>
+              <h3 className="text-lg font-medium mb-2">
+                No testimonials found
+              </h3>
               <p className="text-gray-600 mb-4">
                 {searchQuery
                   ? "Try adjusting your search"
                   : "Get started by adding your first testimonial"}
               </p>
               {!searchQuery && (
-                <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
+                <Button
+                  onClick={handleCreate}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Testimonial
                 </Button>
@@ -179,11 +179,13 @@ const TestimonialManagement: React.FC = () => {
                   <TableHead>Position</TableHead>
                   <TableHead>Title</TableHead>
                   <TableHead>Text</TableHead>
-                  <TableHead className="w-[220px] text-center">Actions</TableHead>
+                  <TableHead className="w-[220px] text-center">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredItems.map((item) => (
+                {filteredItems.map((item: any) => (
                   <TableRow key={item.id}>
                     <TableCell>
                       <div className="flex items-center text-sm text-gray-600">
@@ -199,7 +201,10 @@ const TestimonialManagement: React.FC = () => {
                     </TableCell>
 
                     <TableCell>
-                      <div className="max-w-xs truncate text-gray-600" title={item.position}>
+                      <div
+                        className="max-w-xs truncate text-gray-600"
+                        title={item.position}
+                      >
                         {item.position}
                       </div>
                     </TableCell>
@@ -211,7 +216,10 @@ const TestimonialManagement: React.FC = () => {
                     </TableCell>
 
                     <TableCell>
-                      <div className="max-w-xs truncate text-gray-600" title={item.text}>
+                      <div
+                        className="max-w-xs truncate text-gray-600"
+                        title={item.text}
+                      >
                         {item.text}
                       </div>
                     </TableCell>

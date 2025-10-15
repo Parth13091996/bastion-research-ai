@@ -15,7 +15,7 @@ import favicon from "../../../../server/public/favicon.webp";
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(6);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<OnboardingFormData>({
     email: "",
@@ -56,18 +56,25 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const maxStep = stepsValues.length;
 
   useEffect(() => {
-    const formDataFromStorage = localStorage.getItem("onboardingFormData");
-    if (formDataFromStorage) {
-      try {
-        setFormData(JSON.parse(formDataFromStorage));
-      } catch {}
-    }
-  }, [currentStep]);
-
-  useEffect(() => {
     const shouldResumeOnboarding = user?.status === "onboarding";
     const agreementSigned = user?.status === "agreement_signed";
     if (shouldResumeOnboarding) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user?.first_name || "",
+        lastName: user?.last_name || "",
+        phone: user?.phone || "",
+        email: user?.email || "",
+        address1: user?.address_1 || "",
+        address2: user?.address_2 || "",
+        state: user?.state || "",
+        city: user?.city || "",
+        pinCode: user?.pin_code || "",
+        dateOfBirth: user?.date_of_birth || "",
+        company: user?.company || "",
+        panCard: user?.pan_card_number || "",
+        panVerification: user?.pan_card_number ? { valid: true } : {},
+      }));
       setCurrentStep(5);
     }
     if (agreementSigned) {
@@ -95,9 +102,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     if (currentStep < maxStep) {
       const next = currentStep + 1;
       setCurrentStep(next);
-      try {
-        localStorage.setItem("onboardingCurrentStep", String(next));
-      } catch {}
     }
   };
 
@@ -106,29 +110,13 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     if (currentStep > 1) {
       const prev = currentStep - 1;
       setCurrentStep(prev);
-      try {
-        localStorage.setItem("onboardingCurrentStep", String(prev));
-      } catch {}
     }
     setError("");
   };
 
   useEffect(() => {
-    if (Object.values(formData).flat(Infinity).filter(Boolean).length) {
-      localStorage.setItem("onboardingFormData", JSON.stringify(formData));
-      localStorage.setItem("onboardingStep", JSON.stringify(currentStep));
-    }
-  }, [formData]);
-
-  useEffect(() => {
     setSteps(stepsValues);
   }, [plans.length]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("onboardingCurrentStep", String(currentStep));
-    } catch {}
-  }, [currentStep]);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -167,12 +155,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       city: formData.city,
       pinCode: formData.pinCode,
       company: formData.company,
-    };
-    const kycFormData = {
-      panCard: formData.panCard,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      panVerification: formData.panVerification || null,
     };
     switch (currentStep) {
       case 1:
@@ -217,7 +199,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       case 4:
         return (
           <KYCStep
-            formData={kycFormData}
+            formData={formData}
             onBack={prevStep}
             onNext={nextStep}
             updateFormData={updateFormData}
@@ -227,8 +209,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         return (
           <AgreementStep
             agreeToTerms={formData.agreeToTerms}
-            //@ts-ignore
-            formData={{ email: formData.email, phone: formData.phone }}
+            formData={formData}
             onBack={prevStep}
             onNext={nextStep}
             updateFormData={updateFormData}

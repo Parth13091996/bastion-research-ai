@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLoader } from "@/hooks/useLoader";
+import { useLoader } from "@/hooks/use-loader";
 import { load } from "@cashfreepayments/cashfree-js";
 import { Check, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -391,17 +391,17 @@ const Subscription = () => {
                   <p className="text-sm text-muted-foreground">
                     {onFreePlan
                       ? "No active subscription"
-                      : subscription?.isPremium
+                      : subscription?.is_premium
                         ? `Active subscription`
                         : "Subscription pending"}
                   </p>
                 </div>
                 <div className="flex flex-col sm:items-end gap-3">
                   <Badge
-                    variant={subscription?.isPremium ? "default" : "secondary"}
+                    variant={subscription?.is_premium ? "default" : "secondary"}
                     className="self-start sm:self-auto"
                   >
-                    {subscription?.isPremium ? "Active" : "Pending"}
+                    {subscription?.is_premium ? "Active" : "Pending"}
                   </Badge>
                   {subscription?.subscription && (
                     <div className="text-xs sm:text-sm text-muted-foreground space-y-1">

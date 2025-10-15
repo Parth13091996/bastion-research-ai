@@ -123,11 +123,11 @@ const NewsletterManagement: React.FC = () => {
             <h1 className="text-2xl font-bold text-secondary">Mailchimp Newsletter Feed</h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
               Campaigns created or edited in Mailchimp sync into the Bastion newsletters section.
-              Use the refresh button to pull the latest RSS content whenever you make changes.
+              Use the refresh button to pull the latest campaigns via the Mailchimp API whenever you make changes.
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               <Badge variant="secondary">{newsletters.length} items</Badge>
-              <Badge variant="outline">Source: Mailchimp RSS</Badge>
+              <Badge variant="outline">Source: Mailchimp API</Badge>
             </div>
           </div>
         </div>
