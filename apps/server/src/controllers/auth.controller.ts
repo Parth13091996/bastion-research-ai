@@ -92,7 +92,6 @@ export const createUserAfterOnboarding = async (userData: any) => {
       pin_code: pinCode || null,
       company: company || null,
       status: "active",
-      is_premium: true,
     })
     .select("id, email")
     .single();
@@ -207,6 +206,7 @@ export const signIn = async (req: Request, res: Response) => {
     }
 
     // If trying to login via admin portal, enforce admin role explicitly
+    console.log(user.role, isAdminLogin, "list");
     if (isAdminLogin && user.role !== config.roles.admin) {
       return res.status(401).json({
         message: "Only administrators can sign in to the admin panel.",
@@ -423,7 +423,6 @@ export const createOrUpdateUserAfterKYC = async (
       company: company || null,
       pan_card_number: panCard,
       status: "onboarding",
-      is_premium: false,
       pan_verification_metadata: panVerification,
     };
 
@@ -520,7 +519,7 @@ export const getUserSession = async (req: Request, res: Response) => {
     const { data: user, error } = await supabase
       .from("users")
       .select(
-        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, is_premium, status, role, digio_documents(document_id)`
+        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, status, role, digio_documents(document_id)`
       )
       .eq("id", decoded.id)
       .single();

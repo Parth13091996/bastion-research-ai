@@ -2,11 +2,7 @@ import { supabase } from "../supabase";
 
 export const getUserSubscriptionService = async (userId: string) => {
   const [userResult, subscriptionResult] = await Promise.all([
-    supabase
-      .from("users")
-      .select("is_premium, plan_code")
-      .eq("id", userId)
-      .single(),
+    supabase.from("users").select(" plan_code").eq("id", userId).single(),
     supabase
       .from("subscriptions")
       .select(
@@ -47,7 +43,7 @@ export const getUserSubscriptionService = async (userId: string) => {
     subscription?.plan_code || user?.plan_code || null;
 
   const response = {
-    is_premium: Boolean(user?.plan_code) || Boolean(user?.is_premium),
+    is_premium: Boolean(user?.plan_code),
     currentPlan,
     subscription: subscription
       ? {

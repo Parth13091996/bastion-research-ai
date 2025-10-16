@@ -68,7 +68,6 @@ export const handlePaymentSuccess = async (payload: any) => {
   const updateUserPromise = supabase
     .from("users")
     .update({
-      is_premium: true,
       status: "active",
       plan_code: currentPlan?.plan_code || null,
     })

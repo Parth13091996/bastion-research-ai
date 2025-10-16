@@ -29,11 +29,8 @@ const UserDashboard = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                Welcome back, {user?.first_name || user?.username || "User"}!
+                Welcome back, {user?.first_name + " " + user?.last_name}!
               </h1>
-              <p className="text-sm sm:text-base text-gray-600">
-                Independent, Unbiased, Insightful Market Analysis
-              </p>
             </div>
             <div className="flex items-center gap-3">
               {subscription?.is_premium ? (

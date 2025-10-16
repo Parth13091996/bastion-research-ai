@@ -40,7 +40,7 @@ const navItems = [
     icon: TrendingUp,
     path: "/user/app/recommendation",
   },
-  { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
+  // { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
   { name: "Premium Webinars", icon: Play, path: "/user/app/premium-webinars" },
   {
     name: "My Account",

@@ -183,6 +183,43 @@ export async function listMailchimpNewsletters(req: Request, res: Response) {
     const data = await fetchMailchimpNewsletters({
       forceRefresh: force,
     });
+
+    // If explicitly syncing, persist the latest Mailchimp feed into Supabase
+    if (force && Array.isArray(data)) {
+      try {
+        // Strategy: replace existing Mailchimp-derived rows to avoid duplicates
+        await supabase.from("newsletters").delete().eq("category", "mailchimp");
+
+        if (data.length > 0) {
+          const rows = data.map((item) => ({
+            title: item.title,
+            sub_title: item.sub_title ?? null,
+            headline_image_url: item.headline_image_url ?? null,
+            contents: null,
+            footer_content: null,
+            // Preserve publish/create date from Mailchimp if present
+            created_at: item.created_at,
+            // Mark the source so we can safely replace next sync
+            category: "mailchimp",
+          }));
+
+          // Insert in batches to avoid payload limits if the list is large
+          const BATCH_SIZE = 200;
+          for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+            const slice = rows.slice(i, i + BATCH_SIZE);
+            const { error } = await supabase.from("newsletters").insert(slice);
+            if (error) {
+              // Surface but don't block responding with Mailchimp data
+              console.error("Supabase insert error while syncing Mailchimp:", error.message);
+              break;
+            }
+          }
+        }
+      } catch (syncErr: any) {
+        console.error("Failed to persist Mailchimp newsletters to Supabase:", syncErr?.message || syncErr);
+        // Do not fail the request; return the Mailchimp API data regardless
+      }
+    }
     return res.status(200).json(data ?? []);
   } catch (e: any) {
     return res.status(500).json({ error: e.message });

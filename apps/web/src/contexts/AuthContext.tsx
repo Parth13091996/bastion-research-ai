@@ -16,7 +16,7 @@ import { toast } from "sonner";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | undefined>(undefined);
   // Start in loading state to avoid premature redirects on refresh
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,9 +57,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refetchUserAfterAgreement = async () => {
-    const data = (await axiosInstance.get(endpoints.auth.session)).data
-    setUser(data?.user)
-    return data?.user
+    const data = (await axiosInstance.get(endpoints.auth.session)).data;
+    setUser(data?.user);
+    return data?.user;
   };
 
   const login = (newUser: User) => {
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           isLoading,
           subscription: subscriptionData || null,
           isSubscriptionLoading,
-          refetchUserAfterAgreement
+          refetchUserAfterAgreement,
         } as any
       }
     >

@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, Filter, TrendingUp, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 
 // Brand Colors
 const COLORS = {
@@ -32,92 +34,65 @@ interface StockData {
   band: "BUY" | "HOLD" | "EXITED";
   lastUpdated: string;
 }
+const normalizeNumber = (v: any): number => {
+  if (typeof v === "number") return v;
+  if (!v) return 0;
+  const s = String(v).replace(/[,₹\s]/g, "");
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+};
 
-const mockStockData: StockData[] = [
-  {
-    id: "1",
-    name: "FINEOTEX CHEMICAL LTD",
-    code: "FINEOTEX",
-    marketCap: "₹2,788 Cr.",
-    upside: 93.1,
-    cmp: 236.41,
-    entryPrice: 317.8,
-    target1: 456.5,
-    sector: "Chemicals",
-    band: "BUY",
-    lastUpdated: "2 Oct 2025",
-  },
-  {
-    id: "2",
-    name: "MMR INDUSTRIES LTD",
-    code: "MMR",
-    marketCap: "₹704 Cr.",
-    upside: 61.1,
-    cmp: 276.35,
-    entryPrice: 286,
-    target1: 446.16,
-    sector: "Mining & Minerals",
-    band: "HOLD",
-    lastUpdated: "1 Oct 2025",
-  },
-  {
-    id: "3",
-    name: "RAMCO SYSTEMS LTD",
-    code: "RAMCO",
-    marketCap: "₹1,896 Cr.",
-    upside: 23.97,
-    cmp: 407,
-    entryPrice: 510.75,
-    target1: 633.2,
-    sector: "IT",
-    band: "EXITED",
-    lastUpdated: "28 Sep 2025",
-  },
-  {
-    id: "3",
-    name: "RAMCO SYSTEMS LTD",
-    code: "RAMCO",
-    marketCap: "₹1,896 Cr.",
-    upside: 23.97,
-    cmp: 407,
-    entryPrice: 510.75,
-    target1: 633.2,
-    sector: "IT",
-    band: "EXITED",
-    lastUpdated: "28 Sep 2025",
-  },
-  {
-    id: "3",
-    name: "RAMCO SYSTEMS LTD",
-    code: "RAMCO",
-    marketCap: "₹1,896 Cr.",
-    upside: 23.97,
-    cmp: 407,
-    entryPrice: 510.75,
-    target1: 633.2,
-    sector: "IT",
-    band: "BUY",
-    lastUpdated: "28 Sep 2025",
-  },
-  {
-    id: "3",
-    name: "RAMCO SYSTEMS LTD",
-    code: "RAMCO",
-    marketCap: "₹1,896 Cr.",
-    upside: 23.97,
-    cmp: 407,
-    entryPrice: 510.75,
-    target1: 633.2,
-    sector: "IT",
-    band: "HOLD",
-    lastUpdated: "28 Sep 2025",
-  },
-];
+const coerceBand = (v: any): "BUY" | "HOLD" | "EXITED" => {
+  const s = String(v || "").toUpperCase();
+  if (s === "BUY" || s === "HOLD" || s === "EXITED") return s;
+  return "BUY";
+};
+
+const mapRowToStock = (row: any, idx: number): StockData => {
+  // Attempt to map common header variants
+  const get = (...keys: string[]) => {
+    for (const k of keys) {
+      if (row[k] !== undefined) return row[k];
+    }
+    return "";
+  };
+  return {
+    id: String(get("id", "ID", "Id") || idx + 1),
+    name: String(get("name", "Name", "Stock", "Stock Name") || ""),
+    code: String(get("code", "Code", "Ticker", "Symbol") || ""),
+    marketCap: String(get("marketCap", "MarketCap", "Market Cap") || ""),
+    upside: normalizeNumber(get("upside", "Upside", "Expected Upside")),
+    cmp: normalizeNumber(get("cmp", "CMP", "Current Price", "Price")),
+    entryPrice: normalizeNumber(get("entryPrice", "Entry", "Entry Price")),
+    target1: normalizeNumber(get("target1", "Target", "Target1", "Target Price")),
+    sector: String(get("sector", "Sector") || ""),
+    band: coerceBand(get("band", "Band", "Status", "Recommendation")),
+    lastUpdated: String(get("lastUpdated", "Updated", "Last Updated") || ""),
+  };
+};
 
 const Recommendation = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("MCAP Wise");
   const [filterBy, setFilterBy] = useState("All");
+  const [rows, setRows] = useState<StockData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axiosInstance.get(endpoints.recommendations);
+        const data = Array.isArray(res.data) ? res.data : [];
+        const mapped = data.map((r, i) => mapRowToStock(r, i));
+        setRows(mapped);
+      } catch (e: any) {
+        setError(e?.response?.data?.message || "Failed to load recommendations");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const getBandColor = (band: string) => {
     switch (band) {
@@ -139,12 +114,12 @@ const Recommendation = () => {
   };
 
   // Filter logic
-  const filteredStocks = mockStockData.filter(
+  const filteredStocks = useMemo(() => rows.filter(
     (stock) =>
       (filterBy === "All" || stock.band === filterBy) &&
       (stock.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         stock.code.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  ), [rows, filterBy, searchTerm]);
 
   const StockCard = ({ stock }: { stock: StockData }) => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -240,6 +215,9 @@ const Recommendation = () => {
             Discover high-potential investment opportunities
           </p>
         </div>
+
+        {loading && <p className="text-sm text-gray-600">Loading recommendations...</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">

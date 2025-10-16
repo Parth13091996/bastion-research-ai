@@ -76,7 +76,17 @@ export const endpoints = {
       get: "/api/admin/settings/contact-email",
       update: "/api/admin/settings/contact-email",
     },
+    recommendationsSheet: {
+      get: "/api/admin/settings/recommendations-sheet",
+      update: "/api/admin/settings/recommendations-sheet",
+      upload: "/api/admin/settings/recommendations-sheet/upload",
+    },
+    recommendationsGsheet: {
+      get: "/api/admin/settings/recommendations-gsheet",
+      update: "/api/admin/settings/recommendations-gsheet",
+    },
   },
+  recommendations: "/api/recommendations",
   content: {
     research: {
       base: "/content/research",

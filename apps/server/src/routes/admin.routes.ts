@@ -30,9 +30,26 @@ import {
   updateTestimonial,
   deleteTestimonial,
 } from '../controllers/content.controller';
-import { getContactRecipientEmail, updateContactRecipientEmail } from '../controllers/settings.controller';
+import { getContactRecipientEmail, updateContactRecipientEmail, getRecommendationsSpreadsheetSetting, updateRecommendationsSpreadsheetUrl, uploadRecommendationsSpreadsheet, getRecommendationsGsheetSetting, updateRecommendationsGsheetSetting } from '../controllers/settings.controller';
+import multer from 'multer';
 
 const router = Router();
+const uploadMem = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: Number(process.env.MAX_DOC_FILE_SIZE || 20 * 1024 * 1024),
+    files: 1,
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only CSV or XLSX files are allowed'));
+  },
+});
 
 // Example protected admin route
 router.get('/dashboard', protect, admin, (req, res) => {
@@ -45,6 +62,15 @@ router.get('/analytics/summary', protect, admin, getAnalyticsSummary);
 // Settings: Contact recipient email
 router.get('/settings/contact-email', protect, admin, getContactRecipientEmail);
 router.put('/settings/contact-email', protect, admin, updateContactRecipientEmail);
+
+// Settings: Recommendations spreadsheet (URL or uploaded file)
+router.get('/settings/recommendations-sheet', protect, admin, getRecommendationsSpreadsheetSetting);
+router.put('/settings/recommendations-sheet', protect, admin, updateRecommendationsSpreadsheetUrl);
+router.post('/settings/recommendations-sheet/upload', protect, admin, uploadMem.single('file'), uploadRecommendationsSpreadsheet);
+
+// Settings: Google Sheets (ID + Range)
+router.get('/settings/recommendations-gsheet', protect, admin, getRecommendationsGsheetSetting);
+router.put('/settings/recommendations-gsheet', protect, admin, updateRecommendationsGsheetSetting);
 
 // Content management - Newsletters
 router.get('/content/research', protect, admin, listResearch);

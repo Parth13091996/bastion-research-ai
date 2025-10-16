@@ -21,7 +21,7 @@ interface SubscriptionData {
 }
 
 interface AuthContextType {
-  user: any;
+  user: User;
   login: (user: User) => void;
   logout: () => Promise<void>;
   refetchUser: () => Promise<User>;
