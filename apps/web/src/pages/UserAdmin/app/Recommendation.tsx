@@ -270,7 +270,7 @@ const Recommendation = () => {
         </div>
 
         <div className="px-4 pb-4">
-          <Link to="/user/app/view-research">
+          <Link to="/user/app/view-research" state={{ stock }}>
             <Button
               variant="outline"
               className="w-full text-sm py-2 border-gray-300 text-gray-700 hover:bg-gray-50"
