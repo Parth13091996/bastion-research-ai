@@ -1,6 +1,6 @@
-- [x] Import useEffect and useRef in BastionCore/index.tsx
-- [ ] Add showSticky state
-- [ ] Add section2Ref
-- [ ] Add useEffect for scroll detection
-- [ ] Add conditional sticky header JSX with Quarterly subscribe button
-- [ ] Attach ref to Section 2 (pricing section)
+# TODO: Add "3 New" Badge to Recommendation Link in UserSidebar
+
+## Tasks
+- [ ] Import Badge component in UserSidebar.tsx
+- [ ] Add "3 New" Badge next to Recommendation name in expanded sidebar mode
+- [ ] Test the UI changes by running the application
