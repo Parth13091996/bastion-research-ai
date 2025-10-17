@@ -92,12 +92,12 @@ const ChartDashboard = () => {
 
             <div className="bg-white/5 rounded-xl p-4 border border-white/10 flex flex-col justify-between">
               <div>
-                <p className="text-xs text-gray-400 mb-3">Performance Breakdown</p>
+                <p className="text-xs text-white mb-3">Performance Breakdown</p>
                 <div className="space-y-3">
                   {liveRecommendations.map((item, idx) => (
                     <div className="flex justify-between items-center" key={idx}>
-                      <span className="text-xs text-gray-300">{item.label}</span>
-                      <span className={`text-sm font-bold ${item.color.split(" ")[0]}`}>{item.percentage}%</span>
+                      <span className="text-xs text-gray-400">{item.label}</span>
+                      <span className={`text-sm font-bold text-gray-400 ${item.color.split(" ")[0]}`}>{item.percentage}%</span>
                     </div>
                   ))}
                 </div>
