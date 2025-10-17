@@ -128,7 +128,20 @@
     opacity: 1;
     transform: translateX(0);
   }
+
 }
 .animate-slide-in {
   animation: slideIn 0.2s ease-out;
+}
+
+
+/* recommendation page progress bar sparkle */
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s infinite ease-in-out;
 }
