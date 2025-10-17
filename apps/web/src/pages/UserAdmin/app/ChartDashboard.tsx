@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Reusable Horizontal Bar Component
 const HorizontalBar = ({ label, value, percentage, color }) => {
@@ -68,7 +69,9 @@ const ChartDashboard = () => {
               <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
               <h2 className="text-lg sm:text-xl font-semibold text-white">44 Live Recommendations</h2>
             </div>
-            <span className="text-xs sm:text-sm text-blue-300 font-medium">3 New</span>
+            <Link to="/user/app/recommendation" className="text-xs sm:text-sm text-blue-300 font-medium hover:underline">
+              3 New
+            </Link>
           </div>
 
           <div className="rounded-xl p-4 mb-6 bg-gradient-to-r from-indigo-500 to-purple-500">
@@ -119,7 +122,9 @@ const ChartDashboard = () => {
               <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
               <h2 className="text-lg sm:text-xl font-semibold text-white">36 Exits (past)</h2>
             </div>
-            <span className="text-xs sm:text-sm text-blue-300 font-medium">3 New</span>
+            <Link to="/user/app/recommendation" className="text-xs sm:text-sm text-blue-300 font-medium hover:underline">
+              3 New
+            </Link>
           </div>
 
           <div className="rounded-xl p-4 mb-6 bg-gradient-to-r from-pink-500 to-orange-400">
