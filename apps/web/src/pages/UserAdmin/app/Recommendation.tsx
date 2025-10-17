@@ -166,72 +166,103 @@ const Recommendation = () => {
           </span>
         </div>
         {/* Price Range Bar */}
+        {/* Price Range Bar */}
         <div className="mb-3 relative px-4">
           <div className="relative w-full h-4 bg-gray-200 rounded-full flex items-center">
-            {/* Red bar when CMP < Entry Price */}
-            {stock.cmp < stock.entryPrice && (
-              <div
-                className="h-4 rounded-full transition-all duration-500 absolute"
-                style={{
-                  width: `${((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100}%`,
-                  backgroundColor: COLORS.red,
-                  right: `50%`, // start from center (Entry Price)
-                  transform: "translateX(50%)", // align bar correctly
-                }}
-              ></div>
-            )}
-
-            {/* Green bar when CMP >= Entry Price */}
+            {/* CMP >= Entry Price: Green bar left to right */}
             {stock.cmp >= stock.entryPrice && (
-              <div
-                className="h-4 rounded-full transition-all duration-500 absolute"
-                style={{
-                  width: `${Math.min(
-                    ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
-                    100
-                  )}%`,
-                  backgroundColor: COLORS.green,
-                  left: `50%`, // Entry Price center
-                  transform: "translateX(-50%)",
-                }}
-              ></div>
+              <>
+                <div
+                  className="h-4 rounded-full transition-all duration-500 absolute"
+                  style={{
+                    width: `${Math.min(
+                      ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
+                      100
+                    )}%`,
+                    backgroundColor: COLORS.green,
+                    left: 0,
+                  }}
+                ></div>
+
+                {/* Entry Price fixed below bar */}
+                <div className="absolute top-6 left-0 text-xs text-gray-500">
+                  ₹{stock.entryPrice}
+                </div>
+
+                {/* CMP flowing above bar */}
+                <div
+                  className="absolute -top-5 text-xs font-semibold text-green-700"
+                  style={{
+                    left: `${Math.min(
+                      ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
+                      100
+                    )}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  CMP: ₹{stock.cmp}
+                </div>
+
+                {/* Target Price fixed below bar */}
+                <div className="absolute top-6 right-0 text-xs text-gray-500">
+                  ₹{stock.target1}
+                </div>
+              </>
             )}
 
-            {/* CMP Label */}
-            <div
-              className={`absolute -top-5 text-xs font-semibold ${stock.cmp >= stock.entryPrice ? "text-green-700" : "text-red-700"
-                }`}
-              style={{
-                left:
-                  stock.cmp >= stock.entryPrice
-                    ? `${((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100}%`
-                    : `calc(50% - ${((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50}%)`,
-                transform: "translateX(-50%)",
-              }}
-            >
-              CMP: ₹{stock.cmp}
-            </div>
+            {/* CMP < Entry Price: Entry Price center, red bar flows left */}
+            {stock.cmp < stock.entryPrice && (
+              <>
+                {/* Red bar flows left from center */}
+                <div
+                  className="h-4 rounded-full transition-all duration-500 absolute"
+                  style={{
+                    width: `${Math.min(
+                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
+                      50
+                    )}%`,
+                    backgroundColor: COLORS.red,
+                    right: "50%",
+                  }}
+                ></div>
 
-            {/* Entry Price */}
-            <div className="absolute top-5 left-1/2 text-xs text-gray-500" style={{ transform: "translateX(-50%)" }}>
-              ₹{stock.entryPrice}
-            </div>
+                {/* Entry Price fixed below bar */}
+                <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">
+                  ₹{stock.entryPrice}
+                </div>
 
-            {/* Target Price */}
-            <div className="absolute top-5 right-0 text-xs text-gray-500">₹{stock.target1}</div>
+                {/* CMP flowing above bar */}
+                <div
+                  className="absolute -top-5 text-xs font-semibold text-red-700"
+                  style={{
+                    left: `${50 - Math.min(
+                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
+                      50
+                    )}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  CMP: ₹{stock.cmp}
+                </div>
+
+                {/* Target Price fixed below bar */}
+                <div className="absolute top-6 right-0 text-xs text-gray-500">
+                  ₹{stock.target1}
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-
 
         <div className="p-4">
           <div className="grid grid-cols-3 text-sm font-medium text-gray-700 mb-3">
             <div>
-              <div className="text-xs text-gray-500">CMP</div>₹{stock.cmp}
-            </div>
-            <div>
               <div className="text-xs text-gray-500">Entry Price</div>₹{stock.entryPrice}
             </div>
+            <div>
+              <div className="text-xs text-gray-500">CMP</div>₹{stock.cmp}
+            </div>
+
             <div>
               <div className="text-xs text-gray-500">Target Price</div>₹{stock.target1}
             </div>
