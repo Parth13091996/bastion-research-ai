@@ -27,9 +27,11 @@
   ],
   "pnpm": {
     "ignoredBuiltDependencies": [
+      "@parcel/watcher",
       "@swc/core"
     ],
     "onlyBuiltDependencies": [
+      "@parcel/watcher",
       "@swc/core"
     ]
   },

@@ -6,22 +6,6 @@ import SignUpForm from "./SignupForm";
 export default function Register() {
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
-<<<<<<< HEAD
-  useEffect(() => {
-    try {
-      const wasOpen = localStorage.getItem("onboardingOpen");
-      const step = parseInt(
-        localStorage.getItem("onboardingCurrentStep") || "1",
-        10
-      );
-      if (wasOpen === "true" || (step && step > 1)) {
-        setIsSignUpOpen(true);
-      }
-    } catch { }
-  }, []);
-
-=======
->>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
   const stats = [
     { number: "10k+", label: "Total Ideas" },
     { number: "69+", label: "Active Ideas" },
@@ -89,12 +73,6 @@ export default function Register() {
             >
               <SignUpCard
                 onSignUpClick={() => {
-<<<<<<< HEAD
-                  try {
-                    localStorage.setItem("onboardingOpen", "true");
-                  } catch { }
-=======
->>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
                   setIsSignUpOpen(true);
                 }}
               />
@@ -107,12 +85,6 @@ export default function Register() {
         <SignUpForm
           isOpen={isSignUpOpen}
           onClose={() => {
-<<<<<<< HEAD
-            try {
-              localStorage.setItem("onboardingOpen", "false");
-            } catch { }
-=======
->>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
             setIsSignUpOpen(false);
           }}
         />
