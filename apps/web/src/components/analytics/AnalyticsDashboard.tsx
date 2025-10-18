@@ -91,26 +91,30 @@ export function AnalyticsDashboard() {
     ],
   };
 
-  // ✅ FIXED: type-safe cast for Chart.js
+  // Top Paths Doughnut
   const topPathsData = {
     labels: summary?.topPaths.slice(0, 8).map((p) => p.path) || [],
     datasets: [
       {
         label: "Page Views",
         data: summary?.topPaths.slice(0, 8).map((p) => p.views) || [],
-        backgroundColor: [
-          "hsl(var(--primary))",
-          "hsl(var(--secondary))",
-          "hsl(var(--accent))",
-          "hsl(var(--muted-foreground))",
-          "hsl(var(--destructive))",
-          "hsl(var(--primary) / 0.7)",
-          "hsl(var(--secondary) / 0.7)",
-          "hsl(var(--accent) / 0.7)",
-        ] as unknown as string, // ✅ FIX
+        // allow chart to inject vibrant palette
       },
     ],
   };
+
+  // Revenue by Product chart
+  const revenueByProductData = summary?.revenue?.byProduct
+    ? {
+        labels: summary.revenue.byProduct.map((r) => r.product),
+        datasets: [
+          {
+            label: "Revenue",
+            data: summary.revenue.byProduct.map((r) => r.revenue),
+          },
+        ],
+      }
+    : undefined;
 
   // Table columns for detailed page analytics
   const pageColumns: ColDef<PageViewRow>[] = [
@@ -253,6 +257,7 @@ export function AnalyticsDashboard() {
           visitsData={visitsData}
           usersData={usersData}
           topPathsData={topPathsData}
+          revenueByProductData={revenueByProductData as any}
           loading={isLoading}
         />
       )}
@@ -277,7 +282,7 @@ export function AnalyticsDashboard() {
         </CardContent>
       </Card>
 
-      {/* Real-time Activity */}
+      {/* Real-time Activity & Business KPIs */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -323,6 +328,60 @@ export function AnalyticsDashboard() {
                 </span>
               </div>
               <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Total Active Subscribers
+                </span>
+                <span className="font-medium">
+                  {summary?.subscribers?.totalActive ?? 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Total Paid Subscribers
+                </span>
+                <span className="font-medium">
+                  {summary?.subscribers?.totalPaidActive ?? 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  New Paid (7/30/90)
+                </span>
+                <span className="font-medium">
+                  {summary?.subscribers
+                    ? `${summary.subscribers.newPaid.last7}/${summary.subscribers.newPaid.last30}/${summary.subscribers.newPaid.last90}`
+                    : "0/0/0"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Renewals vs Non-Renewals
+                </span>
+                <span className="font-medium">
+                  {summary?.subscribers
+                    ? `${summary.subscribers.renewalPct}% / ${summary.subscribers.nonRenewalPct}%`
+                    : "0% / 0%"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Churn Rate
+                </span>
+                <span className="font-medium">
+                  {summary?.subscribers?.churnRateMonthly ?? 0}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Revenue (M/Q/YTD)
+                </span>
+                <span className="font-medium">
+                  {summary?.revenue
+                    ? `${summary.revenue.month.toLocaleString()} / ${summary.revenue.quarter.toLocaleString()} / ${summary.revenue.YTD.toLocaleString()}`
+                    : "0 / 0 / 0"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Top Page</span>
                 <span className="font-medium text-sm">
                   {summary?.topPaths[0]?.path || "N/A"}
@@ -340,6 +399,29 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Subscribers Nearing Renewal */}
+      {summary?.subscribers?.nearingRenewal?.length ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscribers Nearing Renewal (30 days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2">
+              {summary.subscribers.nearingRenewal.map((s, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    {s.userId} • {s.planCode || s.membershipId}
+                  </div>
+                  <Badge variant="secondary">
+                    {new Date(s.expiresAt).toLocaleDateString()}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

@@ -14,10 +14,12 @@ import contentRoutes from "./routes/content.routes";
 import authRoutes from "./routes/auth.routes";
 import cashfreeRoutes from "./routes/cashfree.routes";
 import contactRoutes from "./routes/contact.routes";
+import leadsRoutes from "./routes/leads.routes";
 import otpRoutes from "./routes/otp.routes";
 import imagesRoutes from "./routes/images.routes";
 import filesRoutes from "./routes/files.routes";
 import digioRoutes from "./routes/digio.routes";
+import mailChimpRoutes from "./routes/mailchimp.routes";
 
 dotenv.config();
 
@@ -59,7 +61,9 @@ app.use("/api", applicationRoutes);
 app.use("/api", membershipRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/content", contentRoutes);
+app.use("/mailchimp", mailChimpRoutes);
 app.use("/api", contactRoutes);
+app.use("/api", leadsRoutes);
 app.use("/api/images", imagesRoutes);
 app.use("/api/files", filesRoutes);
 app.use("/api/digio", digioRoutes);

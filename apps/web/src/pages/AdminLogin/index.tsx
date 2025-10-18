@@ -2,7 +2,7 @@ import axiosInstance from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLoader } from "@/hooks/useLoader";
+import { useLoader } from "@/hooks/use-loader";
 import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -64,10 +64,8 @@ const AdminLogin = () => {
   });
 
   useEffect(() => {
-    console.log(isLoading,'loading hai')
     if (isLoading) {
       loader.start("Checking session...");
-
     } else {
       loader.stop();
     }

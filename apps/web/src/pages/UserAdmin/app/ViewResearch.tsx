@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   TrendingUp,
   FileText,
@@ -24,21 +24,44 @@ import {
 } from "recharts";
 
 const ViewResearch = () => {
+  const location = useLocation();
+  const stock = location.state?.stock;
+
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [timeRange, setTimeRange] = useState("ALL");
 
+  // Helper function to parse "MMM-YY" date strings into Date objects
+  const parseDate = (dateStr: string) => {
+    const [month, year] = dateStr.split('-');
+    const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month);
+    return new Date(2000 + parseInt(year), monthIndex, 1);
+  };
+
+  const getBandColor = (band: string) => {
+    switch (band) {
+      case "BUY":
+        return "bg-green-100 text-green-700";
+      case "HOLD":
+        return "bg-yellow-100 text-yellow-700";
+      case "EXITED":
+        return "bg-gray-100 text-gray-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
   // Simulated data for 6 months
   const allData = [
-    { date: "2024-01-01", stock: 100, bse500: 100 },
-    { date: "2024-02-01", stock: 105, bse500: 102 },
-    { date: "2024-03-01", stock: 110, bse500: 104 },
-    { date: "2024-04-01", stock: 115, bse500: 106 },
-    { date: "2024-05-01", stock: 125, bse500: 108 },
-    { date: "2024-06-01", stock: 135, bse500: 110 },
-    { date: "2024-07-01", stock: 140, bse500: 113 },
-    { date: "2024-08-01", stock: 150, bse500: 115 },
-    { date: "2024-09-01", stock: 155, bse500: 118 },
-    { date: "2024-10-01", stock: 160, bse500: 120 },
+    { date: "Jan-24", stock: 100, bse500: 100 },
+    { date: "Feb-24", stock: 105, bse500: 102 },
+    { date: "Mar-24", stock: 110, bse500: 104 },
+    { date: "Apr-24", stock: 115, bse500: 106 },
+    { date: "May-24", stock: 125, bse500: 108 },
+    { date: "Jun-24", stock: 135, bse500: 110 },
+    { date: "Jul-24", stock: 140, bse500: 113 },
+    { date: "Aug-24", stock: 150, bse500: 115 },
+    { date: "Sep-24", stock: 155, bse500: 118 },
+    { date: "Oct-24", stock: 160, bse500: 120 },
   ];
 
   // Function to filter data based on time range
@@ -61,7 +84,7 @@ const ViewResearch = () => {
       default:
         return allData;
     }
-    return allData.filter((d) => new Date(d.date) >= cutoff);
+    return allData.filter((d) => parseDate(d.date) >= cutoff);
   };
 
   const updates = [
@@ -91,30 +114,33 @@ const ViewResearch = () => {
     },
   ];
 
+  const totalReturn = stock ? ((stock.cmp - stock.entryPrice) / stock.entryPrice * 100).toFixed(1) : "0";
+  const totalReturnNum = parseFloat(totalReturn);
+  const totalReturnColor = totalReturnNum >= 0 ? "text-green-600" : "text-red-600";
+
   const stockMetrics = [
-    { label: "Recommendation Date", value: "12 Jan 2024" },
-    { label: "Recommendation Price", value: "₹285" },
-    { label: "Target Price", value: "₹420" },
-    { label: "CMP", value: "₹385" },
-    { label: "Total Return", value: "+35.1%", color: "text-green-600" },
-    { label: "Upside Left", value: "+9.1%", color: "text-blue-600" },
+    { label: "Recommendation Date", value: stock?.lastUpdated || "N/A" },
+    { label: "Recommendation Price", value: stock ? `₹${stock.entryPrice}` : "₹0" },
+    { label: "Target Price", value: stock ? `₹${stock.target1}` : "₹0" },
+    { label: "CMP", value: stock ? `₹${stock.cmp}` : "₹0" },
+    { label: "Total Return", value: `${totalReturnNum >= 0 ? '+' : ''}${totalReturn}%`, color: totalReturnColor },
+    { label: "Upside Left", value: stock ? `${stock.upside}%` : "0%", color: "text-blue-600" },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* HEADER */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 shadow-sm md:sticky md:top-0 md:z-10">
         <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Building2 size={28} className="text-blue-600" />
+            <Building2 className="w-7 h-7 md:w-8 md:h-8 text-blue-600" />
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight">
-              Company Name Ltd.
+              {stock?.name || "Company Name Ltd."}
             </h1>
           </div>
             <div className="flex items-center gap-3">
-              <button className="bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1">
-                <ShoppingCart size={14} />
-                Buy
+              <button className={`${getBandColor(stock?.band || "BUY")} px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1`}>
+                {stock?.band || "BUY"}
               </button>
               <Link
                 to="/contact-us"
@@ -260,7 +286,7 @@ const ViewResearch = () => {
             {/* Quarterly Updates */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center gap-2 mb-4">
-                <ClipboardList className="text-blue-600" size={20} />
+                <ClipboardList className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                 <h3 className="text-lg font-semibold text-gray-900">
                   Quarterly Updates
                 </h3>
@@ -292,7 +318,7 @@ const ViewResearch = () => {
         {/* All Updates */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-6">
-            <Bell className="text-blue-600" />
+            <Bell className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
             <h2 className="text-xl font-semibold text-gray-900">
               Important Announcements and Updates
             </h2>

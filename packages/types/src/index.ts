@@ -323,3 +323,20 @@ export interface Testimonial {
   position: string;
   created_at: string;
 }
+
+export interface MailchimpNewsletter {
+  id: string;
+  title: string;
+  sub_title?: string;
+  headline_image_url?: string;
+  contents?: string;
+  html_content?: string;
+  footer_content?: string;
+  created_at: string;
+  link?: string;
+  guid?: string;
+  author?: string;
+  categories?: string[];
+  plain_text?: string;
+  source?: "mailchimp";
+}

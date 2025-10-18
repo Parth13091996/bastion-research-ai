@@ -3,17 +3,14 @@ export const videoUrlWithEmbed = (url) =>
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export const getUserInfoToShowInPdf = () => {
-  const storedFormData = JSON.parse(
-    localStorage.getItem("onboardingFormData") || ""
-  );
+export const getUserInfoToShowInPdf = (formData: any) => {
   const actualAddress = `
-  Name: ${storedFormData.firstName} ${storedFormData.lastName}\n
-  PAN: ${storedFormData.panCard}\n
-  Address: ${storedFormData.address1}\n
-  ${storedFormData.address2}\n
-  Email: ${storedFormData.email}\n
-  Phone Number: ${storedFormData.phone}
+  Name: ${formData?.firstName || ""} ${formData?.lastName || ""}\n
+  PAN: ${formData?.panCard || ""}\n
+  Address: ${formData?.address1 || ""}\n
+  ${formData?.address2 || ""}\n
+  Email: ${formData?.email || ""}\n
+  Phone Number: ${formData?.phone || ""}
   `;
   return actualAddress;
 };

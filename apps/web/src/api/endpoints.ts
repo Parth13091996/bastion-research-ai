@@ -21,6 +21,10 @@ export const endpoints = {
     base: "/api/applications",
     byId: (id: string | number) => `/api/applications/${id}`,
   },
+  leads: {
+    base: "/api/leads",
+    byId: (id: string | number) => `/api/leads/${id}`,
+  },
   membershipPlans: {
     base: "/api/membership-plans",
     byId: (id: string | number) => `/api/membership-plans/${id}`,
@@ -39,6 +43,7 @@ export const endpoints = {
   },
   otp: {
     send: "/api/otp/send",
+    sendEmail: "/api/otp/send-email",
     verify: "/api/otp/verify",
   },
   cashfree: {
@@ -90,6 +95,7 @@ export const endpoints = {
       },
     },
     mailchimp: {
+      subscribe: "/mailchimp/newsletters/subscribe",
       newsletters: {
         base: "/content/mailchimp/newsletters",
         byId: (id: string) => `/content/mailchimp/newsletters/${id}`,

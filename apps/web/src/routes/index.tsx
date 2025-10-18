@@ -67,6 +67,7 @@ const CouponManagement = lazy(
 const JobOpenings = lazy(() => import("../pages/Admin/Jobs/JobOpenings"));
 const AddNewJob = lazy(() => import("../pages/Admin/Jobs/AddNewJob"));
 const Applications = lazy(() => import("../pages/Admin/Jobs/Applications"));
+const LeadsPage = lazy(() => import("../pages/Admin/Leads"));
 const AllUsers = lazy(() => import("../pages/Admin/Users/AllUsers"));
 const AddUser = lazy(() => import("../pages/Admin/Users/AddUser"));
 const Profile = lazy(() => import("../pages/Admin/Users/Profile"));
@@ -210,6 +211,10 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminApplications(),
         element: <Applications />,
+      },
+      {
+        path: AppRoutes.adminLeads(),
+        element: <LeadsPage />,
       },
       {
         path: AppRoutes.adminAllUsers(),

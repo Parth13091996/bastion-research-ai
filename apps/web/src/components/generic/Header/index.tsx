@@ -27,11 +27,11 @@ const Header = () => {
 
   // Detect scroll for sticky button on BastionCore
   useEffect(() => {
-    if (location.pathname === '/bastion-core') {
+    if (location.pathname === "/bastion-core") {
       const handleScroll = () => {
-        const subscribeDiv = document.getElementById('subscribe-button-div');
-        const header = document.querySelector('header');
-        const footer = document.querySelector('footer');
+        const subscribeDiv = document.getElementById("subscribe-button-div");
+        const header = document.querySelector("header");
+        const footer = document.querySelector("footer");
         if (subscribeDiv && header) {
           const rect = subscribeDiv.getBoundingClientRect();
           const headerHeight = header.offsetHeight;
@@ -42,8 +42,8 @@ const Header = () => {
           setIsOverFooter(footerRect.top <= window.innerHeight);
         }
       };
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
     } else {
       setShowSticky(false);
       setIsOverFooter(false);
@@ -73,19 +73,18 @@ const Header = () => {
             </div>
             {!isMobile && showSticky && (
               <Link to="/register">
-                <button className={`ml-19 px-4 py-2 rounded-xl transition-colors ${
-                  isOverFooter
-                    ? 'bg-white text-[#C00000] hover:bg-gray-100'
-                    : 'bg-[#C00000] text-white hover:bg-[#a00000]'
-                }`}>
+                <button
+                  className={`ml-19 px-4 py-2 rounded-xl transition-colors ${
+                    isOverFooter
+                      ? "bg-white text-[#C00000] hover:bg-gray-100"
+                      : "bg-[#C00000] text-white hover:bg-[#a00000]"
+                  }`}
+                >
                   Subscribe Now
                 </button>
               </Link>
             )}
-            <DesktopNav
-              openSubmenu={openSubmenu}
-              setOpenSubmenu={setOpenSubmenu}
-            />
+            <DesktopNav setOpenSubmenu={setOpenSubmenu} />
             <MobileNav
               setIsNavOpen={setIsNavOpen}
               setIsProfileOpen={setIsProfileOpen}
@@ -103,11 +102,13 @@ const Header = () => {
       {isMobile && showSticky && (
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
           <Link to="/register">
-            <button className={`px-6 py-3 rounded-xl transition-colors shadow-lg ${
-              isOverFooter
-                ? 'bg-white text-[#C00000] hover:bg-gray-100'
-                : 'bg-[#C00000] text-white hover:bg-[#a00000]'
-            }`}>
+            <button
+              className={`px-6 py-3 rounded-xl transition-colors shadow-lg ${
+                isOverFooter
+                  ? "bg-white text-[#C00000] hover:bg-gray-100"
+                  : "bg-[#C00000] text-white hover:bg-[#a00000]"
+              }`}
+            >
               Subscribe Now
             </button>
           </Link>

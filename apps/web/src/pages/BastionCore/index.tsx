@@ -2,16 +2,7 @@ import BackgroundShapes from "@/components/generic/framer-motion";
 import Testimonial from "@/pages/Testimonials/Index";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import Image1 from "../../../public/media/Detailed-Business-Notes.png";
-import Image2 from "../../../public/media/Regular-Company-Updates.png";
-import Image3 from "../../../public/media/Scratch-Pad-Access.png";
-import Image4 from "../../../public/media/Quarterly-Interactions.png";
-import Image5 from "../../../public/media/premium-webinars.png";
-import Image6 from "../../../public/media/modelPortfolio.png";
-import Image7 from "../../../public/media/premium-ipo-coverage.png";
-
+import { useState } from "react";
 // Brand Colors
 const COLORS = {
   red: "#C00000",
@@ -22,8 +13,15 @@ const COLORS = {
   black: "#000000",
 };
 
+// Type definitions for FlipCard
+type FlipCardProps = {
+  front: { letter: string; caption: string };
+  back: { title: string; text: string };
+  color?: string;
+};
+
 // Flip Card for SMART boxes
-function FlipCard({ front, back, color = COLORS.blue }) {
+function FlipCard({ front, back, color = COLORS.blue }: FlipCardProps) {
   return (
     <div className="group [perspective:1000px]">
       <div className="relative w-full h-40 md:h-48 [transform-style:preserve-3d] transition-transform duration-500 group-hover:[transform:rotateY(180deg)]">
@@ -62,56 +60,68 @@ function FlipCard({ front, back, color = COLORS.blue }) {
   );
 }
 
+// Types for items array
+type Item = {
+  title: string;
+  desc: string;
+  img: string;
+};
+
+// FAQ type
+type FAQItem = {
+  q: string;
+  a: React.ReactNode;
+};
+
 export default function BastionCoreProductPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  // 👇 Move items array here
-  const items = [
+  const items: Item[] = [
     {
       title: "Detailed Business Notes",
       desc: "Clear, in-depth breakdowns of businesses we initiate coverage on, so you understand the story behind them.",
-      img: Image1,
+      img: "/media/Detailed-Business-Notes.png" as string,
     },
     {
       title: "Regular Company Updates",
       desc: "From quarterly results to key announcements and special situations, stay on top of every company under our active coverage.",
-      img: Image2,
+      img: "/media/Regular-Company-Updates.png" as string,
     },
     {
       title: "Scratch Pad Access",
       desc: "Not every idea makes the cut. We share the ones we passed on and the lessons behind those decisions so you learn as much from the misses as the hits.",
-      img: Image3,
+      img: "/media/Scratch-Pad-Access.png" as string,
     },
     {
       title: "Quarterly Interactions",
       desc: "Every quarter, we sit down with you to discuss how our covered businesses are progressing, share updated views, and answer your questions directly.",
-      img: Image4,
+      img: "/media/Quarterly-Interactions.png" as string,
     },
     {
       title: "Premium Webinars",
       desc: "Gain free access to our exclusive webinars, where we bring sharp perspectives and practical insights to the investing community.",
-      img: Image5,
+      img: "/media/premium-webinars.png" as string,
     },
     {
       title: "Subscriber-Only Model Portfolio Discounts",
       desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
-      img: Image6,
+      img: "/media/modelPortfolio-compressed.png" as string,
     },
     {
       title: "Premium IPO Coverage",
       desc: "Get free access to our in-depth IPO notes, covering the positives, risks, and our perspective on businesses going public.",
-      img: Image7,
+      img: "/public/media/premium-ipo-coverage.png" as string,
     },
   ];
 
   // 👇 State for which item is active
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState<number>(0);
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  const faqsNew = [
+  const faqsNew: FAQItem[] = [
     {
       q: "How do I subscribe and What are the Subscription Charges?",
       a: (
@@ -225,7 +235,7 @@ export default function BastionCoreProductPage() {
                   <h3 className="text-xl font-semibold">Quarterly Plan</h3>
                 </div>
                 <p className="mt-3 text-3xl font-bold text-[#C00000]">
-                  Rs. 4,000/-
+                  Rs. 5,000/-
                 </p>
                 <p className="text-sm text-slate-500">Including GST</p>
                 <p className="mt-1 text-[12px] text-slate-500">
@@ -281,7 +291,8 @@ export default function BastionCoreProductPage() {
                             ? "bg-[#E6E6E6]/40"
                             : "bg-white hover:bg-[#E6E6E6]/30"
                         }`}
-                        aria-current={active === idx}
+                        aria-current={active === idx ? "page" : undefined}
+                        type="button"
                       >
                         <div className="flex items-center gap-3">
                           <div
@@ -307,6 +318,7 @@ export default function BastionCoreProductPage() {
                         }`}
                       >
                         <div className="relative bg-[#E6E6E6]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={it.img}
                             alt={it.title}
@@ -328,6 +340,7 @@ export default function BastionCoreProductPage() {
               {/* Right: Image */}
               <div className="hidden md:block md:col-span-3 relative bg-[#E6E6E6] h-full">
                 <div className="absolute inset-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     key={items[active].img}
                     src={items[active].img}
@@ -345,7 +358,6 @@ export default function BastionCoreProductPage() {
             </div>
           </div>
         </section>
-        
 
         {/* Section 4: Testimonials */}
         <section
@@ -384,10 +396,10 @@ export default function BastionCoreProductPage() {
                 style={{ color: COLORS.blue }}
               >
                 Research constitutes the <strong>FUNDAMENTAL</strong> component
-                of an investor's investing endeavours. Our unwavering commitment
-                with Bastion CORE lies in providing best research while ensuring
-                its accessibility to investors, irrespective of the size of
-                their capital.
+                of an investor&apos;s investing endeavours. Our unwavering
+                commitment with Bastion CORE lies in providing best research
+                while ensuring its accessibility to investors, irrespective of
+                the size of their capital.
               </p>
               <p
                 className="mt-3 leading-relaxed"
@@ -402,7 +414,7 @@ export default function BastionCoreProductPage() {
                 className="mt-6 border-l-4 pl-4 italic text-sm md:text-base"
                 style={{ borderColor: COLORS.red, color: COLORS.blue }}
               >
-                “Know What you Own and know why you own it” –{" "}
+                &ldquo;Know What you Own and know why you own it&rdquo; &ndash;{" "}
                 <span className="font-semibold">Peter Lynch</span>
               </div>
             </motion.div>
@@ -478,6 +490,9 @@ export default function BastionCoreProductPage() {
                 <button
                   onClick={() => toggleFAQ(index)}
                   className="w-full flex focus:outline-none focus:ring-0 justify-between items-center px-6 py-4 text-left font-semibold text-lg"
+                  type="button"
+                  aria-expanded={openIndex === index}
+                  aria-controls={`faq-content-${index}`}
                 >
                   {faq.q}
                   <ChevronDown
@@ -487,12 +502,21 @@ export default function BastionCoreProductPage() {
                   />
                 </button>
                 <div
+                  id={`faq-content-${index}`}
                   className={`transition-[max-height] duration-300 ease-in-out overflow-hidden px-6 ${
                     openIndex === index ? "max-h-96" : "max-h-0"
                   }`}
+                  aria-hidden={openIndex !== index}
                 >
                   <div className="overflow-auto no-scrollbar max-h-96 pb-4">
-                    <p className="text-gray-700 leading-relaxed">{faq.a}</p>
+                    {/* FAQ answer node: handle string or JSX */}
+                    {typeof faq.a === "string" ? (
+                      <p className="text-gray-700 leading-relaxed">{faq.a}</p>
+                    ) : (
+                      <div className="text-gray-700 leading-relaxed">
+                        {faq.a}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

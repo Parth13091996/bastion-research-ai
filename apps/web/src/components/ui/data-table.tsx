@@ -1,9 +1,9 @@
-
 import { cn } from "@/lib/utils";
 import {
   ColDef,
   GridReadyEvent,
   SelectionChangedEvent,
+  CellValueChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import {
@@ -36,6 +36,7 @@ interface DataTableProps<T = any> {
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
   onView?: (row: T) => void;
+  onCellValueChanged?: (event: CellValueChangedEvent) => void;
   bulkActions?: Array<{
     label: string;
     icon?: React.ReactNode;
@@ -47,6 +48,7 @@ interface DataTableProps<T = any> {
   description?: string;
   enableExport?: boolean;
   className?: string;
+  singleClickEdit?: boolean;
 }
 
 const StatusRenderer = ({ value }: { value: string }) => {
@@ -118,12 +120,14 @@ export function DataTable<T = any>({
   onEdit,
   onDelete,
   onView,
+  onCellValueChanged,
   bulkActions = [],
   searchPlaceholder = "Search...",
   title,
   description,
   enableExport = true,
   className,
+  singleClickEdit = false,
 }: DataTableProps<T>) {
   const gridRef = React.useRef<AgGridReact>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -299,6 +303,7 @@ export function DataTable<T = any>({
               rowData={data}
               columnDefs={enhancedColumns}
               defaultColDef={defaultColDef}
+              singleClickEdit={singleClickEdit}
               rowSelection={{
                 mode: "multiRow",
                 checkboxes: true,
@@ -310,6 +315,7 @@ export function DataTable<T = any>({
               paginationPageSizeSelector={[10, 20, 50, 100]}
               onGridReady={onGridReady}
               onSelectionChanged={onSelectionChanged}
+              onCellValueChanged={onCellValueChanged}
               suppressCellFocus={true}
               context={context}
               animateRows={true}

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import sendEmail from "../utils/email";
 import { config } from "../utils/config";
+import { supabase } from "../supabase";
 
 export const submitContact = async (req: Request, res: Response) => {
   try {
@@ -64,6 +65,21 @@ export const submitContact = async (req: Request, res: Response) => {
         </table>
       </div>
     `;
+
+    // Save lead into database (best-effort; do not fail request if email sending succeeds)
+    try {
+      await supabase.from("leads").insert({
+        name,
+        email,
+        phone,
+        category,
+        message,
+        status: "new",
+      });
+    } catch (e) {
+      // non-fatal
+      console.error("Failed to store lead:", e);
+    }
 
     await sendEmail({
       to: process.env.LEADS_EMAIL!,

@@ -117,6 +117,11 @@ const navItems = [
       { name: "Profile", icon: Contact, path: AppRoutes.adminProfile() },
     ],
   },
+  {
+    name: "Leads",
+    icon: Contact,
+    path: AppRoutes.adminLeads(),
+  },
   { name: "Settings", icon: Settings, path: AppRoutes.adminSettings() },
 ];
 

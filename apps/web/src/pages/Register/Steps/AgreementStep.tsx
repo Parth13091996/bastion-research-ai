@@ -60,9 +60,10 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
   useEffect(() => {
     (async () => {
+      console.log(formData, "form");
       const base64Value = await handlePersonalizedPdf(
         pdfUrl,
-        getUserInfoToShowInPdf()
+        getUserInfoToShowInPdf(formData)
       );
       const pdfDataUrl = `data:application/pdf;base64,${base64Value}`;
       setPdfUrlWithAddress(pdfDataUrl);
@@ -177,7 +178,11 @@ function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
   return (
     <div style={{ width: "100%", height: "120vh" }}>
       <iframe
-        src={pdfUrl}
+        src={
+          pdfUrl
+            ? `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-fit`
+            : pdfUrl
+        }
         width="100%"
         height="100%"
         style={{ border: "none" }}

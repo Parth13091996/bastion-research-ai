@@ -131,6 +131,179 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
       .sort((a, b) => b.views - a.views)
       .slice(0, 10);
 
+    // ===== Membership/Revenue analytics =====
+    const nowIso = new Date().toISOString();
+
+    // Fetch subscriptions (latest first per user)
+    const { data: subsRows, error: subsError } = await supabase
+      .from("subscriptions")
+      .select(
+        `user_id, start_date, expire_next_renewal, amount, membership_id, plan_code`
+      )
+      .order("start_date", { ascending: false });
+    if (subsError) {
+      return res.status(500).json({ message: "Failed to load subscriptions" });
+    }
+
+    // Fetch plans for price and product mapping
+    const { data: plansRows } = await supabase
+      .from("membership_plans")
+      .select("plan_id, plan_name, plan_code, price_amount, currency, tier");
+    const planById: Record<string, any> = {};
+    for (const p of plansRows || []) planById[String(p.plan_id)] = p;
+
+    // Build latest subscription per user
+    const latestByUser = new Map<string, any>();
+    for (const s of subsRows || []) {
+      if (!latestByUser.has(s.user_id)) latestByUser.set(s.user_id, s);
+    }
+
+    const isActive = (s: any) => {
+      if (!s) return false;
+      if (!s.expire_next_renewal) return true; // open-ended
+      return new Date(s.expire_next_renewal).getTime() > Date.now();
+    };
+
+    const isPaid = (s: any) => {
+      if (!s) return false;
+      if (typeof s.amount === "number") return s.amount > 0;
+      const plan = s.membership_id ? planById[String(s.membership_id)] : null;
+      return (plan?.price_amount || 0) > 0;
+    };
+
+    const totalActiveSubscribers = Array.from(latestByUser.values()).filter(
+      (s) => isActive(s)
+    ).length;
+    const totalPaidSubscribers = Array.from(latestByUser.values()).filter(
+      (s) => isActive(s) && isPaid(s)
+    ).length;
+
+    // New paid subscribers within windows
+    const withinDays = (dateIso: string | null | undefined, d: number) => {
+      if (!dateIso) return false;
+      const dt = new Date(dateIso).getTime();
+      return Date.now() - dt <= d * 24 * 60 * 60 * 1000;
+    };
+    const newPaid7 = (subsRows || []).filter(
+      (s) => isPaid(s) && withinDays(s.start_date, 7)
+    ).length;
+    const newPaid30 = (subsRows || []).filter(
+      (s) => isPaid(s) && withinDays(s.start_date, 30)
+    ).length;
+    const newPaid90 = (subsRows || []).filter(
+      (s) => isPaid(s) && withinDays(s.start_date, 90)
+    ).length;
+
+    // Renewal vs Non-Renewal over last 1 year (approx)
+    const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+    const subsByUserAll = new Map<string, any[]>();
+    for (const s of subsRows || []) {
+      const arr = subsByUserAll.get(s.user_id) || [];
+      arr.push(s);
+      subsByUserAll.set(s.user_id, arr);
+    }
+    let eligibleRenewal = 0;
+    let renewed = 0;
+    const nowMs = Date.now();
+    for (const [, list] of subsByUserAll) {
+      list.sort(
+        (a, b) =>
+          new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      );
+      const first = list[0];
+      if (first && nowMs - new Date(first.start_date).getTime() >= oneYearMs) {
+        eligibleRenewal += 1;
+        if (list.length >= 2) renewed += 1;
+      }
+    }
+    const renewalPct = eligibleRenewal
+      ? Math.round((renewed / eligibleRenewal) * 100)
+      : 0;
+    const nonRenewalPct = 100 - renewalPct;
+
+    // Churn rate (monthly approximation): users whose last sub expired in last 30d and not renewed
+    let churnNumerator = 0;
+    let churnDenominator = 0;
+    for (const [, list] of subsByUserAll) {
+      list.sort(
+        (a, b) =>
+          new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      );
+      const last = list[list.length - 1];
+      if (!last) continue;
+      if (last.expire_next_renewal) {
+        const expMs = new Date(last.expire_next_renewal).getTime();
+        const delta = Date.now() - expMs;
+        if (delta >= 0 && delta <= 30 * 24 * 60 * 60 * 1000) {
+          churnDenominator += 1;
+          // if not active, treat as churned
+          if (!isActive(last)) churnNumerator += 1;
+        }
+      }
+    }
+    const churnRateMonthly = churnDenominator
+      ? Math.round((churnNumerator / churnDenominator) * 100)
+      : 0;
+
+    // Subscribers nearing renewal in next 30 days
+    const nearingRenewal = (subsRows || [])
+      .filter((s) => !!s.expire_next_renewal)
+      .filter((s) => {
+        const exp = new Date(s.expire_next_renewal!).getTime();
+        const now = Date.now();
+        return exp > now && exp - now <= 30 * 24 * 60 * 60 * 1000;
+      })
+      .slice(0, 50)
+      .map((s) => ({
+        userId: s.user_id,
+        membershipId: s.membership_id,
+        planCode: s.plan_code || null,
+        expiresAt: s.expire_next_renewal,
+      }));
+
+    // Revenue metrics based on subscriptions amounts (payment success path populates these)
+    const withinPeriod = (iso: string | null | undefined, start: Date) => {
+      if (!iso) return false;
+      return new Date(iso).getTime() >= start.getTime();
+    };
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const startOfQuarter = new Date();
+    const q = Math.floor(startOfQuarter.getMonth() / 3);
+    startOfQuarter.setMonth(q * 3, 1);
+    startOfQuarter.setHours(0, 0, 0, 0);
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+
+    const sumAmounts = (list: any[]) =>
+      list.reduce((acc, s) => acc + (Number(s.amount) || 0), 0);
+
+    const totalRevenueMonth = sumAmounts(
+      (subsRows || []).filter((s) => withinPeriod(s.start_date, startOfMonth))
+    );
+    const totalRevenueQuarter = sumAmounts(
+      (subsRows || []).filter((s) => withinPeriod(s.start_date, startOfQuarter))
+    );
+    const totalRevenueYTD = sumAmounts(
+      (subsRows || []).filter((s) => withinPeriod(s.start_date, startOfYear))
+    );
+
+    // Revenue by product (plan)
+    const revenueByProductMap: Record<
+      string,
+      { product: string; revenue: number }
+    > = {};
+    for (const s of subsRows || []) {
+      const plan = s.membership_id ? planById[String(s.membership_id)] : null;
+      const key =
+        plan?.plan_name || s.plan_code || String(s.membership_id || "Unknown");
+      revenueByProductMap[key] ||= { product: key, revenue: 0 };
+      revenueByProductMap[key].revenue += Number(s.amount) || 0;
+    }
+    const revenueByProduct = Object.values(revenueByProductMap).sort(
+      (a, b) => b.revenue - a.revenue
+    );
+
     return res.status(200).json({
       rangeDays: days,
       visitsByDay,
@@ -138,6 +311,23 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
       topPaths: topPathsArr,
       activeNow: { ips: activeIps.size, users: activeUsers.size },
       totals: { uniqueIPs: allIps.size, uniqueUsers: allUsers.size },
+      // Business metrics
+      subscribers: {
+        totalActive: totalActiveSubscribers,
+        totalPaidActive: totalPaidSubscribers,
+        newPaid: { last7: newPaid7, last30: newPaid30, last90: newPaid90 },
+        renewalPct: renewalPct,
+        nonRenewalPct: nonRenewalPct,
+        churnRateMonthly,
+        nearingRenewal,
+      },
+      revenue: {
+        month: totalRevenueMonth,
+        quarter: totalRevenueQuarter,
+        YTD: totalRevenueYTD,
+        byProduct: revenueByProduct,
+      },
+      generatedAt: nowIso,
     });
   } catch (e) {
     console.error("Analytics summary error:", e);

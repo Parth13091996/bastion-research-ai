@@ -36,6 +36,7 @@ export const AppRoutes = {
   adminJobOpenings: () => "/admin/jobs/openings",
   adminAddNewJob: () => "/admin/jobs/add",
   adminApplications: () => "/admin/jobs/applications",
+  adminLeads: () => "/admin/leads",
   adminAllUsers: () => "/admin/users/all",
   adminAddUser: () => "/admin/users/add",
   adminProfile: () => "/admin/users/profile",

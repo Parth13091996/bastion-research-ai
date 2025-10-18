@@ -57,3 +57,15 @@ Supabase bucket defaults to `public`; override with `SUPABASE_STORAGE_BUCKET` if
 ---
 
 For additional details check the source under `apps/server/src/controllers`.
+
+## Production Operations
+
+SSH into the server, attach the latest tmux session, and (re)start the upstream process using the script in the project root:
+
+```
+ssh root@82.29.166.56
+tmux at
+./upstream-server.sh
+```
+
+Run these from the server's project root directory. The script handles starting or restarting the upstream server.

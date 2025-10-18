@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -8,12 +9,13 @@ import {
   CreditCard,
   Crown,
   FileText,
-  Play,
   Home,
   LayoutDashboard,
   LogOut,
   Menu,
+  Newspaper,
   Percent,
+  Play,
   Settings,
   Shield,
   Target,
@@ -42,6 +44,7 @@ const navItems = [
   },
   { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
   { name: "Premium Webinars", icon: Play, path: "/user/app/premium-webinars" },
+  { name: "Scratch Pad Newsletter", icon: Newspaper, path: "/user/app/scratch-pad-newsletter" },
   {
     name: "My Account",
     icon: User,
@@ -66,7 +69,6 @@ const navItems = [
   },
 ];
 
-
 export default function Sidebar() {
   const { user, subscription, logout } = useAuth();
   const navigate = useNavigate();
@@ -85,7 +87,7 @@ export default function Sidebar() {
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null, // You can add avatar URL to user object later
-    isPremium: subscription?.isPremium || false,
+    is_premium: subscription?.is_premium || false,
     currentPlan: subscription?.currentPlan || null,
   };
 
@@ -158,7 +160,7 @@ export default function Sidebar() {
         {!isCollapsed ? (
           <div className="flex items-center">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <img src={""} alt="Logo" className="h-5 w-5" />
+              <img src={"/media/favicon.webp"} alt="Logo" className="h-5 w-5" />
             </div>
             <div className="ml-3">
               <h1 className="text-lg font-semibold text-white">
@@ -404,7 +406,7 @@ export default function Sidebar() {
             {/* Premium Status & User Type */}
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                {profile.isPremium ? (
+                {profile.is_premium ? (
                   <>
                     <Crown className="h-3 w-3 text-yellow-400" />
                     <span className="text-xs text-yellow-400 font-medium">
@@ -414,7 +416,9 @@ export default function Sidebar() {
                 ) : (
                   <>
                     <Shield className="h-3 w-3 text-gray-400" />
-                    <span className="text-xs text-gray-400">No Active Plan</span>
+                    <span className="text-xs text-gray-400">
+                      No Active Plan
+                    </span>
                   </>
                 )}
               </div>
@@ -433,7 +437,7 @@ export default function Sidebar() {
                 <span className="text-sm font-medium text-white">
                   {profile.name[0] || "B"}
                 </span>
-                {profile.isPremium && (
+                {profile.is_premium && (
                   <Crown className="h-3 w-3 text-yellow-400 absolute -top-1 -right-1" />
                 )}
               </div>

@@ -14,16 +14,21 @@ const RoleRenderer = (params: any) => {
     employee: { color: "bg-blue-100 text-blue-800", icon: User },
     core_subscriber: { color: "bg-green-100 text-green-800", icon: User },
     ipo_subscriber: { color: "bg-purple-100 text-purple-800", icon: User },
-    research_ally_subscriber: { color: "bg-orange-100 text-orange-800", icon: User },
+    research_ally_subscriber: {
+      color: "bg-orange-100 text-orange-800",
+      icon: User,
+    },
   };
-  
+
   const config = roleConfig[role] || roleConfig.employee;
   const Icon = config.icon;
-  
+
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color}`}>
+    <span
+      className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color}`}
+    >
       <Icon className="mr-1 h-3 w-3" />
-      {role.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+      {role.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
     </span>
   );
 };
@@ -64,23 +69,24 @@ const AllUsers = () => {
   });
 
   const columns: ColDef[] = [
-    { 
-      headerName: "Username", 
+    {
+      headerName: "Username",
       field: "username",
       flex: 1,
       minWidth: 150,
     },
-    { 
-      headerName: "Email", 
+    {
+      headerName: "Email",
       field: "email",
       cellRenderer: EmailRenderer,
       flex: 2,
       minWidth: 200,
     },
-    { 
-      headerName: "Name", 
+    {
+      headerName: "Name",
       field: "full_name",
-      valueGetter: (params) => `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
+      valueGetter: (params) =>
+        `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
       flex: 1,
       minWidth: 150,
     },
@@ -93,13 +99,15 @@ const AllUsers = () => {
     },
     {
       headerName: "Premium",
-      field: "isPremium",
+      field: "is_premium",
       cellRenderer: (params: any) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          params.value 
-            ? "bg-green-100 text-green-800" 
-            : "bg-gray-100 text-gray-800"
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            params.value
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {params.value ? "Premium" : "Free"}
         </span>
       ),
@@ -109,11 +117,13 @@ const AllUsers = () => {
       headerName: "OAuth",
       field: "cameFromOAuth",
       cellRenderer: (params: any) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          params.value 
-            ? "bg-blue-100 text-blue-800" 
-            : "bg-gray-100 text-gray-800"
-        }`}>
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            params.value
+              ? "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {params.value ? "OAuth" : "Email"}
         </span>
       ),
@@ -153,7 +163,7 @@ const AllUsers = () => {
   const handleDelete = (row: any) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
-    
+
     setModalProps("confirm", {
       title: "Delete user?",
       description: `This will permanently delete ${row.first_name || row.username || "this user"}.`,
@@ -175,7 +185,7 @@ const AllUsers = () => {
   const handleBulkDelete = (selected: any[]) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
-    
+
     setModalProps("confirm", {
       title: `Delete ${selected.length} users?`,
       description: "This action cannot be undone.",
@@ -184,9 +194,11 @@ const AllUsers = () => {
       tone: "danger",
       onConfirm: async () => {
         try {
-          await Promise.all(selected.map(user => 
-            axiosInstance.delete(endpoints.users.byId(user.id))
-          ));
+          await Promise.all(
+            selected.map((user) =>
+              axiosInstance.delete(endpoints.users.byId(user.id))
+            )
+          );
           queryClient.invalidateQueries({ queryKey: ["users"] });
           toast.success(`${selected.length} users deleted successfully`);
         } catch (error) {
@@ -204,7 +216,7 @@ const AllUsers = () => {
   };
 
   const handleBulkEmail = (selected: any[]) => {
-    const emails = selected.map(user => user.email).join(", ");
+    const emails = selected.map((user) => user.email).join(", ");
     window.open(`mailto:${emails}`, "_blank");
   };
 

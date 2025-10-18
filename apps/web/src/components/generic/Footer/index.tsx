@@ -3,6 +3,9 @@ import { Link } from "react-router-dom"; // Import Link
 import { useState, useEffect } from "react";
 import SocialIcons from "./SocialIcons";
 import { AppRoutes } from "@/routes/app-routes";
+import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
+import { toast } from "sonner";
 
 // Brand Colors
 const COLORS = {
@@ -46,6 +49,30 @@ const CollapsibleSection = ({ title, children }) => {
 
 const Footer = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [email, setEmail] = useState("");
+
+  const subscribeToNewsLetter = () => {
+    navigator.geolocation.getCurrentPosition(async ({ coords, timestamp }) => {
+      try {
+        const response = await axiosInstance.post(
+          endpoints.content.mailchimp.subscribe,
+          {
+            email,
+            coords: {
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+              timestamp,
+            },
+          }
+        );
+        toast.success(response.data.message || "Something went wrong");
+      } catch (error) {
+        console.log(error, "response");
+        toast.error(error.response.data.message || "Something went wrong");
+      }
+    });
+  };
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -98,7 +125,7 @@ const Footer = () => {
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </li>
-             
+
                 {/* 
                 <li>
                   <Link
@@ -196,10 +223,14 @@ const Footer = () => {
                   <input
                     type="email"
                     placeholder="Your email"
+                    onChange={(e) => setEmail(e.target.value)}
                     className="px-3 py-2 text-gray-800 rounded-l focus:outline-none w-full flex-1 min-w-0"
                     aria-label="Email for newsletter subscription"
                   />
-                  <button className="bg-white text-red-600 px-4 py-2 rounded-r hover:bg-gray-100 transition-colors whitespace-nowrap">
+                  <button
+                    onClick={subscribeToNewsLetter}
+                    className="bg-white text-red-600 px-4 py-2 rounded-r hover:bg-gray-100 transition-colors whitespace-nowrap"
+                  >
                     Subscribe
                   </button>
                 </div>

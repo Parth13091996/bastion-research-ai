@@ -2,7 +2,7 @@ import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
 import { queryKeys } from "@/api/queryKeys";
 import BackgroundShapes from "@/components/generic/framer-motion";
-import { useLoader } from "@/hooks/useLoader";
+import { useLoader } from "@/hooks/use-loader";
 import { AppRoutes } from "@/routes/app-routes";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
@@ -26,7 +26,9 @@ const ResearchListPage = () => {
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.research],
     queryFn: () =>
-      axiosInstance.get(endpoints.content.research.base).then((res) => res.data),
+      axiosInstance
+        .get(endpoints.content.research.base)
+        .then((res) => res.data),
   });
 
   const { start, stop } = useLoader();
@@ -55,12 +57,18 @@ const ResearchListPage = () => {
   }, [loading]);
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: COLORS.gray }}>
+    <div
+      className="min-h-screen relative overflow-hidden"
+      style={{ backgroundColor: COLORS.gray }}
+    >
       <BackgroundShapes />
       <div className="relative px-6 max-w-7xl z-10 mx-auto">
         <div className="pt-8 pb-4">
           <div className="w-full sm:mx-auto">
-            <h1 className="text-4xl font-bold mb-4" style={{ color: COLORS.blue }}>
+            <h1
+              className="text-4xl font-bold mb-4"
+              style={{ color: COLORS.blue }}
+            >
               Research
             </h1>
             <p className="text-gray-600 max-w-2xl">
@@ -88,7 +96,10 @@ const ResearchListPage = () => {
                             {row.coverage_initiation_date || ""}
                           </span>
                         </div>
-                        <h3 className="text-lg font-bold mb-1" style={{ color: COLORS.blue }}>
+                        <h3
+                          className="text-lg font-bold mb-1"
+                          style={{ color: COLORS.blue }}
+                        >
                           {row.company}
                         </h3>
                         <p className="text-sm text-gray-600">
@@ -115,7 +126,9 @@ const ResearchListPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center text-gray-600 py-8">No research found.</div>
+              <div className="text-center text-gray-600 py-8">
+                No research found.
+              </div>
             )}
 
             {totalPages > 1 && (
@@ -139,7 +152,9 @@ const ResearchListPage = () => {
                           ? "text-white shadow-md"
                           : "text-gray-700 hover:bg-gray-100 border border-gray-300"
                       }`}
-                      style={{ backgroundColor: isActive ? COLORS.red : COLORS.white }}
+                      style={{
+                        backgroundColor: isActive ? COLORS.red : COLORS.white,
+                      }}
                     >
                       {page}
                     </button>

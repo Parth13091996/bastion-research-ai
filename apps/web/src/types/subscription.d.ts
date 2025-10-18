@@ -1,5 +1,5 @@
 interface SubscriptionData {
-  isPremium: boolean;
+  is_premium: boolean;
   currentPlan: string;
   subscription: {
     name: string;

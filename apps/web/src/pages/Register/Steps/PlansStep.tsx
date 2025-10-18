@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 
 const PlansStep: React.FC<PlansStepProps> = ({
@@ -34,19 +34,119 @@ const PlansStep: React.FC<PlansStepProps> = ({
       {isLoading ? (
         <p className="text-center">Loading plans...</p>
       ) : (
-        <div className="space-y-3">
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`border rounded-lg p-4 cursor-pointer hover:border-red-500 ${formData?.selectedPlan === plan.code ? "border-red-500 border-2" : ""}`}
-              onClick={() => updateFormData("selectedPlan", plan.code)}
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold">{plan.name}</h3>
-                <span className="text-red-600 font-bold">₹{plan.amount}</span>
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {plans
+            .sort((a, b) =>
+              ((a as any)?.plan_code || "").localeCompare(
+                (b as any)?.plan_code || ""
+              )
+            )
+            .map((plan, index) => {
+              const isSelected = formData?.selectedPlan === plan.code;
+              const pc =
+                ((plan as any)?.plan_code as string | undefined) || undefined;
+              const isFree = String(plan.amount) === "0" || pc === "freemium";
+              const isPopular = pc === "core_annual";
+
+              const featuresByPlan: Record<string, string[]> = {
+                freemium: [
+                  "Newsletter & Podcast access",
+                  "IPO desk: names only",
+                  "Dashboard: blurred live numbers",
+                  "Upside % & Past performance",
+                ],
+                core: [
+                  "Access to Bastion CORE research",
+                  "Full Dashboard access (CORE)",
+                  "Company Flash Cards (All)",
+                  "Upside % & Past performance",
+                ],
+                core_annual: [
+                  "Everything in Bastion CORE",
+                  "Best value yearly pricing",
+                  "Priority updates",
+                  "Company Flash Cards (All)",
+                ],
+              };
+
+              const featureKey = (pc || "").toLowerCase();
+              const features = featuresByPlan[featureKey] || [];
+
+              return (
+                <div
+                  key={index}
+                  className={`relative rounded-xl border p-4 transition-colors cursor-pointer bg-white ${
+                    isSelected
+                      ? "border-red-500 ring-2 ring-red-500/20"
+                      : "border-gray-200 hover:border-red-300"
+                  }`}
+                  onClick={() => updateFormData("selectedPlan", plan.code)}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-medium">
+                      <Sparkles className="h-3 w-3" /> Most popular
+                    </div>
+                  )}
+                  <div className="mb-3 flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-base text-gray-900">
+                        {plan.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {isFree
+                          ? "Free forever"
+                          : pc === "core_annual"
+                            ? "Billed yearly"
+                            : "Billed quarterly"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div
+                        className={`text-xl font-bold ${isFree ? "text-gray-700" : "text-red-600"}`}
+                      >
+                        {isFree ? "₹0" : `₹${plan.amount}`}
+                      </div>
+                      {!isFree && (
+                        <div className="text-[11px] text-gray-400">
+                          Incl. GST
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {features.length > 0 && (
+                    <ul className="space-y-2 text-sm">
+                      {features.map((f, i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-gray-700"
+                        >
+                          <Check className="h-4 w-4 mt-[2px] text-green-600" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className={`w-full rounded-lg py-2 text-sm font-medium transition-colors ${
+                        isSelected
+                          ? "bg-red-600 text-white"
+                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      }`}
+                    >
+                      {isSelected
+                        ? "Selected"
+                        : isFree
+                          ? "Choose Free"
+                          : "Choose Plan"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       )}
 
