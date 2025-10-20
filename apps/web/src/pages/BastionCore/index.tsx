@@ -235,7 +235,7 @@ export default function BastionCoreProductPage() {
                   <h3 className="text-xl font-semibold">Quarterly Plan</h3>
                 </div>
                 <p className="mt-3 text-3xl font-bold text-[#C00000]">
-                  Rs. 4,000/-
+                  Rs. 5,000/-
                 </p>
                 <p className="text-sm text-slate-500">Including GST</p>
                 <p className="mt-1 text-[12px] text-slate-500">

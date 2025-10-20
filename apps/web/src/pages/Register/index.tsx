@@ -6,11 +6,26 @@ import SignUpForm from "./SignupForm";
 export default function Register() {
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
+<<<<<<< HEAD
+  useEffect(() => {
+    try {
+      const wasOpen = localStorage.getItem("onboardingOpen");
+      const step = parseInt(
+        localStorage.getItem("onboardingCurrentStep") || "1",
+        10
+      );
+      if (wasOpen === "true" || (step && step > 1)) {
+        setIsSignUpOpen(true);
+      }
+    } catch { }
+  }, []);
+
+=======
+>>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
   const stats = [
-    { number: "58.15%", label: "Average Returns" },
-    { number: "10K+", label: "Active Users" },
-    { number: "95%", label: "Success Rate" },
-    { number: "24/7", label: "Support" },
+    { number: "10k+", label: "Total Ideas" },
+    { number: "69+", label: "Active Ideas" },
+    { number: "9+", label: "Sectors" },
   ];
 
   return (
@@ -34,9 +49,9 @@ export default function Register() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  Start Your
+                  Actionable. Accountable.
                   <span className="block bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
-                    Investment Journey
+                    Bastion.
                   </span>
                 </motion.h1>
                 <motion.p
@@ -45,13 +60,10 @@ export default function Register() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
                 >
-                  Join thousands of investors who trust Bastion for
-                  institutional-grade research, risk management, and
-                  personalized investment strategies.
+                  Log in for concise notes, price triggers, and regular
+                  follow-through.
                 </motion.p>
               </div>
-
-              {/* Stats */}
               <motion.div
                 className="grid grid-cols-2 md:grid-cols-4 gap-6"
                 initial={{ opacity: 0, y: 20 }}
@@ -68,7 +80,6 @@ export default function Register() {
                 ))}
               </motion.div>
             </motion.div>
-
             {/* Right Content - Visual */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
@@ -78,6 +89,12 @@ export default function Register() {
             >
               <SignUpCard
                 onSignUpClick={() => {
+<<<<<<< HEAD
+                  try {
+                    localStorage.setItem("onboardingOpen", "true");
+                  } catch { }
+=======
+>>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
                   setIsSignUpOpen(true);
                 }}
               />
@@ -90,6 +107,12 @@ export default function Register() {
         <SignUpForm
           isOpen={isSignUpOpen}
           onClose={() => {
+<<<<<<< HEAD
+            try {
+              localStorage.setItem("onboardingOpen", "false");
+            } catch { }
+=======
+>>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
             setIsSignUpOpen(false);
           }}
         />

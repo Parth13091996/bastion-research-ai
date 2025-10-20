@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -8,12 +9,13 @@ import {
   CreditCard,
   Crown,
   FileText,
-  Play,
   Home,
   LayoutDashboard,
   LogOut,
   Menu,
+  Newspaper,
   Percent,
+  Play,
   Settings,
   Shield,
   Target,
@@ -42,6 +44,7 @@ const navItems = [
   },
   // { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
   { name: "Premium Webinars", icon: Play, path: "/user/app/premium-webinars" },
+  { name: "Scratch Pad Newsletter", icon: Newspaper, path: "/user/app/scratch-pad-newsletter" },
   {
     name: "My Account",
     icon: User,

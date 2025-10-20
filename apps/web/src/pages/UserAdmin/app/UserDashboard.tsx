@@ -1,25 +1,23 @@
-import React, { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React from "react";
 import {
   TrendingUp,
   TrendingDown,
   Crown,
   Shield,
-  InfoIcon,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import ChartDashboard from "./ChartDashboard";
 
 const UserDashboard = () => {
-  const { user, subscription, isAuthenticated, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const user = {
+    first_name: "John",
+    last_name: "Doe",
+    username: "johndoe",
+    email: "john@example.com",
+    role: "investor",
+    created_at: "2023-01-15"
+  };
 
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, isLoading, navigate]);
-
-  if (!isAuthenticated) return null;
+  const subscription = { is_premium: true };
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6">
@@ -72,282 +70,17 @@ const UserDashboard = () => {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500">Member since</p>
                 <p className="text-sm sm:text-base font-medium text-gray-900">
-                  {user?.created_at
-                    ? new Date(user.created_at).toLocaleDateString()
-                    : "Recently"}
+                  Jan 15, 2023
                 </p>
-                <Link
-                  to="/renew-subscription"
-                  className="mt-1 sm:mt-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base inline-block text-center"
-                >
+                <button className="mt-1 sm:mt-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base inline-block text-center">
                   Renew Now
-                </Link>
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats Section */}
-        <div className="mb-8 rounded-xl bg-gradient-to-br from-[#13013d] to-[#010313] p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
-              Every Hit. Every Miss.{" "}
-              <span className="text-blue-300">Shared with Clarity</span>
-            </h1>
-            <p className="text-sm text-gray-300 font-light">
-              Confidence is built, not borrowed
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Live Recommendations */}
-            <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
-                  <h2 className="text-lg sm:text-xl font-semibold text-white">
-                    44 Live Recommendations
-                  </h2>
-                </div>
-                <span className="text-xs sm:text-sm text-blue-300 font-medium">
-                  3 New
-                </span>
-              </div>
-
-              {/* Average Returns */}
-              <div className="rounded-xl p-4 mb-4 bg-gradient-to-r from-indigo-500 to-purple-500">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp size={18} className="text-white" />
-                  <span className="text-xs sm:text-sm text-white font-medium">
-                    Average Live Returns
-                  </span>
-                  <InfoIcon size={14} className="text-white opacity-70" />
-                </div>
-                <span className="text-3xl font-bold text-white">10.5%</span>
-              </div>
-
-              {/* Donut + Legend */}
-              <div className="flex items-center gap-6 mb-4">
-                <div className="relative w-24 h-24">
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#1E293B"
-                      strokeWidth="10"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#EF4444"
-                      strokeWidth="10"
-                      strokeDasharray="75.4 251.2"
-                      strokeLinecap="round"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#FACC15"
-                      strokeWidth="10"
-                      strokeDasharray="90.48 251.2"
-                      strokeDashoffset="-75.4"
-                      strokeLinecap="round"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#22C55E"
-                      strokeWidth="10"
-                      strokeDasharray="85.44 251.2"
-                      strokeDashoffset="-165.88"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-base font-semibold">
-                      44
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1 text-gray-300 text-xs space-y-1.5">
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
-                      <span>High &gt;15%</span>
-                    </div>
-                    <span className="text-white font-semibold">15</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full"></div>
-                      <span>Medium (-15% to 15%)</span>
-                    </div>
-                    <span className="text-white font-semibold">18</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
-                      <span>Low &lt;-15%</span>
-                    </div>
-                    <span className="text-white font-semibold">11</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Top Gainer / Loser */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <TrendingUp size={14} className="text-green-400" />
-                    <span className="text-xs text-gray-300 font-medium">
-                      Top Gainer
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-green-400">
-                    +208.99%
-                  </span>
-                  <p className="text-xs text-gray-400 mt-0.5">in 2yr, 4mo</p>
-                  <p className="text-xs mt-1">
-                    Lagnam Spintex |{" "}
-                    <span className="text-yellow-400">Active</span>
-                  </p>
-                </div>
-
-                <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <TrendingDown size={14} className="text-red-400" />
-                    <span className="text-xs text-gray-300 font-medium">
-                      Top Loser
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-red-400">
-                    -46.11%
-                  </span>
-                  <p className="text-xs text-gray-400 mt-0.5">in 9 months</p>
-                  <p className="text-xs mt-1">
-                    Legent 2 | <span className="text-yellow-400">Active</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Exits */}
-            <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                  <h2 className="text-lg sm:text-xl font-semibold text-white">
-                    36 Exits (past)
-                  </h2>
-                </div>
-                <span className="text-xs sm:text-sm text-blue-300 font-medium">
-                  3 New
-                </span>
-              </div>
-
-              <div className="rounded-xl p-4 mb-4 bg-gradient-to-r from-pink-500 to-orange-400">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp size={18} className="text-white" />
-                  <span className="text-xs sm:text-sm text-white font-medium">
-                    Average Exit Returns
-                  </span>
-                </div>
-                <span className="text-3xl font-bold text-white">62.37%</span>
-              </div>
-
-              <div className="flex items-center gap-6 mb-4">
-                <div className="relative w-24 h-24">
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#1E293B"
-                      strokeWidth="10"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      stroke="#22C55E"
-                      strokeWidth="10"
-                      strokeDasharray="251.2 251.2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-base font-semibold">
-                      100%
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1 text-gray-300 text-xs space-y-1.5">
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
-                      <span>Profit Exits</span>
-                    </div>
-                    <span className="text-white font-semibold">36</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
-                      <span>Loss Exits</span>
-                    </div>
-                    <span className="text-white font-semibold">0</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Best & Worst */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <TrendingUp size={14} className="text-green-400" />
-                    <span className="text-xs text-gray-300 font-medium">
-                      Best Exit
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-green-400">
-                    +269.17%
-                  </span>
-                  <p className="text-xs text-gray-400 mt-0.5">in 1yr, 6mo</p>
-                  <p className="text-xs font-medium text-white">
-                    Gravita India Ltd.
-                  </p>
-                  <p className="text-xs text-gray-400">Inactive</p>
-                </div>
-
-                <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <TrendingDown size={14} className="text-red-400" />
-                    <span className="text-xs text-gray-300 font-medium">
-                      Worst Exit
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-green-400">
-                    +0.67%
-                  </span>
-                  <p className="text-xs text-gray-400 mt-0.5">in 1yr, 8mo</p>
-                  <p className="text-xs font-medium text-white">
-                    Monte Carlo Fashions
-                  </p>
-                  <p className="text-xs text-gray-400">Inactive</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ChartDashboard />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -362,12 +95,9 @@ const UserDashboard = () => {
                   Latest stock picks and analysis
                 </p>
               </div>
-              <Link
-                to="/user/app/recommendation"
-                className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium self-start sm:self-auto"
-              >
+              <button className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium self-start sm:self-auto">
                 View All →
-              </Link>
+              </button>
             </div>
 
             {/* Stock Recommendations */}
@@ -484,8 +214,6 @@ const UserDashboard = () => {
               {/* NVIDIA Update */}
               <a
                 href="#"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="block border-l-4 border-red-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
               >
                 <div className="flex items-center space-x-2 mb-2">
@@ -507,8 +235,6 @@ const UserDashboard = () => {
               {/* Market Update */}
               <a
                 href="#"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="block border-l-4 border-yellow-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
               >
                 <div className="flex items-center space-x-2 mb-2">
@@ -532,8 +258,6 @@ const UserDashboard = () => {
               {/* CrowdStrike Update */}
               <a
                 href="#"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="block border-l-4 border-yellow-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
               >
                 <div className="flex items-center space-x-2 mb-2">

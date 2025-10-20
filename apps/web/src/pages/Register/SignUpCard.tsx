@@ -1,7 +1,18 @@
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Sparkles } from "lucide-react";
+<<<<<<< HEAD
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import Logo from "../../../public/media/favicon.webp";
+=======
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+>>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
 
 interface SignUpCardProps {
   onSignUpClick: () => void;
@@ -22,8 +33,8 @@ export function SignUpCard({ onSignUpClick }: SignUpCardProps) {
 
         <CardHeader className="relative z-10 text-center pb-4">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-red-800 rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-md">
+              <img src={Logo} alt="logo" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900 mb-2">

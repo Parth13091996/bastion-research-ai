@@ -146,9 +146,9 @@ const Login = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  Actionable.
+                  Actionable. Accountable.
                   <span className="block bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
-                    Accountable. Bastion.
+                     Bastion.
                   </span>
                 </motion.h1>
                 <motion.p

@@ -1,6 +1,2 @@
-- [x] Import useEffect and useRef in BastionCore/index.tsx
-- [ ] Add showSticky state
-- [ ] Add section2Ref
-- [ ] Add useEffect for scroll detection
-- [ ] Add conditional sticky header JSX with Quarterly subscribe button
-- [ ] Attach ref to Section 2 (pricing section)
+- [x] Update Recommendation.tsx to pass stock data via Link state when navigating to ViewResearch
+- [x] Update ViewResearch.tsx to import useLocation, retrieve stock data, and dynamically set the pill based on band (BUY/HOLD/EXITED) with appropriate colors
