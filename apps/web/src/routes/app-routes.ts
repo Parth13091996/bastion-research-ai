@@ -26,7 +26,6 @@ export const AppRoutes = {
   research: () => "/research",
   paymentSuccess: () => "/payment/success",
   admin: () => "/admin",
-  adminLogin: () => "/admin/login",
   adminDashboard: () => "/admin/dashboard",
   adminManageMembers: () => "/admin/ar/members",
   adminManagePlans: () => "/admin/ar/plans",
@@ -77,4 +76,3 @@ export const AuthRoutes = [
   AppRoutes.resetPassword(),
 ];
 
-export const AdminAuthRoutes = [AppRoutes.adminLogin()];

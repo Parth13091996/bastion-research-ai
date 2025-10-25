@@ -1,25 +1,14 @@
 import AdminSidebar from "@/components/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useAuth } from "@/contexts/AuthContext";
-import { AdminAuthRoutes, AppRoutes } from "@/routes/app-routes";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { AppRoutes } from "@/routes/app-routes";
+import { Navigate, Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
-  const location = useLocation();
-
-  // If already authenticated as admin, prevent seeing admin login page
-  if (
-    isAuthenticated &&
-    isAdmin &&
-    AdminAuthRoutes.includes(location.pathname) &&
-    !isLoading
-  ) {
-    return <Navigate to={AppRoutes.adminDashboard()} replace />;
-  }
 
   if ((!isAuthenticated || !isAdmin) && !isLoading) {
-    return <Navigate to={AppRoutes.adminLogin()} replace />;
+    return <Navigate to={AppRoutes.login()} replace />;
   }
 
   if (isLoading) {

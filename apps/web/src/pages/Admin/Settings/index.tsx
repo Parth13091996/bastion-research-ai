@@ -128,69 +128,6 @@ const AdminSettings = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Upload Recommendations Spreadsheet (CSV/XLSX)</Label>
-            <input
-              type="file"
-              accept=".csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                try {
-                  setUploading(true);
-                  const fd = new FormData();
-                  fd.append('file', f);
-                  const res = await axiosInstance.post(endpoints.settings.recommendationsSheet.upload, fd, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                  });
-                  setRecoPath(res.data?.path || null);
-                  toast.success('Spreadsheet uploaded');
-                } catch (err: any) {
-                  toast.error(err?.response?.data?.message || 'Upload failed');
-                } finally {
-                  setUploading(false);
-                }
-              }}
-            />
-            {uploading ? <span className="text-sm">Uploading...</span> : null}
-          </div>
-
-          {/* Google Sheets Settings */}
-          <div className="space-y-2 pt-6 border-t">
-            <Label htmlFor="gsheet-id">Google Spreadsheet ID</Label>
-            <Input
-              id="gsheet-id"
-              placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-              value={gsheetId}
-              onChange={(e) => setGsheetId(e.target.value)}
-            />
-            <Label htmlFor="gsheet-range">Range</Label>
-            <Input
-              id="gsheet-range"
-              placeholder="Sheet1!A1:Z"
-              value={gsheetRange}
-              onChange={(e) => setGsheetRange(e.target.value)}
-            />
-            <div>
-              <Button
-                variant="secondary"
-                onClick={async () => {
-                  try {
-                    setSaving(true);
-                    await axiosInstance.put(endpoints.settings.recommendationsGsheet.update, { spreadsheetId: gsheetId, range: gsheetRange });
-                    toast.success('Google Sheet settings saved');
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.message || 'Failed to save Google Sheet settings');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : 'Save Google Sheet'}
-              </Button>
-            </div>
-          </div>
         </CardContent>
         <CardFooter className="flex gap-3">
           <Button onClick={saveContactEmail} disabled={saving}>

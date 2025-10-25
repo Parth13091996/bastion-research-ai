@@ -157,11 +157,10 @@ export const createUserAfterOnboarding = async (userData: any) => {
 };
 
 export const signIn = async (req: Request, res: Response) => {
-  const { email, password, otp, isAdminLogin } = req.body as {
+  const { email, password, otp } = req.body as {
     email?: string;
     password?: string;
     otp?: string;
-    isAdminLogin?: boolean;
   };
 
   if (!email || (!password && !otp)) {
@@ -199,19 +198,6 @@ export const signIn = async (req: Request, res: Response) => {
       }
     }
 
-    // if (!isAdminLogin && user.role === config.roles.admin) {
-    //   return res
-    //     .status(401)
-    //     .json({ message: "You can't login with admin credentials." });
-    // }
-
-    // // If trying to login via admin portal, enforce admin role explicitly
-    // console.log(user.role, isAdminLogin, "list");
-    // if (isAdminLogin && user.role !== config.roles.admin) {
-    //   return res.status(401).json({
-    //     message: "Only administrators can sign in to the admin panel.",
-    //   });
-    // }
 
     const token = generateToken(user.id, user.email);
 

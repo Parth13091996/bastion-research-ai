@@ -53,7 +53,6 @@ const ViewResearch = lazy(() => import("@/pages/UserAdmin/app/ViewResearch"));
 const PremiumWebinars = lazy(() => import("@/pages/UserAdmin/app/PremiumWebinars"));
 
 // Admin Pages
-const AdminLogin = lazy(() => import("../pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const ManageMembers = lazy(() => import("../pages/Admin/AR/ManageMembers"));
 const ManagePlans = lazy(() => import("../pages/Admin/AR/ManagePlans"));
@@ -163,10 +162,6 @@ export const routes: RouteObject[] = [
   {
     path: AppRoutes.ipoLanding(),
     element: <IpoLandingPage />,
-  },
-  {
-    element: <AdminLogin />,
-    path: AppRoutes.adminLogin(),
   },
   {
     element: <AdminLayout />,

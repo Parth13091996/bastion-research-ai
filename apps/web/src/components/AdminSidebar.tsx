@@ -125,10 +125,12 @@ const navItems = [
   { name: "Settings", icon: Settings, path: AppRoutes.adminSettings() },
 ];
 
+// AdminSidebar now supports tooltips on collapsed mode like the user sidebar
 const AdminSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [hoveredTooltip, setHoveredTooltip] = useState<string | null>(null);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -141,6 +143,34 @@ const AdminSidebar = () => {
   const toggleSection = (name: string) => {
     setOpenSections((prev) => ({ ...prev, [name]: !prev[name] }));
   };
+
+  // Tooltip component for sidebar
+  // Absolutely positioned relative to parent, shown only if hoveredTooltip === tooltipId
+  const SidebarTooltip = ({
+    children,
+    tooltipId,
+  }: {
+    children: React.ReactNode;
+    tooltipId: string;
+  }) => (
+    hoveredTooltip === tooltipId ? (
+      <div
+        className="
+          absolute left-full top-1/2 
+          -translate-y-1/2
+          ml-2
+          z-50
+          whitespace-nowrap
+          px-2 py-1 
+          bg-gray-900 text-white 
+          text-xs 
+          rounded shadow-lg
+          pointer-events-none"
+      >
+        {children}
+      </div>
+    ) : null
+  );
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -157,17 +187,28 @@ const AdminSidebar = () => {
           />
         </button>
       </div>
-      <nav className="flex-1 mt-8 space-y-2 px-2 pb-10 overflow-y-auto">
+
+      <nav className="flex-1 mt-8 space-y-2 px-2 pb-10 overflow-y-auto relative">
         {navItems.map((item) => (
-          <div key={item.name}>
+          <div key={item.name} className="relative">
             {item.subItems ? (
               <>
                 <button
                   onClick={() => toggleSection(item.name)}
-                  className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"} p-2 rounded-lg transition-colors hover:bg-gray-700`}
+                  className={`flex items-center w-full 
+                    ${isCollapsed ? "justify-center" : "justify-between"} 
+                    p-2 rounded-lg transition-colors hover:bg-gray-700 relative`
+                  }
+                  onMouseEnter={() => setHoveredTooltip(item.name)}
+                  onMouseLeave={() => setHoveredTooltip(null)}
+                  title={!isCollapsed ? "" : item.name}
+                  type="button"
+                  tabIndex={0}
+                  aria-label={item.name}
                 >
                   <div className="flex items-center">
                     <item.icon className="h-6 w-6" />
+                    {/* Show label only when not collapsed */}
                     {!isCollapsed && <span className="ml-4">{item.name}</span>}
                   </div>
                   {!isCollapsed && (
@@ -176,6 +217,10 @@ const AdminSidebar = () => {
                         openSections[item.name] ? "rotate-180" : ""
                       }`}
                     />
+                  )}
+                  {/* Tooltip for collapsed mode */}
+                  {isCollapsed && (
+                    <SidebarTooltip tooltipId={item.name}>{item.name}</SidebarTooltip>
                   )}
                 </button>
                 {openSections[item.name] && !isCollapsed && (
@@ -198,18 +243,29 @@ const AdminSidebar = () => {
                 )}
               </>
             ) : (
-              <NavLink
-                to={item.path!}
-                className={({ isActive }) =>
-                  `flex items-center p-2 rounded-lg transition-colors
-                  ${isCollapsed ? "justify-center" : ""}
-                  ${isActive ? "bg-gray-700" : "hover:bg-gray-700"}`
-                }
-                title={isCollapsed ? item.name : ""}
+              <div
+                className="relative"
+                onMouseEnter={() => setHoveredTooltip(item.name)}
+                onMouseLeave={() => setHoveredTooltip(null)}
               >
-                <item.icon className="h-6 w-6" />
-                {!isCollapsed && <span className="ml-4">{item.name}</span>}
-              </NavLink>
+                <NavLink
+                  to={item.path!}
+                  className={({ isActive }) =>
+                    `flex items-center p-2 rounded-lg transition-colors
+                    ${isCollapsed ? "justify-center" : ""}
+                    ${isActive ? "bg-gray-700" : "hover:bg-gray-700"}`
+                  }
+                  title={isCollapsed ? item.name : ""}
+                  aria-label={item.name}
+                  tabIndex={0}
+                >
+                  <item.icon className="h-6 w-6" />
+                  {!isCollapsed && <span className="ml-4">{item.name}</span>}
+                </NavLink>
+                {isCollapsed && (
+                  <SidebarTooltip tooltipId={item.name}>{item.name}</SidebarTooltip>
+                )}
+              </div>
             )}
           </div>
         ))}

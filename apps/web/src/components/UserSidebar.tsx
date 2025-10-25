@@ -73,7 +73,7 @@ const navItems = [
 ];
 
 export default function Sidebar() {
-  const { user, subscription, logout } = useAuth();
+  const { user, subscription, isAdmin,logout } = useAuth();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -263,6 +263,9 @@ export default function Sidebar() {
               );
 
             const isOpen = openMenus[item.name] || isSubActive;
+            if(isAdmin && item.name === "My Account") {
+              return null
+            }
 
             return (
               <div key={item.name}>
