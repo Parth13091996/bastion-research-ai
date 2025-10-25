@@ -11,18 +11,30 @@ const AdminHeader = () => {
     navigate(AppRoutes.home());
   };
 
+  const goToUserDashboard = () => {
+    // User app dashboard route
+    navigate("/user/app/dashboard");
+  };
+
   return (
     <header className="bg-gray-800 text-white shadow-md">
       <div className="mx-auto px-6 md:px-8 lg:px-8">
-        <div className="flex justify-center items-center h-16">
-          <div className="flex flex-1 gap-4 justify-end">
+          <div className="flex justify-center items-center h-16">
+            <div className="flex flex-1 gap-4 justify-end">
             <Button
               variant="outline"
               className="text-black"
-              onClick={homeRedirect}
+              onClick={goToUserDashboard}
             >
-              Visit Website
+              User Dashboard
             </Button>
+              <Button
+                variant="outline"
+                className="text-black"
+                onClick={homeRedirect}
+              >
+                Visit Website
+              </Button>
 
             <Button variant="outline" className="text-black" onClick={logout}>
               Logout

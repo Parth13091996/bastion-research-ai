@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { AppRoutes } from "@/routes/app-routes";
 import {
   BarChart3,
   ChevronDown,
@@ -44,7 +45,7 @@ const navItems = [
   },
   // { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
   { name: "Premium Webinars", icon: Play, path: "/user/app/premium-webinars" },
-  { name: "Scratch Pad Newsletter", icon: Newspaper, path: "/user/app/scratch-pad-newsletter" },
+  { name: "Scratch Pad Newsletter", icon: Newspaper, path: AppRoutes.newsletter() },
   {
     name: "My Account",
     icon: User,

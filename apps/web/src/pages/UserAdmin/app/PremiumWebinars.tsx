@@ -74,7 +74,7 @@ export default function PremiumWebinarsPage() {
         toast.error(
           "Premium access required. Redirecting to subscription page."
         );
-        navigate(AppRoutes.subscription());
+        navigate(AppRoutes.bastionCore());
       }
     }
   }, [user, subscription, isLoading, isSubscriptionLoading]);

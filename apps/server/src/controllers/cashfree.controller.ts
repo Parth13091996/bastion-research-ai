@@ -5,6 +5,7 @@ import {
   fetchPlans,
   PublicPlan,
 } from "../services/cashfree-plans-orders.service";
+import { getUserSubscriptionService } from "../services/cashfree-subscription.service"
 import {
   getPanVerificationStatusRequest,
   verifyPanRequest,
@@ -185,9 +186,7 @@ export const getUserSubscription = async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
     }
-    const { getUserSubscriptionService } = await import(
-      "../services/cashfree-subscription.service"
-    );
+    
     const response = await getUserSubscriptionService(userId);
     return res.status(200).json(response);
   } catch (error: any) {

@@ -136,25 +136,14 @@ function rowsToObjects(values: any[][]): any[] {
 async function readGoogleSheetValues(
   spreadsheetId: string,
   range: string
-): any {
+) {
   const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
   // Credentials path: prefer server secret folder
   const serverRoot = path.resolve(process.cwd());
   console.log(serverRoot, "root");
-  const candidatePaths = [
-    path.join(serverRoot, "apps/server/secret/credentials.json"),
-    path.join(serverRoot, "secret/credentials.json"),
-    path.join(serverRoot, "credentials.json"),
-  ];
+ const keyfilePath = path.resolve('..', '..', 'secret')
+ console.log(keyfilePath, 'path')
 
-  let keyfilePath = candidatePaths.find((p) => fs.existsSync(p));
-
-  if (!keyfilePath) {
-    // No credentials found
-    return null;
-  }
-
-  // Try service account first if file looks like one
   try {
     const content = JSON.parse(fs.readFileSync(keyfilePath, "utf-8"));
     const isService =
