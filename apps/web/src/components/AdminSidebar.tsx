@@ -39,6 +39,16 @@ const navItems = [
         path: AppRoutes.adminManageMembers(),
       },
       {
+        name: "Add User",
+        icon: UserPlus,
+        path: AppRoutes.adminAddUser(),
+      },
+      {
+        name: "Profile",
+        icon: Contact,
+        path: AppRoutes.adminProfile(),
+      },
+      {
         name: "Manage Plans",
         icon: FileText,
         path: AppRoutes.adminManagePlans(),
@@ -68,6 +78,11 @@ const navItems = [
         name: "News Letter",
         icon: Mail,
         path: AppRoutes.adminNewsletterManagement(),
+      },
+      {
+        name: "Manage Recommendations",
+        icon: FileText,
+        path: AppRoutes.adminRecommendationManagement(),
       },
       {
         name: "Podcasts",
@@ -106,15 +121,6 @@ const navItems = [
         icon: FileText,
         path: AppRoutes.adminApplications(),
       },
-    ],
-  },
-  {
-    name: "Users",
-    icon: Users,
-    subItems: [
-      { name: "All Users", icon: Users, path: AppRoutes.adminAllUsers() },
-      { name: "Add User", icon: UserPlus, path: AppRoutes.adminAddUser() },
-      { name: "Profile", icon: Contact, path: AppRoutes.adminProfile() },
     ],
   },
   {

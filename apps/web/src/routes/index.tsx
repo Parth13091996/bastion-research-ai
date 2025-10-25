@@ -93,6 +93,9 @@ const PodcastEditor = lazy(
 const ResearchManagement = lazy(
   () => import("../pages/Admin/Content/ResearchManagement")
 );
+const RecommendationManagement = lazy(
+  () => import("../pages/Admin/Content/RecommendationManagement")
+);
 const ResearchEditor = lazy(
   () => import("../pages/Admin/Content/ResearchEditor")
 );
@@ -242,6 +245,10 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminResearchManagement(),
         element: <ResearchManagement />,
+      },
+      {
+        path: AppRoutes.adminRecommendationManagement(),
+        element: <RecommendationManagement />,
       },
       {
         path: AppRoutes.adminNewsletterCreate(),

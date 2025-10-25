@@ -11,11 +11,7 @@ import { toast } from 'sonner';
 const AdminSettings = () => {
   const [contactEmail, setContactEmail] = useState('');
   const [saving, setSaving] = useState(false);
-  const [recoUrl, setRecoUrl] = useState("");
-  const [recoPath, setRecoPath] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [gsheetId, setGsheetId] = useState("");
-  const [gsheetRange, setGsheetRange] = useState("Sheet1!A1:Z");
+  // Removed recommendation spreadsheet settings (managed elsewhere)
 
   useEffect(() => {
     (async () => {
@@ -25,20 +21,7 @@ const AdminSettings = () => {
       } catch (e) {
         // fallback to blank
       }
-      try {
-        const res = await axiosInstance.get(endpoints.settings.recommendationsSheet.get);
-        setRecoUrl(res.data?.url || '');
-        setRecoPath(res.data?.path || null);
-      } catch (e) {
-        // ignore
-      }
-      try {
-        const res = await axiosInstance.get(endpoints.settings.recommendationsGsheet.get);
-        setGsheetId(res.data?.spreadsheetId || '');
-        setGsheetRange(res.data?.range || 'Sheet1!A1:Z');
-      } catch (e) {
-        // ignore
-      }
+      // Recommendation sheet settings removed from server; skip fetching
     })();
   }, []);
 
@@ -95,38 +78,7 @@ const AdminSettings = () => {
             <Switch id="allow-registrations" defaultChecked />
           </div>
 
-          {/* Recommendations Spreadsheet Settings */}
-          <div className="space-y-2 pt-4 border-t">
-            <Label htmlFor="reco-url">Recommendations Spreadsheet URL (CSV/XLSX)</Label>
-            <Input
-              id="reco-url"
-              placeholder="https://docs.google.com/spreadsheets/d/<id>/pub?output=csv"
-              value={recoUrl}
-              onChange={(e) => setRecoUrl(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                onClick={async () => {
-                  try {
-                    setSaving(true);
-                    await axiosInstance.put(endpoints.settings.recommendationsSheet.update, { url: recoUrl });
-                    toast.success('Spreadsheet URL saved');
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.message || 'Failed to save spreadsheet URL');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : 'Save URL'}
-              </Button>
-              {recoPath ? (
-                <span className="text-xs text-muted-foreground self-center">Uploaded: {recoPath}</span>
-              ) : null}
-            </div>
-          </div>
+          {/* Recommendation Spreadsheet Settings removed */}
 
         </CardContent>
         <CardFooter className="flex gap-3">

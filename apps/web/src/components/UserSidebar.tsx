@@ -267,6 +267,10 @@ export default function Sidebar() {
               return null
             }
 
+            if(!isAdmin && item.name === "Admin Panel") {
+              return null
+            }
+
             return (
               <div key={item.name}>
                 {hasSub ? (

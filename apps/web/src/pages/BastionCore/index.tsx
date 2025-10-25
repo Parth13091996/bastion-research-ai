@@ -2,7 +2,9 @@ import BackgroundShapes from "@/components/generic/framer-motion";
 import Testimonial from "@/pages/Testimonials/Index";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 // Brand Colors
 const COLORS = {
   red: "#C00000",
@@ -75,6 +77,27 @@ type FAQItem = {
 
 export default function BastionCoreProductPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [plansLoading, setPlansLoading] = useState<boolean>(false);
+  const [plansError, setPlansError] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setPlansLoading(true);
+        const res = await axiosInstance.get(endpoints.cashfree.plans);
+        setPlans(res.data?.plans || []);
+      } catch (e: any) {
+        setPlansError(e?.response?.data?.message || "Failed to load plans");
+      } finally {
+        setPlansLoading(false);
+      }
+    })();
+  }, []);
+
+  const paidPlans = useMemo(() => (plans || []).filter((p: any) => Number(p?.amount || 0) > 0), [plans]);
+  const sortedPaid = useMemo(() => [...paidPlans].sort((a: any, b: any) => Number(a.amount) - Number(b.amount)), [paidPlans]);
+  const startingPrice = sortedPaid[0]?.amount ? `₹${sortedPaid[0].amount}` : null;
 
   const items: Item[] = [
     {
@@ -126,8 +149,8 @@ export default function BastionCoreProductPage() {
       q: "How do I subscribe and What are the Subscription Charges?",
       a: (
         <span>
-          You can subscribe via the button below at{" "}
-          <strong>Rs. 18,750 per year</strong>. After checkout, you’ll receive
+          You can subscribe via the button below starting at{" "}
+          <strong>{startingPrice || "our latest pricing"}</strong>. After checkout, you’ll receive
           instant access to research, archives, and updates.
         </span>
       ),
@@ -210,7 +233,7 @@ export default function BastionCoreProductPage() {
                 href="/register"
                 className="w-full md:w-auto px-6 py-3 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors text-center font-semibold"
               >
-                Subscribe to Quarterly Plan at Rs. 5,000 /-
+                {startingPrice ? `Subscribe starting at ${startingPrice}` : "Subscribe Now"}
               </a>
               <a
                 href="/register"
@@ -228,49 +251,34 @@ export default function BastionCoreProductPage() {
             Choose your plan
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Quarterly Plan */}
-            <div className="relative rounded-2xl border border-[#E6E6E6] bg-white p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between">
-                  <h3 className="text-xl font-semibold">Quarterly Plan</h3>
+            {(sortedPaid.slice(0,2).length ? sortedPaid.slice(0,2) : [
+              { name: "Quarterly Plan", amount: 5000, _fallback: true },
+              { name: "Yearly Plan", amount: 18750, _fallback: true },
+            ]).map((plan: any, idx: number) => (
+              <div key={String(plan.code || plan.name || idx)} className={`${idx === 1 ? "border-[#C4B696]/40 bg-[#1C2852] text-white" : "border-[#E6E6E6] bg-white"} relative rounded-2xl border p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between`}>
+                <div>
+                  <div className="flex items-start justify-between">
+                    <h3 className="text-xl font-semibold">{plan.name || (idx === 0 ? "Quarterly Plan" : "Yearly Plan")}</h3>
+                    {idx === 1 && (
+                      <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-[#C4B696] text-[#1C2852]">
+                        Best value
+                      </span>
+                    )}
+                  </div>
+                  <p className={`mt-3 text-3xl font-bold ${idx === 0 ? "text-[#C00000]" : ""}`}>
+                    {`₹${Number(plan.amount || 0).toLocaleString()}/-`}
+                  </p>
+                  <p className={`text-sm ${idx === 1 ? "text-gray-200" : "text-slate-500"}`}>Including GST</p>
                 </div>
-                <p className="mt-3 text-3xl font-bold text-[#C00000]">
-                  Rs. 5,000/-
-                </p>
-                <p className="text-sm text-slate-500">Including GST</p>
-                <p className="mt-1 text-[12px] text-slate-500">
-                  * Valid Only Once
-                </p>
-              </div>
-              <div id="subscribe-button-div" className="mt-6 flex justify-end">
-                <a href="/register">
-                  <button className="px-4 py-2 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors">
-                    Subscribe Now
-                  </button>
-                </a>
-              </div>
-            </div>
-
-            {/* Yearly Plan */}
-            <div className="relative rounded-2xl border border-[#C4B696]/40 bg-[#1C2852] p-6 shadow-sm hover:shadow-md transition-shadow text-white flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between">
-                  <h3 className="text-xl font-semibold">Yearly Plan</h3>
-                  <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-[#C4B696] text-[#1C2852]">
-                    Best value
-                  </span>
+                <div className="mt-6 flex justify-end">
+                  <a href="/register">
+                    <button className={`px-4 py-2 rounded-xl transition-colors ${idx === 1 ? "bg-[#C4B696] text-[#1C2852] hover:bg-[#b3a67d]" : "bg-[#C00000] text-white hover:bg-[#a00000]"}`}>
+                      Subscribe Now
+                    </button>
+                  </a>
                 </div>
-                <p className="mt-3 text-3xl font-bold">Rs. 18,750/-</p>
-                <p className="text-sm text-gray-200">Including GST</p>
               </div>
-              <div className="mt-6 flex justify-end">
-                <a href="/register">
-                  <button className="px-4 py-2 bg-[#C4B696] text-[#1C2852] rounded-xl hover:bg-[#b3a67d] transition-colors">
-                    Subscribe Now
-                  </button>
-                </a>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
