@@ -9,34 +9,34 @@ const AdminLayout = () => {
   const location = useLocation();
 
   // If already authenticated as admin, prevent seeing admin login page
-  if (
-    isAuthenticated &&
-    isAdmin &&
-    AdminAuthRoutes.includes(location.pathname) &&
-    !isLoading
-  ) {
-    return <Navigate to={AppRoutes.adminDashboard()} replace />;
-  }
+  // if (
+  //   isAuthenticated &&
+  //   isAdmin &&
+  //   AdminAuthRoutes.includes(location.pathname) &&
+  //   !isLoading
+  // ) {
+  //   return <Navigate to={AppRoutes.adminDashboard()} replace />;
+  // }
 
-  if ((!isAuthenticated || !isAdmin) && !isLoading) {
-    return <Navigate to={AppRoutes.adminLogin()} replace />;
-  }
+  // if ((!isAuthenticated || !isAdmin) && !isLoading) {
+  //   return <Navigate to={AppRoutes.adminLogin()} replace />;
+  // }
 
-  if (isLoading) {
-    return (
-      <div className="relative flex h-screen bg-gray-100 overflow-hidden">
-        <div className="absolute left-[42%] top-[42%]">
-          <main className="animate-pulse p-4">
-            <img
-              src="/media/header-logo.webp"
-              alt="Bastion Research"
-              className="h-22 md:h-14"
-            />
-          </main>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="relative flex h-screen bg-gray-100 overflow-hidden">
+  //       <div className="absolute left-[42%] top-[42%]">
+  //         <main className="animate-pulse p-4">
+  //           <img
+  //             src="/media/header-logo.webp"
+  //             alt="Bastion Research"
+  //             className="h-22 md:h-14"
+  //           />
+  //         </main>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">

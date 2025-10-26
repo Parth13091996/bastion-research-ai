@@ -3,7 +3,10 @@ import { ArrowRight, CheckCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Logo from "../../../public/media/favicon.webp";
+<<<<<<< HEAD
 
+=======
+>>>>>>> d7cd9d74382f09848b8b56bff9c23873e3bf149a
 
 interface SignUpCardProps {
   onSignUpClick: () => void;

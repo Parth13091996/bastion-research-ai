@@ -68,10 +68,12 @@ export default function LandingPage() {
 
   // Function to open popup browser
   const openPopup = (url: string) => {
-    const width = 1000;
-    const height = 700;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
+    const width = 800;
+    const height = 500;
+    // const left = window.screen.width / 2 - width / 2;
+    const left = 20;
+    // const top = window.screen.height / 2 - height / 2;
+    const top = 10;
 
     window.open(
       url,
@@ -393,7 +395,7 @@ export default function LandingPage() {
                           boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => openPopup("https://bastionresearch.gridkey.in/dashboard")}
+                        onClick={() => openPopup("https://bastionresearch.gridkey.in/strategies/332")}
                       >
                         View Product Page
                       </motion.button>

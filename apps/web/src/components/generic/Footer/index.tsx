@@ -1,11 +1,8 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Link } from "react-router-dom"; // Import Link
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import SocialIcons from "./SocialIcons";
 import { AppRoutes } from "@/routes/app-routes";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
-import { toast } from "sonner";
 
 // Brand Colors
 const COLORS = {
@@ -20,7 +17,7 @@ const COLORS = {
 const CollapsibleSection = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className=" md:border-none md:pb-0 md:mb-0">
+    <div className="md:border-none md:pb-0 md:mb-0">
       <button
         className="flex justify-between items-center w-full text-lg font-semibold mb-mb-4 md:mb-4 md:cursor-default"
         onClick={() => setIsOpen(!isOpen)}
@@ -50,28 +47,7 @@ const CollapsibleSection = ({ title, children }) => {
 const Footer = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [email, setEmail] = useState("");
-
-  const subscribeToNewsLetter = () => {
-    navigator.geolocation.getCurrentPosition(async ({ coords, timestamp }) => {
-      try {
-        const response = await axiosInstance.post(
-          endpoints.content.mailchimp.subscribe,
-          {
-            email,
-            coords: {
-              latitude: coords.latitude,
-              longitude: coords.longitude,
-              timestamp,
-            },
-          }
-        );
-        toast.success(response.data.message || "Something went wrong");
-      } catch (error) {
-        console.log(error, "response");
-        toast.error(error.response.data.message || "Something went wrong");
-      }
-    });
-  };
+  const [status, setStatus] = useState(null); // "success" | "error" | null
 
   useEffect(() => {
     const handleResize = () => {
@@ -82,6 +58,36 @@ const Footer = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const handleMailchimpSubmit = async (e) => {
+    e.preventDefault();
+    setStatus(null);
+
+    const formData = new FormData();
+    formData.append("EMAIL", email);
+    formData.append(
+      "b_158dbb8b064fdd32c6ba69a49_359e20a2f7",
+      "" // hidden field for spam bots
+    );
+
+    try {
+      const response = await fetch(
+        "https://bastionresearch.us18.list-manage.com/subscribe/post?u=158dbb8b064fdd32c6ba69a49&id=359e20a2f7&f_id=0081b2e6f0",
+        {
+          method: "POST",
+          mode: "no-cors",
+          body: formData,
+        }
+      );
+
+      // Mailchimp doesn't send CORS response, so assume success
+      setStatus("success");
+      setEmail("");
+    } catch (error) {
+      console.error("Mailchimp error:", error);
+      setStatus("error");
+    }
+  };
+
   return (
     <footer
       className="text-white py-16"
@@ -90,7 +96,7 @@ const Footer = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row flex-wrap justify-between gap-4">
-          {/* Company Info - Always visible */}
+          {/* Company Info */}
           <div className="flex-1 min-w-72 mb-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="inline-flex items-center justify-center bg-white p-1 rounded-md shadow-md ring-1 ring-white/20">
@@ -100,11 +106,7 @@ const Footer = () => {
                   className="h-8 md:h-10 w-auto block"
                 />
               </div>
-              {/* <h3 className="text-2xl font-bold">BASTION RESEARCH</h3> */}
             </div>
-            {/* <p className="mb-4">
-              Maximizing Your Research Quality Per Unit Of Stress
-            </p> */}
             <div className="space-y-1 text-sm">
               <p>SEBI Registered Research Analyst</p>
               <p>SEBI Registration No: INH000023199</p>
@@ -119,23 +121,12 @@ const Footer = () => {
                 <li>
                   <Link
                     to="/about"
-                    className="relative group hover:text-red-200 transition-colors inline-block" // Added for each link
+                    className="relative group hover:text-red-200 transition-colors inline-block"
                   >
                     About us
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </li>
-
-                {/* 
-                <li>
-                  <Link
-                    to="/spotlights"
-                    className="relative group hover:text-red-200 transition-colors inline-block"
-                  >
-                    QUANT
-                    <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
-                  </Link>
-                </li> */}
                 <li>
                   <Link
                     to={AppRoutes.contact()}
@@ -173,7 +164,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    to="/privacy-policy" // Updated path to match Header component
+                    to="/privacy-policy"
                     className="relative group hover:text-red-200 transition-colors inline-block"
                   >
                     Privacy Policy
@@ -185,7 +176,7 @@ const Footer = () => {
                     to="/terms-and-conditions"
                     className="relative group hover:text-red-200 transition-colors inline-block"
                   >
-                    Terms and conditions
+                    Terms and Conditions
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </li>
@@ -198,15 +189,6 @@ const Footer = () => {
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </li>
-                {/* <li>
-                  <Link
-                    to="/newsletters-archive"
-                    className="relative group hover:text-red-200 transition-colors inline-block"
-                  >
-                    Newsletters
-                    <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full"></span>
-                  </Link>
-                </li> */}
               </ul>
             </CollapsibleSection>
           </div>
@@ -219,21 +201,44 @@ const Footer = () => {
                 <h5 className="font-semibold mb-2">
                   Subscribe To Our Newsletter
                 </h5>
-                <div className="flex">
+                <form
+                  onSubmit={handleMailchimpSubmit}
+                  className="validate flex w-full"
+                >
                   <input
                     type="email"
-                    placeholder="Your email"
+                    name="EMAIL"
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="px-3 py-2 text-gray-800 rounded-l focus:outline-none w-full flex-1 min-w-0"
-                    aria-label="Email for newsletter subscription"
+                    className="required email px-3 py-2 text-gray-800 rounded-l focus:outline-none w-full flex-1 min-w-0"
+                    placeholder="Your email"
+                    required
                   />
-                  <button
-                    onClick={subscribeToNewsLetter}
-                    className="bg-white text-red-600 px-4 py-2 rounded-r hover:bg-gray-100 transition-colors whitespace-nowrap"
+                  <input
+                    type="submit"
+                    value="Subscribe"
+                    name="subscribe"
+                    className="bg-white text-red-600 px-4 py-2 rounded-r hover:bg-gray-100 transition-colors whitespace-nowrap cursor-pointer"
+                  />
+                </form>
+
+                {status === "success" && (
+                  <p
+                    className="mt-2 text-sm bg-white px-2 py-1 rounded"
+                    style={{ color: "green" }}
                   >
-                    Subscribe
-                  </button>
-                </div>
+                    *Subscribed successfully!
+                  </p>
+                )}
+
+                {status === "error" && (
+                  <p
+                    className="mt-2 text-sm bg-white px-2 py-1 rounded"
+                    style={{ color: "red" }}
+                  >
+                    *Failed to deliver. Please try again.
+                  </p>
+                )}
               </div>
             </CollapsibleSection>
           </div>
@@ -269,11 +274,11 @@ const Footer = () => {
         <div className="mt-8 pt-8 border-t border-red-500 flex flex-col md:flex-row justify-between items-center text-sm gap-4">
           <p>Copyright © {new Date().getFullYear()} Bastion Research</p>
           <p>
-            Powered by {"\n"}
+            Powered by{" "}
             <Link
               to="https://vite.dev/"
               className="text-red-200 hover:text-red-300 transition-colors"
-              aria-label="Visit Bastion Research homepage"
+              aria-label="Visit Vite website"
             >
               Vite
             </Link>
