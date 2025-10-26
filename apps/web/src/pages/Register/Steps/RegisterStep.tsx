@@ -15,10 +15,29 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
 }) => {
   const handleRegister = async () => {
     setError(null);
+
+    // Validate mandatory fields
+    if (!formData.email.trim()) {
+      setError("Please enter email.");
+      return;
+    }
+    if (!formData.phone.trim()) {
+      setError("Please enter phone.");
+      return;
+    }
+    if (!formData.password.trim()) {
+      setError("Please enter password.");
+      return;
+    }
+    if (!formData.confirmPassword.trim()) {
+      setError("Please enter confirm password.");
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
+
     setIsLoading(true);
     try {
       // Data is already updated in the session via useEffect

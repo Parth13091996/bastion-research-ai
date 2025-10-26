@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
 const OnboardStep: React.FC<OnboardStepProps> = ({
   formData,
@@ -6,8 +7,30 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
   onNext,
   setCurrentStep,
 }) => {
+  const [error, setError] = useState<string | null>(null);
+
   const onBackHandler = () => {
     setCurrentStep(1);
+  };
+
+  const handleContinue = () => {
+    setError(null);
+
+    // Validate mandatory fields
+    if (!formData.firstName.trim()) {
+      setError("Please enter first name.");
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setError("Please enter last name.");
+      return;
+    }
+    if (!formData.dateOfBirth.trim()) {
+      setError("Please enter date of birth.");
+      return;
+    }
+
+    onNext();
   };
   return (
     <div className="space-y-6">
@@ -145,13 +168,15 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
           <ArrowLeft size={20} className="mr-1" /> Back
         </button>
         <button
-          onClick={onNext}
+          onClick={handleContinue}
           className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
         >
           Continue
         </button>
       </div>
-    </div>
+
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      </div>
   );
 };
 

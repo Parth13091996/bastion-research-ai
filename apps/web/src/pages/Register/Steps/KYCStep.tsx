@@ -140,11 +140,20 @@ const KYCStep: React.FC<KYCStepProps> = ({
   };
 
   const handleContinue = async () => {
-    setLoading(true);
+    setError(null);
+
+    // Validate mandatory fields
+    if (!formData.panCard.trim()) {
+      setError("Please enter PAN card.");
+      return;
+    }
+
     if (!verification?.valid) {
       setError("Please complete PAN verification before continuing.");
       return;
     }
+
+    setLoading(true);
     try {
       await axiosInstance.post(endpoints.auth.onboardStart, {
         email: formData.email,
