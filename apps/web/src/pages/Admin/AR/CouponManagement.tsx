@@ -12,7 +12,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef, GridReadyEvent } from "ag-grid-community";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
-import ConfirmationModal from "@/components/core/common/Modals/ConfirmationModal";
+import { confirmDelete, confirm } from "@/utils/confirm";
 
 const CouponsManagement = () => {
   const [coupons, setCoupons] = useState([]);
@@ -22,8 +22,7 @@ const CouponsManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [hoveredRow, setHoveredRow] = useState(null);
-  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [couponToDelete, setCouponToDelete] = useState<number | null>(null);
+  // using global ConfirmationModal via store (see utils/confirm)
 
   // New: filters
   const [activeFilter, setActiveFilter] = useState("all"); // 'all' | 'active' | 'inactive'
@@ -106,21 +105,14 @@ const CouponsManagement = () => {
   ];
 
   const handleDelete = async (couponId) => {
-    setCouponToDelete(couponId);
-    setIsConfirmationOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (couponToDelete === null) return;
+    const ok = await confirmDelete("coupon");
+    if (!ok) return;
     try {
-      await axiosInstance.delete(`${endpoints.coupons.base}/${couponToDelete}`);
-      await fetchCoupons(); // Refresh the list
-      setSelectedCoupons((prev) => prev.filter((id) => id !== couponToDelete));
+      await axiosInstance.delete(`${endpoints.coupons.base}/${couponId}`);
+      await fetchCoupons();
+      setSelectedCoupons((prev) => prev.filter((id) => id !== couponId));
     } catch (error) {
       console.error("Failed to delete coupon:", error);
-    } finally {
-      setIsConfirmationOpen(false);
-      setCouponToDelete(null);
     }
   };
 
@@ -212,6 +204,12 @@ const CouponsManagement = () => {
 
     try {
       if (bulkAction === "delete") {
+        const ok = await confirm({
+          title: `Delete ${selectedCoupons.length} coupon(s)?`,
+          confirmText: "Delete All",
+          tone: "danger",
+        });
+        if (!ok) return;
         // Delete coupons one by one
         await Promise.all(
           selectedCoupons.map((id) =>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Eye, FileText, Trash2, Plus } from "lucide-react";
+import { confirmDelete } from "@/utils/confirm";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -94,7 +95,10 @@ const RowActions = ({
     </button>
     <button
       className="text-red-600 hover:text-red-800 p-1"
-      onClick={() => onDelete(data.transaction_id)}
+      onClick={async () => {
+        const ok = await confirmDelete(`transaction ${data.transaction_id}`);
+        if (ok) onDelete(data.transaction_id);
+      }}
       title="Delete"
     >
       <Trash2 size={16} />

@@ -59,7 +59,6 @@ export const endpoints = {
   },
   files: {
     upload: "/api/files/upload",
-    signatures: "/api/files/signatures",
   },
   digio: {
     esignUpload: "/api/digio/esign/upload",

@@ -4,6 +4,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
+import { confirm } from "@/utils/confirm";
 import { endpoints } from "@/api/endpoints";
 
 const SubscriptionGrid = ({
@@ -257,7 +258,15 @@ const ManageSubscriptions = () => {
     upcomingSubscriptionsData,
   ]);
 
-  const cancel = (row: any) => cancelMutation.mutate(row);
+  const cancel = async (row: any) => {
+    const ok = await confirm({
+      title: "Cancel subscription?",
+      description: `This will cancel membership ${row?.membership || ""}.`,
+      confirmText: "Cancel",
+      tone: "danger",
+    });
+    if (ok) cancelMutation.mutate(row);
+  };
 
   const edit = (row: any) => {
     // TODO: Implement edit functionality - could open a modal or navigate to edit page

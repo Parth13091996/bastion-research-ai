@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
 import { queryKeys } from "@/api/queryKeys";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
+import { confirmDelete } from "@/utils/confirm";
 
 const ActionsRenderer = (params: any) => (
   <div className="flex items-center space-x-2">
@@ -72,9 +73,10 @@ const MembershipPlans = () => {
     updateMutation.mutate({ id, body });
   };
 
-  const deletePlan = (id: number | string) => {
+  const deletePlan = async (id: number | string) => {
     if (!id) return;
-    deleteMutation.mutate(id);
+    const ok = await confirmDelete("membership plan");
+    if (ok) deleteMutation.mutate(id);
   };
 
   const [editOpen, setEditOpen] = useState(false);

@@ -9,7 +9,7 @@ import { supabase } from "../supabase";
  */
 export async function uploadImage(req: Request, res: Response) {
   try {
-    const bucket = process.env.SUPABASE_STORAGE_BUCKET || "public";
+    const bucket = process.env.SUPABASE_IMAGE_STORAGE_BUCKET || "images";
 
     // `multer` places the uploaded file on `req.file` when using single("file")
     const file = (req as any)?.file as Express.Multer.File | undefined;

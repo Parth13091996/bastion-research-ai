@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "./badge";
+import { confirmDelete } from "@/utils/confirm";
 import { Button } from "./button";
 import {
   DropdownMenu,
@@ -101,7 +102,12 @@ const ActionsRenderer = ({ data, context }: { data: any; context: any }) => {
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={() => onDelete(data)}
+          onClick={async () => {
+            const ok = await confirmDelete(
+              data?.title || data?.job_title || data?.username || data?.email
+            );
+            if (ok) onDelete(data);
+          }}
           title="Delete"
         >
           <Trash2 className="h-4 w-4" />

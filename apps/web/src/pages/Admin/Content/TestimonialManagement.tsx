@@ -15,6 +15,7 @@ import { Plus, Search, Eye, Edit, Trash2, Calendar, Star } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { testimonialApi } from "@/api/content";
+import { confirmDelete } from "@/utils/confirm";
 
 interface TestimonialItem {
   id: string;
@@ -69,7 +70,8 @@ const TestimonialManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+    const ok = await confirmDelete(title);
+    if (!ok) return;
     try {
       await testimonialApi.delete(id);
       toast.success("Testimonial deleted successfully");

@@ -24,6 +24,7 @@ import {
   Mail,
 } from "lucide-react";
 import { toast } from "sonner";
+import { confirmDelete } from "@/utils/confirm";
 import { format } from "date-fns";
 
 export type ContentType = "newsletters" | "webinars" | "podcasts";
@@ -102,7 +103,8 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+    const ok = await confirmDelete(title);
+    if (!ok) return;
     try {
       await api.delete(id);
       toast.success("Item deleted successfully");

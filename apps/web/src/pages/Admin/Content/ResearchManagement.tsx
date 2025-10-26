@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
+import { confirmDelete } from "@/utils/confirm";
 
 const ResearchManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -69,7 +70,8 @@ const ResearchManagement: React.FC = () => {
   };
 
   const onDelete = async (id: string, label: string) => {
-    if (!confirm(`Delete research for \"${label}\"?`)) return;
+    const ok = await confirmDelete(label);
+    if (!ok) return;
     try {
       await researchApi.delete(id);
       toast.success("Deleted successfully");
@@ -210,4 +212,3 @@ const ResearchManagement: React.FC = () => {
 };
 
 export default ResearchManagement;
-

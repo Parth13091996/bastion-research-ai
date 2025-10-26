@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { MapPin, Clock, Home } from "lucide-react";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints.ts";
+import { toast } from "sonner";
 
 const SingleCareer = () => {
   const params = useParams();
@@ -68,11 +69,11 @@ const SingleCareer = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.agreeToTerms) {
-      alert("You must agree to the terms.");
+      toast.error("You must agree to the terms.");
       return;
     }
     if (!formData.resume) {
-      alert("Please upload your resume.");
+      toast.error("Please upload your resume.");
       return;
     }
     try {
@@ -88,7 +89,7 @@ const SingleCareer = () => {
       await axiosInstance.post(endpoints.applications.base, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Application submitted successfully!");
+      toast.success("Application submitted successfully!");
       setFormData({
         fullName: "",
         email: "",
@@ -99,7 +100,7 @@ const SingleCareer = () => {
       });
     } catch (err) {
       // Optionally log error
-      alert("Failed to submit application. Please try again.");
+      toast.error("Failed to submit application. Please try again.");
     }
   };
 
@@ -201,7 +202,7 @@ const SingleCareer = () => {
                         className="flex items-start gap-3 text-gray-700"
                       >
                         <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                        <span>{responsibility}</span>
+                        <span dangerouslySetInnerHTML={{ __html: responsibility}}></span>
                       </li>
                     )
                   )}
@@ -225,6 +226,29 @@ const SingleCareer = () => {
                       >
                         <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
                         <span>{requirement}</span>
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+            )}
+
+          {/* Good To Have */}
+          {Array.isArray(careerData.good_to_have) &&
+            careerData.good_to_have.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Good To Have
+                </h2>
+                <ul className="space-y-3">
+                  {careerData.good_to_have.map(
+                    (item: string, index: number) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 text-gray-700"
+                      >
+                        <div className="w-2 h-2 bg-yellow-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <span>{item}</span>
                       </li>
                     )
                   )}
@@ -266,46 +290,35 @@ const SingleCareer = () => {
               <div>
                 <span className="font-medium text-gray-900">Job Type:</span>
                 <span className="ml-2 text-gray-700">
-                  {careerData.jobType || careerData.job_type || "—"}
+                  {careerData.job_type || careerData.jobType || "—"}
                 </span>
               </div>
-
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  What You'll Get
-                </h3>
-                <ul className="space-y-2 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Hands-on learning with real companies, not case studies.
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Access to internal tools, processes, and frameworks built by
-                    practitioners.
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Mentorship from a team that lives and breathes equity
-                    research.
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    If you do well, we'll make room for you long-term — not just
-                    in the trainee seat.
-                  </li>
-                </ul>
+                <span className="font-medium text-gray-900">Commitment:</span>
+                <span className="ml-2 text-gray-700">
+                  {careerData.commitment || "—"}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium text-gray-900">Experience:</span>
+                <span className="ml-2 text-gray-700">
+                  {careerData.experience || "—"}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium text-gray-900">Team:</span>
+                <span className="ml-2 text-gray-700">{careerData.team || "—"}</span>
               </div>
 
               <div className="border-t border-gray-200 pt-4 md:col-span-2">
                 <div className="flex items-center space-x-8 text-sm text-gray-600">
                   <div>
                     <span className="font-medium">💼 Job Type:</span>{" "}
-                    {careerData.jobType || careerData.job_type || "Full Time"}
+                    {careerData.job_type || careerData.jobType || "—"}
                   </div>
                   <div>
                     <span className="font-medium">📍 Job Location:</span>{" "}
-                    {careerData.location || "Office"}
+                    {careerData.location || "—"}
                   </div>
                 </div>
               </div>

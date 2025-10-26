@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash2, Plus } from "lucide-react";
+import { confirmDelete } from "@/utils/confirm";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import { queryKeys } from "@/api/queryKeys";
 
@@ -97,7 +98,10 @@ const Applications = () => {
     setEditOpen(false);
   };
 
-  const deleteApplication = (id: number | string) => deleteMutation.mutate(id);
+  const deleteApplication = async (id: number | string, label?: string) => {
+    const ok = await confirmDelete(label);
+    if (ok) deleteMutation.mutate(id);
+  };
 
   const ActionsRenderer = (params: any) => (
     <div className="flex gap-2">
@@ -112,7 +116,10 @@ const Applications = () => {
         className="p-1 text-gray-600 hover:text-red-600"
         title="Delete"
         onClick={() =>
-          params.context.deleteApplication(params.data.application_id)
+          params.context.deleteApplication(
+            params.data.application_id,
+            params.data.applicant_name
+          )
         }
       >
         <Trash2 size={16} />
@@ -126,6 +133,25 @@ const Applications = () => {
     { headerName: "Applicant Name", field: "applicant_name" },
     { headerName: "Email", field: "email" },
     { headerName: "Phone", field: "phone" },
+    {
+      headerName: "Resume",
+      field: "resume_url",
+      cellRenderer: (p: any) => {
+        const url = p.value as string | undefined;
+        if (!url) return "—";
+        return (
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-600 underline"
+          >
+            View
+          </a>
+        );
+      },
+      minWidth: 110,
+    },
     { headerName: "Comments", field: "comments", editable: true },
     { headerName: "Date Applied", field: "date_applied" },
     { headerName: "Status", field: "status" },

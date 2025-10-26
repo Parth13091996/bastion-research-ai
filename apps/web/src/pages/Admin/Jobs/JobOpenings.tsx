@@ -1,11 +1,11 @@
-import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
-import { Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
-import EditRowModal from "@/components/core/common/Modals/EditRowModal";
+import { Briefcase, Users, MapPin, Home, Trash2 } from "lucide-react";
+import { useModalStore } from "@/stores/modal-store";
+import { toast } from "sonner";
+import { DataTable } from "@/components/ui/data-table";
 
 const JobOpenings = () => {
   const queryClient = useQueryClient();
@@ -23,6 +23,26 @@ const JobOpenings = () => {
       toast.success("Job deleted successfully");
     },
   });
+
+  // Simple cell renderers used by the grid
+  const LocationRenderer = ({ value }: { value?: string }) => {
+    const val = value || "—";
+    const isOffice = (val || "").toLowerCase() === "office";
+    const Icon = isOffice ? MapPin : Home;
+    return (
+      <div className="flex items-center">
+        <Icon className="mr-1 h-4 w-4 text-muted-foreground" />
+        <span>{val}</span>
+      </div>
+    );
+  };
+
+  const ExpiryRenderer = ({ value }: { value?: string }) => {
+    if (!value) return <span>—</span>;
+    const d = new Date(value);
+    const isValid = !isNaN(d.getTime());
+    return <span>{isValid ? d.toLocaleDateString() : "—"}</span>;
+  };
 
   const columns: ColDef[] = [
     { 
@@ -64,7 +84,7 @@ const JobOpenings = () => {
     {
       headerName: "Location",
       field: "location",
-      cellRenderer: LocationRenderer,
+      cellRenderer: (p: any) => <LocationRenderer value={p.value} />,
       flex: 1,
       minWidth: 150,
     },
@@ -82,7 +102,7 @@ const JobOpenings = () => {
     {
       headerName: "Expiry",
       field: "expiry",
-      cellRenderer: ExpiryRenderer,
+      cellRenderer: (p: any) => <ExpiryRenderer value={p.value} />,
       flex: 1,
       minWidth: 120,
     },
