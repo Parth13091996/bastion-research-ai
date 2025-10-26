@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
->>>>>>> 8ce2646296809ffc4ccc108e0c3c07b9d89ac510
+import Logo from "../../../public/media/favicon.webp";
 
 interface SignUpCardProps {
   onSignUpClick: () => void;
