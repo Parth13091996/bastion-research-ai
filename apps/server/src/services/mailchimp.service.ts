@@ -61,7 +61,6 @@ export async function fetchMailchimpNewsletters(options?: {
 
 export async function getMailchimpNewsletterById(id: string) {
   configureMailchimp();
-  // First try to find in cached list or by refetching list
   const list = cache?.items ?? (await fetchMailchimpNewsletters());
   const base = list.find((i) => i.id === id);
   if (!base) return null;

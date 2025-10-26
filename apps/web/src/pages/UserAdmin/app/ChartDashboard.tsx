@@ -73,11 +73,8 @@ const ChartDashboard = () => {
   useEffect(() => {
     (async () => {
       try {
-        console.log('called now')
         const url = getSheetUrl();
-        console.log(url, 'url')
         const recs = await fetchRecommendationsFromSheet(url);
-        console.log(recs, 'recs')
         const m = computeMetrics(recs);
         const liveCount = m.liveCount || 0;
         const liveStatsLocal = [

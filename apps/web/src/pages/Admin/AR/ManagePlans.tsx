@@ -51,11 +51,10 @@ const MembershipPlans = () => {
     price_amount: 0,
     currency: "INR",
     duration_months: 12,
-    wp_role: "",
   });
 
   const createPlan = () => {
-    if (!form.plan_name || !form.plan_type || !form.currency || !form.wp_role)
+    if (!form.plan_name || !form.plan_type || !form.currency)
       return;
     createMutation.mutate(form);
     setShowForm(false);
@@ -65,7 +64,6 @@ const MembershipPlans = () => {
       price_amount: 0,
       currency: "INR",
       duration_months: 12,
-      wp_role: "",
     });
   };
 
@@ -96,7 +94,6 @@ const MembershipPlans = () => {
       price_amount: Number(values.price_amount ?? 0),
       currency: values.currency ?? "",
       duration_months: Number(values.duration_months ?? 0),
-      wp_role: values.wp_role ?? "",
     });
     setEditOpen(false);
   };
@@ -141,7 +138,6 @@ const MembershipPlans = () => {
       cellRenderer: PlanTypeRenderer,
     },
     { headerName: "Members", field: "members" },
-    { headerName: "Wp Role", field: "wp_role" },
     { headerName: "Price Amount", field: "price_amount" },
     { headerName: "Currency", field: "currency" },
     { headerName: "Duration (months)", field: "duration_months" },
@@ -245,14 +241,6 @@ const MembershipPlans = () => {
                   })
                 }
               />
-              <input
-                className="border p-2 rounded"
-                placeholder="WP Role"
-                value={form?.wp_role ?? ""}
-                onChange={(e) =>
-                  setForm({ ...form, wp_role: e?.target?.value ?? "" })
-                }
-              />
             </div>
             <div className="flex gap-2">
               <button
@@ -306,7 +294,6 @@ const MembershipPlans = () => {
               label: "Duration (months)",
               type: "number",
             },
-            { name: "wp_role", label: "WP Role" },
           ]}
           initialValues={editRow ?? {}}
           onClose={() => setEditOpen(false)}

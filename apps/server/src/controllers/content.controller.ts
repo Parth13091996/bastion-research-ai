@@ -522,7 +522,7 @@ export async function createTestimonial(req: Request, res: Response) {
       .from("testimonials")
       .insert({
         title,
-        text,
+        review: text,
         name,
         position,
       })

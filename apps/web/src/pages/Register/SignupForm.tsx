@@ -15,7 +15,7 @@ import favicon from "../../../../server/public/favicon.webp";
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
-  const [currentStep, setCurrentStep] = useState(6);
+  const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<OnboardingFormData>({
     email: "",

@@ -145,7 +145,7 @@ const Applications = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Applications</h1>
-      <div className="bg-white p-4 rounded shadow mb-4 flex items-end gap-2">
+      {/* <div className="bg-white p-4 rounded shadow mb-4 flex items-end gap-2">
         <div className="flex gap-2 items-end flex-wrap">
           <div>
             <label className="block text-sm mb-1">Job ID</label>
@@ -215,7 +215,7 @@ const Applications = () => {
         >
           <Plus className="mr-1" size={16} /> Add Application
         </Button>
-      </div>
+      </div> */}
       <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
         <AgGridReact
           theme="legacy"

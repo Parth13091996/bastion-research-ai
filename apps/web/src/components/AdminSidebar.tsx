@@ -53,16 +53,16 @@ const navItems = [
         icon: FileText,
         path: AppRoutes.adminManagePlans(),
       },
-      {
-        name: "Manage Subscriptions",
-        icon: Calendar,
-        path: AppRoutes.adminManageSubscriptions(),
-      },
-      {
-        name: "Payment History",
-        icon: CreditCard,
-        path: AppRoutes.adminPaymentHistory(),
-      },
+      // {
+      //   name: "Manage Subscriptions",
+      //   icon: Calendar,
+      //   path: AppRoutes.adminManageSubscriptions(),
+      // },
+      // {
+      //   name: "Payment History",
+      //   icon: CreditCard,
+      //   path: AppRoutes.adminPaymentHistory(),
+      // },
       {
         name: "Coupon Management",
         icon: Gift,
@@ -80,7 +80,7 @@ const navItems = [
         path: AppRoutes.adminNewsletterManagement(),
       },
       {
-        name: "Manage Recommendations",
+        name: "Recommendations",
         icon: FileText,
         path: AppRoutes.adminRecommendationManagement(),
       },

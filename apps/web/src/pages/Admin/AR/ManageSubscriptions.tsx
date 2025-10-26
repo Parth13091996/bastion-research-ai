@@ -260,7 +260,6 @@ const ManageSubscriptions = () => {
   const cancel = (row: any) => cancelMutation.mutate(row);
 
   const edit = (row: any) => {
-    console.log("Edit subscription/activity:", row);
     // TODO: Implement edit functionality - could open a modal or navigate to edit page
     // For now, just log the row data for demonstration
   };

@@ -60,7 +60,6 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
   useEffect(() => {
     (async () => {
-      console.log(formData, "form");
       const base64Value = await handlePersonalizedPdf(
         pdfUrl,
         getUserInfoToShowInPdf(formData)

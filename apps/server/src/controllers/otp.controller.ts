@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import twilio from "twilio";
 import { config } from "../utils/config";
 import sendEmail from "../utils/email";
+import { supabase } from "../supabase";
 
 // Initialize Twilio Client
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -70,6 +71,22 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
   }
 
   try {
+    // Check if the email exists in the users table
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Supabase error while checking email existence:", error);
+      return res.status(500).json({ message: "Server error while verifying user." });
+    }
+
+    if (!user) {
+      return res.status(400).json({ message: "This email is not registered." });
+    }
+
     const otp = generateOtp();
     const expiresAt = Date.now() + config.otp_ttl_ms;
     otpStore.set(email, { otp, expiresAt });
@@ -122,7 +139,7 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 };
 
 export const verifyOtp = async (req: Request, res: Response) => {
-  const { phone, email, otp } = req.body as {
+  const { phone,  otp } = req.body as {
     phone?: string;
     otp?: string;
     email?: string;

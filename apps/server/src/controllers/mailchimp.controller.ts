@@ -30,11 +30,7 @@ export async function subscribeToNewsLetter(req: Request, res: Response) {
         skipMergeValidation: true,
       }
     );
-    // // If already subscribed, Mailchimp returns 200 with "member exists"
-    console.log(response, "response");
     res.json({ message: "Success! Already subscribed or now added." });
-    // if (response.status === 200) {
-    // }
   } catch (error: any) {
     console.error("Mailchimp error:", error);
     let message = "Subscription failed";

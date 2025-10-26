@@ -58,9 +58,7 @@ export const mapRow = (row: RowObject): RecommendationRecord => {
 };
 
 export const fetchRecommendationsFromSheet = async (url = getSheetUrl()): Promise<RecommendationRecord[]> => {
-  console.log('called funcc')
   const rows = await fetchSheetObjects(url);
-  console.log(rows, 'rows')
   return rows.map(mapRow).filter((r) => r.companyName);
 };
 
