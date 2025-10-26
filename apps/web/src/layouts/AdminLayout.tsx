@@ -11,21 +11,21 @@ const AdminLayout = () => {
     return <Navigate to={AppRoutes.login()} replace />;
   }
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="relative flex h-screen bg-gray-100 overflow-hidden">
-  //       <div className="absolute left-[42%] top-[42%]">
-  //         <main className="animate-pulse p-4">
-  //           <img
-  //             src="/media/header-logo.webp"
-  //             alt="Bastion Research"
-  //             className="h-22 md:h-14"
-  //           />
-  //         </main>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="relative flex h-screen bg-gray-100 overflow-hidden">
+        <div className="absolute left-[42%] top-[42%]">
+          <main className="animate-pulse p-4">
+            <img
+              src="/media/header-logo.webp"
+              alt="Bastion Research"
+              className="h-22 md:h-14"
+            />
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
