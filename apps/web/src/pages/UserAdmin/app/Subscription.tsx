@@ -21,56 +21,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AgreementStep from "../../Register/Steps/AgreementStep";
 import { Config } from "@/utils/config";
+import { formatINR, getFeatureKey, PAN_REGEX, planFeatures } from "@/utils";
 
-type ApiPlan = {
-  code: string; // plan_id as string
-  name: string;
-  amount: number;
-  currency: string;
-  plan_code?: "core" | "core_annual" | "research_hub" | string;
-  tier?: number;
-};
-
-type UpgradeFormState = {
-  panCard: string;
-  agreeToTerms: boolean;
-  agreementSignatureUrl?: string;
-  agreementSignaturePath?: string;
-  agreementSignedAt?: string;
-};
-
-const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
-
-const formatINR = (amount: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-
-const planFeatures: Record<string, string[]> = {
-  core: ["Core premium research access", "Member webinars", "Standard support"],
-  core_annual: [
-    "All CORE features",
-    "Annual insights bundle",
-    "Early feature access",
-    "Priority support",
-  ],
-  research_hub: [
-    "All CORE + CORE Annual features",
-    "Research Hub exclusives",
-    "Advanced tools & datasets",
-  ],
-};
-
-const getFeatureKey = (plan: ApiPlan) => {
-  if (plan.plan_code) return plan.plan_code;
-  const normalized = plan.name.toLowerCase();
-  if (normalized.includes("research hub")) return "research_hub";
-  if (normalized.includes("annual")) return "core_annual";
-  if (normalized.includes("core")) return "core";
-  return plan.code;
-};
 
 const Subscription = () => {
   const {

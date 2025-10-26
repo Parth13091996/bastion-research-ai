@@ -55,7 +55,7 @@ const navItems = [
       },
       {
         name: "Show Subscription",
-        path: AppRoutes.subscription(),
+        path: AppRoutes.adminManageSubscriptions(),
         icon: CreditCard,
       },
       {

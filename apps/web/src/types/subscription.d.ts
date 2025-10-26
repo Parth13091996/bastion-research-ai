@@ -1,3 +1,20 @@
+type ApiPlan = {
+  code: string; // plan_id as string
+  name: string;
+  amount: number;
+  currency: string;
+  plan_code?: "core" | "core_annual" | "research_hub" | string;
+  tier?: number;
+};
+
+type UpgradeFormState = {
+  panCard: string;
+  agreeToTerms: boolean;
+  agreementSignatureUrl?: string;
+  agreementSignaturePath?: string;
+  agreementSignedAt?: string;
+};
+
 interface SubscriptionData {
   is_premium: boolean;
   currentPlan: string;
