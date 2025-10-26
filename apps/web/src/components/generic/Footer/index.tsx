@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import SocialIcons from "./SocialIcons";
 import { AppRoutes } from "@/routes/app-routes";
+import { toast } from "sonner";
 
 // Brand Colors
 const COLORS = {
@@ -47,7 +48,6 @@ const CollapsibleSection = ({ title, children }) => {
 const Footer = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState(null); // "success" | "error" | null
 
   useEffect(() => {
     const handleResize = () => {
@@ -60,7 +60,6 @@ const Footer = () => {
 
   const handleMailchimpSubmit = async (e) => {
     e.preventDefault();
-    setStatus(null);
 
     const formData = new FormData();
     formData.append("EMAIL", email);
@@ -70,7 +69,7 @@ const Footer = () => {
     );
 
     try {
-      const response = await fetch(
+      await fetch(
         "https://bastionresearch.us18.list-manage.com/subscribe/post?u=158dbb8b064fdd32c6ba69a49&id=359e20a2f7&f_id=0081b2e6f0",
         {
           method: "POST",
@@ -78,13 +77,12 @@ const Footer = () => {
           body: formData,
         }
       );
-
       // Mailchimp doesn't send CORS response, so assume success
-      setStatus("success");
+      toast.success("Subscribed successfully!");
       setEmail("");
     } catch (error) {
       console.error("Mailchimp error:", error);
-      setStatus("error");
+      toast.error("Failed to deliver. Please try again.");
     }
   };
 
@@ -221,24 +219,7 @@ const Footer = () => {
                     className="bg-white text-red-600 px-4 py-2 rounded-r hover:bg-gray-100 transition-colors whitespace-nowrap cursor-pointer"
                   />
                 </form>
-
-                {status === "success" && (
-                  <p
-                    className="mt-2 text-sm bg-white px-2 py-1 rounded"
-                    style={{ color: "green" }}
-                  >
-                    *Subscribed successfully!
-                  </p>
-                )}
-
-                {status === "error" && (
-                  <p
-                    className="mt-2 text-sm bg-white px-2 py-1 rounded"
-                    style={{ color: "red" }}
-                  >
-                    *Failed to deliver. Please try again.
-                  </p>
-                )}
+                {/* No status feedback here; handled by toast */}
               </div>
             </CollapsibleSection>
           </div>
