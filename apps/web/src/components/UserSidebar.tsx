@@ -23,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -66,6 +67,12 @@ const navItems = [
       },
     ],
   },
+     {
+    name: "Join WhatsApp Group",
+    icon: FaWhatsapp,
+    path: "https://chat.whatsapp.com/BtcHdUM5CT3953nLHajCQR?mode=wwt",
+  },
+
   {
     name: "Admin Panel",
     icon: PersonIcon,
@@ -324,6 +331,20 @@ export default function Sidebar() {
                       </div>
                     )}
                   </div>
+                ) : item.path.startsWith('http') ? (
+                  <a
+                    href={item.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileOpen(false)}
+                    title={isCollapsed ? item.name : undefined}
+                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
+                      isCollapsed ? "justify-center" : ""
+                    } text-gray-200 hover:bg-red-900`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {!isCollapsed && <span className="ml-3">{item.name}</span>}
+                  </a>
                 ) : (
                   <Link
                     to={item.path}
