@@ -19,6 +19,7 @@ import {
   Shield,
   TrendingUp,
   User,
+  FileText,
   X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -40,27 +41,27 @@ const navItems = [
     icon: TrendingUp,
     path: "/user/app/recommendation",
   },
-  // { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
+  { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
   { name: "Premium Webinars", icon: Play, path: "/user/app/premium-webinars" },
   { name: "Scratch Pad Newsletter", icon: Newspaper, path: AppRoutes.newsletter() },
   {
     name: "My Account",
     icon: User,
-    path: AppRoutes.editProfile(), // assuming the base path is for editing
+    path: "/user/app/account/edit-profile", // assuming the base path is for editing
     subItems: [
       {
         name: "Edit Profile",
-        path: AppRoutes.editProfile(),
+        path: "/user/app/account/edit-profile",
         icon: Settings,
       },
       {
         name: "Show Subscription",
-        path: AppRoutes.adminManageSubscriptions(),
+        path: "/user/app/account/subscription",
         icon: CreditCard,
       },
       {
         name: "Transaction History",
-        path: AppRoutes.transactionHistory(),
+        path: "/user/app/account/transactions",
         icon: BarChart3,
       },
     ],
