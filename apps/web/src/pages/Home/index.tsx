@@ -419,7 +419,7 @@ export default function LandingPage() {
               </motion.section>
 
               <footer className="pt-4 text-lg opacity-60 text-center items-center relative">
-                Don’t fit neatly into these categories ? You can still join in.{" "}
+                Don’t fit neatly into these categories? You can still join in.{" "}
                 <a href="/contact-us" className="underline">
                   Contact us
                 </a>

@@ -30,5 +30,3 @@
   "include": ["src/**/*", "vite-env.d.ts"],
   "exclude": ["node_modules"]
 }
-
-// yo whatsupp!!!
