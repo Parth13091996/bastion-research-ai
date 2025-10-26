@@ -20,7 +20,6 @@ import imagesRoutes from "./routes/images.routes";
 import filesRoutes from "./routes/files.routes";
 import digioRoutes from "./routes/digio.routes";
 import mailChimpRoutes from "./routes/mailchimp.routes";
-import recommendationsRoutes from "./routes/recommendations.routes";
 
 dotenv.config();
 
@@ -63,7 +62,6 @@ app.use("/api", membershipRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/content", contentRoutes);
 app.use("/mailchimp", mailChimpRoutes);
-app.use("/api/recommendations", recommendationsRoutes);
 app.use("/api", contactRoutes);
 app.use("/api", leadsRoutes);
 app.use("/api/images", imagesRoutes);

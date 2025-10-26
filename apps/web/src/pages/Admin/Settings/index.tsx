@@ -11,11 +11,7 @@ import { toast } from 'sonner';
 const AdminSettings = () => {
   const [contactEmail, setContactEmail] = useState('');
   const [saving, setSaving] = useState(false);
-  const [recoUrl, setRecoUrl] = useState("");
-  const [recoPath, setRecoPath] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [gsheetId, setGsheetId] = useState("");
-  const [gsheetRange, setGsheetRange] = useState("Sheet1!A1:Z");
+  // Removed recommendation spreadsheet settings (managed elsewhere)
 
   useEffect(() => {
     (async () => {
@@ -25,20 +21,7 @@ const AdminSettings = () => {
       } catch (e) {
         // fallback to blank
       }
-      try {
-        const res = await axiosInstance.get(endpoints.settings.recommendationsSheet.get);
-        setRecoUrl(res.data?.url || '');
-        setRecoPath(res.data?.path || null);
-      } catch (e) {
-        // ignore
-      }
-      try {
-        const res = await axiosInstance.get(endpoints.settings.recommendationsGsheet.get);
-        setGsheetId(res.data?.spreadsheetId || '');
-        setGsheetRange(res.data?.range || 'Sheet1!A1:Z');
-      } catch (e) {
-        // ignore
-      }
+      // Recommendation sheet settings removed from server; skip fetching
     })();
   }, []);
 
@@ -95,102 +78,8 @@ const AdminSettings = () => {
             <Switch id="allow-registrations" defaultChecked />
           </div>
 
-          {/* Recommendations Spreadsheet Settings */}
-          <div className="space-y-2 pt-4 border-t">
-            <Label htmlFor="reco-url">Recommendations Spreadsheet URL (CSV/XLSX)</Label>
-            <Input
-              id="reco-url"
-              placeholder="https://docs.google.com/spreadsheets/d/<id>/pub?output=csv"
-              value={recoUrl}
-              onChange={(e) => setRecoUrl(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                onClick={async () => {
-                  try {
-                    setSaving(true);
-                    await axiosInstance.put(endpoints.settings.recommendationsSheet.update, { url: recoUrl });
-                    toast.success('Spreadsheet URL saved');
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.message || 'Failed to save spreadsheet URL');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : 'Save URL'}
-              </Button>
-              {recoPath ? (
-                <span className="text-xs text-muted-foreground self-center">Uploaded: {recoPath}</span>
-              ) : null}
-            </div>
-          </div>
+          {/* Recommendation Spreadsheet Settings removed */}
 
-          <div className="space-y-2">
-            <Label>Upload Recommendations Spreadsheet (CSV/XLSX)</Label>
-            <input
-              type="file"
-              accept=".csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                try {
-                  setUploading(true);
-                  const fd = new FormData();
-                  fd.append('file', f);
-                  const res = await axiosInstance.post(endpoints.settings.recommendationsSheet.upload, fd, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                  });
-                  setRecoPath(res.data?.path || null);
-                  toast.success('Spreadsheet uploaded');
-                } catch (err: any) {
-                  toast.error(err?.response?.data?.message || 'Upload failed');
-                } finally {
-                  setUploading(false);
-                }
-              }}
-            />
-            {uploading ? <span className="text-sm">Uploading...</span> : null}
-          </div>
-
-          {/* Google Sheets Settings */}
-          <div className="space-y-2 pt-6 border-t">
-            <Label htmlFor="gsheet-id">Google Spreadsheet ID</Label>
-            <Input
-              id="gsheet-id"
-              placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-              value={gsheetId}
-              onChange={(e) => setGsheetId(e.target.value)}
-            />
-            <Label htmlFor="gsheet-range">Range</Label>
-            <Input
-              id="gsheet-range"
-              placeholder="Sheet1!A1:Z"
-              value={gsheetRange}
-              onChange={(e) => setGsheetRange(e.target.value)}
-            />
-            <div>
-              <Button
-                variant="secondary"
-                onClick={async () => {
-                  try {
-                    setSaving(true);
-                    await axiosInstance.put(endpoints.settings.recommendationsGsheet.update, { spreadsheetId: gsheetId, range: gsheetRange });
-                    toast.success('Google Sheet settings saved');
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.message || 'Failed to save Google Sheet settings');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : 'Save Google Sheet'}
-              </Button>
-            </div>
-          </div>
         </CardContent>
         <CardFooter className="flex gap-3">
           <Button onClick={saveContactEmail} disabled={saving}>

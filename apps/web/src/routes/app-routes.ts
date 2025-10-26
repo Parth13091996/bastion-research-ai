@@ -26,7 +26,6 @@ export const AppRoutes = {
   research: () => "/research",
   paymentSuccess: () => "/payment/success",
   admin: () => "/admin",
-  adminLogin: () => "/admin/login",
   adminDashboard: () => "/admin/dashboard",
   adminManageMembers: () => "/admin/ar/members",
   adminManagePlans: () => "/admin/ar/plans",
@@ -60,6 +59,7 @@ export const AppRoutes = {
   adminTestimonialManagement: () => "/admin/content/testimonials",
   adminTestimonialCreate: () => "/admin/content/testimonials/create",
   adminTestimonialEdit: () => "/admin/content/testimonials/:id/edit",
+  adminRecommendationManagement: () => "/admin/content/recommendations",
   // Public content routes
   newsletterView: () => "/newsletters/:id",
   webinarView: () => "/webinars/:id",
@@ -76,5 +76,3 @@ export const AuthRoutes = [
   AppRoutes.forgotPassword(),
   AppRoutes.resetPassword(),
 ];
-
-export const AdminAuthRoutes = [AppRoutes.adminLogin()];

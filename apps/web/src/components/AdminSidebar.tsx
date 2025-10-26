@@ -39,6 +39,16 @@ const navItems = [
         path: AppRoutes.adminManageMembers(),
       },
       {
+        name: "Add User",
+        icon: UserPlus,
+        path: AppRoutes.adminAddUser(),
+      },
+      {
+        name: "Profile",
+        icon: Contact,
+        path: AppRoutes.adminProfile(),
+      },
+      {
         name: "Manage Plans",
         icon: FileText,
         path: AppRoutes.adminManagePlans(),
@@ -69,7 +79,16 @@ const navItems = [
         icon: Mail,
         path: AppRoutes.adminNewsletterManagement(),
       },
-      { name: "Podcasts", icon: Mic, path: AppRoutes.adminPodcastManagement() },
+      {
+        name: "Manage Recommendations",
+        icon: FileText,
+        path: AppRoutes.adminRecommendationManagement(),
+      },
+      {
+        name: "Podcasts",
+        icon: Mic,
+        path: AppRoutes.adminPodcastManagement(),
+      },
       {
         name: "Webinars",
         icon: Video,
@@ -105,15 +124,6 @@ const navItems = [
     ],
   },
   {
-    name: "Users",
-    icon: Users,
-    subItems: [
-      { name: "All Users", icon: Users, path: AppRoutes.adminAllUsers() },
-      { name: "Add User", icon: UserPlus, path: AppRoutes.adminAddUser() },
-      { name: "Profile", icon: Contact, path: AppRoutes.adminProfile() },
-    ],
-  },
-  {
     name: "Leads",
     icon: Contact,
     path: AppRoutes.adminLeads(),
@@ -121,10 +131,12 @@ const navItems = [
   { name: "Settings", icon: Settings, path: AppRoutes.adminSettings() },
 ];
 
+// AdminSidebar now supports tooltips on collapsed mode like the user sidebar
 const AdminSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [hoveredTooltip, setHoveredTooltip] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [popupPos, setPopupPos] = useState<{ top: number; left: number }>({
     top: 0,
@@ -149,6 +161,33 @@ const AdminSidebar = () => {
   const handleMouseLeave = () => {
     if (isCollapsed) setHoveredItem(null);
   };
+
+  // Tooltip component for sidebar
+  // Absolutely positioned relative to parent, shown only if hoveredTooltip === tooltipId
+  const SidebarTooltip = ({
+    children,
+    tooltipId,
+  }: {
+    children: React.ReactNode;
+    tooltipId: string;
+  }) =>
+    hoveredTooltip === tooltipId ? (
+      <div
+        className="
+          absolute left-full top-1/2 
+          -translate-y-1/2
+          ml-2
+          z-50
+          whitespace-nowrap
+          px-2 py-1 
+          bg-gray-900 text-white 
+          text-xs 
+          rounded shadow-lg
+          pointer-events-none"
+      >
+        {children}
+      </div>
+    ) : null;
 
   const SidebarContent = () => (
     <div ref={sidebarRef} className="flex flex-col h-full">
@@ -188,6 +227,7 @@ const AdminSidebar = () => {
                 >
                   <div className="flex items-center">
                     <item.icon className="h-6 w-6" />
+                    {/* Show label only when not collapsed */}
                     {!isCollapsed && <span className="ml-4">{item.name}</span>}
                   </div>
                   {!isCollapsed && (
@@ -196,6 +236,10 @@ const AdminSidebar = () => {
                         openSections[item.name] ? "rotate-180" : ""
                       }`}
                     />
+                  )}
+                  {/* Tooltip for collapsed mode */}
+                  {isCollapsed && (
+                    <SidebarTooltip tooltipId={item.name}>{item.name}</SidebarTooltip>
                   )}
                 </button>
 
@@ -219,24 +263,32 @@ const AdminSidebar = () => {
                 )}
               </>
             ) : (
-              <NavLink
-                to={item.path!}
-                className={({ isActive }) =>
-                  `flex items-center p-2 rounded-lg transition-colors ${
-                    isCollapsed ? "justify-center" : ""
-                  } ${isActive ? "bg-gray-700" : "hover:bg-gray-700"}`
-                }
-                title={isCollapsed ? item.name : ""}
+              <div /* This div replaces the misplaced NavLink parent */
+                className={`relative`}
               >
-                <item.icon className="h-6 w-6" />
-                {!isCollapsed && <span className="ml-4">{item.name}</span>}
-              </NavLink>
+                <NavLink
+                  to={item.path!}
+                  className={({ isActive }) =>
+                    `flex items-center p-2 rounded-lg transition-colors ${
+                      isCollapsed ? "justify-center" : ""
+                    } ${isActive ? "bg-gray-700" : "hover:bg-gray-700"}`
+                  }
+                  title={isCollapsed ? item.name : ""}
+                  aria-label={item.name}
+                  tabIndex={0}
+                >
+                  <item.icon className="h-6 w-6" />
+                  {!isCollapsed && <span className="ml-4">{item.name}</span>}
+                </NavLink>
+                {isCollapsed && (
+                  <SidebarTooltip tooltipId={item.name}>{item.name}</SidebarTooltip>
+                )}
+              </div>
             )}
           </div>
         ))}
       </nav>
 
-      {/* Fixed popup submenu */}
       {/* Fixed popup submenu */}
       {isCollapsed &&
         hoveredItem &&

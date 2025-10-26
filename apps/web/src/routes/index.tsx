@@ -53,7 +53,6 @@ const ViewResearch = lazy(() => import("@/pages/UserAdmin/app/ViewResearch"));
 const PremiumWebinars = lazy(() => import("@/pages/UserAdmin/app/PremiumWebinars"));
 
 // Admin Pages
-const AdminLogin = lazy(() => import("../pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
 const ManageMembers = lazy(() => import("../pages/Admin/AR/ManageMembers"));
 const ManagePlans = lazy(() => import("../pages/Admin/AR/ManagePlans"));
@@ -93,6 +92,9 @@ const PodcastEditor = lazy(
 );
 const ResearchManagement = lazy(
   () => import("../pages/Admin/Content/ResearchManagement")
+);
+const RecommendationManagement = lazy(
+  () => import("../pages/Admin/Content/RecommendationManagement")
 );
 const ResearchEditor = lazy(
   () => import("../pages/Admin/Content/ResearchEditor")
@@ -163,10 +165,6 @@ export const routes: RouteObject[] = [
   {
     path: AppRoutes.ipoLanding(),
     element: <IpoLandingPage />,
-  },
-  {
-    element: <AdminLogin />,
-    path: AppRoutes.adminLogin(),
   },
   {
     element: <AdminLayout />,
@@ -247,6 +245,10 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminResearchManagement(),
         element: <ResearchManagement />,
+      },
+      {
+        path: AppRoutes.adminRecommendationManagement(),
+        element: <RecommendationManagement />,
       },
       {
         path: AppRoutes.adminNewsletterCreate(),

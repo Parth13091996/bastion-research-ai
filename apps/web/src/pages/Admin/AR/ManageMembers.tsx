@@ -5,39 +5,37 @@ import { useEditMemberStore } from "@/stores/edit-member-store";
 import { useModalStore } from "@/stores/modal-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColDef } from "ag-grid-community";
-import { Plus, Trash2, UserPlus, Mail } from "lucide-react";
+import { Plus, Trash2, UserPlus, Mail, Shield, User } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { queryKeys } from "@/api/queryKeys";
 
-const AvatarRenderer = (params: any) => {
-  const getInitial = (name: string) =>
-    name ? name.charAt(0).toUpperCase() : "U";
-  // Add null checks for params and params.data
-  const displayName = params?.data?.first_name ?? params?.data?.username ?? "";
-  return (
-    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
-      {getInitial(displayName)}
-    </div>
-  );
-};
-
+// Reuse UI patterns from All Users table
 const RoleRenderer = (params: any) => {
   const role = params.value || "employee";
-  const roleColors = {
-    admin: "bg-red-100 text-red-800",
-    employee: "bg-blue-100 text-blue-800",
-    core_subscriber: "bg-green-100 text-green-800",
-    ipo_subscriber: "bg-purple-100 text-purple-800",
-    research_ally_subscriber: "bg-orange-100 text-orange-800",
-  };
+  const roleConfig = {
+    admin: { color: "bg-red-100 text-red-800", icon: Shield },
+    employee: { color: "bg-blue-100 text-blue-800", icon: User },
+    core_subscriber: { color: "bg-green-100 text-green-800", icon: User },
+    ipo_subscriber: { color: "bg-purple-100 text-purple-800", icon: User },
+    research_ally_subscriber: {
+      color: "bg-orange-100 text-orange-800",
+      icon: User,
+    },
+  } as const;
+
+  const config = (roleConfig as any)[role] || roleConfig.employee;
+  const Icon = config.icon as any;
 
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors[role] || "bg-gray-100 text-gray-800"}`}
+      className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color}`}
     >
-      {role.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+      <Icon className="mr-1 h-3 w-3" />
+      {String(role)
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (l) => l.toUpperCase())}
     </span>
   );
 };
@@ -82,14 +80,6 @@ const MemberManagementDashboard = () => {
 
   const columns: ColDef[] = [
     {
-      headerName: "Avatar",
-      field: "avatar",
-      cellRenderer: AvatarRenderer,
-      width: 80,
-      sortable: false,
-      filter: false,
-    },
-    {
       headerName: "Username",
       field: "username",
       flex: 1,
@@ -98,8 +88,8 @@ const MemberManagementDashboard = () => {
     {
       headerName: "Email",
       field: "email",
-      flex: 2,
       cellRenderer: EmailRenderer,
+      flex: 2,
       minWidth: 200,
     },
     {
@@ -115,13 +105,7 @@ const MemberManagementDashboard = () => {
       field: "role",
       cellRenderer: RoleRenderer,
       flex: 1,
-      minWidth: 120,
-    },
-    {
-      headerName: "Status",
-      field: "status",
-      flex: 1,
-      minWidth: 100,
+      minWidth: 180,
     },
     {
       headerName: "Created",
@@ -132,24 +116,6 @@ const MemberManagementDashboard = () => {
       },
       flex: 1,
       minWidth: 120,
-    },
-    {
-      headerName: "Premium",
-      field: "is_premium",
-      cellRenderer: (params: any) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            params.value
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {params.value ? "Yes" : "No"}
-        </span>
-      ),
-      width: 100,
-      sortable: false,
-      filter: false,
     },
   ];
 
@@ -261,7 +227,7 @@ const MemberManagementDashboard = () => {
 
       {/* Data Table */}
       <DataTable
-        data={rowData || []}
+        data={(rowData || []).filter((r: any) => ["admin", "employee"].includes(String(r.role)))}
         columns={columns}
         loading={loading}
         error={error?.message}
@@ -271,7 +237,7 @@ const MemberManagementDashboard = () => {
         bulkActions={bulkActions}
         searchPlaceholder="Search members by name, email, or username..."
         title="Members"
-        description={`${rowData?.length || 0} total members`}
+        description={`${(rowData || []).filter((r: any) => ["admin","employee"].includes(String(r.role))).length} total members`}
       />
     </div>
   );

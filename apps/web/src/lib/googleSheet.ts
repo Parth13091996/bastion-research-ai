@@ -18,7 +18,6 @@ export const parseSheetUrl = (urlString: string): { id: string; gid: string } =>
   return { id, gid };
 };
 
-// Fetch GViz JSON (typed cell values) and turn it into array of objects using header row
 export const fetchSheetObjects = async (sheetUrl: string): Promise<RowObject[]> => {
   try {
     const { id, gid } = parseSheetUrl(sheetUrl);
