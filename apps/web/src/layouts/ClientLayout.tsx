@@ -1,5 +1,6 @@
 import Footer from "@/components/generic/Footer";
 import Header from "@/components/generic/Header";
+import BetaBanner from "@/components/BetaBanner";
 import BackToTop from "@/components/generic/backToTop";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppRoutes, AuthRoutes } from "@/routes/app-routes";
@@ -17,6 +18,7 @@ const ClientLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
+      <BetaBanner />
       <main className="flex-grow main pt-[80px] md:pt-[88px]">
         <Outlet />
         <BackToTop />
