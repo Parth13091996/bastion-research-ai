@@ -13,6 +13,7 @@ const HorizontalBar = ({ label, value, percentage, color }) => {
   }, [percentage]);
 
   return (
+
     <div className="space-y-2 mt-4">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs text-gray-300 font-medium">{label}</span>
@@ -156,7 +157,7 @@ const ChartDashboard = () => {
                   {liveStats.map((item, idx) => (
                     <div className="flex justify-between items-center" key={idx}>
                       <span className="text-xs text-gray-400">{item.label}</span>
-                      <span className={`text-sm font-bold text-gray-400 ${item.color.split(" ")[0]}`}>{item.percentage}%</span>
+                      <span className={`text-sm font-bold text-gray-400`}>{item.percentage}%</span>
                     </div>
                   ))}
                 </div>

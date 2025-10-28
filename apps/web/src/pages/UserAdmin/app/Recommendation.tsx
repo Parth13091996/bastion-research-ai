@@ -3,7 +3,10 @@ import { Search, Filter, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
-import { fetchRecommendationsFromSheet, getSheetUrl } from "@/lib/recommendations";
+import {
+  fetchRecommendationsFromSheet,
+  getSheetUrl,
+} from "@/lib/recommendations";
 
 const COLORS = {
   red: "#C00000",
@@ -58,7 +61,7 @@ const useSheetStocks = () => {
         }));
         setStocks(transformed);
       } catch (e: any) {
-        setError(e?.message || 'Failed to load recommendations');
+        setError(e?.message || "Failed to load recommendations");
       } finally {
         setLoading(false);
       }
@@ -105,14 +108,20 @@ const Recommendation = () => {
           Number(a.marketCap.replace(/[^0-9.]/g, ""))
         );
       case "Newest":
-        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+        return (
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+        );
       case "Oldest":
-        return new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime();
+        return (
+          new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime()
+        );
       case "Upside Wise":
         return b.upside - a.upside;
       case "Return Wise":
-        return (b.target1 - b.entryPrice) / b.entryPrice -
-          (a.target1 - a.entryPrice) / a.entryPrice;
+        return (
+          (b.target1 - b.entryPrice) / b.entryPrice -
+          (a.target1 - a.entryPrice) / a.entryPrice
+        );
       default:
         return 0;
     }
@@ -126,10 +135,15 @@ const Recommendation = () => {
     const barPercentage =
       stock.cmp >= stock.entryPrice
         ? Math.min(
-          ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
-          100
-        )
-        : Math.min(((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100, 100);
+            ((stock.cmp - stock.entryPrice) /
+              (stock.target1 - stock.entryPrice)) *
+              100,
+            100
+          )
+        : Math.min(
+            ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
+            100
+          );
 
     const barColor = stock.cmp >= stock.entryPrice ? COLORS.green : COLORS.red;
 
@@ -145,11 +159,15 @@ const Recommendation = () => {
             LOGO
           </div>
           <div className="ml-4 flex-1">
-            <h3 className="font-semibold text-gray-900 text-sm">{stock.name}</h3>
+            <h3 className="font-semibold text-gray-900 text-sm">
+              {stock.name}
+            </h3>
             <p className="text-xs text-gray-600">
               {stock.sector} | MCAP: {stock.marketCap}
             </p>
-            <p className="text-xs text-gray-400 mt-1">Last Updated On: {stock.lastUpdated}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Last Updated On: {stock.lastUpdated}
+            </p>
           </div>
         </div>
 
@@ -170,104 +188,114 @@ const Recommendation = () => {
         </div>
         {/* Price Range Bar */}
         {/* Price Range Bar */}
-<div className="mb-3 relative px-4">
-  <div className="relative w-full h-4 bg-gray-200 rounded-full flex items-center">
-    {/* CMP >= Entry Price: Green bar left to right */}
-    {stock.cmp >= stock.entryPrice && (
-      <>
-        <div
-          className="h-4 rounded-full transition-all duration-500 absolute"
-          style={{
-            width: `${Math.min(
-              ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
-              100
-            )}%`,
-            backgroundColor: COLORS.green,
-            left: 0,
-          }}
-        ></div>
+        <div className="mb-3 relative px-4">
+          <div className="relative w-full h-4 bg-gray-200 rounded-full flex items-center">
+            {/* CMP >= Entry Price: Green bar left to right */}
+            {stock.cmp >= stock.entryPrice && (
+              <>
+                <div
+                  className="h-4 rounded-full transition-all duration-500 absolute"
+                  style={{
+                    width: `${Math.min(
+                      ((stock.cmp - stock.entryPrice) /
+                        (stock.target1 - stock.entryPrice)) *
+                        100,
+                      100
+                    )}%`,
+                    backgroundColor: COLORS.green,
+                    left: 0,
+                  }}
+                ></div>
 
-        {/* Entry Price fixed below bar */}
-        <div className="absolute top-6 left-0 text-xs text-gray-500">
-          ₹{stock.entryPrice}
+                {/* Entry Price fixed below bar */}
+                <div className="absolute top-6 left-0 text-xs text-gray-500">
+                  ₹{stock.entryPrice}
+                </div>
+
+                {/* CMP flowing above bar */}
+                <div
+                  className="absolute -top-5 text-xs font-semibold text-green-700"
+                  style={{
+                    left: `${Math.min(
+                      ((stock.cmp - stock.entryPrice) /
+                        (stock.target1 - stock.entryPrice)) *
+                        100,
+                      100
+                    )}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  CMP: ₹{stock.cmp}
+                </div>
+
+                {/* Target Price fixed below bar */}
+                <div className="absolute top-6 right-0 text-xs text-gray-500">
+                  ₹{stock.target1}
+                </div>
+              </>
+            )}
+
+            {/* CMP < Entry Price: Entry Price center, red bar flows left */}
+            {stock.cmp < stock.entryPrice && (
+              <>
+                {/* Red bar flows left from center */}
+                <div
+                  className="h-4 rounded-full transition-all duration-500 absolute"
+                  style={{
+                    width: `${Math.min(
+                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
+                      50
+                    )}%`,
+                    backgroundColor: COLORS.red,
+                    right: "50%",
+                  }}
+                ></div>
+
+                {/* Entry Price fixed below bar */}
+                <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">
+                  ₹{stock.entryPrice}
+                </div>
+
+                {/* CMP flowing above bar */}
+                <div
+                  className="absolute -top-5 text-xs font-semibold text-red-700"
+                  style={{
+                    left: `${
+                      50 -
+                      Math.min(
+                        ((stock.entryPrice - stock.cmp) / stock.entryPrice) *
+                          50,
+                        50
+                      )
+                    }%`,
+                    transform: "translateX(-50%)",
+                  }}
+                >
+                  CMP: ₹{stock.cmp}
+                </div>
+
+                {/* Target Price fixed below bar */}
+                <div className="absolute top-6 right-0 text-xs text-gray-500">
+                  ₹{stock.target1}
+                </div>
+              </>
+            )}
+          </div>
         </div>
-
-        {/* CMP flowing above bar */}
-        <div
-          className="absolute -top-5 text-xs font-semibold text-green-700"
-          style={{
-            left: `${Math.min(
-              ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
-              100
-            )}%`,
-            transform: "translateX(-50%)",
-          }}
-        >
-          CMP: ₹{stock.cmp}
-        </div>
-
-        {/* Target Price fixed below bar */}
-        <div className="absolute top-6 right-0 text-xs text-gray-500">
-          ₹{stock.target1}
-        </div>
-      </>
-    )}
-
-    {/* CMP < Entry Price: Entry Price center, red bar flows left */}
-    {stock.cmp < stock.entryPrice && (
-      <>
-        {/* Red bar flows left from center */}
-        <div
-          className="h-4 rounded-full transition-all duration-500 absolute"
-          style={{
-            width: `${Math.min(
-              ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
-              50
-            )}%`,
-            backgroundColor: COLORS.red,
-            right: "50%",
-          }}
-        ></div>
-
-        {/* Entry Price fixed below bar */}
-        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">
-          ₹{stock.entryPrice}
-        </div>
-
-        {/* CMP flowing above bar */}
-        <div
-          className="absolute -top-5 text-xs font-semibold text-red-700"
-          style={{
-            left: `${50 - Math.min(
-              ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
-              50
-            )}%`,
-            transform: "translateX(-50%)",
-          }}
-        >
-          CMP: ₹{stock.cmp}
-        </div>
-
-        {/* Target Price fixed below bar */}
-        <div className="absolute top-6 right-0 text-xs text-gray-500">
-          ₹{stock.target1}
-        </div>
-      </>
-    )}
-  </div>
-</div>
 
         <div className="p-4">
           <div className="grid grid-cols-3 text-sm font-medium text-gray-700 mb-3">
             <div>
-              <div className="text-xs text-gray-500">Entry Price</div>₹{stock.entryPrice}
+              <div className="text-xs text-gray-500">Entry Price</div>₹
+              {stock.entryPrice}
             </div>
             <div>
               <div className="text-xs text-gray-500">CMP</div>₹{stock.cmp}
             </div>
 
             <div>
-              <div className="text-xs text-gray-500">Target Price</div>₹{stock.target1}
+              <div className="text-xs text-gray-500">Target Price</div>₹
+              {stock.target1}
             </div>
           </div>
         </div>
@@ -291,8 +319,12 @@ const Recommendation = () => {
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.gray }}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">All Recommendations</h1>
-          <p className="text-gray-600">Discover high-potential investment opportunities</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            All Recommendations
+          </h1>
+          <p className="text-gray-600">
+            Discover high-potential investment opportunities
+          </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
@@ -343,9 +375,11 @@ const Recommendation = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading && <div className="text-gray-500"></div>}
           {error && <div className="text-red-600">{error}</div>}
-          {!loading && !error && visibleStocks.map((stock) => (
-            <StockCard key={stock.id} stock={stock} />
-          ))}
+          {!loading &&
+            !error &&
+            visibleStocks.map((stock) => (
+              <StockCard key={stock.id} stock={stock} />
+            ))}
         </div>
 
         {visibleCount < sortedStocks.length && (
@@ -374,5 +408,3 @@ const Recommendation = () => {
 };
 
 export default Recommendation;
-
-
