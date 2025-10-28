@@ -162,13 +162,9 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
           disabled={isLoading}
           className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center disabled:bg-gray-400"
         >
-          {isLoading ? (
-            "Verifying..."
-          ) : (
-            <>
-              <Check size={20} className="mr-1" /> Verify OTP
-            </>
-          )}
+          <>
+            <Check size={20} className="mr-1" /> Verify OTP
+          </>
         </button>
       </div>
     </div>

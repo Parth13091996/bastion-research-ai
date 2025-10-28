@@ -81,7 +81,9 @@ const CareerPage = () => {
         {/* Job Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-50%">
           {isLoading ? (
-            <p className="text-gray-500">Loading jobs...</p>
+            <div className="flex items-center justify-center h-32">
+              <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+            </div>
           ) : filteredJobs.length > 0 ? (
             filteredJobs.map((job: any) => (
               <div

@@ -143,7 +143,7 @@ const ProjectInfoModal: React.FC = () => {
 
         <div className="pt-1">
           <Button disabled={loading} className="w-full h-10" onClick={onSubmit}>
-            {loading ? "Saving..." : "Save"}
+            {"Save"}
           </Button>
         </div>
       </div>

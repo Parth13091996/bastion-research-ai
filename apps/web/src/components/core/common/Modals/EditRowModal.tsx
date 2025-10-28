@@ -90,7 +90,7 @@ const EditRowModal = ({
               Cancel
             </Button>
             <Button onClick={() => onSave(values)} disabled={!!saving}>
-              {saving ? "Saving..." : "Save"}
+              {"Save"}
             </Button>
           </div>
           <Dialog.Close asChild>

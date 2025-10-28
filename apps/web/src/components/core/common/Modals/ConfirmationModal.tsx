@@ -73,7 +73,7 @@ const ConfirmationModal = () => {
               }}
               disabled={isLoading}
             >
-              {isLoading ? `${confirmText}...` : confirmText}
+              {confirmText}
             </button>
           </div>
         </Dialog.Content>

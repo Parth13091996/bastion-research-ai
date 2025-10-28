@@ -231,10 +231,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
           >
             {isVerifying ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Verifying...
-              </>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               "Verify PAN"
             )}
@@ -257,10 +254,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
               className="inline-flex items-center px-4 py-2 text-sm border border-blue-200 text-blue-600 rounded-lg hover:border-blue-300 disabled:text-gray-400"
             >
               {isCheckingStatus ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Checking status...
-                </>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 "Check status"
               )}

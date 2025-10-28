@@ -4,7 +4,6 @@ import { useLoaderStore } from "@/stores/loader-store";
 
 const Loader = () => {
   const isLoading = useLoaderStore((state) => state.isLoading);
-  const message = useLoaderStore((state) => state.message);
 
   useEffect(() => {
     if (isLoading) {
@@ -21,7 +20,6 @@ const Loader = () => {
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/25 backdrop-blur-sm">
       <Loader2 className="h-12 w-12 animate-spin text-secondary" />
-      {message && <p className="text-sm text-secondary">{message}</p>}
     </div>
   );
 };

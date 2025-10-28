@@ -206,9 +206,7 @@ const TransactionHistory: React.FC = () => {
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[10, 25, 50, 100]}
-            overlayLoadingTemplate={
-              '<span class="ag-overlay-loading-center">Loading...</span>'
-            }
+            overlayLoadingTemplate={'<span class="ag-overlay-loading-center"><span class="inline-block w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span></span>'}
             loadingOverlayComponentParams={{}}
             suppressCellFocus={true}
             domLayout="normal"
@@ -220,7 +218,9 @@ const TransactionHistory: React.FC = () => {
           />
         </div>
         {isLoading && (
-          <div className="p-3 text-xs sm:text-sm text-gray-600">Loading...</div>
+          <div className="p-3 text-xs sm:text-sm text-gray-600">
+            <div className="inline-block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          </div>
         )}
         {isError && (
           <div className="p-3 text-xs sm:text-sm text-red-600">

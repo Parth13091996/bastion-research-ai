@@ -2,23 +2,20 @@ import { create } from "zustand";
 
 interface LoaderState {
   isLoading: boolean;
-  message?: string;
   counter: number;
-  start: (msg?: string) => void;
+  start: () => void;
   stop: () => void;
-  withLoader: <T>(promise: Promise<T>, msg?: string) => Promise<T>;
+  withLoader: <T>(promise: Promise<T>) => Promise<T>;
 }
 
 export const useLoaderStore = create<LoaderState>((set, get) => ({
   isLoading: false,
-  message: undefined,
   counter: 0,
 
-  start: (msg?: string) => {
+  start: () => {
     const { counter } = get();
     set({
       counter: counter + 1,
-      message: msg,
       isLoading: true,
     });
   },
@@ -29,13 +26,12 @@ export const useLoaderStore = create<LoaderState>((set, get) => ({
     set({
       counter: newCounter,
       isLoading: false,
-      message: newCounter > 0 ? get().message : undefined,
     });
   },
 
-  withLoader: async <T>(promise: Promise<T>, msg?: string): Promise<T> => {
+  withLoader: async <T>(promise: Promise<T>): Promise<T> => {
     const { start, stop } = get();
-    start(msg);
+    start();
     try {
       return await promise;
     } finally {

@@ -26,7 +26,11 @@ function PDFViewer({ pdfUrl }: { pdfUrl: string }) {
 
   return (
     <div className="flex flex-col items-center py-4">
-      {loading && <div className="p-4 text-gray-500">Loading PDF...</div>}
+      {loading && (
+        <div className="p-4">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
       <iframe
         src={pdfUrl}
         title="PDF Viewer"
@@ -72,10 +76,7 @@ const SingleResearchPage: React.FC = () => {
     return (
       <div className="container mx-auto py-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading research...</p>
-          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       </div>
     );

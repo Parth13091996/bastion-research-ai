@@ -32,7 +32,9 @@ const PlansStep: React.FC<PlansStepProps> = ({
       </div>
 
       {isLoading ? (
-        <p className="text-center">Loading plans...</p>
+        <div className="flex items-center justify-center h-24">
+          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans

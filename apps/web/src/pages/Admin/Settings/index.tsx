@@ -83,7 +83,7 @@ const AdminSettings = () => {
         </CardContent>
         <CardFooter className="flex gap-3">
           <Button onClick={saveContactEmail} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Changes'}
+            {'Save Changes'}
           </Button>
         </CardFooter>
       </Card>

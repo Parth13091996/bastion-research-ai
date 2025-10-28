@@ -58,7 +58,7 @@ const CashfreePayment = () => {
     <div>
       <h2 className="text-xl font-bold mb-4">Create Payment</h2>
       <Button onClick={handlePayment} disabled={mutation.isPending}>
-        {mutation.isPending ? "Processing..." : "Pay with Cashfree"}
+        {"Pay with Cashfree"}
       </Button>
       {mutation.isError && (
         <p className="mt-2 text-sm text-red-600">{mutation.error.message}</p>

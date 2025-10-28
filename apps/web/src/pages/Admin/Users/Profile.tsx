@@ -115,7 +115,6 @@ const Profile = () => {
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center gap-2 text-gray-600">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Loading profile...</span>
         </div>
       </div>
     );
@@ -218,7 +217,7 @@ const Profile = () => {
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? "Saving..." : "Save Changes"}
+            {"Save Changes"}
           </Button>
           <Button
             type="button"

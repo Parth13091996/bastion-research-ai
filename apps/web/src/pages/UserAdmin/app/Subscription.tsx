@@ -266,8 +266,7 @@ const Subscription = () => {
                 panStatus: opts?.panVerification?.status || null,
               }
             : undefined,
-        }),
-        "Processing payment..."
+        })
       );
 
       const cashfree = await load({ mode: Config.cashfree_environment });
@@ -323,8 +322,7 @@ const Subscription = () => {
           <CardContent>
             {isSubscriptionLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Loading current
-                plan...
+                <Loader2 className="h-4 w-4 animate-spin" />
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -386,7 +384,7 @@ const Subscription = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {isPlansLoading && (
             <div className="col-span-full flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading plans...
+              <Loader2 className="h-4 w-4 animate-spin" />
             </div>
           )}
           {error && (
@@ -449,8 +447,7 @@ const Subscription = () => {
                     >
                       {checkingOut === plan.code ? (
                         <span className="inline-flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                          Processing
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         </span>
                       ) : (
                         ctaLabel
@@ -555,7 +552,7 @@ const Subscription = () => {
                 disabled={kycSubmitting}
                 className="w-full sm:w-auto"
               >
-                {kycSubmitting ? "Verifying..." : "Verify & Continue"}
+                {"Verify & Continue"}
               </Button>
             </div>
           </div>

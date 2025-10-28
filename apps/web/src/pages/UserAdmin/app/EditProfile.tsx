@@ -128,7 +128,7 @@ const EditProfile = () => {
   if (isLoading && !user) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading profile...</div>
+        <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -241,7 +241,7 @@ const EditProfile = () => {
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? "Saving..." : "Save Changes"}
+            {"Save Changes"}
           </Button>
           <Button
             type="button"

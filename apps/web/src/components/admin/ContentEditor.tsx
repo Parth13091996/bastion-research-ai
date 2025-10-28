@@ -232,7 +232,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
           </Button>
           <Button onClick={handleSave} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white">
             <Save className="h-4 w-4 mr-2" />
-            {isLoading ? "Saving..." : "Save"}
+            {"Save"}
           </Button>
         </div>
       </div>

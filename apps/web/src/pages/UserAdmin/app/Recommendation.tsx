@@ -341,7 +341,7 @@ const Recommendation = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading && <div className="text-gray-500">Loading recommendations…</div>}
+          {loading && <div className="text-gray-500"></div>}
           {error && <div className="text-red-600">{error}</div>}
           {!loading && !error && visibleStocks.map((stock) => (
             <StockCard key={stock.id} stock={stock} />
@@ -374,3 +374,5 @@ const Recommendation = () => {
 };
 
 export default Recommendation;
+
+

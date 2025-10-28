@@ -253,7 +253,7 @@ const EditMemberModal = () => {
                 Cancel
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save Changes"}
+                {"Save Changes"}
               </Button>
             </div>
             {mutation.isError && (

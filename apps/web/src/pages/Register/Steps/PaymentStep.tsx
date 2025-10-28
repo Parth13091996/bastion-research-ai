@@ -284,11 +284,9 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           disabled={isLoading}
           className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
         >
-          {isLoading
-            ? "Processing..."
-            : selectedPlanDetails?.code === "free"
-              ? "Complete Signup"
-              : `Pay ${formatMoney(getFinalAmountWithGst())}`}
+          {selectedPlanDetails?.code === "free"
+            ? "Complete Signup"
+            : `Pay ${formatMoney(getFinalAmountWithGst())}`}
         </button>
       </div>
     </div>
