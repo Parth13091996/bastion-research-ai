@@ -186,7 +186,7 @@ const Recommendation = () => {
             Expected Upside: {stock.upside}%
           </span>
         </div>
-        {/* Price Range Bar */}
+      
         {/* Price Range Bar */}
         <div className="mb-3 relative px-4">
           <div className="relative w-full h-4 bg-gray-200 rounded-full flex items-center">
