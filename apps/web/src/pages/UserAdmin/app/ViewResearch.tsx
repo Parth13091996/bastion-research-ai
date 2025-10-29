@@ -363,7 +363,6 @@ const ViewResearch = () => {
           </div>
         </div>
 
-        {/* All Updates */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-6">
             <Bell className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
