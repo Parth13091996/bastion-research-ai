@@ -111,8 +111,8 @@ const Recommendation = () => {
         return "#059669"; // Dark Green
       case "HOLD":
         return "#b8860b"; // Dark Gold
-      case "EXITED":
-        return "#9ca3af"; // Dark Gray
+      case "EXIT":
+        return "#494949"; // Dark Gray
       default:
         return "#FFFFFF";
     }
@@ -255,7 +255,7 @@ const Recommendation = () => {
 
           {/* Expected Upside pill - Deep Blue -> Red gradient, white text */}
           <span
-            className="px-3 py-1 rounded-full text-white text-xs font-semibold ml-auto"
+            className="px-3 py-1 rounded-full text-white text-xs font-semibold"
             style={{
               background: `linear-gradient(90deg, ${COLORS.deepBlue} 0%, ${COLORS.red} 100%)`,
               boxShadow: "0 1px 4px rgba(28,40,82,0.12)",
@@ -281,7 +281,7 @@ const Recommendation = () => {
                           100,
                         100
                       )}%`,
-                      backgroundColor: COLORS.green,
+                      backgroundColor: COLORS.darkGreen,
                       left: 0,
                     }}
                   ></div>
