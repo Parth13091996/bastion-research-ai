@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
 import { ColDef } from "ag-grid-community";
 import { Download, RefreshCw } from "lucide-react";
-import { RecommendationRecord, fetchRecommendationsFromSheet, getSheetUrl } from "@/lib/recommendations";
+import {
+  RecommendationRecord,
+  fetchRecommendationsFromSheet,
+  getSheetUrl,
+} from "@/lib/recommendations";
 
 const toCsv = (rows: RecommendationRecord[]): string => {
   const headers = [
@@ -74,21 +78,84 @@ const RecommendationManagement: React.FC = () => {
   }, [rows, search]);
 
   const columns: ColDef[] = [
-    { headerName: "Company", field: "companyName", flex: 2, minWidth: 200, editable: true },
-    { headerName: "Symbol", field: "nseSymbol", flex: 1, minWidth: 120, editable: true },
-    { headerName: "Recommended", field: "dateRecommended", flex: 1, minWidth: 140, editable: true },
-    { headerName: "Entry", field: "priceAtRecommendation", flex: 1, minWidth: 120, editable: true },
-    { headerName: "CMP/Exit", field: "cmpOrExitPrice", flex: 1, minWidth: 120, editable: true },
-    { headerName: "% Return", field: "percentReturn", flex: 1, minWidth: 120, editable: true },
-    { headerName: "Action", field: "action", flex: 1, minWidth: 120, editable: true },
-    { headerName: "Target", field: "targetPrice", flex: 1, minWidth: 120, editable: true },
-    { headerName: "Upside %", field: "upsidePotential", flex: 1, minWidth: 120, editable: true },
-    { headerName: "Mcap (Cr)", field: "latestMcapCr", flex: 1, minWidth: 120, editable: true },
+    {
+      headerName: "Company",
+      field: "companyName",
+      flex: 2,
+      minWidth: 200,
+      editable: true,
+    },
+    {
+      headerName: "Symbol",
+      field: "nseSymbol",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      headerName: "Recommended",
+      field: "dateRecommended",
+      flex: 1,
+      minWidth: 140,
+      editable: true,
+    },
+    {
+      headerName: "Entry",
+      field: "priceAtRecommendation",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      headerName: "CMP/Exit",
+      field: "cmpOrExitPrice",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      headerName: "% Return",
+      field: "percentReturn",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      headerName: "Action",
+      field: "action",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      headerName: "Target",
+      field: "targetPrice",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      headerName: "Upside %",
+      field: "upsidePotential",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
+    {
+      headerName: "Mcap (Cr)",
+      field: "latestMcapCr",
+      flex: 1,
+      minWidth: 120,
+      editable: true,
+    },
   ];
 
   const onCellValueChanged = (event: any) => {
     const updated = [...rows];
-    updated[event.rowIndex] = { ...updated[event.rowIndex], [event.colDef.field!]: event.newValue } as any;
+    updated[event.rowIndex] = {
+      ...updated[event.rowIndex],
+      [event.colDef.field!]: event.newValue,
+    } as any;
     setRows(updated);
   };
 
@@ -105,8 +172,13 @@ const RecommendationManagement: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manage Recommendations</h1>
-          <p className="text-muted-foreground">View and edit recommendations data from the configured Google Sheet. You can export CSV and update your Sheet.</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Manage Recommendations
+          </h1>
+          <p className="text-muted-foreground">
+            View and edit recommendations data from the configured Google Sheet.
+            You can export CSV and update your Sheet.
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={load} disabled={loading}>
@@ -124,7 +196,11 @@ const RecommendationManagement: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <Input placeholder="Search by company, symbol or action..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input
+              placeholder="Search by company, symbol or action..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <DataTable
             data={filtered}
@@ -142,4 +218,3 @@ const RecommendationManagement: React.FC = () => {
 };
 
 export default RecommendationManagement;
-

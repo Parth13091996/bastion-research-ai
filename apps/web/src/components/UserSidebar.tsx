@@ -20,7 +20,7 @@ import {
   TrendingUp,
   User,
   FileText,
-  X
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -42,9 +42,13 @@ const navItems = [
     icon: TrendingUp,
     path: "/user/app/recommendation",
   },
-  { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
+  // { name: "Research Hub", icon: FileText, path: "/user/app/research-hub" },
   { name: "Premium Webinars", icon: Play, path: "/user/app/premium-webinars" },
-  { name: "Scratch Pad Newsletter", icon: Newspaper, path: AppRoutes.newsletter() },
+  {
+    name: "Scratch Pad Newsletter",
+    icon: Newspaper,
+    path: AppRoutes.newsletter(),
+  },
   {
     name: "My Account",
     icon: User,
@@ -67,7 +71,7 @@ const navItems = [
       },
     ],
   },
-     {
+  {
     name: "Join WhatsApp Group",
     icon: FaWhatsapp,
     path: "https://chat.whatsapp.com/BtcHdUM5CT3953nLHajCQR?mode=wwt",
@@ -76,12 +80,12 @@ const navItems = [
   {
     name: "Admin Panel",
     icon: PersonIcon,
-    path: AppRoutes.adminDashboard()
-  }
+    path: AppRoutes.adminDashboard(),
+  },
 ];
 
 export default function Sidebar() {
-  const { user, subscription, isAdmin,logout } = useAuth();
+  const { user, subscription, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -271,12 +275,12 @@ export default function Sidebar() {
               );
 
             const isOpen = openMenus[item.name] || isSubActive;
-            if(isAdmin && item.name === "My Account") {
-              return null
+            if (isAdmin && item.name === "My Account") {
+              return null;
             }
 
-            if(!isAdmin && item.name === "Admin Panel") {
-              return null
+            if (!isAdmin && item.name === "Admin Panel") {
+              return null;
             }
 
             return (
@@ -331,7 +335,7 @@ export default function Sidebar() {
                       </div>
                     )}
                   </div>
-                ) : item.path.startsWith('http') ? (
+                ) : item.path.startsWith("http") ? (
                   <a
                     href={item.path}
                     target="_blank"

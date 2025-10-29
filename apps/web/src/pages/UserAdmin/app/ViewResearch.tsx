@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import {
   TrendingUp,
   FileText,
@@ -32,8 +31,21 @@ const ViewResearch = () => {
 
   // Helper function to parse "MMM-YY" date strings into Date objects
   const parseDate = (dateStr: string) => {
-    const [month, year] = dateStr.split('-');
-    const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month);
+    const [month, year] = dateStr.split("-");
+    const monthIndex = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ].indexOf(month);
     return new Date(2000 + parseInt(year), monthIndex, 1);
   };
 
@@ -114,17 +126,31 @@ const ViewResearch = () => {
     },
   ];
 
-  const totalReturn = stock ? ((stock.cmp - stock.entryPrice) / stock.entryPrice * 100).toFixed(1) : "0";
+  const totalReturn = stock
+    ? (((stock.cmp - stock.entryPrice) / stock.entryPrice) * 100).toFixed(1)
+    : "0";
   const totalReturnNum = parseFloat(totalReturn);
-  const totalReturnColor = totalReturnNum >= 0 ? "text-green-600" : "text-red-600";
+  const totalReturnColor =
+    totalReturnNum >= 0 ? "text-green-600" : "text-red-600";
 
   const stockMetrics = [
     { label: "Recommendation Date", value: stock?.lastUpdated || "N/A" },
-    { label: "Recommendation Price", value: stock ? `₹${stock.entryPrice}` : "₹0" },
+    {
+      label: "Recommendation Price",
+      value: stock ? `₹${stock.entryPrice}` : "₹0",
+    },
     { label: "Target Price", value: stock ? `₹${stock.target1}` : "₹0" },
     { label: "CMP", value: stock ? `₹${stock.cmp}` : "₹0" },
-    { label: "Total Return", value: `${totalReturnNum >= 0 ? '+' : ''}${totalReturn}%`, color: totalReturnColor },
-    { label: "Upside Left", value: stock ? `${stock.upside}%` : "0%", color: "text-blue-600" },
+    {
+      label: "Total Return",
+      value: `${totalReturnNum >= 0 ? "+" : ""}${totalReturn}%`,
+      color: totalReturnColor,
+    },
+    {
+      label: "Upside Left",
+      value: stock ? `${stock.upside}%` : "0%",
+      color: "text-blue-600",
+    },
   ];
 
   return (
@@ -138,17 +164,19 @@ const ViewResearch = () => {
               {stock?.name || "Company Name Ltd."}
             </h1>
           </div>
-            <div className="flex items-center gap-3">
-              <button className={`${getBandColor(stock?.band || "BUY")} px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1`}>
-                {stock?.band || "BUY"}
-              </button>
-              <Link
-                to="/contact-us"
-                className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium inline-block text-center"
-              >
-                Raise a Query
-              </Link>
-            </div>
+          <div className="flex items-center gap-3">
+            <button
+              className={`${getBandColor(stock?.band || "BUY")} px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1`}
+            >
+              {stock?.band || "BUY"}
+            </button>
+            <Link
+              to="/contact-us"
+              className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium inline-block text-center"
+            >
+              Raise a Query
+            </Link>
+          </div>
         </div>
 
         {/* METRICS */}
@@ -159,7 +187,9 @@ const ViewResearch = () => {
               className="bg-gray-50 p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center hover:bg-gray-100 transition"
             >
               <p className="text-xs text-gray-500 mb-1">{m.label}</p>
-              <p className={`text-sm font-semibold ${m.color || "text-gray-900"}`}>
+              <p
+                className={`text-sm font-semibold ${m.color || "text-gray-900"}`}
+              >
                 {m.value}
               </p>
             </div>
@@ -234,53 +264,67 @@ const ViewResearch = () => {
           <div className="space-y-6">
             {/* Resources */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
-            <div className="space-y-3">
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-6 py-4 rounded-lg font-semibold shadow-sm"
-              >
-                <FileText size={18} />
-                Read Business Understanding Note
-              </a>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "Quick Bite", color: "purple", icon: <FileText size={16} /> },
-                  { label: "Watch Video", color: "red", icon: <Video size={16} /> },
-                  { label: "Exit Rationale", color: "orange", icon: <FileText size={16} /> },
-                ].map((btn) => {
-                  if (btn.label === "Watch Video") {
-                    return (
-                      <a
-                        key={btn.label}
-                        href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
-                      >
-                        {btn.icon}
-                        {btn.label}
-                      </a>
-                    );
-                  } else {
-                    return (
-                      <a
-                        key={btn.label}
-                        href="#"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
-                      >
-                        {btn.icon}
-                        {btn.label}
-                      </a>
-                    );
-                  }
-                })}
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Resources
+              </h3>
+              <div className="space-y-3">
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-6 py-4 rounded-lg font-semibold shadow-sm"
+                >
+                  <FileText size={18} />
+                  Read Business Understanding Note
+                </a>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    {
+                      label: "Quick Bite",
+                      color: "purple",
+                      icon: <FileText size={16} />,
+                    },
+                    {
+                      label: "Watch Video",
+                      color: "red",
+                      icon: <Video size={16} />,
+                    },
+                    {
+                      label: "Exit Rationale",
+                      color: "orange",
+                      icon: <FileText size={16} />,
+                    },
+                  ].map((btn) => {
+                    if (btn.label === "Watch Video") {
+                      return (
+                        <a
+                          key={btn.label}
+                          href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
+                        >
+                          {btn.icon}
+                          {btn.label}
+                        </a>
+                      );
+                    } else {
+                      return (
+                        <a
+                          key={btn.label}
+                          href="#"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center justify-center gap-1 bg-${btn.color}-50 hover:bg-${btn.color}-100 text-${btn.color}-700 px-3 py-2 rounded-lg text-xs font-medium shadow-sm transition`}
+                        >
+                          {btn.icon}
+                          {btn.label}
+                        </a>
+                      );
+                    }
+                  })}
+                </div>
               </div>
-            </div>
             </div>
 
             {/* Quarterly Updates */}
@@ -302,12 +346,16 @@ const ViewResearch = () => {
                       <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">
                         {u.date}
                       </span>
-                      {u.hasPdf && <FileText size={14} className="text-gray-400" />}
+                      {u.hasPdf && (
+                        <FileText size={14} className="text-gray-400" />
+                      )}
                     </div>
                     <h4 className="font-semibold text-gray-900 mb-1 text-sm">
                       {u.heading}
                     </h4>
-                    <p className="text-xs text-gray-600 line-clamp-2">{u.preview}</p>
+                    <p className="text-xs text-gray-600 line-clamp-2">
+                      {u.preview}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -316,7 +364,7 @@ const ViewResearch = () => {
         </div>
 
         {/* All Updates */}
-        {/* <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-2 mb-6">
             <Bell className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
             <h2 className="text-xl font-semibold text-gray-900">
@@ -339,11 +387,13 @@ const ViewResearch = () => {
                 <h4 className="font-semibold text-gray-900 mb-2 text-sm">
                   {u.heading}
                 </h4>
-                <p className="text-xs text-gray-600 line-clamp-3">{u.preview}</p>
+                <p className="text-xs text-gray-600 line-clamp-3">
+                  {u.preview}
+                </p>
               </div>
             ))}
           </div>
-        </div> */}
+        </div>
       </main>
 
       {/* MODAL */}

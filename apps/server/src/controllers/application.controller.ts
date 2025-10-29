@@ -44,7 +44,6 @@ export const createApplication = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "resume file is required" });
     }
 
-    // Upload resume to Supabase Storage and store the public URL
     const bucket = process.env.SUPABASE_RESUME_STORAGE_BUCKET || "resumes";
     const allowed = [
       "application/pdf",
@@ -63,7 +62,7 @@ export const createApplication = async (req: Request, res: Response) => {
         : file.mimetype === "application/msword"
           ? "doc"
           : "docx";
-    const filename = `resumes/${randomUUID()}.${ext}`;
+    const filename = `${randomUUID()}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
@@ -103,7 +102,7 @@ export const createApplication = async (req: Request, res: Response) => {
       .select("*")
       .eq("job_id", parseInt(job_id))
       .maybeSingle();
-      console.log(currentJobOpening,job_id, 'current')
+    console.log(currentJobOpening, job_id, "current");
     await supabase
       .from("job_openings")
       .update({

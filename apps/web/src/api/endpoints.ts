@@ -130,6 +130,10 @@ export const endpoints = {
       },
     },
   },
+  recommendations: {
+    base: "/recommendations/",
+    byId: (id: string) => `/recommendations/${id}`,
+  },
 } as const;
 
 export type Endpoints = typeof endpoints;

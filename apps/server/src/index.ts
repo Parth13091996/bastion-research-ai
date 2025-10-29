@@ -20,6 +20,7 @@ import imagesRoutes from "./routes/images.routes";
 import filesRoutes from "./routes/files.routes";
 import digioRoutes from "./routes/digio.routes";
 import mailChimpRoutes from "./routes/mailchimp.routes";
+import recommendationRoutes from "./routes/recommendation.routes";
 
 dotenv.config();
 
@@ -67,6 +68,7 @@ app.use("/api", leadsRoutes);
 app.use("/api/images", imagesRoutes);
 app.use("/api/files", filesRoutes);
 app.use("/api/digio", digioRoutes);
+app.use("/api", recommendationRoutes);
 
 app.set("trust proxy", 1); // if you use secure cookies or rely on req.protocol
 
