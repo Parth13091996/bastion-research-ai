@@ -132,6 +132,7 @@ const NewsletterManagement: React.FC = () => {
           <Button
             variant={MAILCHIMP_DASHBOARD_URL ? "outline" : "secondary"}
             onClick={handleCreate}
+            className="text-white"
           >
             <ArrowUpRight className="h-4 w-4 mr-2" />
             Open Mailchimp
