@@ -42,6 +42,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     is_premium: false,
     category: "",
     // Scratch pad fields
+    slug: "",
     description: "",
     content: "",
     featured_image: "",
@@ -66,6 +67,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         is_premium: initialData.is_premium || false,
         category: initialData.category || "",
         // Scratch pad fields
+        slug: initialData.slug || "",
         description: initialData.description || "",
         content: initialData.content || "",
         featured_image: initialData.featured_image || "",
@@ -87,6 +89,13 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     }));
   };
 
+  const generateSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  };
+
   const handleSave = async () => {
     if (!formData.title.trim()) {
       toast.error("Title is required");
@@ -96,17 +105,18 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     setIsLoading(true);
     try {
       const editorContent = editorStore.editor.getHTML();
-      let dataToSave = { ...formData };
+      let dataToSave: any = { ...formData };
 
       // For scratch pad, map to correct database fields
       if (type === "scratch-pad") {
         dataToSave = {
           title: formData.title,
+          slug: formData.slug || generateSlug(formData.title),
           description: formData.description,
           content: editorContent,
           featured_image: formData.featured_image,
           author: formData.author,
-          published_date: formData.published_date,
+          published_date: formData.published_date || null,
           is_published: formData.is_published,
           tags: formData.tags,
         };
@@ -438,18 +448,27 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                   <div className="simple-editor-content">
                     <div
                       className={
-                        formData.contents
+                        (type === "scratch-pad"
+                          ? formData.content
+                          : formData.contents)
                           ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5"
                           : ""
                       }
                       dangerouslySetInnerHTML={{
-                        __html: formData.contents,
+                        __html:
+                          type === "scratch-pad"
+                            ? formData.content
+                            : formData.contents,
                       }}
                     />
                   </div>
                 </div>
               ) : (
-                <Editor contents={formData?.contents} />
+                <Editor
+                  contents={
+                    type === "scratch-pad" ? formData?.content : formData?.contents
+                  }
+                />
               )}
             </CardContent>
           </Card>

@@ -69,8 +69,8 @@ const ScratchPadManagement: React.FC = () => {
     navigate(`/admin/content/scratch-pad/${id}/edit`);
   };
 
-  const handleView = (slug: string) => {
-    navigate(`/user/app/scratch-pad/${slug}`);
+  const handleView = (id: string) => {
+    navigate(`/user/app/scratch-pad/${id}`);
   };
 
   const handleCreate = () => {
@@ -105,7 +105,11 @@ const ScratchPadManagement: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={loadNewsletters} disabled={loading}>
+          <Button
+            variant="secondary"
+            onClick={loadNewsletters}
+            disabled={loading}
+          >
             <RefreshCw className="mr-2 h-4 w-4" /> Refresh
           </Button>
           <Button onClick={handleCreate}>
@@ -157,14 +161,19 @@ const ScratchPadManagement: React.FC = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Tags</TableHead>
-                  <TableHead className="w-[200px] text-center">Actions</TableHead>
+                  <TableHead className="w-[200px] text-center">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((newsletter) => (
                   <TableRow key={newsletter.id}>
                     <TableCell className="font-medium">
-                      <div className="max-w-xs truncate" title={newsletter.title}>
+                      <div
+                        className="max-w-xs truncate"
+                        title={newsletter.title}
+                      >
                         {newsletter.title}
                       </div>
                     </TableCell>
@@ -174,7 +183,11 @@ const ScratchPadManagement: React.FC = () => {
                     </TableCell>
 
                     <TableCell>
-                      <Badge variant={newsletter.is_published ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          newsletter.is_published ? "default" : "secondary"
+                        }
+                      >
                         {newsletter.is_published ? "Published" : "Draft"}
                       </Badge>
                     </TableCell>
@@ -188,11 +201,17 @@ const ScratchPadManagement: React.FC = () => {
 
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
-                        {(newsletter.tags || []).slice(0, 2).map((tag: string, idx: number) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
+                        {(newsletter.tags || [])
+                          .slice(0, 2)
+                          .map((tag: string, idx: number) => (
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
                         {(newsletter.tags || []).length > 2 && (
                           <Badge variant="outline" className="text-xs">
                             +{(newsletter.tags || []).length - 2}
@@ -207,7 +226,7 @@ const ScratchPadManagement: React.FC = () => {
                         variant="outline"
                         title="View"
                         className="hover:bg-blue-100 hover:text-blue-600"
-                        onClick={() => handleView(newsletter.slug)}
+                        onClick={() => handleView(newsletter.id)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>

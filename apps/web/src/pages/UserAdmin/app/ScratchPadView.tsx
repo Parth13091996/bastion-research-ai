@@ -8,7 +8,7 @@ import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad";
 import { toast } from "sonner";
 
 const ScratchPadView: React.FC = () => {
-  const { slug } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [newsletter, setNewsletter] = useState<ScratchPadNewsletter | null>(
     null
@@ -19,15 +19,15 @@ const ScratchPadView: React.FC = () => {
   >([]);
 
   useEffect(() => {
-    if (slug) {
+    if (id) {
       loadNewsletter();
     }
-  }, [slug]);
+  }, [id]);
 
   const loadNewsletter = async () => {
     try {
       setLoading(true);
-      const data = await scratchPadApi.getBySlug(slug!);
+      const data = await scratchPadApi.getById(id!);
       setNewsletter(data);
 
       // Load related newsletters (same tags)
@@ -35,8 +35,7 @@ const ScratchPadView: React.FC = () => {
       const related = allNewsletters
         .filter(
           (n) =>
-            n.id !== data.id &&
-            n.tags?.some((tag) => data.tags?.includes(tag))
+            n.id !== data.id && n.tags?.some((tag) => data.tags?.includes(tag))
         )
         .slice(0, 3);
       setRelatedNewsletters(related);
@@ -181,7 +180,9 @@ const ScratchPadView: React.FC = () => {
                   <Card
                     key={related.id}
                     className="cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => navigate(`/user/app/scratch-pad/${related.slug}`)}
+                    onClick={() =>
+                      navigate(`/user/app/scratch-pad/${related.slug}`)
+                    }
                   >
                     {related.featured_image && (
                       <div className="aspect-video w-full overflow-hidden">

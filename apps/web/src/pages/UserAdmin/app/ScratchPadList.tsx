@@ -37,8 +37,8 @@ const ScratchPadList: React.FC = () => {
       .includes(search.toLowerCase())
   );
 
-  const handleRead = (slug: string) => {
-    navigate(`/user/app/scratch-pad/${slug}`);
+  const handleRead = (id: string) => {
+    navigate(`/user/app/scratch-pad/${id}`);
   };
 
   if (loading) {
@@ -87,7 +87,6 @@ const ScratchPadList: React.FC = () => {
             <Card
               key={newsletter.id}
               className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => handleRead(newsletter.slug)}
             >
               {newsletter.featured_image && (
                 <div className="aspect-video w-full overflow-hidden">
@@ -129,14 +128,13 @@ const ScratchPadList: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         <span>
-                          {new Date(newsletter.published_date).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            }
-                          )}
+                          {new Date(
+                            newsletter.published_date
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
                         </span>
                       </div>
                     )}
@@ -147,7 +145,7 @@ const ScratchPadList: React.FC = () => {
                     className="w-full group"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRead(newsletter.slug);
+                      handleRead(newsletter.id);
                     }}
                   >
                     Read More

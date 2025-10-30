@@ -157,7 +157,6 @@ const AllUsers = () => {
 
   const handleEdit = (row: any) => {
     // Navigate to edit user page or open edit modal
-    console.log("Edit user:", row);
   };
 
   const handleDelete = (row: any) => {

@@ -337,6 +337,7 @@ export const routes: RouteObject[] = [
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
           { path: "app/premium-webinars", element: <PremiumWebinars /> },
           { path: "app/scratch-pad", element: <ScratchPadList /> },
+          { path: "app/scratch-pad/:id", element: <ScratchPadView /> },
           {
             path: "app/account/edit-profile",
             element: <UserAdminEditProfile />,

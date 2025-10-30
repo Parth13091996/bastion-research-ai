@@ -59,35 +59,6 @@ export const getScratchPadNewsletterById = async (
   }
 };
 
-// Get single scratch pad newsletter by slug
-export const getScratchPadNewsletterBySlug = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const { slug } = req.params;
-
-    const { data, error } = await supabase
-      .from("scratch_pad_newsletters")
-      .select("*")
-      .eq("slug", slug)
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
-        return res.status(404).json({ error: "Newsletter not found" });
-      }
-      console.error("Database error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    return res.status(200).json(data);
-  } catch (error: any) {
-    console.error("Error fetching scratch pad newsletter:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
-
 // Create new scratch pad newsletter (admin only)
 export const createScratchPadNewsletter = async (
   req: Request,
@@ -96,7 +67,6 @@ export const createScratchPadNewsletter = async (
   try {
     const {
       title,
-      slug,
       description,
       content,
       featured_image,
@@ -106,9 +76,9 @@ export const createScratchPadNewsletter = async (
       tags,
     } = req.body;
 
-    if (!title || !slug || !content) {
+    if (!title || !content) {
       return res.status(400).json({
-        error: "Title, slug, and content are required",
+        error: "Title and content are required",
       });
     }
 
@@ -117,7 +87,6 @@ export const createScratchPadNewsletter = async (
       .insert([
         {
           title,
-          slug,
           description,
           content,
           featured_image,
@@ -150,7 +119,6 @@ export const updateScratchPadNewsletter = async (
     const { id } = req.params;
     const {
       title,
-      slug,
       description,
       content,
       featured_image,
@@ -162,12 +130,13 @@ export const updateScratchPadNewsletter = async (
 
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
-    if (slug !== undefined) updateData.slug = slug;
     if (description !== undefined) updateData.description = description;
     if (content !== undefined) updateData.content = content;
-    if (featured_image !== undefined) updateData.featured_image = featured_image;
+    if (featured_image !== undefined)
+      updateData.featured_image = featured_image;
     if (author !== undefined) updateData.author = author;
-    if (published_date !== undefined) updateData.published_date = published_date;
+    if (published_date !== undefined)
+      updateData.published_date = published_date;
     if (is_published !== undefined) updateData.is_published = is_published;
     if (tags !== undefined) updateData.tags = tags;
 
