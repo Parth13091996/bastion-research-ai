@@ -13,12 +13,12 @@ export interface RecommendationRecord {
   priceAtRecommendation: number;
   dateExit?: string;
   holdingPeriod?: string;
-  cmpOrExitPrice: number; // CMP when live, Exit price when exited
-  percentReturn: number; // % Return
-  action: string; // BUY | HOLD | EXITED (or other)
+  cmpOrExitPrice: number;
+  percentReturn: number;
+  action: string;
   targetPrice: number;
-  upsidePotential: number; // Upside Potential %
-  latestMcapCr: number; // Latest Mcap (Rs. Cr)
+  upsidePotential: number;
+  latestMcapCr: number;
 }
 
 const SHEET_URL_DEFAULT =
@@ -30,21 +30,19 @@ export const getSheetUrl = () => SHEET_URL_DEFAULT;
 const formatDate = (dateStr: string): string => {
   if (!dateStr) return "";
 
-  // Check if the string matches Date(YYYY,MM,DD) format
   const match = dateStr.match(/Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/);
   let parsedDate: Date;
 
   if (match) {
     const year = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10); // This is already zero-based in this format
+    const month = parseInt(match[2], 10);
     const day = parseInt(match[3], 10);
     parsedDate = new Date(year, month, day);
   } else {
-    // Fallback: try normal parsing
     parsedDate = new Date(dateStr);
   }
 
-  if (isNaN(parsedDate.getTime())) return dateStr; // If still invalid, return raw input
+  if (isNaN(parsedDate.getTime())) return dateStr;
 
   return parsedDate.toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -119,9 +117,9 @@ export const fetchRecommendationsFromSheet = async (
 export interface DashboardMetrics {
   liveCount: number;
   avgLiveReturn: number;
-  highCount: number; // > 15%
-  mediumCount: number; // -15% to 15%
-  lowCount: number; // < -15%
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
   topGainer?: RecommendationRecord;
   topLoser?: RecommendationRecord;
 
@@ -129,7 +127,7 @@ export interface DashboardMetrics {
   avgExitReturn: number;
   profitExits: number;
   lossExits: number;
-  successRate: number; // % of profit exits
+  successRate: number;
   bestExit?: RecommendationRecord;
   worstExit?: RecommendationRecord;
 }

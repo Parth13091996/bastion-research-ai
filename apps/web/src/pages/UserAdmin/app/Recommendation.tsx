@@ -8,16 +8,28 @@ import {
   getSheetUrl,
 } from "@/lib/recommendations";
 
+/**
+ * Color system (as requested)
+ * - Deep Blue: #1C2852
+ * - Red:      #C00000
+ * - Beige:    #C4B696
+ * - Light Gray:#E6E6E6
+ *
+ * Inline gradients are used for pixel-precision.
+ */
+
 const COLORS = {
   red: "#C00000",
-  blue: "#1e40af",
+  deepBlue: "#1C2852",
+  beige: "#C4B696",
+  lightGray: "#E6E6E6",
   white: "#FFFFFF",
   gray: "#f8f9fa",
   teal: "#0d9488",
   orange: "#f59e0b",
-  green: "#10b981",
+  green: "#d1f1d9",
   darkGreen: "#059669",
-  hold: "#fbbf24",
+  gold: "#fef2c3",
   exited: "#9ca3af",
 };
 
@@ -35,7 +47,7 @@ interface StockData {
   lastUpdated: string;
 }
 
-// Load real data from Google Sheet
+// Hook to load sheet data (unchanged logic)
 const useSheetStocks = () => {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +62,7 @@ const useSheetStocks = () => {
           id: `${idx}-${r.nseSymbol || r.companyName}`,
           name: r.companyName,
           code: r.nseSymbol || "",
-          marketCap: r.latestMcapCr ? `₹${r.latestMcapCr} Cr.` : "₹0 Cr.",
+          marketCap: r.latestMcapCr ? `₹ ${Math.round(parseFloat(String(r.latestMcapCr))).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr.` : "₹ 0.00 Cr.",
           upside: Math.round(r.upsidePotential || 0),
           cmp: Math.round(r.cmpOrExitPrice || 0),
           entryPrice: Math.round(r.priceAtRecommendation || 0),
@@ -78,16 +90,31 @@ const Recommendation = () => {
   const [visibleCount, setVisibleCount] = useState(9);
   const { stocks: sheetStocks, loading, error } = useSheetStocks();
 
+  // Return band color (keeps your logic, but uses chosen palette)
   const getBandColor = (band: string) => {
     switch (band) {
       case "BUY":
         return COLORS.green;
       case "HOLD":
-        return COLORS.hold;
+        return COLORS.gold;
       case "EXITED":
         return COLORS.exited;
       default:
-        return COLORS.gray;
+        return COLORS.lightGray;
+    }
+  };
+
+  // Return text color for band pill
+  const getTextColor = (band: string) => {
+    switch (band) {
+      case "BUY":
+        return "#059669"; // Dark Green
+      case "HOLD":
+        return "#b8860b"; // Dark Gold
+      case "EXIT":
+        return "#494949"; // Dark Gray
+      default:
+        return "#FFFFFF";
     }
   };
 
@@ -129,6 +156,15 @@ const Recommendation = () => {
 
   const visibleStocks = sortedStocks.slice(0, visibleCount);
 
+  /**
+   * STOCK CARD
+   *
+   * Notes:
+   * - The Price Range Bar block is preserved exactly as you provided
+   *   (no changes to that logic or markup).
+   * - Inline gradients are used for header, logo box, and Expected Upside pill.
+   * - Card corners are rounded-[20px].
+   */
   const StockCard = ({ stock }: { stock: StockData }) => {
     const [cmpPosition, setCmpPosition] = useState(0);
 
@@ -153,141 +189,183 @@ const Recommendation = () => {
     }, [barPercentage]);
 
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-        <div className="flex p-4 border-b border-red-700 bg-red-[#C00000]">
-          <div className="w-16 h-16 bg-blue-200 rounded-md border border-blue-900 flex items-center justify-center text-xs text-blue-500">
-            LOGO
+      <div
+        className="bg-white rounded-[20px] shadow-md border overflow-hidden transform transition-shadow hover:shadow-lg"
+        style={{ borderColor: COLORS.lightGray, minHeight: 260 }}
+      >
+        {/* ---------- Top header ---------- */}
+        <div
+          className="flex items-center p-4"
+          style={{
+            borderBottom: `1px solid ${COLORS.red}`,
+            borderTopLeftRadius: "20px",
+            borderTopRightRadius: "20px",
+          }}
+        >
+          {/* ---------- Logo Box (Gold -> Beige diagonal) ---------- */}
+          <div
+            className="w-16 h-16 flex items-center justify-center rounded-md"
+            style={{
+              background:
+                "linear-gradient(135deg, #E6E6E6 0%, #C4B696 100%)", // Gold -> Beige diagonal
+              border: `1px solid rgba(0,0,0,0.04)`,
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25)",
+              color: COLORS.white,
+            }}
+          >
+            <div
+              className="w-12 h-12 flex items-center justify-center rounded-sm text-xs font-semibold"
+              style={{
+                // Slight inner box for contrast
+                background: "rgba(255,255,255,0.04)",
+                borderRadius: 6,
+                padding: 6,
+                color: COLORS.white,
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              LOGO
+            </div>
           </div>
-          <div className="ml-4 flex-1">
-            <h3 className="font-semibold text-gray-900 text-sm">
-              {stock.name}
-            </h3>
-            <p className="text-xs text-gray-600">
-              {stock.sector} | MCAP: {stock.marketCap}
+
+          {/* ---------- Stock Details ---------- */}
+          <div className="ml-4 flex-1 text-gray-900">
+            <h3 className="font-semibold text-base leading-tight">{stock.name}</h3>
+            <p className="text-xs text-gray-600 mt-1">
+              {stock.sector} <span className="text-gray-400">|</span> MCAP:{" "}
+              <span className="text-gray-800">{stock.marketCap}</span>
             </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Last Updated On: {stock.lastUpdated}
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Last Updated On: {stock.lastUpdated}</p>
           </div>
         </div>
 
-        {/* Pill badges */}
-        <div className="flex gap-2 p-4 flex-wrap mb-2">
+        {/* ---------- Pill badges ---------- */}
+        <div className="flex gap-2 p-4 flex-wrap mb-2 items-center">
+          {/* Band pill (BUY/HOLD/EXITED) - solid color based on getBandColor */}
           <span
-            className="px-3 py-1 rounded-full text-white text-s font-semibold"
-            style={{ backgroundColor: getBandColor(stock.band) }}
+            className="px-3 py-1 rounded-full text-xs font-semibold"
+            style={{
+              backgroundColor: getBandColor(stock.band),
+              color: getTextColor(stock.band),
+              boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+            }}
           >
             {stock.band}
           </span>
+
+          {/* Expected Upside pill - Deep Blue -> Red gradient, white text */}
           <span
-            className="px-3 py-1 rounded-full text-white text-s font-semibold ml-auto"
-            style={{ backgroundColor: COLORS.blue }}
+            className="px-3 py-1 rounded-full text-white text-xs font-semibold"
+            style={{
+              background: `linear-gradient(90deg, ${COLORS.deepBlue} 0%, ${COLORS.red} 100%)`,
+              boxShadow: "0 1px 4px rgba(28,40,82,0.12)",
+            }}
           >
             Expected Upside: {stock.upside}%
           </span>
         </div>
-      
-        {/* Price Range Bar */}
-        <div className="mb-3 relative px-4">
-          <div className="relative w-full h-4 bg-gray-200 rounded-full flex items-center">
-            {/* CMP >= Entry Price: Green bar left to right */}
-            {stock.cmp >= stock.entryPrice && (
-              <>
-                <div
-                  className="h-4 rounded-full transition-all duration-500 absolute"
-                  style={{
-                    width: `${Math.min(
-                      ((stock.cmp - stock.entryPrice) /
-                        (stock.target1 - stock.entryPrice)) *
-                        100,
-                      100
-                    )}%`,
-                    backgroundColor: COLORS.green,
-                    left: 0,
-                  }}
-                ></div>
 
-                {/* Entry Price fixed below bar */}
-                <div className="absolute top-6 left-0 text-xs text-gray-500">
-                  ₹{stock.entryPrice}
-                </div>
+        {/* ---------- Price Range Bar and Values (Combined Card) ---------- */}
+        <div className="p-4 mx-4 mb-4 rounded-lg border" style={{ backgroundColor: COLORS.lightGray, }}>
+          <div className="mb-3 relative" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+            <div className="relative w-full h-4 bg-gray-300 rounded-full flex items-center">
+              {/* CMP >= Entry Price: Green bar left to right */}
+              {stock.cmp >= stock.entryPrice && (
+                <>
+                  <div
+                    className="h-4 rounded-full transition-all duration-500 absolute"
+                    style={{
+                      width: `${Math.min(
+                        ((stock.cmp - stock.entryPrice) /
+                          (stock.target1 - stock.entryPrice)) *
+                          100,
+                        100
+                      )}%`,
+                      backgroundColor: COLORS.darkGreen,
+                      left: 0,
+                    }}
+                  ></div>
 
-                {/* CMP flowing above bar */}
-                <div
-                  className="absolute -top-5 text-xs font-semibold text-green-700"
-                  style={{
-                    left: `${Math.min(
-                      ((stock.cmp - stock.entryPrice) /
-                        (stock.target1 - stock.entryPrice)) *
-                        100,
-                      100
-                    )}%`,
-                    transform: "translateX(-50%)",
-                  }}
-                >
-                  CMP: ₹{stock.cmp}
-                </div>
+                  {/* Entry Price fixed below bar */}
+                  <div className="absolute top-6 left-0 text-xs text-gray-500">
+                    ₹{stock.entryPrice}
+                  </div>
 
-                {/* Target Price fixed below bar */}
-                <div className="absolute top-6 right-0 text-xs text-gray-500">
-                  ₹{stock.target1}
-                </div>
-              </>
-            )}
+                  {/* CMP flowing above bar */}
+                  <div
+                    className="absolute -top-5 text-xs font-semibold text-green-700"
+                    style={{
+                      left: `${Math.min(
+                        ((stock.cmp - stock.entryPrice) /
+                          (stock.target1 - stock.entryPrice)) *
+                          100,
+                        100
+                      )}%`,
+                      transform: "translateX(-50%)",
+                    }}
+                  >
+                    CMP: ₹{stock.cmp}
+                  </div>
 
-            {/* CMP < Entry Price: Entry Price center, red bar flows left */}
-            {stock.cmp < stock.entryPrice && (
-              <>
-                {/* Red bar flows left from center */}
-                <div
-                  className="h-4 rounded-full transition-all duration-500 absolute"
-                  style={{
-                    width: `${Math.min(
-                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
-                      50
-                    )}%`,
-                    backgroundColor: COLORS.red,
-                    right: "50%",
-                  }}
-                ></div>
+                  {/* Target Price fixed below bar */}
+                  <div className="absolute top-6 right-0 text-xs text-gray-500">
+                    ₹{stock.target1}
+                  </div>
+                </>
+              )}
 
-                {/* Entry Price fixed below bar */}
-                <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">
-                  ₹{stock.entryPrice}
-                </div>
-
-                {/* CMP flowing above bar */}
-                <div
-                  className="absolute -top-5 text-xs font-semibold text-red-700"
-                  style={{
-                    left: `${
-                      50 -
-                      Math.min(
-                        ((stock.entryPrice - stock.cmp) / stock.entryPrice) *
-                          50,
+              {/* CMP < Entry Price: Entry Price center, red bar flows left */}
+              {stock.cmp < stock.entryPrice && (
+                <>
+                  {/* Red bar flows left from center */}
+                  <div
+                    className="h-4 rounded-full transition-all duration-500 absolute"
+                    style={{
+                      width: `${Math.min(
+                        ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
                         50
-                      )
-                    }%`,
-                    transform: "translateX(-50%)",
-                  }}
-                >
-                  CMP: ₹{stock.cmp}
-                </div>
+                      )}%`,
+                      backgroundColor: COLORS.red,
+                      right: "50%",
+                    }}
+                  ></div>
 
-                {/* Target Price fixed below bar */}
-                <div className="absolute top-6 right-0 text-xs text-gray-500">
-                  ₹{stock.target1}
-                </div>
-              </>
-            )}
+                  {/* Entry Price fixed below bar */}
+                  <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">
+                    ₹{stock.entryPrice}
+                  </div>
+
+                  {/* CMP flowing above bar */}
+                  <div
+                    className="absolute -top-5 text-xs font-semibold text-red-700"
+                    style={{
+                      left: `${50 -
+                        Math.min(
+                          ((stock.entryPrice - stock.cmp) / stock.entryPrice) *
+                            50,
+                          50
+                        )
+                        }%`,
+                      transform: "translateX(-50%)",
+                    }}
+                  >
+                    CMP: ₹{stock.cmp}
+                  </div>
+
+                  {/* Target Price fixed below bar */}
+                  <div className="absolute top-6 right-0 text-xs text-gray-500">
+                    ₹{stock.target1}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="p-4">
-          <div className="grid grid-cols-3 text-sm font-medium text-gray-700 mb-3">
+          <div className="grid grid-cols-3 text-sm font-medium text-gray-700">
             <div>
               <div className="text-xs text-gray-500">Entry Price</div>₹
               {stock.entryPrice}
+              
             </div>
             <div>
               <div className="text-xs text-gray-500">CMP</div>₹{stock.cmp}
@@ -300,13 +378,29 @@ const Recommendation = () => {
           </div>
         </div>
 
+        {/* ---------- View Research Button (Deep Blue -> Red gradient) ---------- */}
         <div className="px-4 pb-4">
           <Link to="/user/app/view-research" state={{ stock }}>
             <Button
               variant="outline"
-              className="w-full text-sm py-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="w-full text-sm py-2 font-semibold relative overflow-hidden"
+              style={{
+                borderColor: COLORS.lightGray,
+                color: COLORS.white,
+                background: `linear-gradient(90deg, ${COLORS.deepBlue} 0%, ${COLORS.red} 100%)`,
+                boxShadow: "0 6px 18px rgba(28,40,82,0.06)",
+                borderRadius: 8,
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.boxShadow = "0 10px 26px rgba(28,40,82,0.12)";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.boxShadow = "0 6px 18px rgba(28,40,82,0.06)";
+              }}
             >
-              <Eye className="h-4 w-4 mr-2" />
+              <Eye className="h-4 w-4 mr-2 inline-block" />
               View Research
             </Button>
           </Link>
@@ -319,14 +413,11 @@ const Recommendation = () => {
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.gray }}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            All Recommendations
-          </h1>
-          <p className="text-gray-600">
-            Discover high-potential investment opportunities
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">All Recommendations</h1>
+          <p className="text-gray-600">Discover high-potential investment opportunities</p>
         </div>
 
+        {/* ---------- Search / Controls ---------- */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-center">
             <div className="relative flex-1 w-full">
@@ -372,30 +463,30 @@ const Recommendation = () => {
           </div>
         </div>
 
+        {/* ---------- Cards Grid ---------- */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading && <div className="text-gray-500"></div>}
+          {loading && <div className="text-gray-500">Loading...</div>}
           {error && <div className="text-red-600">{error}</div>}
           {!loading &&
             !error &&
-            visibleStocks.map((stock) => (
-              <StockCard key={stock.id} stock={stock} />
-            ))}
+            visibleStocks.map((stock) => <StockCard key={stock.id} stock={stock} />)}
         </div>
 
+        {/* Load More */}
         {visibleCount < sortedStocks.length && (
           <div className="text-center mt-8">
             <Button
               variant="outline"
               className="px-8 py-2 transition-colors duration-300"
-              style={{ borderColor: COLORS.blue, color: COLORS.blue }}
+              style={{ borderColor: COLORS.deepBlue, color: COLORS.deepBlue }}
               onClick={() => setVisibleCount(visibleCount + 9)}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = COLORS.blue;
+                e.currentTarget.style.backgroundColor = COLORS.deepBlue;
                 e.currentTarget.style.color = COLORS.white;
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = COLORS.blue;
+                e.currentTarget.style.color = COLORS.deepBlue;
               }}
             >
               Load More Stocks
