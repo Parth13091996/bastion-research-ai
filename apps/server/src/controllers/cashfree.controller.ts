@@ -84,6 +84,8 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       return_url,
       metadata,
       discount_amount,
+      is_free,
+      coupon_code,
     } = req.body;
 
     if (!plan) return res.status(400).json({ message: "plan is required" });
@@ -103,6 +105,8 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       customer_phone,
       return_url,
       discount_amount,
+      is_free,
+      coupon_code,
     });
     return res.status(201).json({ plan: selected, order });
   } catch (error: any) {

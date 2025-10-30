@@ -120,6 +120,38 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
     setIsLoading(true);
     try {
+      const finalAmount = getFinalAmountWithGst();
+      const isFreeOrZero = finalAmount === 0 || selectedPlanDetails?.code === "free";
+
+      // Handle free tier or zero-amount after coupon
+      if (isFreeOrZero) {
+        // Directly update user status and plan_code without payment gateway
+        const userId = user?.id || formData.email;
+        const planCode = selectedPlanDetails?.plan_code || "freemium";
+
+        await axiosInstance.put(endpoints.users.update(userId), {
+          status: "active",
+          plan_code: planCode,
+        });
+
+        // Create a subscription record for free tier
+        await axiosInstance.post(endpoints.cashfree.orders, {
+          plan: formData.selectedPlan,
+          customer_id: userId,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          source: "register",
+          is_free: true,
+          coupon_code: appliedCoupon?.coupon_code || null,
+          discount_amount: 0,
+        });
+
+        // Redirect to login/dashboard
+        window.location.href = location.origin + "/login";
+        return;
+      }
+
+      // Normal payment flow for paid plans
       const orderResponse = await axiosInstance.post(
         endpoints.cashfree.orders,
         {
@@ -130,7 +162,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           source: "register",
           return_url: location.origin + "/login",
           coupon_code: appliedCoupon?.coupon_code || null,
-          discount_amount: getFinalAmountWithGst() || 0,
+          discount_amount: getFinalAmountWithGst(),
           metadata: {
             panReference: formData.panVerification?.referenceId || null,
             panStatus: formData.panVerification?.status || null,
