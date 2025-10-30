@@ -3,6 +3,7 @@ import { protect, admin } from "../middleware/auth.middleware";
 import {
   getScratchPadNewsletters,
   getScratchPadNewsletterById,
+  getScratchPadNewsletterBySlug,
   createScratchPadNewsletter,
   updateScratchPadNewsletter,
   deleteScratchPadNewsletter,
@@ -13,6 +14,7 @@ const router = Router();
 // Public routes
 router.get("/scratch-pad-newsletters", getScratchPadNewsletters);
 router.get("/scratch-pad-newsletters/:id", getScratchPadNewsletterById);
+router.get("/scratch-pad-newsletters/slug/:slug", getScratchPadNewsletterBySlug);
 
 // Admin routes (protected)
 router.post(
