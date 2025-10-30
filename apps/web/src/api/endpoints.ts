@@ -120,6 +120,15 @@ export const endpoints = {
         byId: (id: string) => `/api/admin/content/webinars/${id}`,
       },
     },
+    scratchPad: {
+      base: "/api/scratch-pad-newsletters",
+      byId: (id: string) => `/api/scratch-pad-newsletters/${id}`,
+      bySlug: (slug: string) => `/api/scratch-pad-newsletters/slug/${slug}`,
+      admin: {
+        base: "/api/admin/scratch-pad-newsletters",
+        byId: (id: string) => `/api/admin/scratch-pad-newsletters/${id}`,
+      },
+    },
     podcasts: {
       base: "/content/podcasts",
       byId: (id: string) => `/content/podcasts/${id}`,

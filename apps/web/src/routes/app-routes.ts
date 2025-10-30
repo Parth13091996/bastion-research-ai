@@ -55,6 +55,9 @@ export const AppRoutes = {
   adminPodcastCreate: () => "/admin/content/podcasts/create",
   adminPodcastEdit: () => "/admin/content/podcasts/:id/edit",
   adminResearchManagement: () => "/admin/content/research",
+  adminScratchPadCreate: () => "/admin/content/scratch-pad/create",
+  adminScratchPadEdit: () => "/admin/content/scratch-pad/:id/edit",
+  adminScratchPadManagement: () => "/admin/content/scratch-pad",
   adminResearchCreate: () => "/admin/content/research/create",
   adminResearchEdit: () => "/admin/content/research/:id/edit",
   adminTestimonialManagement: () => "/admin/content/testimonials",
@@ -64,8 +67,10 @@ export const AppRoutes = {
   // Public content routes
   newsletterView: () => "/newsletters/:id",
   webinarView: () => "/webinars/:id",
+
   podcastView: () => "/podcasts/:id",
   researchView: () => "/research/:id",
+  scratchPadView: () => "/scratch-pad/:id",
   ipoLanding: () => "/ipo-landing",
 };
 

@@ -22,6 +22,21 @@ interface Webinar {
   created_at: string;
 }
 
+interface ScratchPadNewsletter {
+  id: string; // uuid
+  title: string;
+  slug: string;
+  description?: string | null;
+  content: string;
+  featured_image?: string | null;
+  author?: string | null;
+  published_date?: string | null; // ISO date string or null
+  is_published?: boolean | null;
+  tags?: string[] | null;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+}
+
 interface Podcast {
   id: string;
   title: string;

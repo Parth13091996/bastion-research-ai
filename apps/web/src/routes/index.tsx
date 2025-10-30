@@ -53,8 +53,12 @@ const ViewResearch = lazy(() => import("@/pages/UserAdmin/app/ViewResearch"));
 const PremiumWebinars = lazy(
   () => import("@/pages/UserAdmin/app/PremiumWebinars")
 );
-const ScratchPadList = lazy(() => import("@/pages/UserAdmin/app/ScratchPadList"));
-const ScratchPadView = lazy(() => import("@/pages/UserAdmin/app/ScratchPadView"));
+const ScratchPadList = lazy(
+  () => import("@/pages/UserAdmin/app/ScratchPadList")
+);
+const ScratchPadView = lazy(
+  () => import("@/pages/UserAdmin/app/ScratchPadView")
+);
 
 // Admin Pages
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
@@ -165,6 +169,7 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.newsletterView(), element: <NewsletterView /> },
       { path: AppRoutes.webinarView(), element: <WebinarView /> },
       { path: AppRoutes.podcastView(), element: <PodcastView /> },
+      { path: AppRoutes.scratchPadView(), element: <ScratchPadView /> },
       { path: AppRoutes.researchView(), element: <ResearchView /> },
       { path: AppRoutes.dashboard(), element: <Dashboard /> },
     ],
@@ -302,11 +307,11 @@ export const routes: RouteObject[] = [
         element: <ScratchPadManagement />,
       },
       {
-        path: "/admin/content/scratch-pad/new",
+        path: AppRoutes.adminScratchPadCreate(),
         element: <ScratchPadEditor />,
       },
       {
-        path: "/admin/content/scratch-pad/:id/edit",
+        path: AppRoutes.adminScratchPadEdit(),
         element: <ScratchPadEditor />,
       },
     ],
@@ -330,7 +335,6 @@ export const routes: RouteObject[] = [
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
           { path: "app/premium-webinars", element: <PremiumWebinars /> },
           { path: "app/scratch-pad", element: <ScratchPadList /> },
-          { path: "app/scratch-pad/:slug", element: <ScratchPadView /> },
           {
             path: "app/account/edit-profile",
             element: <UserAdminEditProfile />,

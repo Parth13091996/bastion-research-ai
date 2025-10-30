@@ -9,7 +9,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-export type ContentType = "newsletters" | "webinars" | "podcasts";
+export type ContentType =
+  | "newsletters"
+  | "webinars"
+  | "podcasts"
+  | "scratch-pad";
 
 interface ContentEditorProps {
   type: ContentType;
@@ -156,10 +160,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                   name="category"
                   value={option.value}
                   checked={formData.category === option.value}
-                  onChange={(e) => handleInputChange("category", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("category", e.target.value)
+                  }
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
                 />
-                <Label htmlFor={option.value} className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor={option.value}
+                  className="text-sm font-normal cursor-pointer"
+                >
                   {option.label}
                 </Label>
               </div>
@@ -230,7 +239,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             <Eye className="h-4 w-4 mr-2" />
             {isPreview ? "Edit" : "Preview"}
           </Button>
-          <Button onClick={handleSave} disabled={isLoading} className="bg-blue-500 hover:bg-blue-600 text-white">
+          <Button
+            onClick={handleSave}
+            disabled={isLoading}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
             <Save className="h-4 w-4 mr-2" />
             {"Save"}
           </Button>
@@ -283,7 +296,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                 <div className="simple-editor-wrapper">
                   <div className="simple-editor-content">
                     <div
-                      className={formData.contents ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5" : ""}
+                      className={
+                        formData.contents
+                          ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5"
+                          : ""
+                      }
                       dangerouslySetInnerHTML={{
                         __html: formData.contents,
                       }}

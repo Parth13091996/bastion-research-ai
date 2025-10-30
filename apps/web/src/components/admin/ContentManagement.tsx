@@ -27,7 +27,11 @@ import { toast } from "sonner";
 import { confirmDelete } from "@/utils/confirm";
 import { format } from "date-fns";
 
-export type ContentType = "newsletters" | "webinars" | "podcasts";
+export type ContentType =
+  | "newsletters"
+  | "webinars"
+  | "podcasts"
+  | "scratch-pad";
 
 interface ContentItem {
   id: string;
@@ -51,12 +55,14 @@ interface ContentManagementProps {
   };
   onEdit: (id: string) => void;
   onView: (id: string) => void;
+  tableHeaderColumns?: string[];
 }
 
 const ContentManagement: React.FC<ContentManagementProps> = ({
   type,
   title,
   api,
+  tableHeaderColumns,
   onEdit,
   onView,
 }) => {
@@ -154,7 +160,10 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
           <h1 className="text-2xl font-bold">{title}</h1>
           <Badge variant="secondary">{filteredItems.length} items</Badge>
         </div>
-        <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
+        <Button
+          onClick={handleCreate}
+          className="bg-blue-500 hover:bg-blue-600 text-white"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Create {type.charAt(0).toUpperCase() + type.slice(1)}
         </Button>
@@ -191,7 +200,10 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                   : `Get started by creating your first ${type}`}
               </p>
               {!searchQuery && (
-                <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
+                <Button
+                  onClick={handleCreate}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Create {type.charAt(0).toUpperCase() + type.slice(1)}
                 </Button>
@@ -202,11 +214,16 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  {type === "newsletters" && <TableHead>Sub Title</TableHead>}
+                  {/* {type === "newsletters" && <TableHead>Sub Title</TableHead>}
                   {type === "newsletters" && <TableHead>Category</TableHead>}
-                  {type === "webinars" && <TableHead>Premium/Free</TableHead>}
+                  {type === "webinars" && <TableHead></TableHead>} */}
+                  {tableHeaderColumns.map((headerColumn) => (
+                    <TableHead>{headerColumn}</TableHead>
+                  ))}
                   <TableHead>Created</TableHead>
-                  <TableHead className="w-[220px] text-center">Actions</TableHead>
+                  <TableHead className="w-[220px] text-center">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -232,7 +249,11 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                     {type === "newsletters" && (
                       <TableCell>
                         <span className="px-2 py-1 rounded text-sm bg-gray-100 text-gray-700">
-                          {item.category ? item.category.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase()) : "-"}
+                          {item.category
+                            ? item.category
+                                .replace("-", " ")
+                                .replace(/\b\w/g, (l) => l.toUpperCase())
+                            : "-"}
                         </span>
                       </TableCell>
                     )}

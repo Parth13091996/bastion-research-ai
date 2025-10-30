@@ -14,10 +14,13 @@ const WebinarManagement: React.FC = () => {
     navigate(`/webinars/${id}`);
   };
 
+  const tableHeaderColumns = ["Premium/Free"];
+
   return (
     <ContentManagement
       type="webinars"
       title="Webinar Management"
+      tableHeaderColumns={tableHeaderColumns}
       api={webinarApi}
       onEdit={handleEdit}
       onView={handleView}
