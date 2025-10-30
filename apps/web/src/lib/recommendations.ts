@@ -25,7 +25,32 @@ const SHEET_URL_DEFAULT =
   import.meta.env.VITE_RECO_SHEET_URL ||
   "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=0#gid=0";
 
-export const getSheetUrl = () => SHEET_URL_DEFAULT;
+const LIVE_SHEET_URL_DEFAULT =
+  import.meta.env.VITE_LIVE_RECO_SHEET_URL ||
+  "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=1899227714#gid=1899227714";
+
+let cachedSettings: any = null;
+
+export const getSheetUrl = async (type: 'recommendations' | 'live' = 'recommendations'): Promise<string> => {
+  try {
+    // Try to fetch settings from API if not cached
+    if (!cachedSettings) {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/settings`);
+      if (response.ok) {
+        cachedSettings = await response.json();
+      }
+    }
+
+    if (type === 'live') {
+      return cachedSettings?.live_recommendation_sheet_url || LIVE_SHEET_URL_DEFAULT;
+    }
+
+    return cachedSettings?.recommendation_sheet_url || SHEET_URL_DEFAULT;
+  } catch (error) {
+    console.error('Failed to fetch settings, using default URLs', error);
+    return type === 'live' ? LIVE_SHEET_URL_DEFAULT : SHEET_URL_DEFAULT;
+  }
+};
 
 const formatDate = (dateStr: string): string => {
   if (!dateStr) return "";
@@ -108,8 +133,18 @@ export const mapRow = (row: RowObject): RecommendationRecord => {
 };
 
 export const fetchRecommendationsFromSheet = async (
-  url = getSheetUrl()
+  urlOrType?: string | 'recommendations' | 'live'
 ): Promise<RecommendationRecord[]> => {
+  let url: string;
+
+  if (!urlOrType) {
+    url = await getSheetUrl('recommendations');
+  } else if (urlOrType === 'recommendations' || urlOrType === 'live') {
+    url = await getSheetUrl(urlOrType);
+  } else {
+    url = urlOrType;
+  }
+
   const rows = await fetchSheetObjects(url);
   return rows.map(mapRow).filter((r) => r.companyName);
 };

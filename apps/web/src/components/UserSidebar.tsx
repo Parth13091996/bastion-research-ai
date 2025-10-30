@@ -47,7 +47,7 @@ const navItems = [
   {
     name: "Scratch Pad Newsletter",
     icon: Newspaper,
-    path: AppRoutes.newsletter(),
+    path: AppRoutes.scratch_pad_newsletter(),
   },
   {
     name: "My Account",

@@ -1,15 +1,15 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
-import { useEffect } from "react";
+import { X, Upload } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../../../../api/axios"; // Adjust path as needed
 import { endpoints } from "@/api/endpoints"; // Adjust path as needed
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 // Define interfaces for JSONB fields
 interface UpdateItem {
@@ -46,19 +46,18 @@ type ExtendedRecommendationRecord = {
 // Updated Zod schema to include new fields
 const recommendationSchema = z.object({
   companyName: z.string().min(1, "Company Name is required"),
-  nseSymbol: z.string().min(1, "NSE Symbol is required"),
-  dateRecommended: z.string().min(1, "Date Recommended is required"),
-  priceAtRecommendation: z
-    .string()
-    .min(1, "Price at Recommendation is required"),
+  nseSymbol: z.string().optional(),
+  dateRecommended: z.string().optional(),
+  priceAtRecommendation: z.string().optional(),
   dateExit: z.string().optional(),
   holdingPeriod: z.string().optional(),
-  cmpOrExitPrice: z.string().min(1, "CMP/Exit Price is required"),
+  cmpOrExitPrice: z.string().optional(),
   percentReturn: z.string().optional(),
-  action: z.string().min(1, "Action is required"),
+  action: z.string().optional(),
   targetPrice: z.string().optional(),
   upsidePotential: z.string().optional(),
   latestMcapCr: z.string().optional(),
+  logo: z.string().optional(),
   business_note: z.string().optional(),
   quick_bite: z.string().optional(),
   video: z.string().optional(),
@@ -73,20 +72,24 @@ type RecommendationFormValues = z.infer<typeof recommendationSchema>;
 interface EditRecommendationModalProps {
   open: boolean;
   onClose: () => void;
-  record: ExtendedRecommendationRecord | null;
+  recommendation: ExtendedRecommendationRecord | null;
+  onSave: (data: Partial<ExtendedRecommendationRecord>) => Promise<void>;
 }
 
 const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   open,
   onClose,
-  record,
+  recommendation: record,
+  onSave,
 }) => {
-  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm<RecommendationFormValues>({
     resolver: zodResolver(recommendationSchema),
   });
@@ -94,10 +97,28 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   useEffect(() => {
     if (open && record) {
       reset({
-        ...record,
-        quarterly_update: JSON.stringify(record.quarterly_update || []),
+        companyName: record.companyName || "",
+        nseSymbol: record.nseSymbol || "",
+        dateRecommended: record.dateRecommended || "",
+        priceAtRecommendation: String(record.priceAtRecommendation || ""),
+        dateExit: record.dateExit || "",
+        holdingPeriod: record.holdingPeriod || "",
+        cmpOrExitPrice: String(record.cmpOrExitPrice || ""),
+        percentReturn: String(record.percentReturn || ""),
+        action: record.action || "",
+        targetPrice: String(record.targetPrice || ""),
+        upsidePotential: String(record.upsidePotential || ""),
+        latestMcapCr: String(record.latestMcapCr || ""),
+        logo: (record as any).logo || "",
+        business_note: record.business_note || "",
+        quick_bite: record.quick_bite || "",
+        video: record.video || "",
+        exit_rationale: record.exit_rationale || "",
+        quarterly_update: JSON.stringify(record.quarterly_update || [], null, 2),
         announcements_and_update: JSON.stringify(
-          record.announcements_and_update || []
+          record.announcements_and_update || [],
+          null,
+          2
         ),
       });
     } else if (!open) {
@@ -105,36 +126,66 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     }
   }, [open, record, reset]);
 
-  const mutation = useMutation({
-    mutationFn: (data: RecommendationFormValues) => {
-      if (!record?.id) {
-        throw new Error("Record ID is required");
-      }
-      // Parse JSON fields
-      const updatedData = {
-        ...data,
-        quarterly_update: JSON.parse(data.quarterly_update || "[]"),
-        announcements_and_update: JSON.parse(
-          data.announcements_and_update || "[]"
-        ),
-      };
-      return axiosInstance.put(
-        `${endpoints.recommendations.base}/${record.id}`,
-        updatedData
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recommendations"] });
-      onClose();
-      reset();
-    },
-    onError: (error: any) => {
-      console.error("Update error:", error);
-    },
-  });
+  const handleFileUpload = async (fieldName: string, file: File) => {
+    try {
+      setUploading((prev) => ({ ...prev, [fieldName]: true }));
+      const formData = new FormData();
+      formData.append("file", file);
 
-  const onSubmit = (data: RecommendationFormValues) => {
-    mutation.mutate(data);
+      const response = await axiosInstance.post(
+        endpoints.files.upload,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      setValue(fieldName as any, response.data.url);
+      toast.success("File uploaded successfully");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to upload file");
+    } finally {
+      setUploading((prev) => ({ ...prev, [fieldName]: false }));
+    }
+  };
+
+  const onSubmit = async (data: RecommendationFormValues) => {
+    try {
+      // Parse JSON fields
+      let quarterly_update = [];
+      let announcements_and_update = [];
+
+      try {
+        quarterly_update = JSON.parse(data.quarterly_update || "[]");
+      } catch (e) {
+        toast.error("Invalid JSON in Quarterly Update field");
+        return;
+      }
+
+      try {
+        announcements_and_update = JSON.parse(
+          data.announcements_and_update || "[]"
+        );
+      } catch (e) {
+        toast.error("Invalid JSON in Announcements and Update field");
+        return;
+      }
+
+      const updatedData = {
+        logo: data.logo,
+        business_note: data.business_note,
+        quick_bite: data.quick_bite,
+        video: data.video,
+        exit_rationale: data.exit_rationale,
+        quarterly_update,
+        announcements_and_update,
+      };
+
+      await onSave(updatedData);
+      reset();
+    } catch (error: any) {
+      console.error("Update error:", error);
+    }
   };
 
   if (!record) return null;
@@ -145,157 +196,219 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/50" />
         <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-6xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 shadow-lg overflow-y-auto">
           <Dialog.Title className="text-lg font-medium text-gray-900">
-            Edit Recommendation
+            Edit Recommendation - {record.companyName} ({record.nseSymbol})
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm text-gray-600">
-            Update the recommendation details. Required fields are marked with
-            *. JSON fields should be valid JSON arrays.
+            Update additional fields for this recommendation. Sheet data (company name, prices, etc.) is read-only.
+            Upload PDFs and manage quarterly updates and announcements.
           </Dialog.Description>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"
+            className="mt-4 space-y-6"
           >
-            <div>
-              <label>Company Name *</label>
-              <Input {...register("companyName")} />
-              {errors.companyName && (
-                <p className="text-red-500 text-sm">
-                  {errors.companyName.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>NSE Symbol *</label>
-              <Input {...register("nseSymbol")} />
-              {errors.nseSymbol && (
-                <p className="text-red-500 text-sm">
-                  {errors.nseSymbol.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>Date Recommended *</label>
-              <Input type="date" {...register("dateRecommended")} />
-              {errors.dateRecommended && (
-                <p className="text-red-500 text-sm">
-                  {errors.dateRecommended.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>Price at Recommendation *</label>
-              <Input
-                type="number"
-                step="0.01"
-                {...register("priceAtRecommendation")}
-              />
-              {errors.priceAtRecommendation && (
-                <p className="text-red-500 text-sm">
-                  {errors.priceAtRecommendation.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>Date Exit</label>
-              <Input type="date" {...register("dateExit")} />
-            </div>
-            <div>
-              <label>Holding Period</label>
-              <Input {...register("holdingPeriod")} />
-            </div>
-            <div>
-              <label>CMP/Exit Price *</label>
-              <Input
-                type="number"
-                step="0.01"
-                {...register("cmpOrExitPrice")}
-              />
-              {errors.cmpOrExitPrice && (
-                <p className="text-red-500 text-sm">
-                  {errors.cmpOrExitPrice.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>% Return</label>
-              <Input type="number" step="0.01" {...register("percentReturn")} />
-            </div>
-            <div>
-              <label>Action *</label>
-              <Input {...register("action")} />
-              {errors.action && (
-                <p className="text-red-500 text-sm">{errors.action.message}</p>
-              )}
-            </div>
-            <div>
-              <label>Target Price</label>
-              <Input type="number" step="0.01" {...register("targetPrice")} />
-            </div>
-            <div>
-              <label>Upside Potential</label>
-              <Input
-                type="number"
-                step="0.01"
-                {...register("upsidePotential")}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label>Latest Mcap (Rs. Cr)</label>
-              <Input type="number" {...register("latestMcapCr")} />
-            </div>
-            <div>
-              <label>Business Note (PDF URL)</label>
-              <Input {...register("business_note")} />
-            </div>
-            <div>
-              <label>Quick Bite (PDF URL)</label>
-              <Input {...register("quick_bite")} />
-            </div>
-            <div>
-              <label>Video (URL)</label>
-              <Input {...register("video")} />
-            </div>
-            <div>
-              <label>Exit Rationale (PDF URL)</label>
-              <Input {...register("exit_rationale")} />
-            </div>
-            <div className="md:col-span-2">
-              <label>Quarterly Update (JSON)</label>
-              <Textarea {...register("quarterly_update")} rows={5} />
-              {errors.quarterly_update && (
-                <p className="text-red-500 text-sm">
-                  {errors.quarterly_update.message}
-                </p>
-              )}
-            </div>
-            <div className="md:col-span-2">
-              <label>Announcements and Update (JSON)</label>
-              <Textarea {...register("announcements_and_update")} rows={5} />
-              {errors.announcements_and_update && (
-                <p className="text-red-500 text-sm">
-                  {errors.announcements_and_update.message}
-                </p>
-              )}
-            </div>
-            <div className="md:col-span-2 text-sm text-gray-500">
-              <label>Created At</label>
-              <Input value={record.created_at || ""} readOnly />
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="font-medium mb-2">Sheet Data (Read-Only)</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <label className="text-gray-600">Company:</label>
+                  <p className="font-medium">{record.companyName}</p>
+                </div>
+                <div>
+                  <label className="text-gray-600">Symbol:</label>
+                  <p className="font-medium">{record.nseSymbol}</p>
+                </div>
+                <div>
+                  <label className="text-gray-600">Action:</label>
+                  <p className="font-medium">{record.action}</p>
+                </div>
+                <div>
+                  <label className="text-gray-600">% Return:</label>
+                  <p className="font-medium">{record.percentReturn}%</p>
+                </div>
+              </div>
             </div>
 
-            <div className="md:col-span-2 flex justify-end space-x-2 mt-4">
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Logo & Documents</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-2">Company Logo (Image URL)</label>
+                  <div className="flex gap-2">
+                    <Input {...register("logo")} placeholder="Logo image URL" />
+                    <label className="cursor-pointer">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading.logo}
+                        asChild
+                      >
+                        <span>
+                          <Upload className="h-4 w-4 mr-1" />
+                          {uploading.logo ? "Uploading..." : "Upload"}
+                        </span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload("logo", file);
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {watch("logo") && (
+                    <div className="mt-2">
+                      <img src={watch("logo")} alt="Logo preview" className="h-16 w-16 object-contain border rounded" />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Business Note (PDF)</label>
+                  <div className="flex gap-2">
+                    <Input {...register("business_note")} placeholder="PDF URL" />
+                    <label className="cursor-pointer">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading.business_note}
+                        asChild
+                      >
+                        <span>
+                          <Upload className="h-4 w-4 mr-1" />
+                          {uploading.business_note ? "Uploading..." : "Upload"}
+                        </span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload("business_note", file);
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Quick Bite (PDF)</label>
+                  <div className="flex gap-2">
+                    <Input {...register("quick_bite")} placeholder="PDF URL" />
+                    <label className="cursor-pointer">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading.quick_bite}
+                        asChild
+                      >
+                        <span>
+                          <Upload className="h-4 w-4 mr-1" />
+                          {uploading.quick_bite ? "Uploading..." : "Upload"}
+                        </span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload("quick_bite", file);
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Exit Rationale (PDF)</label>
+                  <div className="flex gap-2">
+                    <Input {...register("exit_rationale")} placeholder="PDF URL" />
+                    <label className="cursor-pointer">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading.exit_rationale}
+                        asChild
+                      >
+                        <span>
+                          <Upload className="h-4 w-4 mr-1" />
+                          {uploading.exit_rationale ? "Uploading..." : "Upload"}
+                        </span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload("exit_rationale", file);
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Video URL</label>
+                  <Input {...register("video")} placeholder="Video URL" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Updates & Announcements (JSON Arrays)</h3>
+              <p className="text-sm text-gray-600">
+                Format: [{JSON.stringify({ date: "2024-01-15", title: "Q1 Update", description: "Description", pdf_url: "https://..." })}]
+              </p>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Quarterly Updates</label>
+                <Textarea
+                  {...register("quarterly_update")}
+                  rows={6}
+                  className="font-mono text-sm"
+                  placeholder='[{"date":"2024-01-15","title":"Q1 Update","description":"...","pdf_url":"https://..."}]'
+                />
+                {errors.quarterly_update && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.quarterly_update.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Announcements & Updates</label>
+                <Textarea
+                  {...register("announcements_and_update")}
+                  rows={6}
+                  className="font-mono text-sm"
+                  placeholder='[{"date":"2024-01-15","title":"Announcement","description":"...","pdf_url":"https://..."}]'
+                />
+                {errors.announcements_and_update && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.announcements_and_update.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4 border-t">
               <Button type="button" variant="ghost" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Updating..." : "Update Recommendation"}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </div>
-            {mutation.isError && (
-              <p className="text-red-500 text-sm md:col-span-2">
-                {mutation.error?.message || "Update failed"}
-              </p>
-            )}
           </form>
 
           <Dialog.Close asChild>

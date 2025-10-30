@@ -56,13 +56,15 @@ const useSheetStocks = () => {
   useEffect(() => {
     (async () => {
       try {
-        const url = getSheetUrl();
+        const url = await getSheetUrl("recommendations");
         const recs = await fetchRecommendationsFromSheet(url);
         const transformed: StockData[] = recs.map((r, idx) => ({
           id: `${idx}-${r.nseSymbol || r.companyName}`,
           name: r.companyName,
           code: r.nseSymbol || "",
-          marketCap: r.latestMcapCr ? `₹ ${Math.round(parseFloat(String(r.latestMcapCr))).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr.` : "₹ 0.00 Cr.",
+          marketCap: r.latestMcapCr
+            ? `₹ ${Math.round(parseFloat(String(r.latestMcapCr))).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr.`
+            : "₹ 0.00 Cr.",
           upside: Math.round(r.upsidePotential || 0),
           cmp: Math.round(r.cmpOrExitPrice || 0),
           entryPrice: Math.round(r.priceAtRecommendation || 0),
@@ -206,8 +208,7 @@ const Recommendation = () => {
           <div
             className="w-16 h-16 flex items-center justify-center rounded-md"
             style={{
-              background:
-                "linear-gradient(135deg, #E6E6E6 0%, #C4B696 100%)", // Gold -> Beige diagonal
+              background: "linear-gradient(135deg, #E6E6E6 0%, #C4B696 100%)", // Gold -> Beige diagonal
               border: `1px solid rgba(0,0,0,0.04)`,
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25)",
               color: COLORS.white,
@@ -230,12 +231,16 @@ const Recommendation = () => {
 
           {/* ---------- Stock Details ---------- */}
           <div className="ml-4 flex-1 text-gray-900">
-            <h3 className="font-semibold text-base leading-tight">{stock.name}</h3>
+            <h3 className="font-semibold text-base leading-tight">
+              {stock.name}
+            </h3>
             <p className="text-xs text-gray-600 mt-1">
               {stock.sector} <span className="text-gray-400">|</span> MCAP:{" "}
               <span className="text-gray-800">{stock.marketCap}</span>
             </p>
-            <p className="text-xs text-gray-500 mt-1">Last Updated On: {stock.lastUpdated}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Last Updated On: {stock.lastUpdated}
+            </p>
           </div>
         </div>
 
@@ -266,8 +271,14 @@ const Recommendation = () => {
         </div>
 
         {/* ---------- Price Range Bar and Values (Combined Card) ---------- */}
-        <div className="p-4 mx-4 mb-4 rounded-lg border" style={{ backgroundColor: COLORS.lightGray, }}>
-          <div className="mb-3 relative" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+        <div
+          className="p-4 mx-4 mb-4 rounded-lg border"
+          style={{ backgroundColor: COLORS.lightGray }}
+        >
+          <div
+            className="mb-3 relative"
+            style={{ paddingTop: "20px", paddingBottom: "20px" }}
+          >
             <div className="relative w-full h-4 bg-gray-300 rounded-full flex items-center">
               {/* CMP >= Entry Price: Green bar left to right */}
               {stock.cmp >= stock.entryPrice && (
@@ -322,7 +333,8 @@ const Recommendation = () => {
                     className="h-4 rounded-full transition-all duration-500 absolute"
                     style={{
                       width: `${Math.min(
-                        ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
+                        ((stock.entryPrice - stock.cmp) / stock.entryPrice) *
+                          50,
                         50
                       )}%`,
                       backgroundColor: COLORS.red,
@@ -339,13 +351,14 @@ const Recommendation = () => {
                   <div
                     className="absolute -top-5 text-xs font-semibold text-red-700"
                     style={{
-                      left: `${50 -
+                      left: `${
+                        50 -
                         Math.min(
                           ((stock.entryPrice - stock.cmp) / stock.entryPrice) *
                             50,
                           50
                         )
-                        }%`,
+                      }%`,
                       transform: "translateX(-50%)",
                     }}
                   >
@@ -365,7 +378,6 @@ const Recommendation = () => {
             <div>
               <div className="text-xs text-gray-500">Entry Price</div>₹
               {stock.entryPrice}
-              
             </div>
             <div>
               <div className="text-xs text-gray-500">CMP</div>₹{stock.cmp}
@@ -413,8 +425,12 @@ const Recommendation = () => {
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.gray }}>
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">All Recommendations</h1>
-          <p className="text-gray-600">Discover high-potential investment opportunities</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            All Recommendations
+          </h1>
+          <p className="text-gray-600">
+            Discover high-potential investment opportunities
+          </p>
         </div>
 
         {/* ---------- Search / Controls ---------- */}
@@ -469,7 +485,9 @@ const Recommendation = () => {
           {error && <div className="text-red-600">{error}</div>}
           {!loading &&
             !error &&
-            visibleStocks.map((stock) => <StockCard key={stock.id} stock={stock} />)}
+            visibleStocks.map((stock) => (
+              <StockCard key={stock.id} stock={stock} />
+            ))}
         </div>
 
         {/* Load More */}

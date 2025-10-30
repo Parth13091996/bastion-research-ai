@@ -3,13 +3,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
-import { ColDef } from "ag-grid-community";
-import { Download, RefreshCw } from "lucide-react";
+import { ColDef, ICellRendererParams } from "ag-grid-community";
+import { Download, RefreshCw, Edit } from "lucide-react";
 import {
   RecommendationRecord,
   fetchRecommendationsFromSheet,
-  getSheetUrl,
 } from "@/lib/recommendations";
+import axiosInstance from "@/api/axios";
+import { toast } from "sonner";
+import EditRecommendationModal from "@/components/core/common/Modals/EditRecommendationModal";
+
+export interface ExtendedRecommendation extends RecommendationRecord {
+  id?: number;
+  logo?: string;
+  business_note?: string;
+  quick_bite?: string;
+  video?: string;
+  exit_rationale?: string;
+  quarterly_update?: UpdateItem[];
+  announcements_and_update?: UpdateItem[];
+}
+
+export interface UpdateItem {
+  date: string;
+  title: string;
+  description: string;
+  pdf_url: string;
+}
 
 const toCsv = (rows: RecommendationRecord[]): string => {
   const headers = [
@@ -44,20 +64,46 @@ const toCsv = (rows: RecommendationRecord[]): string => {
 };
 
 const RecommendationManagement: React.FC = () => {
-  const [rows, setRows] = useState<RecommendationRecord[]>([]);
+  const [rows, setRows] = useState<ExtendedRecommendation[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
+  const [editingRecommendation, setEditingRecommendation] = useState<ExtendedRecommendation | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      const url = getSheetUrl();
-      const data = await fetchRecommendationsFromSheet(url);
-      setRows(data);
+      // Fetch from Google Sheets
+      const sheetData = await fetchRecommendationsFromSheet('recommendations');
+
+      // Fetch from database
+      const dbResponse = await axiosInstance.get("/api/recommendations");
+      const dbData = dbResponse.data || [];
+
+      // Merge sheet data with database data
+      const merged = sheetData.map((sheetRow) => {
+        const dbRow = dbData.find(
+          (db: any) => db.company_name === sheetRow.companyName
+        );
+        return {
+          ...sheetRow,
+          id: dbRow?.id,
+          logo: dbRow?.logo,
+          business_note: dbRow?.business_note,
+          quick_bite: dbRow?.quick_bite,
+          video: dbRow?.video,
+          exit_rationale: dbRow?.exit_rationale,
+          quarterly_update: dbRow?.quarterly_update || [],
+          announcements_and_update: dbRow?.announcements_and_update || [],
+        } as ExtendedRecommendation;
+      });
+
+      setRows(merged);
     } catch (e: any) {
       setError(e?.message || "Failed to load recommendations");
+      toast.error("Failed to load recommendations");
     } finally {
       setLoading(false);
     }
@@ -77,76 +123,114 @@ const RecommendationManagement: React.FC = () => {
     );
   }, [rows, search]);
 
+  const handleEdit = (recommendation: ExtendedRecommendation) => {
+    setEditingRecommendation(recommendation);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSave = async (updatedData: Partial<ExtendedRecommendation>) => {
+    try {
+      await axiosInstance.put(
+        `/api/recommendations/company/${encodeURIComponent(editingRecommendation?.companyName || '')}`,
+        {
+          company_name: editingRecommendation?.companyName,
+          ...updatedData,
+        }
+      );
+      toast.success("Recommendation updated successfully");
+      setIsEditModalOpen(false);
+      load(); // Reload data
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "Failed to update recommendation");
+    }
+  };
+
   const columns: ColDef[] = [
     {
       headerName: "Company",
       field: "companyName",
       flex: 2,
       minWidth: 200,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "Symbol",
       field: "nseSymbol",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "Recommended",
       field: "dateRecommended",
       flex: 1,
       minWidth: 140,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "Entry",
       field: "priceAtRecommendation",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "CMP/Exit",
       field: "cmpOrExitPrice",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "% Return",
       field: "percentReturn",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "Action",
       field: "action",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "Target",
       field: "targetPrice",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "Upside %",
       field: "upsidePotential",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
     },
     {
       headerName: "Mcap (Cr)",
       field: "latestMcapCr",
       flex: 1,
       minWidth: 120,
-      editable: true,
+      editable: false,
+    },
+    {
+      headerName: "Actions",
+      field: "actions",
+      flex: 1,
+      minWidth: 100,
+      cellRenderer: (params: ICellRendererParams) => (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handleEdit(params.data)}
+          className="mt-1"
+        >
+          <Edit className="h-4 w-4 mr-1" /> Edit
+        </Button>
+      ),
     },
   ];
 
@@ -177,7 +261,7 @@ const RecommendationManagement: React.FC = () => {
           </h1>
           <p className="text-muted-foreground">
             View and edit recommendations data from the configured Google Sheet.
-            You can export CSV and update your Sheet.
+            You can export CSV and update additional fields like PDFs, videos, and updates.
           </p>
         </div>
         <div className="flex gap-2">
@@ -207,12 +291,20 @@ const RecommendationManagement: React.FC = () => {
             columns={columns}
             loading={loading}
             error={error || undefined}
-            onCellValueChanged={onCellValueChanged}
             title="Recommendations"
             description={`${filtered.length} items`}
           />
         </CardContent>
       </Card>
+
+      {editingRecommendation && (
+        <EditRecommendationModal
+          open={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          recommendation={editingRecommendation}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 };

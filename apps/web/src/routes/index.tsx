@@ -50,7 +50,11 @@ const UserAdminTransactionHistory = lazy(
 );
 const UserAdminLogout = lazy(() => import("@/pages/UserAdmin/app/UserLogout"));
 const ViewResearch = lazy(() => import("@/pages/UserAdmin/app/ViewResearch"));
-const PremiumWebinars = lazy(() => import("@/pages/UserAdmin/app/PremiumWebinars"));
+const PremiumWebinars = lazy(
+  () => import("@/pages/UserAdmin/app/PremiumWebinars")
+);
+const ScratchPadList = lazy(() => import("@/pages/UserAdmin/app/ScratchPadList"));
+const ScratchPadView = lazy(() => import("@/pages/UserAdmin/app/ScratchPadView"));
 
 // Admin Pages
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
@@ -90,9 +94,6 @@ const WebinarEditor = lazy(
 const PodcastEditor = lazy(
   () => import("../pages/Admin/Content/PodcastEditor")
 );
-const ResearchManagement = lazy(
-  () => import("../pages/Admin/Content/ResearchManagement")
-);
 const RecommendationManagement = lazy(
   () => import("../pages/Admin/Content/RecommendationManagement")
 );
@@ -104,6 +105,12 @@ const TestimonialManagement = lazy(
 );
 const TestimonialEditor = lazy(
   () => import("../pages/Admin/Content/TestimonialEditor")
+);
+const ScratchPadManagement = lazy(
+  () => import("../pages/Admin/Content/ScratchPadManagement")
+);
+const ScratchPadEditor = lazy(
+  () => import("../pages/Admin/Content/ScratchPadEditor")
 );
 
 // Public Content Pages
@@ -125,11 +132,11 @@ const ResearchList = lazy(() => import("../pages/Research/ResearchListPage"));
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );
-const ResearchView = lazy(
-  () => import("../pages/Research/SingleResearchPage")
-);
+const ResearchView = lazy(() => import("../pages/Research/SingleResearchPage"));
 const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
-const IpoUserDashboardPage = lazy(() => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard"));
+const IpoUserDashboardPage = lazy(
+  () => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard")
+);
 
 export const routes: RouteObject[] = [
   {
@@ -243,10 +250,6 @@ export const routes: RouteObject[] = [
         element: <PodcastManagement />,
       },
       {
-        path: AppRoutes.adminResearchManagement(),
-        element: <ResearchManagement />,
-      },
-      {
         path: AppRoutes.adminRecommendationManagement(),
         element: <RecommendationManagement />,
       },
@@ -294,6 +297,18 @@ export const routes: RouteObject[] = [
         path: AppRoutes.adminTestimonialEdit(),
         element: <TestimonialEditor />,
       },
+      {
+        path: "/admin/content/scratch-pad",
+        element: <ScratchPadManagement />,
+      },
+      {
+        path: "/admin/content/scratch-pad/new",
+        element: <ScratchPadEditor />,
+      },
+      {
+        path: "/admin/content/scratch-pad/:id/edit",
+        element: <ScratchPadEditor />,
+      },
     ],
   },
   {
@@ -314,6 +329,8 @@ export const routes: RouteObject[] = [
           { path: "app/view-research", element: <ViewResearch /> },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
           { path: "app/premium-webinars", element: <PremiumWebinars /> },
+          { path: "app/scratch-pad", element: <ScratchPadList /> },
+          { path: "app/scratch-pad/:slug", element: <ScratchPadView /> },
           {
             path: "app/account/edit-profile",
             element: <UserAdminEditProfile />,

@@ -21,6 +21,8 @@ import filesRoutes from "./routes/files.routes";
 import digioRoutes from "./routes/digio.routes";
 import mailChimpRoutes from "./routes/mailchimp.routes";
 import recommendationRoutes from "./routes/recommendation.routes";
+import settingsRoutes from "./routes/settings.routes";
+import scratchPadRoutes from "./routes/scratchpad.routes";
 
 dotenv.config();
 
@@ -69,6 +71,8 @@ app.use("/api/images", imagesRoutes);
 app.use("/api/files", filesRoutes);
 app.use("/api/digio", digioRoutes);
 app.use("/api", recommendationRoutes);
+app.use("/api", settingsRoutes);
+app.use("/api", scratchPadRoutes);
 
 app.set("trust proxy", 1); // if you use secure cookies or rely on req.protocol
 

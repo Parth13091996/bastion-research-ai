@@ -75,6 +75,13 @@ export const endpoints = {
       get: "/api/admin/settings/contact-email",
       update: "/api/admin/settings/contact-email",
     },
+    admin: {
+      get: "/api/admin/settings",
+      update: "/api/admin/settings",
+    },
+    public: {
+      get: "/api/settings",
+    },
   },
   content: {
     research: {

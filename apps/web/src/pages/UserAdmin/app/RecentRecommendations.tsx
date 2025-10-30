@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
 import {
   fetchRecommendationsFromSheet,
   getSheetUrl,
 } from "@/lib/recommendations";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 interface StockData {
   id: string;
@@ -41,7 +40,7 @@ const useSheetStocks = () => {
   useEffect(() => {
     (async () => {
       try {
-        const url = getSheetUrl();
+        const url = await getSheetUrl("live");
         const recs = await fetchRecommendationsFromSheet(url);
         const transformed: StockData[] = recs.map((r, idx) => ({
           id: `${idx}-${r.nseSymbol || r.companyName}`,

@@ -21,6 +21,7 @@ export const AppRoutes = {
   about: () => "/about",
   test: () => "/test",
   newsletter: () => "/newsletters-archive",
+  scratch_pad_newsletter: () => "/user/app/scratch-pad",
   webinar: () => "/webinars",
   smartFrameworks: () => "/smart-frameworks",
   research: () => "/research",
@@ -66,9 +67,7 @@ export const AppRoutes = {
   podcastView: () => "/podcasts/:id",
   researchView: () => "/research/:id",
   ipoLanding: () => "/ipo-landing",
-  
 };
-
 
 export const AuthRoutes = [
   AppRoutes.login(),

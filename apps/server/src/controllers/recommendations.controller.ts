@@ -9,9 +9,29 @@ export const getRecommendations = async (req: Request, res: Response) => {
   return res.status(200).json(data);
 };
 
+export const getRecommendationByCompany = async (req: Request, res: Response) => {
+  const { companyName } = req.params;
+  const { data, error } = await supabase
+    .from("recommendations")
+    .select("*")
+    .eq("company_name", companyName)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No rows found
+      return res.status(404).json({ error: "Recommendation not found" });
+    }
+    return res.status(500).json({ error: error.message });
+  }
+  return res.status(200).json(data);
+};
+
 export const createRecommendation = async (req: Request, res: Response) => {
   try {
     const {
+      logo,
+      company_name,
       business_note,
       quick_bite,
       video,
@@ -20,23 +40,18 @@ export const createRecommendation = async (req: Request, res: Response) => {
       announcements_and_update = [],
     } = req.body ?? {};
 
-    if (
-      !business_note &&
-      !quick_bite &&
-      !video &&
-      !exit_rationale &&
-      quarterly_update.length === 0 &&
-      announcements_and_update.length === 0
-    ) {
+    if (!company_name) {
       return res
         .status(400)
-        .json({ error: "At least one update field is required" });
+        .json({ error: "Company name is required" });
     }
 
     const { data, error } = await supabase
       .from("recommendations")
       .insert([
         {
+          logo,
+          company_name,
           business_note,
           quick_bite,
           video,
@@ -62,6 +77,8 @@ export const createRecommendation = async (req: Request, res: Response) => {
 export const updateRecommendation = async (req: Request, res: Response) => {
   const { id } = req.params;
   const {
+    logo,
+    company_name,
     business_note,
     quick_bite,
     video,
@@ -69,16 +86,20 @@ export const updateRecommendation = async (req: Request, res: Response) => {
     quarterly_update,
     announcements_and_update,
   } = req.body ?? {};
+
+  const updateData: any = {};
+  if (logo !== undefined) updateData.logo = logo;
+  if (company_name !== undefined) updateData.company_name = company_name;
+  if (business_note !== undefined) updateData.business_note = business_note;
+  if (quick_bite !== undefined) updateData.quick_bite = quick_bite;
+  if (video !== undefined) updateData.video = video;
+  if (exit_rationale !== undefined) updateData.exit_rationale = exit_rationale;
+  if (quarterly_update !== undefined) updateData.quarterly_update = quarterly_update;
+  if (announcements_and_update !== undefined) updateData.announcements_and_update = announcements_and_update;
+
   const { data, error } = await supabase
     .from("recommendations")
-    .update({
-      business_note,
-      quick_bite,
-      video,
-      exit_rationale,
-      quarterly_update,
-      announcements_and_update,
-    })
+    .update(updateData)
     .eq("id", id)
     .select();
 
@@ -86,6 +107,54 @@ export const updateRecommendation = async (req: Request, res: Response) => {
     return res.status(500).json({ error: error.message });
   }
   res.status(200).json(data);
+};
+
+export const upsertRecommendationByCompany = async (req: Request, res: Response) => {
+  try {
+    const {
+      logo,
+      company_name,
+      business_note,
+      quick_bite,
+      video,
+      exit_rationale,
+      quarterly_update = [],
+      announcements_and_update = [],
+    } = req.body ?? {};
+
+    if (!company_name) {
+      return res
+        .status(400)
+        .json({ error: "Company name is required" });
+    }
+
+    const { data, error } = await supabase
+      .from("recommendations")
+      .upsert(
+        {
+          logo,
+          company_name,
+          business_note,
+          quick_bite,
+          video,
+          exit_rationale,
+          quarterly_update,
+          announcements_and_update,
+        },
+        { onConflict: "company_name" }
+      )
+      .select();
+
+    if (error) {
+      console.error("Database error:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Recommendation upsert error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const deleteRecommendation = async (req: Request, res: Response) => {

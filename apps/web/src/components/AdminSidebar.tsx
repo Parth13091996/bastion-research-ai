@@ -20,6 +20,7 @@ import {
   Mic,
   Video,
   Star,
+  BookOpen,
 } from "lucide-react";
 import { AppRoutes } from "../routes/app-routes";
 
@@ -95,14 +96,14 @@ const navItems = [
         path: AppRoutes.adminWebinarManagement(),
       },
       {
-        name: "Research",
-        icon: FileText,
-        path: AppRoutes.adminResearchManagement(),
-      },
-      {
         name: "Testimonials",
         icon: Star,
         path: AppRoutes.adminTestimonialManagement(),
+      },
+      {
+        name: "Scratch Pad",
+        icon: BookOpen,
+        path: "/admin/content/scratch-pad",
       },
     ],
   },
@@ -239,7 +240,9 @@ const AdminSidebar = () => {
                   )}
                   {/* Tooltip for collapsed mode */}
                   {isCollapsed && (
-                    <SidebarTooltip tooltipId={item.name}>{item.name}</SidebarTooltip>
+                    <SidebarTooltip tooltipId={item.name}>
+                      {item.name}
+                    </SidebarTooltip>
                   )}
                 </button>
 
@@ -281,7 +284,9 @@ const AdminSidebar = () => {
                   {!isCollapsed && <span className="ml-4">{item.name}</span>}
                 </NavLink>
                 {isCollapsed && (
-                  <SidebarTooltip tooltipId={item.name}>{item.name}</SidebarTooltip>
+                  <SidebarTooltip tooltipId={item.name}>
+                    {item.name}
+                  </SidebarTooltip>
                 )}
               </div>
             )}
