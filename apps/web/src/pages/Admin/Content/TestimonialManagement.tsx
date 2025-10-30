@@ -87,7 +87,7 @@ const TestimonialManagement: React.FC = () => {
   };
 
   const handleView = (id: string) => {
-    navigate(`/testimonials#${id}`);
+    navigate(`/bastion-core#testimonials`);
   };
 
   const handleCreate = () => {
