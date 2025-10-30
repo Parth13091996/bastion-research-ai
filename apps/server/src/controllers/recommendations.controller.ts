@@ -9,7 +9,29 @@ export const getRecommendations = async (req: Request, res: Response) => {
   return res.status(200).json(data);
 };
 
-export const getRecommendationByCompany = async (req: Request, res: Response) => {
+// Controller to get recommendation by ID
+export const getRecommendationById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { data, error } = await supabase
+    .from("recommendations")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      // No rows found
+      return res.status(404).json({ error: "Recommendation not found" });
+    }
+    return res.status(500).json({ error: error.message });
+  }
+  return res.status(200).json(data);
+};
+
+export const getRecommendationByCompany = async (
+  req: Request,
+  res: Response
+) => {
   const { companyName } = req.params;
   const { data, error } = await supabase
     .from("recommendations")
@@ -18,7 +40,7 @@ export const getRecommendationByCompany = async (req: Request, res: Response) =>
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116') {
+    if (error.code === "PGRST116") {
       // No rows found
       return res.status(404).json({ error: "Recommendation not found" });
     }
@@ -41,9 +63,7 @@ export const createRecommendation = async (req: Request, res: Response) => {
     } = req.body ?? {};
 
     if (!company_name) {
-      return res
-        .status(400)
-        .json({ error: "Company name is required" });
+      return res.status(400).json({ error: "Company name is required" });
     }
 
     const { data, error } = await supabase
@@ -94,8 +114,10 @@ export const updateRecommendation = async (req: Request, res: Response) => {
   if (quick_bite !== undefined) updateData.quick_bite = quick_bite;
   if (video !== undefined) updateData.video = video;
   if (exit_rationale !== undefined) updateData.exit_rationale = exit_rationale;
-  if (quarterly_update !== undefined) updateData.quarterly_update = quarterly_update;
-  if (announcements_and_update !== undefined) updateData.announcements_and_update = announcements_and_update;
+  if (quarterly_update !== undefined)
+    updateData.quarterly_update = quarterly_update;
+  if (announcements_and_update !== undefined)
+    updateData.announcements_and_update = announcements_and_update;
 
   const { data, error } = await supabase
     .from("recommendations")
@@ -109,7 +131,10 @@ export const updateRecommendation = async (req: Request, res: Response) => {
   res.status(200).json(data);
 };
 
-export const upsertRecommendationByCompany = async (req: Request, res: Response) => {
+export const upsertRecommendationByCompany = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const {
       logo,
@@ -123,9 +148,7 @@ export const upsertRecommendationByCompany = async (req: Request, res: Response)
     } = req.body ?? {};
 
     if (!company_name) {
-      return res
-        .status(400)
-        .json({ error: "Company name is required" });
+      return res.status(400).json({ error: "Company name is required" });
     }
 
     const { data, error } = await supabase

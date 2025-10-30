@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Upload } from "lucide-react";
+import { X, Upload, Plus, Trash2, Edit2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +9,14 @@ import { endpoints } from "@/api/endpoints"; // Adjust path as needed
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 
 // Define interfaces for JSONB fields
@@ -83,6 +91,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   onSave,
 }) => {
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [quarterlyUpdates, setQuarterlyUpdates] = useState<UpdateItem[]>([]);
+  const [announcements, setAnnouncements] = useState<UpdateItem[]>([]);
+  const [editingQuarterly, setEditingQuarterly] = useState<number | null>(null);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -114,15 +127,13 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         quick_bite: record.quick_bite || "",
         video: record.video || "",
         exit_rationale: record.exit_rationale || "",
-        quarterly_update: JSON.stringify(record.quarterly_update || [], null, 2),
-        announcements_and_update: JSON.stringify(
-          record.announcements_and_update || [],
-          null,
-          2
-        ),
       });
+      setQuarterlyUpdates(record.quarterly_update || []);
+      setAnnouncements(record.announcements_and_update || []);
     } else if (!open) {
       reset();
+      setQuarterlyUpdates([]);
+      setAnnouncements([]);
     }
   }, [open, record, reset]);
 
@@ -149,36 +160,62 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     }
   };
 
+  const handleAddQuarterlyUpdate = () => {
+    setQuarterlyUpdates([
+      ...quarterlyUpdates,
+      { date: "", title: "", description: "", pdf_url: "" },
+    ]);
+    setEditingQuarterly(quarterlyUpdates.length);
+  };
+
+  const handleRemoveQuarterlyUpdate = (index: number) => {
+    setQuarterlyUpdates(quarterlyUpdates.filter((_, i) => i !== index));
+    if (editingQuarterly === index) setEditingQuarterly(null);
+  };
+
+  const handleUpdateQuarterlyUpdate = (
+    index: number,
+    field: keyof UpdateItem,
+    value: string
+  ) => {
+    const updated = [...quarterlyUpdates];
+    updated[index] = { ...updated[index], [field]: value };
+    setQuarterlyUpdates(updated);
+  };
+
+  const handleAddAnnouncement = () => {
+    setAnnouncements([
+      ...announcements,
+      { date: "", title: "", description: "", pdf_url: "" },
+    ]);
+    setEditingAnnouncement(announcements.length);
+  };
+
+  const handleRemoveAnnouncement = (index: number) => {
+    setAnnouncements(announcements.filter((_, i) => i !== index));
+    if (editingAnnouncement === index) setEditingAnnouncement(null);
+  };
+
+  const handleUpdateAnnouncement = (
+    index: number,
+    field: keyof UpdateItem,
+    value: string
+  ) => {
+    const updated = [...announcements];
+    updated[index] = { ...updated[index], [field]: value };
+    setAnnouncements(updated);
+  };
+
   const onSubmit = async (data: RecommendationFormValues) => {
     try {
-      // Parse JSON fields
-      let quarterly_update = [];
-      let announcements_and_update = [];
-
-      try {
-        quarterly_update = JSON.parse(data.quarterly_update || "[]");
-      } catch (e) {
-        toast.error("Invalid JSON in Quarterly Update field");
-        return;
-      }
-
-      try {
-        announcements_and_update = JSON.parse(
-          data.announcements_and_update || "[]"
-        );
-      } catch (e) {
-        toast.error("Invalid JSON in Announcements and Update field");
-        return;
-      }
-
       const updatedData = {
         logo: data.logo,
         business_note: data.business_note,
         quick_bite: data.quick_bite,
         video: data.video,
         exit_rationale: data.exit_rationale,
-        quarterly_update,
-        announcements_and_update,
+        quarterly_update: quarterlyUpdates,
+        announcements_and_update: announcements,
       };
 
       await onSave(updatedData);
@@ -364,40 +401,281 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </div>
               </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="font-medium text-lg">Updates & Announcements (JSON Arrays)</h3>
-              <p className="text-sm text-gray-600">
-                Format: [{JSON.stringify({ date: "2024-01-15", title: "Q1 Update", description: "Description", pdf_url: "https://..." })}]
-              </p>
-
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Quarterly Updates</label>
-                <Textarea
-                  {...register("quarterly_update")}
-                  rows={6}
-                  className="font-mono text-sm"
-                  placeholder='[{"date":"2024-01-15","title":"Q1 Update","description":"...","pdf_url":"https://..."}]'
-                />
-                {errors.quarterly_update && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.quarterly_update.message}
-                  </p>
-                )}
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-medium text-lg">Quarterly Updates</h3>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddQuarterlyUpdate}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Update
+                  </Button>
+                </div>
+                <div className="border rounded-md overflow-hidden">
+                  {quarterlyUpdates.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No quarterly updates. Click "Add Update" to create one.
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[120px]">Date</TableHead>
+                          <TableHead className="w-[180px]">Title</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="w-[200px]">PDF URL</TableHead>
+                          <TableHead className="w-[100px] text-center">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {quarterlyUpdates.map((update, index) => (
+                          <TableRow key={index}>
+                            {editingQuarterly === index ? (
+                              <>
+                                <TableCell>
+                                  <Input
+                                    type="date"
+                                    value={update.date}
+                                    onChange={(e) =>
+                                      handleUpdateQuarterlyUpdate(index, "date", e.target.value)
+                                    }
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={update.title}
+                                    onChange={(e) =>
+                                      handleUpdateQuarterlyUpdate(index, "title", e.target.value)
+                                    }
+                                    placeholder="Title"
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Textarea
+                                    value={update.description}
+                                    onChange={(e) =>
+                                      handleUpdateQuarterlyUpdate(index, "description", e.target.value)
+                                    }
+                                    placeholder="Description"
+                                    rows={2}
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={update.pdf_url}
+                                    onChange={(e) =>
+                                      handleUpdateQuarterlyUpdate(index, "pdf_url", e.target.value)
+                                    }
+                                    placeholder="https://..."
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setEditingQuarterly(null)}
+                                  >
+                                    Done
+                                  </Button>
+                                </TableCell>
+                              </>
+                            ) : (
+                              <>
+                                <TableCell className="text-sm">{update.date || "-"}</TableCell>
+                                <TableCell className="text-sm font-medium">{update.title || "-"}</TableCell>
+                                <TableCell className="text-sm text-gray-600">
+                                  <div className="max-w-xs truncate" title={update.description}>
+                                    {update.description || "-"}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  {update.pdf_url ? (
+                                    <a
+                                      href={update.pdf_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline truncate block max-w-[180px]"
+                                    >
+                                      View PDF
+                                    </a>
+                                  ) : (
+                                    "-"
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-center space-x-1">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setEditingQuarterly(index)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => handleRemoveQuarterlyUpdate(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </>
+                            )}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Announcements & Updates</label>
-                <Textarea
-                  {...register("announcements_and_update")}
-                  rows={6}
-                  className="font-mono text-sm"
-                  placeholder='[{"date":"2024-01-15","title":"Announcement","description":"...","pdf_url":"https://..."}]'
-                />
-                {errors.announcements_and_update && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.announcements_and_update.message}
-                  </p>
-                )}
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-medium text-lg">Announcements & Updates</h3>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddAnnouncement}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Announcement
+                  </Button>
+                </div>
+                <div className="border rounded-md overflow-hidden">
+                  {announcements.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No announcements. Click "Add Announcement" to create one.
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[120px]">Date</TableHead>
+                          <TableHead className="w-[180px]">Title</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="w-[200px]">PDF URL</TableHead>
+                          <TableHead className="w-[100px] text-center">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {announcements.map((announcement, index) => (
+                          <TableRow key={index}>
+                            {editingAnnouncement === index ? (
+                              <>
+                                <TableCell>
+                                  <Input
+                                    type="date"
+                                    value={announcement.date}
+                                    onChange={(e) =>
+                                      handleUpdateAnnouncement(index, "date", e.target.value)
+                                    }
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={announcement.title}
+                                    onChange={(e) =>
+                                      handleUpdateAnnouncement(index, "title", e.target.value)
+                                    }
+                                    placeholder="Title"
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Textarea
+                                    value={announcement.description}
+                                    onChange={(e) =>
+                                      handleUpdateAnnouncement(index, "description", e.target.value)
+                                    }
+                                    placeholder="Description"
+                                    rows={2}
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={announcement.pdf_url}
+                                    onChange={(e) =>
+                                      handleUpdateAnnouncement(index, "pdf_url", e.target.value)
+                                    }
+                                    placeholder="https://..."
+                                    className="text-sm"
+                                  />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setEditingAnnouncement(null)}
+                                  >
+                                    Done
+                                  </Button>
+                                </TableCell>
+                              </>
+                            ) : (
+                              <>
+                                <TableCell className="text-sm">{announcement.date || "-"}</TableCell>
+                                <TableCell className="text-sm font-medium">{announcement.title || "-"}</TableCell>
+                                <TableCell className="text-sm text-gray-600">
+                                  <div className="max-w-xs truncate" title={announcement.description}>
+                                    {announcement.description || "-"}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  {announcement.pdf_url ? (
+                                    <a
+                                      href={announcement.pdf_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline truncate block max-w-[180px]"
+                                    >
+                                      View PDF
+                                    </a>
+                                  ) : (
+                                    "-"
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-center space-x-1">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setEditingAnnouncement(index)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => handleRemoveAnnouncement(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </>
+                            )}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -2,26 +2,18 @@ import type { Request, Response } from "express";
 import { randomUUID } from "crypto";
 import { supabase } from "../supabase";
 
-/**
- * Upload a single PDF file to Supabase Storage and return its public URL.
- * - Expects multipart/form-data with field name `file`.
- * - Stores under path: `docs/<uuid>.pdf` in the configured bucket.
- */
-export async function uploadPdf(req: Request, res: Response) {
+export async function uploadFile(req: Request, res: Response) {
   try {
-    const bucket = process.env.SUPABASE_STORAGE_BUCKET || "public";
+    const bucket = process.env.SUPABASE_FILE_STORAGE_BUCKET || "files";
 
     const file = (req as any)?.file as Express.Multer.File | undefined;
+    console.log({ type: file?.mimetype });
     if (!file) {
       return res.status(400).json({ error: "No file provided" });
     }
 
-    if (file.mimetype !== "application/pdf") {
-      return res.status(400).json({ error: "Only PDF files are allowed" });
-    }
-
-    const filename = `${randomUUID()}.pdf`;
-    const storagePath = `docs/${filename}`;
+    const filename = `${randomUUID()}.${file?.mimetype}`;
+    const storagePath = `${filename}`;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)

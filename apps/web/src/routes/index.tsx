@@ -49,7 +49,9 @@ const UserAdminTransactionHistory = lazy(
   () => import("@/pages/UserAdmin/app/TransactionHistory")
 );
 const UserAdminLogout = lazy(() => import("@/pages/UserAdmin/app/UserLogout"));
-const ViewResearch = lazy(() => import("@/pages/UserAdmin/app/ViewResearch"));
+const ViewResearch = lazy(
+  () => import("@/pages/UserAdmin/app/SingleRecommendation")
+);
 const PremiumWebinars = lazy(
   () => import("@/pages/UserAdmin/app/PremiumWebinars")
 );
@@ -331,7 +333,7 @@ export const routes: RouteObject[] = [
           { path: "app/", element: <UserAdminDashboard /> },
           { path: "app/dashboard", element: <UserAdminDashboard /> },
           { path: "app/recommendation", element: <UserAdminRecommendation /> },
-          { path: "app/view-research", element: <ViewResearch /> },
+          { path: "app/view-research/:id", element: <ViewResearch /> },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
           { path: "app/premium-webinars", element: <PremiumWebinars /> },
           { path: "app/scratch-pad", element: <ScratchPadList /> },

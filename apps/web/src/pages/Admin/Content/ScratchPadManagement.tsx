@@ -4,9 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { DataTable } from "@/components/ui/data-table";
-import { ColDef } from "ag-grid-community";
-import { Plus, RefreshCw, Edit, Trash2, Eye } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, RefreshCw, Edit, Trash2, Eye, Calendar } from "lucide-react";
 import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad";
 import { toast } from "sonner";
 import {
@@ -78,96 +84,14 @@ const ScratchPadManagement: React.FC = () => {
       .includes(search.toLowerCase())
   );
 
-  const columns: ColDef[] = [
-    {
-      headerName: "Title",
-      field: "title",
-      flex: 2,
-      minWidth: 200,
-    },
-    {
-      headerName: "Author",
-      field: "author",
-      flex: 1,
-      minWidth: 120,
-    },
-    {
-      headerName: "Published",
-      field: "is_published",
-      flex: 1,
-      minWidth: 100,
-      cellRenderer: (params: any) => (
-        <Badge variant={params.value ? "default" : "secondary"}>
-          {params.value ? "Published" : "Draft"}
-        </Badge>
-      ),
-    },
-    {
-      headerName: "Date",
-      field: "published_date",
-      flex: 1,
-      minWidth: 140,
-      valueFormatter: (params: any) => {
-        if (!params.value) return "Not published";
-        return new Date(params.value).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        });
-      },
-    },
-    {
-      headerName: "Tags",
-      field: "tags",
-      flex: 1,
-      minWidth: 150,
-      cellRenderer: (params: any) => (
-        <div className="flex gap-1 flex-wrap">
-          {(params.value || []).slice(0, 2).map((tag: string, idx: number) => (
-            <Badge key={idx} variant="outline" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-          {(params.value || []).length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{(params.value || []).length - 2}
-            </Badge>
-          )}
-        </div>
-      ),
-    },
-    {
-      headerName: "Actions",
-      field: "actions",
-      flex: 1,
-      minWidth: 150,
-      cellRenderer: (params: any) => (
-        <div className="flex gap-2 mt-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleEdit(params.data.id)}
-          >
-            <Edit className="h-3 w-3 mr-1" /> Edit
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => handleView(params.data.slug)}
-          >
-            <Eye className="h-3 w-3 mr-1" /> View
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => setDeleteId(params.data.id)}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Not published";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -202,14 +126,115 @@ const ScratchPadManagement: React.FC = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <DataTable
-            data={filtered}
-            columns={columns}
-            loading={loading}
-            error={error || undefined}
-            title="Newsletters"
-            description={`${filtered.length} items`}
-          />
+
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">{error}</div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-8">
+              <h3 className="text-lg font-medium mb-2">No newsletters found</h3>
+              <p className="text-gray-600 mb-4">
+                {search
+                  ? "Try adjusting your search"
+                  : "Get started by creating your first newsletter"}
+              </p>
+              {!search && (
+                <Button onClick={handleCreate}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Newsletter
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Author</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead className="w-[200px] text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((newsletter) => (
+                  <TableRow key={newsletter.id}>
+                    <TableCell className="font-medium">
+                      <div className="max-w-xs truncate" title={newsletter.title}>
+                        {newsletter.title}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="text-gray-600">{newsletter.author}</div>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge variant={newsletter.is_published ? "default" : "secondary"}>
+                        {newsletter.is_published ? "Published" : "Draft"}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {formatDate(newsletter.published_date)}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {(newsletter.tags || []).slice(0, 2).map((tag: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {(newsletter.tags || []).length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{(newsletter.tags || []).length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="flex justify-center space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="View"
+                        className="hover:bg-blue-100 hover:text-blue-600"
+                        onClick={() => handleView(newsletter.slug)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="Edit"
+                        className="hover:bg-yellow-100 hover:text-yellow-600"
+                        onClick={() => handleEdit(newsletter.id)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        title="Delete"
+                        className="hover:bg-red-600 hover:text-white"
+                        onClick={() => setDeleteId(newsletter.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

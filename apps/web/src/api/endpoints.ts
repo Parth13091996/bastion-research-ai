@@ -147,8 +147,8 @@ export const endpoints = {
     },
   },
   recommendations: {
-    base: "/recommendations/",
-    byId: (id: string) => `/recommendations/${id}`,
+    base: "/api/recommendations/",
+    byId: (id: string) => `/api/recommendations/${id}`,
   },
 } as const;
 

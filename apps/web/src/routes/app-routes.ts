@@ -64,6 +64,7 @@ export const AppRoutes = {
   adminTestimonialCreate: () => "/admin/content/testimonials/create",
   adminTestimonialEdit: () => "/admin/content/testimonials/:id/edit",
   adminRecommendationManagement: () => "/admin/content/recommendations",
+
   // Public content routes
   newsletterView: () => "/newsletters/:id",
   webinarView: () => "/webinars/:id",

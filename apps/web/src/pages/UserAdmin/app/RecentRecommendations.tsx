@@ -1,23 +1,6 @@
-import {
-  fetchRecommendationsFromSheet,
-  getSheetUrl,
-} from "@/lib/recommendations";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-
-interface StockData {
-  id: string;
-  name: string;
-  code: string;
-  marketCap: string;
-  upside: number;
-  cmp: number;
-  entryPrice: number;
-  target1: number;
-  sector: string;
-  band: "BUY" | "HOLD" | "EXITED";
-  lastUpdated: string;
-}
+import useSheetStocks from "@/hooks/use-sheets-stocks";
 
 const getBandColor = (band: string) => {
   switch (band) {
@@ -32,43 +15,8 @@ const getBandColor = (band: string) => {
   }
 };
 
-const useSheetStocks = () => {
-  const [stocks, setStocks] = useState<StockData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const url = await getSheetUrl("live");
-        const recs = await fetchRecommendationsFromSheet(url);
-        const transformed: StockData[] = recs.map((r, idx) => ({
-          id: `${idx}-${r.nseSymbol || r.companyName}`,
-          name: r.companyName,
-          code: r.nseSymbol || "",
-          marketCap: r.latestMcapCr ? `₹${r.latestMcapCr} Cr.` : "₹0 Cr.",
-          upside: Math.round(r.upsidePotential || 0),
-          cmp: Math.round(r.cmpOrExitPrice || 0),
-          entryPrice: Math.round(r.priceAtRecommendation || 0),
-          target1: Math.round(r.targetPrice || 0),
-          sector: (r as any).sector || "",
-          band: (r.action?.toUpperCase() as any) || "BUY",
-          lastUpdated: (r.dateRecommended || "").toString(),
-        }));
-        setStocks(transformed);
-      } catch (e: any) {
-        setError(e?.message || "Failed to load recommendations");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  return { stocks, loading, error };
-};
-
 const RecentRecommendations: React.FC = () => {
-  const { stocks, loading, error } = useSheetStocks();
+  const { stocks, loading, error } = useSheetStocks(true);
 
   const sorted = [...stocks].sort(
     (a, b) =>
@@ -112,7 +60,7 @@ const RecentRecommendations: React.FC = () => {
 
       <div className="space-y-3 sm:space-y-4 flex flex-col gap-1">
         {latestStocks.map((stock) => (
-          <Link to="/user/app/view-research" state={{ stock }}>
+          <Link to="/user/app/view-research" key={stock.id}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border rounded-lg hover:bg-gray-50 transition-colors gap-3">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div
