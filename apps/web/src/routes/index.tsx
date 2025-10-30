@@ -103,9 +103,6 @@ const PodcastEditor = lazy(
 const RecommendationManagement = lazy(
   () => import("../pages/Admin/Content/RecommendationManagement")
 );
-const ResearchEditor = lazy(
-  () => import("../pages/Admin/Content/ResearchEditor")
-);
 const TestimonialManagement = lazy(
   () => import("../pages/Admin/Content/TestimonialManagement")
 );
@@ -283,14 +280,6 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminPodcastEdit(),
         element: <PodcastEditor />,
-      },
-      {
-        path: AppRoutes.adminResearchCreate(),
-        element: <ResearchEditor />,
-      },
-      {
-        path: AppRoutes.adminResearchEdit(),
-        element: <ResearchEditor />,
       },
       {
         path: AppRoutes.adminTestimonialManagement(),
