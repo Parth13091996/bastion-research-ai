@@ -25,6 +25,7 @@ import {
   getAdminRecommendationsSheetUrl,
   getLiveRecommendationsSheetUrl,
 } from "@/api/recommendations-apis";
+import { formatDate } from "./utils";
 
 /**
  * Gets the Google Sheet URL for recommendations or live recommendations.
@@ -47,30 +48,6 @@ export const getSheetUrl = async (
       return "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=0#gid=0";
     }
   }
-};
-
-const formatDate = (dateStr: string): string => {
-  if (!dateStr) return "";
-
-  const match = dateStr.match(/Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/);
-  let parsedDate: Date;
-
-  if (match) {
-    const year = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10);
-    const day = parseInt(match[3], 10);
-    parsedDate = new Date(year, month, day);
-  } else {
-    parsedDate = new Date(dateStr);
-  }
-
-  if (isNaN(parsedDate.getTime())) return dateStr;
-
-  return parsedDate.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 };
 
 export const mapRow = (row: RowObject): RecommendationRecord => {
@@ -174,24 +151,6 @@ export const fetchRecommendationsFromSheet = async (
     return rows.map(liveRecMapRow).filter(Boolean);
   }
 };
-
-export interface DashboardMetrics {
-  liveCount: number;
-  avgLiveReturn: number;
-  highCount: number;
-  mediumCount: number;
-  lowCount: number;
-  topGainer?: RecommendationRecord;
-  topLoser?: RecommendationRecord;
-
-  exitCount: number;
-  avgExitReturn: number;
-  profitExits: number;
-  lossExits: number;
-  successRate: number;
-  bestExit?: RecommendationRecord;
-  worstExit?: RecommendationRecord;
-}
 
 export const computeMetrics = (
   recs: RecommendationRecord[]

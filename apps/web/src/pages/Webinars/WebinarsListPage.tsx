@@ -50,7 +50,7 @@ const PublicWebinarsPage = () => {
   };
 
   const handleShare = (id: string) => {
-    const path = AppRoutes.webinarView().replace(":id", id);
+    const path = AppRoutes.webinarView.replace(":id", id);
     const link = `${window.location.origin}${path}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copied to clipboard!");
@@ -96,7 +96,7 @@ const PublicWebinarsPage = () => {
                 const videoId = new URL(webinar.video_url).pathname
                   .split("/")
                   .at(-1);
-                const link = AppRoutes.webinarView().replace(":id", webinar.id);
+                const link = AppRoutes.webinarView.replace(":id", webinar.id);
 
                 return (
                   <Link

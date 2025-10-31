@@ -49,12 +49,12 @@ const Login = () => {
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
         setTimeout(() => {
-          navigate(AppRoutes.register(), { replace: true });
+          navigate(AppRoutes.register, { replace: true });
         }, 100);
       } else {
         toast.success("Login successful! Redirecting to dashboard...");
         setTimeout(() => {
-          navigate(AppRoutes.dashboard(), { replace: true });
+          navigate(AppRoutes.dashboard, { replace: true });
         }, 100);
       }
     },
@@ -97,7 +97,7 @@ const Login = () => {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate(AppRoutes.dashboard(), { replace: true });
+      navigate(AppRoutes.dashboard, { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -232,7 +232,7 @@ const Login = () => {
 
                   <div className="flex items-end justify-end">
                     <Link
-                      to={AppRoutes.forgotPassword()}
+                      to={AppRoutes.forgotPassword}
                       className="text-sm text-red-600 hover:underline font-medium"
                     >
                       Forgot password?
@@ -277,7 +277,7 @@ const Login = () => {
                     Don't have an account?{" "}
                   </span>{" "}
                   <Link
-                    to={AppRoutes.register()}
+                    to={AppRoutes.register}
                     className="text-sm text-red-600 hover:underline font-medium"
                   >
                     {" "}

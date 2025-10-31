@@ -28,7 +28,7 @@ const navItems = [
   {
     name: "Dashboard",
     icon: LayoutDashboard,
-    path: AppRoutes.adminDashboard(),
+    path: AppRoutes.adminDashboard,
   },
   {
     name: "AR Members",
@@ -37,37 +37,37 @@ const navItems = [
       {
         name: "Manage Members",
         icon: Contact,
-        path: AppRoutes.adminManageMembers(),
+        path: AppRoutes.adminManageMembers,
       },
       {
         name: "Add User",
         icon: UserPlus,
-        path: AppRoutes.adminAddUser(),
+        path: AppRoutes.adminAddUser,
       },
       {
         name: "Profile",
         icon: Contact,
-        path: AppRoutes.adminProfile(),
+        path: AppRoutes.adminProfile,
       },
       {
         name: "Manage Plans",
         icon: FileText,
-        path: AppRoutes.adminManagePlans(),
+        path: AppRoutes.adminManagePlans,
       },
       {
         name: "Manage Subscriptions",
         icon: Calendar,
-        path: AppRoutes.adminManageSubscriptions(),
+        path: AppRoutes.adminManageSubscriptions,
       },
       {
         name: "Payment History",
         icon: CreditCard,
-        path: AppRoutes.adminPaymentHistory(),
+        path: AppRoutes.adminPaymentHistory,
       },
       {
         name: "Coupon Management",
         icon: Gift,
-        path: AppRoutes.adminCouponManagement(),
+        path: AppRoutes.adminCouponManagement,
       },
     ],
   },
@@ -78,27 +78,27 @@ const navItems = [
       {
         name: "News Letter",
         icon: Mail,
-        path: AppRoutes.adminNewsletterManagement(),
+        path: AppRoutes.adminNewsletterManagement,
       },
       {
         name: "Recommendations",
         icon: FileText,
-        path: AppRoutes.adminRecommendationManagement(),
+        path: AppRoutes.adminRecommendationManagement,
       },
       {
         name: "Podcasts",
         icon: Mic,
-        path: AppRoutes.adminPodcastManagement(),
+        path: AppRoutes.adminPodcastManagement,
       },
       {
         name: "Webinars",
         icon: Video,
-        path: AppRoutes.adminWebinarManagement(),
+        path: AppRoutes.adminWebinarManagement,
       },
       {
         name: "Testimonials",
         icon: Star,
-        path: AppRoutes.adminTestimonialManagement(),
+        path: AppRoutes.adminTestimonialManagement,
       },
       {
         name: "Scratch Pad",
@@ -114,22 +114,22 @@ const navItems = [
       {
         name: "Job Openings",
         icon: ClipboardList,
-        path: AppRoutes.adminJobOpenings(),
+        path: AppRoutes.adminJobOpenings,
       },
-      { name: "Add new Job", icon: UserPlus, path: AppRoutes.adminAddNewJob() },
+      { name: "Add new Job", icon: UserPlus, path: AppRoutes.adminAddNewJob },
       {
         name: "Applications",
         icon: FileText,
-        path: AppRoutes.adminApplications(),
+        path: AppRoutes.adminApplications,
       },
     ],
   },
   {
     name: "Leads",
     icon: Contact,
-    path: AppRoutes.adminLeads(),
+    path: AppRoutes.adminLeads,
   },
-  { name: "Settings", icon: Settings, path: AppRoutes.adminSettings() },
+  { name: "Settings", icon: Settings, path: AppRoutes.adminSettings },
 ];
 
 // AdminSidebar now supports tooltips on collapsed mode like the user sidebar

@@ -64,7 +64,7 @@ app.use("/api", applicationRoutes);
 app.use("/api", membershipRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/content", contentRoutes);
-app.use("/mailchimp", mailChimpRoutes);
+app.use("/api/mailchimp", mailChimpRoutes);
 app.use("/api", contactRoutes);
 app.use("/api", leadsRoutes);
 app.use("/api/images", imagesRoutes);

@@ -59,3 +59,21 @@ interface StockGridProps {
   loading: boolean;
   error: string | null;
 }
+
+interface DashboardMetrics {
+  liveCount: number;
+  avgLiveReturn: number;
+  highCount: number;
+  mediumCount: number;
+  lowCount: number;
+  topGainer?: RecommendationRecord;
+  topLoser?: RecommendationRecord;
+
+  exitCount: number;
+  avgExitReturn: number;
+  profitExits: number;
+  lossExits: number;
+  successRate: number;
+  bestExit?: RecommendationRecord;
+  worstExit?: RecommendationRecord;
+}

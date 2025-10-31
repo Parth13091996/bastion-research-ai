@@ -1,10 +1,39 @@
 import { Request, Response } from "express";
 import mailchimp from "@mailchimp/mailchimp_marketing";
+import {
+  fetchMailchimpNewsletters,
+  getMailchimpNewsletterById,
+} from "../services/mailchimp.service";
 
 mailchimp.setConfig({
   apiKey: process.env.MAILCHIMP_API_KEY,
   server: process.env.MAILCHIMP_SERVER_PREFIX,
 });
+
+export async function listMailchimpNewsletters(req: Request, res: Response) {
+  try {
+    const force = req.query.force === "true";
+    const data = await fetchMailchimpNewsletters({
+      forceRefresh: force,
+    });
+    return res.status(200).json(data ?? []);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+export async function getMailchimpNewsletter(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const data = await getMailchimpNewsletterById(id);
+    if (!data) {
+      return res.status(404).json({ error: "Newsletter not found" });
+    }
+    return res.status(200).json(data);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
 
 export async function subscribeToNewsLetter(req: Request, res: Response) {
   try {

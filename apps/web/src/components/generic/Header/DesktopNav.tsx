@@ -37,19 +37,19 @@ const DesktopNav = ({ setOpenSubmenu }) => {
           onMouseLeave={() => setOpenSubmenu(null)}
         >
           <Link
-            to={AppRoutes.newsletter()}
+            to={AppRoutes.newsletter}
             className="block px-4 py-2 text-gray-700 hover:text-red-600"
           >
             Newsletter Archive
           </Link>
           <Link
-            to={AppRoutes.podcasts()}
+            to={AppRoutes.podcasts}
             className="block px-4 py-2 text-gray-700 hover:text-red-600"
           >
             Podcast (MADE IN INDIA)
           </Link>
           <Link
-            to={AppRoutes.webinar()}
+            to={AppRoutes.webinar}
             className="block px-4 py-2 text-gray-700 hover:text-red-600"
           >
             Webinars
@@ -83,9 +83,7 @@ const DesktopNav = ({ setOpenSubmenu }) => {
         </div>
       ) : isActive ? (
         <Link
-          to={
-            AppRoutes.dashboard ? AppRoutes.dashboard() : "/user/app/dashboard"
-          }
+          to={AppRoutes.dashboard || "/user/app/dashboard"}
           className="text-gray-700 hover:text-red-600 flex items-center transition-colors"
         >
           {/* User Profile Picture or Initials */}
@@ -109,7 +107,7 @@ const DesktopNav = ({ setOpenSubmenu }) => {
         </Link>
       ) : (
         <Link
-          to={AppRoutes.login()}
+          to={AppRoutes.login}
           className="text-gray-700 hover:text-red-600 flex items-center transition-colors"
         >
           <svg
@@ -131,7 +129,7 @@ const DesktopNav = ({ setOpenSubmenu }) => {
       )}
 
       <Link
-        to={AppRoutes.contact()}
+        to={AppRoutes.contact}
         className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
       >
         Contact Us

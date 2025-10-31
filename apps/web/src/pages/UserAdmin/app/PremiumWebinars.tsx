@@ -50,7 +50,7 @@ export default function PremiumWebinarsPage() {
   };
 
   const handleShare = (id: string) => {
-    const path = AppRoutes.webinarView().replace(":id", id);
+    const path = AppRoutes.webinarView.replace(":id", id);
     const link = `${window.location.origin}${path}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copied to clipboard!");
@@ -62,18 +62,19 @@ export default function PremiumWebinarsPage() {
   }, [loading]);
 
   // Access guard: only allow users with premium subscription
-  const { user, subscription, isLoading, isSubscriptionLoading, isAdmin } = useAuth();
+  const { user, subscription, isLoading, isSubscriptionLoading, isAdmin } =
+    useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     // Wait for auth and subscription to load before checking
     if (!isLoading && !isSubscriptionLoading) {
       // If not logged in or not premium, redirect to subscription/upgrade page
-      if (!user || !subscription || !subscription.is_premium && !isAdmin) {
+      if (!user || !subscription || (!subscription.is_premium && !isAdmin)) {
         toast.error(
           "Premium access required. Redirecting to subscription page."
         );
-        navigate(AppRoutes.bastionCore());
+        navigate(AppRoutes.bastionCore);
       }
     }
   }, [user, subscription, isLoading, isSubscriptionLoading]);
@@ -118,7 +119,10 @@ export default function PremiumWebinarsPage() {
                     videoId = "";
                   }
                 }
-                const link = AppRoutes.webinarView().replace(":id", webinar.id);
+                const link = AppRoutes.singlePremiumWebinar.replace(
+                  ":id",
+                  webinar.id
+                );
                 const thumbnailSrc = videoId
                   ? `https://img.youtube.com/vi/${videoId}/sddefault.jpg`
                   : "/placeholder.svg"; // Use placeholder if no valid videoId

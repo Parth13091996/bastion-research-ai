@@ -139,7 +139,7 @@ const Drawer = ({
               </div>
 
               <Link
-                to={AppRoutes.contact()}
+                to={AppRoutes.contact}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg text-center font-medium"
                 onClick={() => setIsNavOpen(false)}
               >

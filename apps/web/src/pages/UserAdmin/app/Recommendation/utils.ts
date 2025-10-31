@@ -11,6 +11,7 @@ export const COLORS = {
   darkGreen: "#059669",
   gold: "#fef2c3",
   exited: "#9ca3af",
+  grayDark: "#41444e",
 };
 
 // Helper functions for colors (shared across components)

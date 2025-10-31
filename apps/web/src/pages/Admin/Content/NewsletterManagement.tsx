@@ -1,35 +1,31 @@
+import { mailchimpNewsletterApi } from "@/api/mailchimp";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { format } from "date-fns";
+import { ArrowUpRight, Eye, Mail, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { mailchimpNewsletterApi } from "@/api/mailchimp";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  RefreshCcw,
-  Mail,
-  Search,
-  ExternalLink,
-  Eye,
-  ArrowUpRight,
-} from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
 import { toast } from "sonner";
 
-const MAILCHIMP_DASHBOARD_URL = import.meta.env.VITE_MAILCHIMP_MANAGE_URL as string | undefined;
+const MAILCHIMP_DASHBOARD_URL = import.meta.env.VITE_MAILCHIMP_MANAGE_URL as
+  | string
+  | undefined;
 
 const NewsletterManagement: React.FC = () => {
   const navigate = useNavigate();
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadNewsletters = useCallback(async (options?: { force?: boolean }) => {
     try {
@@ -38,7 +34,8 @@ const NewsletterManagement: React.FC = () => {
         ? await mailchimpNewsletterApi.admin.refresh()
         : await mailchimpNewsletterApi.admin.getAll();
       const sorted = [...data].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
       setNewsletters(sorted);
       if (options?.force) {
@@ -49,7 +46,6 @@ const NewsletterManagement: React.FC = () => {
       toast.error("Unable to load Mailchimp newsletters");
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   }, []);
 
@@ -68,21 +64,8 @@ const NewsletterManagement: React.FC = () => {
     });
   }, [newsletters, searchQuery]);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await loadNewsletters({ force: true });
-  };
-
   const handleView = (id: string) => {
     navigate(`/newsletters/${id}`);
-  };
-
-  const handleOpenMailchimp = (newsletter: Newsletter) => {
-    if (newsletter.link) {
-      window.open(newsletter.link, "_blank", "noopener,noreferrer");
-      return;
-    }
-    toast.info("No Mailchimp archive link is available for this campaign");
   };
 
   const handleCreate = () => {
@@ -117,10 +100,13 @@ const NewsletterManagement: React.FC = () => {
             <Mail className="h-6 w-6 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-secondary">Mailchimp Newsletter Feed</h1>
+            <h1 className="text-2xl font-bold text-secondary">
+              Mailchimp Newsletter Feed
+            </h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-              Campaigns created or edited in Mailchimp sync into the Bastion newsletters section.
-              Use the refresh button to pull the latest campaigns via the Mailchimp API whenever you make changes.
+              Campaigns created or edited in Mailchimp sync into the Bastion
+              newsletters section. Use the refresh button to pull the latest
+              campaigns via the Mailchimp API whenever you make changes.
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               <Badge variant="secondary">{newsletters.length} items</Badge>
@@ -129,16 +115,9 @@ const NewsletterManagement: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant={MAILCHIMP_DASHBOARD_URL ? "outline" : "secondary"}
-            onClick={handleCreate}
-          >
+          <Button variant={"outline"} onClick={handleCreate}>
             <ArrowUpRight className="h-4 w-4 mr-2" />
             Open Mailchimp
-          </Button>
-          <Button onClick={handleRefresh} disabled={isRefreshing} className="bg-blue-500 hover:bg-blue-600 text-white">
-            <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-            {"Sync Latest"}
           </Button>
         </div>
       </div>
@@ -179,19 +158,27 @@ const NewsletterManagement: React.FC = () => {
                   <TableHead>Title</TableHead>
                   <TableHead>Summary</TableHead>
                   <TableHead>Published</TableHead>
-                  <TableHead className="w-[220px] text-center">Actions</TableHead>
+                  <TableHead className="w-[220px] text-center">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredNewsletters.map((newsletter) => (
                   <TableRow key={newsletter.id}>
                     <TableCell className="font-medium">
-                      <div className="max-w-xs truncate" title={newsletter.title}>
+                      <div
+                        className="max-w-xs truncate"
+                        title={newsletter.title}
+                      >
                         {newsletter.title}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="max-w-lg truncate text-sm text-muted-foreground" title={newsletter.sub_title || newsletter.plain_text}>
+                      <div
+                        className="max-w-lg truncate text-sm text-muted-foreground"
+                        title={newsletter.sub_title || newsletter.plain_text}
+                      >
                         {newsletter.sub_title || newsletter.plain_text || "—"}
                       </div>
                     </TableCell>
@@ -204,14 +191,6 @@ const NewsletterManagement: React.FC = () => {
                           onClick={() => handleView(newsletter.id)}
                         >
                           <Eye className="h-4 w-4 mr-1" /> View
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleOpenMailchimp(newsletter)}
-                        >
-                          <ExternalLink className="h-4 w-4 mr-1" />
-                          Mailchimp
                         </Button>
                       </div>
                     </TableCell>

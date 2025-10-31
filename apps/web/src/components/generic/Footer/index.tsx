@@ -127,7 +127,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    to={AppRoutes.contact()}
+                    to={AppRoutes.contact}
                     className="relative group hover:text-red-200 transition-colors inline-block"
                   >
                     Contact

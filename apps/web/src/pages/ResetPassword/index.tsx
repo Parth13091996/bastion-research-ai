@@ -40,7 +40,7 @@ const ResetPassword = () => {
         token,
         password: data.password,
       });
-      navigate(AppRoutes.login());
+      navigate(AppRoutes.login);
     } catch (e: any) {
       setServerError(e?.response?.data?.message || "Failed to reset password");
     }
@@ -124,7 +124,7 @@ const ResetPassword = () => {
 
               <div className="mt-6 text-center">
                 <Link
-                  to={AppRoutes.login()}
+                  to={AppRoutes.login}
                   className="text-sm text-red-600 hover:underline"
                 >
                   Back to login

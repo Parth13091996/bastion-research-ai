@@ -1,25 +1,18 @@
 import { Router } from "express";
 import { getAnalyticsSummary } from "../controllers/analytics.controller";
 import {
-  createNewsletter,
   createPodcast,
   createTestimonial,
   createWebinar,
-  deleteNewsletter,
   deletePodcast,
   deleteTestimonial,
   deleteWebinar,
-  getMailchimpNewsletter,
-  getNewsletter,
   getPodcast,
   getTestimonial,
   getWebinar,
-  listMailchimpNewsletters,
-  listNewsletters,
   listPodcasts,
   listTestimonials,
   listWebinars,
-  updateNewsletter,
   updatePodcast,
   updateTestimonial,
   updateWebinar,
@@ -31,6 +24,10 @@ import {
   updateContactRecipientEmail,
 } from "../controllers/settings.controller";
 import { admin, protect } from "../middleware/auth.middleware";
+import {
+  getMailchimpNewsletter,
+  listMailchimpNewsletters,
+} from "../controllers/mailchimp.controller";
 
 const router = Router();
 
@@ -51,19 +48,9 @@ router.put(
   updateContactRecipientEmail
 );
 
-router.get("/content/newsletters", protect, admin, listNewsletters);
-router.get("/content/newsletters/:id", protect, admin, getNewsletter);
-router.post("/content/newsletters", protect, admin, createNewsletter);
-router.put("/content/newsletters/:id", protect, admin, updateNewsletter);
-router.delete("/content/newsletters/:id", protect, admin, deleteNewsletter);
+router.get("/mailchimp/newsletters", protect, admin, listMailchimpNewsletters);
 router.get(
-  "/content/mailchimp/newsletters",
-  protect,
-  admin,
-  listMailchimpNewsletters
-);
-router.get(
-  "/content/mailchimp/newsletters/:id",
+  "/mailchimp/newsletters/:id",
   protect,
   admin,
   getMailchimpNewsletter

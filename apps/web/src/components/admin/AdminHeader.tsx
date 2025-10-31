@@ -8,7 +8,7 @@ const AdminHeader = () => {
   const { logout } = useAuth();
 
   const homeRedirect = () => {
-    navigate(AppRoutes.home());
+    navigate(AppRoutes.home);
   };
 
   const goToUserDashboard = () => {
