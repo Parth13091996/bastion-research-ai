@@ -103,9 +103,6 @@ const PodcastEditor = lazy(
 const RecommendationManagement = lazy(
   () => import("../pages/Admin/Content/RecommendationManagement")
 );
-const ResearchEditor = lazy(
-  () => import("../pages/Admin/Content/ResearchEditor")
-);
 const TestimonialManagement = lazy(
   () => import("../pages/Admin/Content/TestimonialManagement")
 );
@@ -134,11 +131,9 @@ const NewsletterArchive = lazy(
   () => import("../pages/NewsLetter/NewsletterListPage")
 );
 const Webinar = lazy(() => import("../pages/Webinars/WebinarsListPage"));
-const ResearchList = lazy(() => import("../pages/Research/ResearchListPage"));
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );
-const ResearchView = lazy(() => import("../pages/Research/SingleResearchPage"));
 const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
 const IpoUserDashboardPage = lazy(
   () => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard")
@@ -166,13 +161,11 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.podcasts(), element: <PublicPodcastsPage /> },
       { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
       { path: AppRoutes.webinar(), element: <Webinar /> },
-      { path: AppRoutes.research(), element: <ResearchList /> },
       { path: AppRoutes.smartFrameworks(), element: <SmartFrameworks /> },
       { path: AppRoutes.newsletterView(), element: <NewsletterView /> },
       { path: AppRoutes.webinarView(), element: <WebinarView /> },
       { path: AppRoutes.podcastView(), element: <PodcastView /> },
       { path: AppRoutes.scratchPadView(), element: <ScratchPadView /> },
-      { path: AppRoutes.researchView(), element: <ResearchView /> },
       { path: AppRoutes.dashboard(), element: <Dashboard /> },
     ],
   },
@@ -283,14 +276,6 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminPodcastEdit(),
         element: <PodcastEditor />,
-      },
-      {
-        path: AppRoutes.adminResearchCreate(),
-        element: <ResearchEditor />,
-      },
-      {
-        path: AppRoutes.adminResearchEdit(),
-        element: <ResearchEditor />,
       },
       {
         path: AppRoutes.adminTestimonialManagement(),
