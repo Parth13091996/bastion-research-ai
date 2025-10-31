@@ -156,7 +156,7 @@ const NewsletterArchive = () => {
       <div className="relative px-6 max-w-7xl z-10 mx-auto">
         {/* Header */}
         <div className="pt-8 pb-4">
-          <div className="w-full sm:mx-auto">
+          <div className="w-full">
             <h1
               className="text-4xl font-bold mb-4"
               style={{ color: COLORS.blue }}
@@ -174,14 +174,14 @@ const NewsletterArchive = () => {
         {/* Filters + Search */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 my-6">
           {/* Search */}
-          <div className="flex-1 lg:max-w-xs relative">
+          <div className="flex-1 lg:max-w-md relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
               type="text"
               placeholder="Search newsletter..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+              className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
             />
           </div>
 
