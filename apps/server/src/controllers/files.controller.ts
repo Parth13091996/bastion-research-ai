@@ -7,7 +7,6 @@ export async function uploadFile(req: Request, res: Response) {
     const bucket = process.env.SUPABASE_FILE_STORAGE_BUCKET || "files";
 
     const file = (req as any)?.file as Express.Multer.File | undefined;
-    console.log({ type: file?.mimetype });
     if (!file) {
       return res.status(400).json({ error: "No file provided" });
     }
