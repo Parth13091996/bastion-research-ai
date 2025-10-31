@@ -28,9 +28,7 @@ export const verifyPanRequest = async (pan: string, name: string) => {
   const url = `${getVerificationBaseUrl()}/pan`;
   const headers = getVerificationHeaders();
   try {
-    console.log({ payload, headers, url });
     const response = await axios.post(url, payload, { headers });
-    console.log(response, 'response===');
     return normalizePanResponse(response?.data);
   } catch (error) {
     console.error("Error verifying PAN:", error);

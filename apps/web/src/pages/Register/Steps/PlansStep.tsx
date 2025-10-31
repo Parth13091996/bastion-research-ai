@@ -1,3 +1,6 @@
+import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 
@@ -10,7 +13,35 @@ const PlansStep: React.FC<PlansStepProps> = ({
   isLoading,
   error,
 }) => {
-  const plansStepNextHandler = () => {
+  const { user } = useAuth();
+  const plansStepNextHandler = async () => {
+    const selectedPlanDetails = plans.find(
+      (p) => p.code === formData.selectedPlan
+    );
+    const isFree = selectedPlanDetails?.plan_code === "freemium";
+    if (isFree) {
+      const userId = user?.id || formData.email;
+      const planCode = selectedPlanDetails?.code || "1";
+
+      await axiosInstance.put(endpoints.users.update(userId), {
+        status: "active",
+        plan_id: planCode,
+      });
+
+      await axiosInstance.post(endpoints.cashfree.orders, {
+        plan: formData.selectedPlan,
+        customer_id: userId,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        source: "register",
+        is_free: true,
+        discount_amount: 0,
+      });
+
+      // Redirect to login/dashboard
+      window.location.href = location.origin + "/login";
+      return;
+    }
     onNext();
   };
 
@@ -19,6 +50,8 @@ const PlansStep: React.FC<PlansStepProps> = ({
       updateFormData("selectedPlan", "");
     }
   }, []);
+
+  console.log({ formData });
 
   return (
     <div className="space-y-6">

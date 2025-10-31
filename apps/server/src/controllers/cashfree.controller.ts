@@ -5,7 +5,7 @@ import {
   fetchPlans,
   PublicPlan,
 } from "../services/cashfree-plans-orders.service";
-import { getUserSubscriptionService } from "../services/cashfree-subscription.service"
+import { getUserSubscriptionService } from "../services/cashfree-subscription.service";
 import {
   getPanVerificationStatusRequest,
   verifyPanRequest,
@@ -133,6 +133,7 @@ export const handleCashfreeWebhook = async (req: Request, res: Response) => {
       return res.status(verified.status).json({ message: verified.message });
     }
     const webhookResponse = JSON.parse(rawBody);
+    console.log(webhookResponse, "payment webhooooook====");
     if (webhookResponse?.type === "PAYMENT_SUCCESS_WEBHOOK") {
       const { payment } = webhookResponse?.data;
       if (payment?.payment_status === "SUCCESS") {
@@ -190,7 +191,7 @@ export const getUserSubscription = async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
     }
-    
+
     const response = await getUserSubscriptionService(userId);
     return res.status(200).json(response);
   } catch (error: any) {

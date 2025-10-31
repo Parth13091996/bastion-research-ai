@@ -154,8 +154,6 @@ export const upsertRecommendationByCompany = async (
       stock_performance_url = "",
     } = req.body ?? {};
 
-    console.log(req.body);
-
     if (!company_name) {
       return res.status(400).json({ error: "Company name is required" });
     }

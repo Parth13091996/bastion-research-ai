@@ -120,9 +120,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
     setIsLoading(true);
     try {
-      const finalAmount = getFinalAmountWithGst();
-      const isFreeOrZero = finalAmount === 0 || selectedPlanDetails?.code === "free";
-
       // Handle free tier or zero-amount after coupon
       if (isFreeOrZero) {
         // Directly update user status and plan_code without payment gateway
@@ -131,7 +128,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
         await axiosInstance.put(endpoints.users.update(userId), {
           status: "active",
-          plan_code: planCode,
+          plan_id: planCode,
         });
 
         // Create a subscription record for free tier
@@ -189,6 +186,10 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   const onBackHandler = () => {
     onBack();
   };
+
+  const finalAmount = getFinalAmountWithGst();
+  const isFreeOrZero =
+    finalAmount === 0 || selectedPlanDetails?.code === "free";
 
   return (
     <div className="space-y-6">
@@ -259,7 +260,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={isValidatingCoupon}
+              disabled={isValidatingCoupon || isFreeOrZero}
             />
             <button
               onClick={validateCoupon}

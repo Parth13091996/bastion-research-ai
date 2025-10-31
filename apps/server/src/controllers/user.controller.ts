@@ -158,6 +158,7 @@ export const updateUser = async (req: Request, res: Response) => {
     "company",
     "pan_card_number",
     "status",
+    "plan_id",
   ] as const;
 
   const body = req.body ?? {};
