@@ -169,7 +169,7 @@ export default function PremiumWebinarsPage() {
                         alt={webinar.title}
                         className="w-full h-full object-cover transition-transform duration-300"
                       />
-                      {/* <span className="absolute top-3 right-3 bg-yellow-400 text-xs text-white px-2 py-0.5 rounded-full font-semibold">Premium</span> */}
+                      <span className="absolute top-3 right-3 bg-yellow-500 text-xs text-white px-2 py-0.5 rounded-full font-semibold">Premium</span>
                     </div>
 
                     <div className="flex flex-col flex-grow px-4 py-3">
