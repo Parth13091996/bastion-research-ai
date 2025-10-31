@@ -61,7 +61,7 @@ const PublicPodcastsPage = () => {
   };
 
   const handleShare = (id: string) => {
-    const path = AppRoutes.podcastView().replace(":id", id);
+    const path = AppRoutes.podcastView.replace(":id", id);
     const link = `${window.location.origin}${path}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copied to clipboard!");
@@ -125,7 +125,7 @@ const PublicPodcastsPage = () => {
                 const videoId = new URL(podcast.video_url).pathname
                   .split("/")
                   .at(-1);
-                const link = AppRoutes.podcastView().replace(":id", podcast.id);
+                const link = AppRoutes.podcastView.replace(":id", podcast.id);
 
                 return (
                   <Link

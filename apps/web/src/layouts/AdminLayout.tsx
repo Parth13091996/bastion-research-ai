@@ -9,7 +9,7 @@ const AdminLayout = () => {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
   if ((!isAuthenticated || !isAdmin) && !isLoading) {
-    return <Navigate to={AppRoutes.login()} replace />;
+    return <Navigate to={AppRoutes.login} replace />;
   }
 
   if (isLoading) {

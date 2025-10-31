@@ -15,7 +15,10 @@ const SubscriptionGrid = ({
   columnDefs: ColDef[];
 }) => {
   return (
-    <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+    <div
+      className="rounded-md border bg-white ag-theme-alpine"
+      style={{ height: 600, width: "100%" }}
+    >
       <AgGridReact
         theme="legacy"
         rowData={rowData}
@@ -307,9 +310,6 @@ const ManageSubscriptions = () => {
         <h1 className="text-2xl font-bold text-gray-900">
           Manage Subscriptions
         </h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center gap-2">
-          <Plus size={16} /> Add Subscription
-        </button>
       </div>
 
       <div className="bg-white rounded-lg p-4 mb-6">
@@ -334,7 +334,9 @@ const ManageSubscriptions = () => {
           >
             <option value="">Select Memberships</option>
             <option value="Bastion CORE Plan">Bastion CORE Plan</option>
-            <option value="Bastion CORE Annual Plan">Bastion CORE Annual Plan</option>
+            <option value="Bastion CORE Annual Plan">
+              Bastion CORE Annual Plan
+            </option>
             <option value="Research Hub Plan">Research Hub Plan</option>
           </select>
           <select
@@ -375,7 +377,10 @@ const ManageSubscriptions = () => {
           </div>
         </div>
         <div className="p-4">
-          <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+          <div
+            className="rounded-md border bg-white ag-theme-alpine"
+            style={{ height: 600, width: "100%" }}
+          >
             <AgGridReact
               theme="legacy"
               rowData={filteredData}

@@ -12,7 +12,7 @@ const ClientLayout = () => {
   const isActive = user?.status === "active";
 
   if (user && isActive && AuthRoutes.includes(location.pathname)) {
-    return <Navigate to={AppRoutes.home()} replace />;
+    return <Navigate to={AppRoutes.home} replace />;
   }
 
   return (

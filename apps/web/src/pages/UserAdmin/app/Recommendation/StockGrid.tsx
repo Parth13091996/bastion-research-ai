@@ -20,14 +20,14 @@ const StockGrid = ({
 
   return (
     <>
-      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading && (
-          <div className="flex items-center justify-center col-span-full py-20">
-            <div className="w-8 h-8 flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
+      {loading && (
+        <div className="mt-5 gap-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
           </div>
-        )}
+        </div>
+      )}
+      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {error && <div className="text-red-600">{error}</div>}
         {!loading &&
           !error &&

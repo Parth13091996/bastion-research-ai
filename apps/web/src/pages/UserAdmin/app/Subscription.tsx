@@ -23,7 +23,6 @@ import AgreementStep from "../../Register/Steps/AgreementStep";
 import { Config } from "@/utils/config";
 import { formatINR, getFeatureKey, PAN_REGEX, planFeatures } from "@/utils";
 
-
 const Subscription = () => {
   const {
     user,
@@ -260,6 +259,7 @@ const Subscription = () => {
           customer_phone: user.phone,
           return_url: location.href,
           source: "subscription",
+          discount_amount: selectedPlan.amount,
           metadata: opts?.panVerification
             ? {
                 panReference: opts?.panVerification?.referenceId || null,

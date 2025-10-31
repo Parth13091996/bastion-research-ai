@@ -37,17 +37,12 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 
   try {
-    // 1. Generate OTP and expiration
     const otp = generateOtp();
     const expiresAt = Date.now() + config.otp_ttl_ms;
-
-    // 2. Save OTP in-memory store for the phone
     otpStore.set(phone, { otp, expiresAt });
-
-    // 3. Send the OTP via Twilio
     try {
       await twilioClient.messages.create({
-        body: `Your verification code is: ${otp}`,
+        body: `Bastion Research Onboarding: Your verification code is: ${otp}`,
         from: twilioFromNumber,
         to: phone,
       });
@@ -80,7 +75,9 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 
     if (error) {
       console.error("Supabase error while checking email existence:", error);
-      return res.status(500).json({ message: "Server error while verifying user." });
+      return res
+        .status(500)
+        .json({ message: "Server error while verifying user." });
     }
 
     if (!user) {
@@ -139,7 +136,7 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 };
 
 export const verifyOtp = async (req: Request, res: Response) => {
-  const { phone,  otp } = req.body as {
+  const { phone, otp } = req.body as {
     phone?: string;
     otp?: string;
     email?: string;

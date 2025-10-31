@@ -88,10 +88,7 @@ export const handlePaymentSuccess = async (payload: any) => {
     })
     .maybeSingle();
 
-  const [_, paymentHistoryResult] = await Promise.all([
-    updateUserPromise,
-    insertPaymentHistoryPromise,
-  ]);
+  await Promise.all([updateUserPromise, insertPaymentHistoryPromise]);
 
   // Prepare dates as YYYY-MM-DD strings for date columns
   const startDate = payment?.payment_time
@@ -99,14 +96,17 @@ export const handlePaymentSuccess = async (payload: any) => {
     : new Date();
   const expireDate = currentPlan?.duration_months
     ? new Date(
-        startDate.getTime() + currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
+        startDate.getTime() +
+          currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
       )
     : null;
 
-  await supabase.from("subscriptions").upsert({
+  await supabase.from("subscriptions").insert({
     membership_id: currentPlan?.plan_id,
     start_date: startDate.toISOString().slice(0, 10),
-    expire_next_renewal: expireDate ? expireDate.toISOString().slice(0, 10) : null,
+    expire_next_renewal: expireDate
+      ? expireDate.toISOString().slice(0, 10)
+      : null,
     amount: payment?.payment_amount,
     transaction_id: transactionId,
     user_id: customer_details?.customer_id,

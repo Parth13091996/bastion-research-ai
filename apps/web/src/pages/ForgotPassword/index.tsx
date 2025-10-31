@@ -67,7 +67,7 @@ const ForgotPassword = () => {
                   </div>
                   <Button
                     className="w-full"
-                    onClick={() => navigate(AppRoutes.login())}
+                    onClick={() => navigate(AppRoutes.login)}
                   >
                     Back to Login
                   </Button>
@@ -105,7 +105,7 @@ const ForgotPassword = () => {
 
               <div className="mt-6 text-center">
                 <Link
-                  to={AppRoutes.login()}
+                  to={AppRoutes.login}
                   className="text-sm text-red-600 hover:underline"
                 >
                   Back to login

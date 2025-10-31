@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { supabase } from "../supabase";
 import { pgCreateOrder } from "./cashfree-pg.service";
 import { getFrontendBaseUrl } from "./cashfree-config";
@@ -51,7 +52,7 @@ export const fetchPlans = async (): Promise<PublicPlan[]> => {
 export const resolvePlanById = async (planId: number) => {
   const { data: planRows, error } = await supabase
     .from("membership_plans")
-    .select("plan_id, plan_name, price_amount, currency, tier")
+    .select("plan_id, plan_name, price_amount, currency, tier, plan_code")
     .eq("plan_id", planId)
     .limit(1);
   if (error) throw new Error(error.message);
@@ -67,6 +68,8 @@ export const createOrderForPlanService = async (params: {
   customer_phone: string;
   return_url?: string;
   discount_amount: number;
+  is_free?: boolean;
+  coupon_code?: string;
 }) => {
   const planRow = await resolvePlanById(params.planId);
 
@@ -78,6 +81,45 @@ export const createOrderForPlanService = async (params: {
     tier: planRow.tier,
   };
 
+  // Handle free tier or zero-amount subscription
+  if (params.is_free || params.discount_amount === 0) {
+    const transactionId = crypto.randomUUID();
+    const startDate = new Date();
+
+    // For free tier, set expiry to null (lifetime) or far future
+    const expireDate = null;
+
+    // Create subscription record for free tier
+    await supabase.from("subscriptions").upsert({
+      membership_id: planRow.plan_id,
+      start_date: startDate.toISOString().slice(0, 10),
+      expire_next_renewal: expireDate,
+      amount: 0,
+      transaction_id: transactionId,
+      user_id: params.customer_id,
+    });
+
+    // Record in payment history as FREE or COUPON_APPLIED
+    await supabase.from("payment_history").insert({
+      payer_email: params.customer_email || null,
+      transaction_status: params.coupon_code ? "COUPON_APPLIED" : "FREE",
+      user_id: params.customer_id,
+      plan_id: planRow.plan_id,
+      transaction_id: transactionId,
+      created_at: startDate.toISOString(),
+    });
+
+    return {
+      selected,
+      order: {
+        order_id: `free_${Date.now()}`,
+        status: "FREE_TIER",
+        message: "Free tier subscription activated"
+      }
+    };
+  }
+
+  // Normal paid flow
   const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
   const frontendUrl = getFrontendBaseUrl();
   const returnUrl =

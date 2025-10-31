@@ -19,39 +19,6 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 
-// Define interfaces for JSONB fields
-interface UpdateItem {
-  date: string;
-  title: string;
-  description: string;
-  pdf_url: string;
-}
-
-// Extended type
-type ExtendedRecommendationRecord = {
-  id: number;
-  companyName: string;
-  nseSymbol: string;
-  dateRecommended: string;
-  priceAtRecommendation: string;
-  dateExit?: string;
-  holdingPeriod?: string;
-  cmpOrExitPrice: string;
-  percentReturn?: string;
-  action: string;
-  targetPrice?: string;
-  upsidePotential?: string;
-  latestMcapCr?: string;
-  business_note?: string;
-  quick_bite?: string;
-  video?: string;
-  exit_rationale?: string;
-  quarterly_update?: UpdateItem[];
-  announcements_and_update?: UpdateItem[];
-  created_at?: string;
-};
-
-// Updated Zod schema to include new fields
 const recommendationSchema = z.object({
   companyName: z.string().min(1, "Company Name is required"),
   nseSymbol: z.string().optional(),
@@ -69,10 +36,10 @@ const recommendationSchema = z.object({
   business_note: z.string().optional(),
   quick_bite: z.string().optional(),
   video: z.string().optional(),
+  stock_performance_url: z.string().optional(),
   exit_rationale: z.string().optional(),
   quarterly_update: z.string().optional(),
   announcements_and_update: z.string().optional(),
-  // created_at not editable
 });
 
 type RecommendationFormValues = z.infer<typeof recommendationSchema>;
@@ -94,7 +61,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   const [quarterlyUpdates, setQuarterlyUpdates] = useState<UpdateItem[]>([]);
   const [announcements, setAnnouncements] = useState<UpdateItem[]>([]);
   const [editingQuarterly, setEditingQuarterly] = useState<number | null>(null);
-  const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(null);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(
+    null
+  );
 
   const {
     register,
@@ -121,6 +90,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         action: record.action || "",
         targetPrice: String(record.targetPrice || ""),
         upsidePotential: String(record.upsidePotential || ""),
+        stock_performance_url: record?.stock_performance_url || "",
         latestMcapCr: String(record.latestMcapCr || ""),
         logo: (record as any).logo || "",
         business_note: record.business_note || "",
@@ -216,10 +186,10 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         exit_rationale: data.exit_rationale,
         quarterly_update: quarterlyUpdates,
         announcements_and_update: announcements,
+        stock_performance_url: data.stock_performance_url,
       };
 
       await onSave(updatedData);
-      reset();
     } catch (error: any) {
       console.error("Update error:", error);
     }
@@ -236,14 +206,12 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
             Edit Recommendation - {record.companyName} ({record.nseSymbol})
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm text-gray-600">
-            Update additional fields for this recommendation. Sheet data (company name, prices, etc.) is read-only.
-            Upload PDFs and manage quarterly updates and announcements.
+            Update additional fields for this recommendation. Sheet data
+            (company name, prices, etc.) is read-only. Upload PDFs and manage
+            quarterly updates and announcements.
           </Dialog.Description>
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="mt-4 space-y-6"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-6">
             <div className="bg-gray-50 p-4 rounded-md">
               <h3 className="font-medium mb-2">Sheet Data (Read-Only)</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -271,7 +239,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-2">Company Logo (Image URL)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Company Logo (Image URL)
+                  </label>
                   <div className="flex gap-2">
                     <Input {...register("logo")} placeholder="Logo image URL" />
                     <label className="cursor-pointer">
@@ -300,15 +270,24 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   </div>
                   {watch("logo") && (
                     <div className="mt-2">
-                      <img src={watch("logo")} alt="Logo preview" className="h-16 w-16 object-contain border rounded" />
+                      <img
+                        src={watch("logo")}
+                        alt="Logo preview"
+                        className="h-16 w-16 object-contain border rounded"
+                      />
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Business Note (PDF)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Business Note (PDF)
+                  </label>
                   <div className="flex gap-2">
-                    <Input {...register("business_note")} placeholder="PDF URL" />
+                    <Input
+                      {...register("business_note")}
+                      placeholder="PDF URL"
+                    />
                     <label className="cursor-pointer">
                       <Button
                         type="button"
@@ -336,7 +315,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Quick Bite (PDF)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Quick Bite (PDF)
+                  </label>
                   <div className="flex gap-2">
                     <Input {...register("quick_bite")} placeholder="PDF URL" />
                     <label className="cursor-pointer">
@@ -366,9 +347,14 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Exit Rationale (PDF)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Exit Rationale (PDF)
+                  </label>
                   <div className="flex gap-2">
-                    <Input {...register("exit_rationale")} placeholder="PDF URL" />
+                    <Input
+                      {...register("exit_rationale")}
+                      placeholder="PDF URL"
+                    />
                     <label className="cursor-pointer">
                       <Button
                         type="button"
@@ -396,8 +382,20 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Video URL</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Video URL
+                  </label>
                   <Input {...register("video")} placeholder="Video URL" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Stock Performance URL
+                  </label>
+                  <Input
+                    {...register("stock_performance_url")}
+                    placeholder="Spreadsheet URL"
+                  />
                 </div>
               </div>
             </div>
@@ -428,7 +426,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                           <TableHead className="w-[180px]">Title</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className="w-[200px]">PDF URL</TableHead>
-                          <TableHead className="w-[100px] text-center">Actions</TableHead>
+                          <TableHead className="w-[100px] text-center">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -441,7 +441,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                     type="date"
                                     value={update.date}
                                     onChange={(e) =>
-                                      handleUpdateQuarterlyUpdate(index, "date", e.target.value)
+                                      handleUpdateQuarterlyUpdate(
+                                        index,
+                                        "date",
+                                        e.target.value
+                                      )
                                     }
                                     className="text-sm"
                                   />
@@ -450,7 +454,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   <Input
                                     value={update.title}
                                     onChange={(e) =>
-                                      handleUpdateQuarterlyUpdate(index, "title", e.target.value)
+                                      handleUpdateQuarterlyUpdate(
+                                        index,
+                                        "title",
+                                        e.target.value
+                                      )
                                     }
                                     placeholder="Title"
                                     className="text-sm"
@@ -460,7 +468,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   <Textarea
                                     value={update.description}
                                     onChange={(e) =>
-                                      handleUpdateQuarterlyUpdate(index, "description", e.target.value)
+                                      handleUpdateQuarterlyUpdate(
+                                        index,
+                                        "description",
+                                        e.target.value
+                                      )
                                     }
                                     placeholder="Description"
                                     rows={2}
@@ -471,7 +483,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   <Input
                                     value={update.pdf_url}
                                     onChange={(e) =>
-                                      handleUpdateQuarterlyUpdate(index, "pdf_url", e.target.value)
+                                      handleUpdateQuarterlyUpdate(
+                                        index,
+                                        "pdf_url",
+                                        e.target.value
+                                      )
                                     }
                                     placeholder="https://..."
                                     className="text-sm"
@@ -490,10 +506,17 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                               </>
                             ) : (
                               <>
-                                <TableCell className="text-sm">{update.date || "-"}</TableCell>
-                                <TableCell className="text-sm font-medium">{update.title || "-"}</TableCell>
+                                <TableCell className="text-sm">
+                                  {update.date || "-"}
+                                </TableCell>
+                                <TableCell className="text-sm font-medium">
+                                  {update.title || "-"}
+                                </TableCell>
                                 <TableCell className="text-sm text-gray-600">
-                                  <div className="max-w-xs truncate" title={update.description}>
+                                  <div
+                                    className="max-w-xs truncate"
+                                    title={update.description}
+                                  >
                                     {update.description || "-"}
                                   </div>
                                 </TableCell>
@@ -525,7 +548,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                     size="sm"
                                     variant="ghost"
                                     className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleRemoveQuarterlyUpdate(index)}
+                                    onClick={() =>
+                                      handleRemoveQuarterlyUpdate(index)
+                                    }
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
@@ -542,7 +567,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-medium text-lg">Announcements & Updates</h3>
+                  <h3 className="font-medium text-lg">
+                    Announcements & Updates
+                  </h3>
                   <Button
                     type="button"
                     size="sm"
@@ -566,7 +593,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                           <TableHead className="w-[180px]">Title</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className="w-[200px]">PDF URL</TableHead>
-                          <TableHead className="w-[100px] text-center">Actions</TableHead>
+                          <TableHead className="w-[100px] text-center">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -579,7 +608,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                     type="date"
                                     value={announcement.date}
                                     onChange={(e) =>
-                                      handleUpdateAnnouncement(index, "date", e.target.value)
+                                      handleUpdateAnnouncement(
+                                        index,
+                                        "date",
+                                        e.target.value
+                                      )
                                     }
                                     className="text-sm"
                                   />
@@ -588,7 +621,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   <Input
                                     value={announcement.title}
                                     onChange={(e) =>
-                                      handleUpdateAnnouncement(index, "title", e.target.value)
+                                      handleUpdateAnnouncement(
+                                        index,
+                                        "title",
+                                        e.target.value
+                                      )
                                     }
                                     placeholder="Title"
                                     className="text-sm"
@@ -598,7 +635,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   <Textarea
                                     value={announcement.description}
                                     onChange={(e) =>
-                                      handleUpdateAnnouncement(index, "description", e.target.value)
+                                      handleUpdateAnnouncement(
+                                        index,
+                                        "description",
+                                        e.target.value
+                                      )
                                     }
                                     placeholder="Description"
                                     rows={2}
@@ -609,7 +650,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   <Input
                                     value={announcement.pdf_url}
                                     onChange={(e) =>
-                                      handleUpdateAnnouncement(index, "pdf_url", e.target.value)
+                                      handleUpdateAnnouncement(
+                                        index,
+                                        "pdf_url",
+                                        e.target.value
+                                      )
                                     }
                                     placeholder="https://..."
                                     className="text-sm"
@@ -628,10 +673,17 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                               </>
                             ) : (
                               <>
-                                <TableCell className="text-sm">{announcement.date || "-"}</TableCell>
-                                <TableCell className="text-sm font-medium">{announcement.title || "-"}</TableCell>
+                                <TableCell className="text-sm">
+                                  {announcement.date || "-"}
+                                </TableCell>
+                                <TableCell className="text-sm font-medium">
+                                  {announcement.title || "-"}
+                                </TableCell>
                                 <TableCell className="text-sm text-gray-600">
-                                  <div className="max-w-xs truncate" title={announcement.description}>
+                                  <div
+                                    className="max-w-xs truncate"
+                                    title={announcement.description}
+                                  >
                                     {announcement.description || "-"}
                                   </div>
                                 </TableCell>
@@ -654,7 +706,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                     type="button"
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => setEditingAnnouncement(index)}
+                                    onClick={() =>
+                                      setEditingAnnouncement(index)
+                                    }
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
@@ -663,7 +717,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                     size="sm"
                                     variant="ghost"
                                     className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleRemoveAnnouncement(index)}
+                                    onClick={() =>
+                                      handleRemoveAnnouncement(index)
+                                    }
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>

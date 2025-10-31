@@ -36,7 +36,7 @@ const BrandColors = {
 };
 
 const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: AppRoutes.dashboard() },
+  { name: "Dashboard", icon: LayoutDashboard, path: AppRoutes.dashboard },
   {
     name: "Recommendation",
     icon: TrendingUp,
@@ -47,7 +47,7 @@ const navItems = [
   {
     name: "Scratch Pad Newsletter",
     icon: Newspaper,
-    path: AppRoutes.scratch_pad_newsletter(),
+    path: AppRoutes.scratch_pad_newsletter,
   },
   {
     name: "My Account",
@@ -80,7 +80,7 @@ const navItems = [
   {
     name: "Admin Panel",
     icon: PersonIcon,
-    path: AppRoutes.adminDashboard(),
+    path: AppRoutes.adminDashboard,
   },
 ];
 

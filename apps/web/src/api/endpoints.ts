@@ -101,14 +101,13 @@ export const endpoints = {
       },
     },
     mailchimp: {
-      subscribe: "/mailchimp/newsletters/subscribe",
+      subscribe: "/api/mailchimp/newsletters/subscribe",
       newsletters: {
-        base: "/content/mailchimp/newsletters",
-        byId: (id: string) => `/content/mailchimp/newsletters/${id}`,
+        base: "/api/mailchimp/newsletters",
+        byId: (id: string) => `/api/mailchimp/newsletters/${id}`,
         admin: {
-          base: "/api/admin/content/mailchimp/newsletters",
-          byId: (id: string) =>
-            `/api/admin/content/mailchimp/newsletters/${id}`,
+          base: "/api/admin/mailchimp/newsletters",
+          byId: (id: string) => `/api/admin/mailchimp/newsletters/${id}`,
         },
       },
     },

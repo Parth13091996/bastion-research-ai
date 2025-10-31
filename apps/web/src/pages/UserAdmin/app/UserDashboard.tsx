@@ -139,20 +139,17 @@ const UserDashboard = () => {
                 </p>
 
                 {/* Optional: Days left indicator */}
-                {daysLeft !== null && (
+                {daysLeft !== null &&
                   // <p className="text-xs text-gray-500 mt-1">
                   //   {daysLeft > 0
                   //     ? `${daysLeft} days left before renewal`
                   //     : "Expired — renew now"}
                   // </p>
-                  ""
-                )}
+                  ""}
 
-                {/* Renew Button */}
                 {show && (
                   <button
                     className={`mt-1 sm:mt-2 px-3 py-1 ${color} text-white rounded-lg transition-colors text-sm sm:text-base inline-block text-center`}
-                    onClick={() => console.log("Renew clicked")}
                   >
                     {profile.is_premium ? "Renew Premium Plan" : "Renew Now"}
                   </button>

@@ -1,7 +1,6 @@
 import axios from "axios";
 import { Cashfree } from "cashfree-pg";
 import {
-  CF_API_VERSION,
   ensureCashfreeConfigured,
   getBaseUrl,
   getCashfreeAuthHeaders,

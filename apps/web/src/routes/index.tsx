@@ -61,6 +61,7 @@ const ScratchPadList = lazy(
 const ScratchPadView = lazy(
   () => import("@/pages/UserAdmin/app/ScratchPadView")
 );
+const PdfViewerPage = lazy(() => import("@/pages/UserAdmin/app/PdfViewerPage"));
 
 // Admin Pages
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
@@ -120,8 +121,12 @@ const ScratchPadEditor = lazy(
 const NewsletterView = lazy(
   () => import("../pages/NewsLetter/SingleNewsLetterPage")
 );
-const WebinarView = lazy(() => import("../pages/Webinars/SingleWebinarPage"));
-const PodcastView = lazy(() => import("../pages/Podcasts/SinglePodcastPage"));
+const SingleWebinarPage = lazy(
+  () => import("../pages/Webinars/SingleWebinarPage")
+);
+const SinglePodcastPage = lazy(
+  () => import("../pages/Podcasts/SinglePodcastPage")
+);
 
 // Components that are used as pages
 const PublicPodcastsPage = lazy(
@@ -143,150 +148,153 @@ export const routes: RouteObject[] = [
   {
     element: <ClientLayout />,
     children: [
-      { path: AppRoutes.home(), element: <Home /> },
-      { path: AppRoutes.login(), element: <Login /> },
-      { path: AppRoutes.register(), element: <Register /> },
-      { path: AppRoutes.forgotPassword(), element: <ForgotPassword /> },
-      { path: AppRoutes.resetPassword(), element: <ResetPassword /> },
-      { path: AppRoutes.contact(), element: <Contact /> },
-      { path: AppRoutes.careerPage(), element: <CareerPage /> },
-      { path: AppRoutes.singleCareerPage(), element: <SingleCareerPage /> },
-      { path: AppRoutes.refundPolicy(), element: <RefundPolicy /> },
-      { path: AppRoutes.privacyPolicy(), element: <PrivacyPolicy /> },
-      { path: AppRoutes.termAndCondition(), element: <TermAndCondition /> },
-      { path: AppRoutes.compliance(), element: <Compliance /> },
-      { path: AppRoutes.bastionCore(), element: <BastionCore /> },
-      { path: AppRoutes.about(), element: <About /> },
-      { path: AppRoutes.spotlights(), element: <SpotLights /> },
-      { path: AppRoutes.podcasts(), element: <PublicPodcastsPage /> },
-      { path: AppRoutes.newsletter(), element: <NewsletterArchive /> },
-      { path: AppRoutes.webinar(), element: <Webinar /> },
-      { path: AppRoutes.smartFrameworks(), element: <SmartFrameworks /> },
-      { path: AppRoutes.newsletterView(), element: <NewsletterView /> },
-      { path: AppRoutes.webinarView(), element: <WebinarView /> },
-      { path: AppRoutes.podcastView(), element: <PodcastView /> },
-      { path: AppRoutes.scratchPadView(), element: <ScratchPadView /> },
-      { path: AppRoutes.dashboard(), element: <Dashboard /> },
+      { path: AppRoutes.home, element: <Home /> },
+      { path: AppRoutes.login, element: <Login /> },
+      { path: AppRoutes.register, element: <Register /> },
+      { path: AppRoutes.forgotPassword, element: <ForgotPassword /> },
+      { path: AppRoutes.resetPassword, element: <ResetPassword /> },
+      { path: AppRoutes.contact, element: <Contact /> },
+      { path: AppRoutes.careerPage, element: <CareerPage /> },
+      { path: AppRoutes.singleCareerPage, element: <SingleCareerPage /> },
+      { path: AppRoutes.refundPolicy, element: <RefundPolicy /> },
+      { path: AppRoutes.privacyPolicy, element: <PrivacyPolicy /> },
+      { path: AppRoutes.termAndCondition, element: <TermAndCondition /> },
+      { path: AppRoutes.compliance, element: <Compliance /> },
+      { path: AppRoutes.bastionCore, element: <BastionCore /> },
+      { path: AppRoutes.about, element: <About /> },
+      { path: AppRoutes.spotlights, element: <SpotLights /> },
+      { path: AppRoutes.podcasts, element: <PublicPodcastsPage /> },
+      { path: AppRoutes.newsletter, element: <NewsletterArchive /> },
+      { path: AppRoutes.webinar, element: <Webinar /> },
+      { path: AppRoutes.smartFrameworks, element: <SmartFrameworks /> },
+      { path: AppRoutes.newsletterView, element: <NewsletterView /> },
+      {
+        path: AppRoutes.webinarView,
+        element: <SingleWebinarPage isPremium={false} />,
+      },
+      { path: AppRoutes.podcastView, element: <SinglePodcastPage /> },
+      { path: AppRoutes.scratchPadView, element: <ScratchPadView /> },
+      { path: AppRoutes.dashboard, element: <Dashboard /> },
     ],
   },
   {
-    path: AppRoutes.ipoLanding(),
+    path: AppRoutes.ipoLanding,
     element: <IpoLandingPage />,
   },
   {
     element: <AdminLayout />,
-    path: AppRoutes.admin(),
+    path: AppRoutes.admin,
     children: [
       {
         index: true,
-        element: <Navigate to={AppRoutes.adminDashboard()} replace />,
+        element: <Navigate to={AppRoutes.adminDashboard} replace />,
       },
       {
-        path: AppRoutes.adminDashboard(),
+        path: AppRoutes.adminDashboard,
         element: <AdminDashboard />,
       },
       {
-        path: AppRoutes.adminManageMembers(),
+        path: AppRoutes.adminManageMembers,
         element: <ManageMembers />,
       },
       {
-        path: AppRoutes.adminManagePlans(),
+        path: AppRoutes.adminManagePlans,
         element: <ManagePlans />,
       },
       {
-        path: AppRoutes.adminManageSubscriptions(),
+        path: AppRoutes.adminManageSubscriptions,
         element: <ManageSubscriptions />,
       },
       {
-        path: AppRoutes.adminPaymentHistory(),
+        path: AppRoutes.adminPaymentHistory,
         element: <PaymentHistory />,
       },
       {
-        path: AppRoutes.adminCouponManagement(),
+        path: AppRoutes.adminCouponManagement,
         element: <CouponManagement />,
       },
       {
-        path: AppRoutes.adminJobOpenings(),
+        path: AppRoutes.adminJobOpenings,
         element: <JobOpenings />,
       },
       {
-        path: AppRoutes.adminAddNewJob(),
+        path: AppRoutes.adminAddNewJob,
         element: <AddNewJob />,
       },
       {
-        path: AppRoutes.adminApplications(),
+        path: AppRoutes.adminApplications,
         element: <Applications />,
       },
       {
-        path: AppRoutes.adminLeads(),
+        path: AppRoutes.adminLeads,
         element: <LeadsPage />,
       },
       {
-        path: AppRoutes.adminAllUsers(),
+        path: AppRoutes.adminAllUsers,
         element: <AllUsers />,
       },
       {
-        path: AppRoutes.adminAddUser(),
+        path: AppRoutes.adminAddUser,
         element: <AddUser />,
       },
       {
-        path: AppRoutes.adminProfile(),
+        path: AppRoutes.adminProfile,
         element: <Profile />,
       },
       {
-        path: AppRoutes.adminSettings(),
+        path: AppRoutes.adminSettings,
         element: <AdminSettings />,
       },
       {
-        path: AppRoutes.adminNewsletterManagement(),
+        path: AppRoutes.adminNewsletterManagement,
         element: <NewsletterManagement />,
       },
       {
-        path: AppRoutes.adminWebinarManagement(),
+        path: AppRoutes.adminWebinarManagement,
         element: <WebinarManagement />,
       },
       {
-        path: AppRoutes.adminPodcastManagement(),
+        path: AppRoutes.adminPodcastManagement,
         element: <PodcastManagement />,
       },
       {
-        path: AppRoutes.adminRecommendationManagement(),
+        path: AppRoutes.adminRecommendationManagement,
         element: <RecommendationManagement />,
       },
       {
-        path: AppRoutes.adminNewsletterCreate(),
+        path: AppRoutes.adminNewsletterCreate,
         element: <NewsletterEditor />,
       },
       {
-        path: AppRoutes.adminNewsletterEdit(),
+        path: AppRoutes.adminNewsletterEdit,
         element: <NewsletterEditor />,
       },
       {
-        path: AppRoutes.adminWebinarCreate(),
+        path: AppRoutes.adminWebinarCreate,
         element: <WebinarEditor />,
       },
       {
-        path: AppRoutes.adminWebinarEdit(),
+        path: AppRoutes.adminWebinarEdit,
         element: <WebinarEditor />,
       },
       {
-        path: AppRoutes.adminPodcastCreate(),
+        path: AppRoutes.adminPodcastCreate,
         element: <PodcastEditor />,
       },
       {
-        path: AppRoutes.adminPodcastEdit(),
+        path: AppRoutes.adminPodcastEdit,
         element: <PodcastEditor />,
       },
       {
-        path: AppRoutes.adminTestimonialManagement(),
+        path: AppRoutes.adminTestimonialManagement,
         element: <TestimonialManagement />,
       },
       {
-        path: AppRoutes.adminTestimonialCreate(),
+        path: AppRoutes.adminTestimonialCreate,
         element: <TestimonialEditor />,
       },
       {
-        path: AppRoutes.adminTestimonialEdit(),
+        path: AppRoutes.adminTestimonialEdit,
         element: <TestimonialEditor />,
       },
       {
@@ -294,17 +302,17 @@ export const routes: RouteObject[] = [
         element: <ScratchPadManagement />,
       },
       {
-        path: AppRoutes.adminScratchPadCreate(),
+        path: AppRoutes.adminScratchPadCreate,
         element: <ScratchPadEditor />,
       },
       {
-        path: AppRoutes.adminScratchPadEdit(),
+        path: AppRoutes.adminScratchPadEdit,
         element: <ScratchPadEditor />,
       },
     ],
   },
   {
-    path: AppRoutes.ipoUserDashboard(),
+    path: AppRoutes.ipoUserDashboard,
     element: <IpoUserDashboardPage />,
   },
 
@@ -315,14 +323,22 @@ export const routes: RouteObject[] = [
       {
         element: <UserAdminRoute />,
         children: [
+          {
+            path: AppRoutes.premiumWebinars,
+            element: <PremiumWebinars />,
+          },
+          {
+            path: AppRoutes.singlePremiumWebinar,
+            element: <SingleWebinarPage isPremium={true} />,
+          },
           { path: "app/", element: <UserAdminDashboard /> },
           { path: "app/dashboard", element: <UserAdminDashboard /> },
           { path: "app/recommendation", element: <UserAdminRecommendation /> },
           { path: "app/view-research/:id", element: <ViewResearch /> },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
-          { path: "app/premium-webinars", element: <PremiumWebinars /> },
           { path: "app/scratch-pad", element: <ScratchPadList /> },
           { path: "app/scratch-pad/:id", element: <ScratchPadView /> },
+          { path: "app/pdf-viewer", element: <PdfViewerPage /> },
           {
             path: "app/account/edit-profile",
             element: <UserAdminEditProfile />,

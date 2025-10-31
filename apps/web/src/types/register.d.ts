@@ -44,6 +44,8 @@ interface Plan {
   name: string;
   amount: number;
   currency: string;
+  plan_code?: string;
+  tier?: number;
 }
 
 interface RegisterStepProps {

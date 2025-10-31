@@ -50,6 +50,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       setError && setError("Missing phone number.");
       return;
     }
+    updateFormData("otp", null);
     setError && setError(null);
     setIsLoading && setIsLoading(true);
     setStartOtpTimer(true);
