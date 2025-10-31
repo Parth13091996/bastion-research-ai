@@ -64,7 +64,7 @@ const ScratchPadList: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="mb-10 max-w-lg mx-auto">
+      <div className="mb-10 max-w-lg">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
