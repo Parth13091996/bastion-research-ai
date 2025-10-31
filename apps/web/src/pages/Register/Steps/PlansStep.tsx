@@ -22,7 +22,6 @@ const PlansStep: React.FC<PlansStepProps> = ({
     if (isFree) {
       const userId = user?.id || formData.email;
       const planCode = selectedPlanDetails?.code || "1";
-
       await axiosInstance.put(endpoints.users.update(userId), {
         status: "active",
         plan_id: planCode,
@@ -50,8 +49,6 @@ const PlansStep: React.FC<PlansStepProps> = ({
       updateFormData("selectedPlan", "");
     }
   }, []);
-
-  console.log({ formData });
 
   return (
     <div className="space-y-6">

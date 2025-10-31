@@ -119,13 +119,11 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     }
 
     setIsLoading(true);
+    console.log({ selectedPlanDetails, finalAmount });
     try {
-      // Handle free tier or zero-amount after coupon
       if (isFreeOrZero) {
-        // Directly update user status and plan_code without payment gateway
         const userId = user?.id || formData.email;
-        const planCode = selectedPlanDetails?.plan_code || "freemium";
-
+        const planCode = selectedPlanDetails?.code || "1";
         await axiosInstance.put(endpoints.users.update(userId), {
           status: "active",
           plan_id: planCode,
@@ -188,8 +186,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   };
 
   const finalAmount = getFinalAmountWithGst();
-  const isFreeOrZero =
-    finalAmount === 0 || selectedPlanDetails?.code === "free";
+  const isFreeOrZero = finalAmount === 0 || selectedPlanDetails?.code === "1";
 
   return (
     <div className="space-y-6">
