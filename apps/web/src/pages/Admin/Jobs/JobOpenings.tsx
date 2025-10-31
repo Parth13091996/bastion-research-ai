@@ -45,8 +45,8 @@ const JobOpenings = () => {
   };
 
   const columns: ColDef[] = [
-    { 
-      headerName: "Job Title", 
+    {
+      headerName: "Job Title",
       field: "job_title",
       flex: 2,
       minWidth: 200,
@@ -57,26 +57,26 @@ const JobOpenings = () => {
         </div>
       ),
     },
-    { 
-      headerName: "Author", 
+    {
+      headerName: "Author",
       field: "author",
       flex: 1,
       minWidth: 120,
     },
-    { 
-      headerName: "Team", 
+    {
+      headerName: "Team",
       field: "team",
       flex: 1,
       minWidth: 120,
     },
-    { 
-      headerName: "Experience", 
+    {
+      headerName: "Experience",
       field: "experience",
       flex: 1,
       minWidth: 120,
     },
-    { 
-      headerName: "Type", 
+    {
+      headerName: "Type",
       field: "job_type",
       flex: 1,
       minWidth: 120,
@@ -88,8 +88,8 @@ const JobOpenings = () => {
       flex: 1,
       minWidth: 150,
     },
-    { 
-      headerName: "Applications", 
+    {
+      headerName: "Applications",
       field: "applications",
       width: 100,
       cellRenderer: (params: any) => (
@@ -106,8 +106,8 @@ const JobOpenings = () => {
       flex: 1,
       minWidth: 120,
     },
-    { 
-      headerName: "Views", 
+    {
+      headerName: "Views",
       field: "views",
       width: 80,
     },
@@ -124,13 +124,12 @@ const JobOpenings = () => {
 
   const handleEdit = (row: any) => {
     // Navigate to edit job page or open edit modal
-    console.log("Edit job:", row);
   };
 
   const handleDelete = (row: any) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
-    
+
     setModalProps("confirm", {
       title: "Delete job opening?",
       description: `This will permanently delete "${row.job_title}".`,
@@ -152,7 +151,7 @@ const JobOpenings = () => {
   const handleBulkDelete = (selected: any[]) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
-    
+
     setModalProps("confirm", {
       title: `Delete ${selected.length} job openings?`,
       description: "This action cannot be undone.",
@@ -161,9 +160,11 @@ const JobOpenings = () => {
       tone: "danger",
       onConfirm: async () => {
         try {
-          await Promise.all(selected.map(job => 
-            axiosInstance.delete(endpoints.jobs.byId(job.job_id))
-          ));
+          await Promise.all(
+            selected.map((job) =>
+              axiosInstance.delete(endpoints.jobs.byId(job.job_id))
+            )
+          );
           queryClient.invalidateQueries({ queryKey: ["jobs"] });
           toast.success(`${selected.length} jobs deleted successfully`);
         } catch (error) {

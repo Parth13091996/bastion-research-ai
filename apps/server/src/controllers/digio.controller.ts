@@ -215,7 +215,6 @@ export const digioWebhook = async (req: Request, res: Response) => {
     const rawBody = (req as any).rawBody as string | undefined;
     const body = req.body as any;
 
-    // Optional HMAC verification (enable by setting DIGIO_WEBHOOK_SECRET)
     const secret = process.env.DIGIO_WEBHOOK_SECRET;
     const requireSig =
       (process.env.DIGIO_WEBHOOK_REQUIRE_SIGNATURE || "false")
@@ -288,8 +287,6 @@ export const digioWebhook = async (req: Request, res: Response) => {
     }
 
     const event = body;
-    console.log(event, "event=====>");
-
     // Normalize fields from Digio style payloads
     const documentId =
       event?.document_id || event?.id || event?.data?.document_id || null;

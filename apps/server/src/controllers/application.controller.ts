@@ -102,7 +102,6 @@ export const createApplication = async (req: Request, res: Response) => {
       .select("*")
       .eq("job_id", parseInt(job_id))
       .maybeSingle();
-    console.log(currentJobOpening, job_id, "current");
     await supabase
       .from("job_openings")
       .update({
