@@ -64,8 +64,7 @@ const Subscription = () => {
     agreementSignedAt: undefined,
   });
 
-  const currentPlanCode = subscription?.currentPlan || null;
-
+  const currentPlanCode = user?.membership_plans?.plan_code;
   useEffect(() => {
     const fetchPlans = async () => {
       setIsPlansLoading(true);
@@ -257,7 +256,7 @@ const Subscription = () => {
           customer_id: user.id,
           customer_email: user.email,
           customer_phone: user.phone,
-          return_url: location.href,
+          // Let the server compose return_url with order_id for reconciliation
           source: "subscription",
           discount_amount: selectedPlan.amount,
           metadata: opts?.panVerification
@@ -285,7 +284,7 @@ const Subscription = () => {
     }
   };
 
-  const onFreePlan = currentPlanCode === "free";
+  const onFreePlan = user?.membership_plans?.plan_code === "freemium";
 
   if (!isAuthenticated) {
     return null; // Will redirect in useEffect
@@ -405,6 +404,7 @@ const Subscription = () => {
                 ? "Current Plan"
                 : "Subscribe";
 
+              console.log({ featureKey, currentPlanCode });
               return (
                 <Card
                   key={plan.code}

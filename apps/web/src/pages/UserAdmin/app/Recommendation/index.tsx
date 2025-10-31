@@ -3,6 +3,8 @@ import { useState } from "react";
 import RecommendationsControls from "./Controls";
 import StockGrid from "./StockGrid";
 import { COLORS } from "./utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const RecommendationList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,6 +12,7 @@ const RecommendationList = () => {
   const [filterBy, setFilterBy] = useState("All");
   const [visibleCount, setVisibleCount] = useState(9);
   const { stocks: sheetStocks, loading, error } = useSheetStocks();
+  const { subscription } = useAuth();
 
   const filteredStocks = sheetStocks.filter((stock) => {
     const matchesFilter = filterBy === "All" || stock.band === filterBy;
@@ -47,7 +50,13 @@ const RecommendationList = () => {
     }
   });
 
-  const handleLoadMore = () => setVisibleCount(visibleCount + 9);
+  const handleLoadMore = () => {
+    if (!subscription?.is_premium) {
+      toast.info("Upgrade to access all recommendations");
+      return;
+    }
+    setVisibleCount(visibleCount + 9);
+  };
 
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.gray }}>

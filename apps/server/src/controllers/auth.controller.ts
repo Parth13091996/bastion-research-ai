@@ -198,7 +198,6 @@ export const signIn = async (req: Request, res: Response) => {
       }
     }
 
-
     const token = generateToken(user.id, user.email);
 
     res.cookie("token", token, {
@@ -505,7 +504,32 @@ export const getUserSession = async (req: Request, res: Response) => {
     const { data: user, error } = await supabase
       .from("users")
       .select(
-        `id, username, first_name, last_name, phone, email, address_1, pan_card_number, address_2, state, city, pin_code, date_of_birth, company, created_at, updated_at, status, role, digio_documents(document_id)`
+        `
+          id,
+          username,
+          first_name,
+          last_name,
+          phone,
+          email,
+          address_1,
+          pan_card_number,
+          address_2,
+          state,
+          city,
+          pin_code,
+          date_of_birth,
+          company,
+          plan_id,
+          membership_plans (
+            plan_code,
+            plan_id
+          ),
+          created_at,
+          updated_at,
+          status,
+          role,
+          digio_documents(document_id)
+        `
       )
       .eq("id", decoded.id)
       .single();

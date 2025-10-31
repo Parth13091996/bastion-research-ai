@@ -8,6 +8,7 @@ import {
   testCashfreeWebhook,
   verifyPan,
   getPanVerificationStatus,
+  reconcileOrder,
 } from "../controllers/cashfree.controller";
 import { protect } from "../middleware/auth.middleware";
 
@@ -32,5 +33,8 @@ router.get("/subscription", protect, getUserSubscription);
 // Webhook handler
 router.post("/webhook", handleCashfreeWebhook);
 router.get("/webhook", testCashfreeWebhook);
+
+// Reconcile endpoint (public; validates against Cashfree API)
+router.post("/reconcile/:orderId", reconcileOrder);
 
 export default router;

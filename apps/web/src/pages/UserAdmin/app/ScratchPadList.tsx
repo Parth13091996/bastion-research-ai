@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User, ArrowRight, Search } from "lucide-react";
 import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ScratchPadList: React.FC = () => {
   const navigate = useNavigate();
   const [newsletters, setNewsletters] = useState<ScratchPadNewsletter[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const { subscription } = useAuth();
 
   useEffect(() => {
     loadNewsletters();
@@ -38,6 +40,10 @@ const ScratchPadList: React.FC = () => {
   );
 
   const handleRead = (id: string) => {
+    if (!subscription?.is_premium) {
+      toast.info("Upgrade to access Scratch Pad");
+      return;
+    }
     navigate(`/user/app/scratch-pad/${id}`);
   };
 

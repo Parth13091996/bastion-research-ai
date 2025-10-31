@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { pgFetchOrder } from "../services/cashfree-pg.service";
 import {
   createOrderForPlanService,
   fetchPlans,
@@ -16,6 +15,8 @@ import {
   handlePaymentUserDropped,
   verifyWebhookSignature,
 } from "../services/cashfree-webhook.service";
+import { pgFetchOrder } from "../services/cashfree-pg.service";
+import { supabase } from "../supabase";
 
 export const verifyPan = async (req: Request, res: Response) => {
   try {
@@ -200,5 +201,111 @@ export const getUserSubscription = async (req: Request, res: Response) => {
       message: "Failed to fetch subscription status",
       error: error.message,
     });
+  }
+};
+
+// Reconcile an order by fetching status from Cashfree and creating subscription if missing.
+// This is useful when webhooks are delayed or missed.
+export const reconcileOrder = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params as { orderId: string };
+    if (!orderId)
+      return res.status(400).json({ message: "orderId is required" });
+
+    const orderResp = await pgFetchOrder(orderId);
+    const order = (orderResp as any)?.data || orderResp;
+    const status = order?.order_status || order?.status;
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (String(status).toUpperCase() !== "PAID") {
+      return res
+        .status(409)
+        .json({ message: `Order is not paid (status: ${status})` });
+    }
+
+    // Resolve plan and user from order
+    const customer =
+      order?.customer_details || order?.customer_details?.customer_id
+        ? order?.customer_details
+        : order?.payment_sessions?.[0]?.customer_details;
+    const userId: string | undefined = customer?.customer_id;
+    if (!userId)
+      return res.status(400).json({ message: "Missing customer_id on order" });
+
+    const tagPlanId = order?.order_tags?.plan_id;
+    const tagPlanCode = order?.order_tags?.plan_code;
+
+    // Fetch plan row
+    let planRow: any = null;
+    if (tagPlanId || tagPlanCode) {
+      const { data } = await supabase
+        .from("membership_plans")
+        .select(
+          "plan_id, plan_name, price_amount, currency, duration_months, plan_code, tier"
+        )
+        .or(
+          [
+            tagPlanId ? `plan_id.eq.${tagPlanId}` : "",
+            tagPlanCode ? `plan_code.eq.${tagPlanCode}` : "",
+          ]
+            .filter(Boolean)
+            .join(",")
+        )
+        .limit(1);
+      planRow = data?.[0] || null;
+    }
+    if (!planRow) {
+      const paidAmount = Number(order?.order_amount);
+      const { data: plans } = await supabase
+        .from("membership_plans")
+        .select(
+          "plan_id, plan_name, price_amount, currency, duration_months, plan_code, tier"
+        );
+      planRow =
+        (plans || []).find((p: any) => Number(p.price_amount) === paidAmount) ||
+        null;
+    }
+    if (!planRow)
+      return res
+        .status(400)
+        .json({ message: "Unable to resolve plan from order" });
+
+    // Update user plan_code
+    await supabase
+      .from("users")
+      .update({ status: "active", plan_code: planRow.plan_code || null })
+      .eq("id", userId);
+
+    // Check if a subscription already exists for this user+plan (latest)
+    const { data: existing } = await supabase
+      .from("subscriptions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("membership_id", planRow.plan_id)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (!existing || existing.length === 0) {
+      const startDate = new Date();
+      const expireDate = planRow?.duration_months
+        ? new Date(
+            startDate.getTime() +
+              planRow.duration_months * 30 * 24 * 60 * 60 * 1000
+          )
+        : null;
+      await supabase.from("subscriptions").insert({
+        membership_id: planRow.plan_id,
+        start_date: startDate.toISOString().slice(0, 10),
+        expire_next_renewal: expireDate
+          ? expireDate.toISOString().slice(0, 10)
+          : null,
+        amount: order?.order_amount,
+        user_id: userId,
+      });
+    }
+
+    return res.status(200).json({ message: "Subscription reconciled" });
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ message: error?.message || "Failed to reconcile" });
   }
 };

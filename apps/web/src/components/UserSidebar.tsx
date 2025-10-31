@@ -340,7 +340,15 @@ export default function Sidebar() {
                     href={item.path}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => setIsMobileOpen(false)}
+                    onClick={(e) => {
+                      // Disable external CTA (e.g., WhatsApp group) for non-premium users
+                      if (!profile.is_premium && item.name.toLowerCase().includes("whatsapp")) {
+                        e.preventDefault();
+                        toast.info("Upgrade to join the WhatsApp group");
+                        return;
+                      }
+                      setIsMobileOpen(false);
+                    }}
                     title={isCollapsed ? item.name : undefined}
                     className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
                       isCollapsed ? "justify-center" : ""
@@ -352,7 +360,15 @@ export default function Sidebar() {
                 ) : (
                   <Link
                     to={item.path}
-                    onClick={() => setIsMobileOpen(false)}
+                    onClick={(e) => {
+                      // Gate certain sections for freemium users
+                      if (!profile.is_premium && (item.name.toLowerCase().includes("scratch pad") || item.path.includes("/scratch-pad"))) {
+                        e.preventDefault();
+                        toast.info("Upgrade to access Scratch Pad");
+                        return;
+                      }
+                      setIsMobileOpen(false);
+                    }}
                     title={isCollapsed ? item.name : undefined}
                     className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
                       isCollapsed ? "justify-center" : ""

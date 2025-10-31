@@ -130,6 +130,11 @@ export const createOrderForPlanService = async (params: {
     order_amount: selected.amount,
     order_currency: selected.currency,
     order_note: selected.name,
+    // Help webhooks/reconciliation identify the selected plan deterministically
+    order_tags: {
+      plan_id: String(planRow.plan_id),
+      plan_code: String(planRow.plan_code || ""),
+    },
     customer_details: {
       customer_id: params.customer_id,
       customer_email: params.customer_email || undefined,

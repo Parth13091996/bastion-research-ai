@@ -155,7 +155,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           customer_email: formData.email,
           customer_phone: formData.phone,
           source: "register",
-          return_url: location.origin + "/login",
+          // Do not override return_url so server embeds order_id for reconciliation
           coupon_code: appliedCoupon?.coupon_code || null,
           discount_amount: getFinalAmountWithGst(),
           metadata: {
