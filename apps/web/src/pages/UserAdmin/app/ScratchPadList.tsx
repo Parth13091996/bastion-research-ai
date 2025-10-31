@@ -54,7 +54,7 @@ const ScratchPadList: React.FC = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
-      <div className="mb-8 text-center">
+      <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Scratch Pad</h1>
         <p className="text-muted-foreground text-lg">
           Market insights, analysis, and updates from our research team
@@ -62,14 +62,14 @@ const ScratchPadList: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="mb-6 max-w-md mx-auto">
+      <div className="mb-6 max-w-lg">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search newsletters..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 py-4"
           />
         </div>
       </div>
