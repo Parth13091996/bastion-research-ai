@@ -5,7 +5,7 @@ import { queryKeys } from "@/api/queryKeys";
 import BackgroundShapes from "@/components/generic/framer-motion";
 import { useLoader } from "@/hooks/use-loader";
 import { useQuery } from "@tanstack/react-query";
-import { Play, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, Share2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AppRoutes } from "@/routes/app-routes";
@@ -23,6 +23,7 @@ const ITEMS_PER_PAGE = 12;
 
 const PublicPodcastsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.podcasts],
@@ -34,11 +35,24 @@ const PublicPodcastsPage = () => {
 
   const { start, stop } = useLoader();
 
-  const totalPages = Math.ceil(rowData.length / ITEMS_PER_PAGE);
+  const filteredPodcasts = useMemo(() => {
+    let podcasts = rowData;
+
+    if (searchQuery) {
+      const term = searchQuery.toLowerCase();
+      podcasts = podcasts.filter((podcast) =>
+        podcast.title?.toLowerCase().includes(term)
+      );
+    }
+
+    return podcasts;
+  }, [rowData, searchQuery]);
+
+  const totalPages = Math.ceil(filteredPodcasts.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentPodcasts = useMemo(
-    () => rowData.slice(startIndex, startIndex + ITEMS_PER_PAGE),
-    [currentPage, rowData]
+    () => filteredPodcasts.slice(startIndex, startIndex + ITEMS_PER_PAGE),
+    [currentPage, filteredPodcasts]
   );
 
   const handlePageChange = (page: number) => {
@@ -83,6 +97,23 @@ const PublicPodcastsPage = () => {
               latest insights, trends, and updates in the world of business and
               technology.
             </p>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="mb-6 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search podcasts..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+            />
           </div>
         </div>
 
