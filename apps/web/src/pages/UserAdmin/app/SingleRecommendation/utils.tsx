@@ -150,7 +150,7 @@ function extractSheetInfo(
   return null;
 }
 
-export async function fetchSingleRecommendationSheetData(
+export async function fetchSingleRecommendationGraphSheetData(
   sheetUrl: string
 ): Promise<PBRow[]> {
   const sheetInfo = extractSheetInfo(sheetUrl);

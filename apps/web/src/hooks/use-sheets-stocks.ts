@@ -2,9 +2,7 @@ import { getAllRecommendations } from "@/api/recommendations-apis";
 import {
   fetchRecommendationsFromSheet,
   getSheetUrl,
-  RecommendationRecord,
 } from "@/lib/recommendations";
-import { useSheetStocksStore } from "@/stores/recommendation-store";
 import { useEffect, useState } from "react";
 
 const useSheetStocks = (onlySheet: boolean = false) => {
@@ -12,9 +10,6 @@ const useSheetStocks = (onlySheet: boolean = false) => {
   const [sheetStocks, setSheetStocks] = useState<StockData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Get/set access to the global atom
-  const setRawSheetData = useSheetStocksStore((s) => s.setRawSheetData);
 
   useEffect(() => {
     (async () => {
@@ -28,10 +23,6 @@ const useSheetStocks = (onlySheet: boolean = false) => {
           "recommendations"
         );
 
-        // Save raw sheet data globally in the atom
-        setRawSheetData(sheetData as RecommendationRecord[]);
-
-        // Transform sheet data (common transformation for both cases)
         const transformedSheetStocks: StockData[] = sheetData.map(
           (sheetRow, idx) => ({
             id: `${idx}-${sheetRow.nseSymbol || sheetRow.companyName}`,
@@ -110,7 +101,7 @@ const useSheetStocks = (onlySheet: boolean = false) => {
         setLoading(false);
       }
     })();
-  }, [onlySheet, setRawSheetData]);
+  }, [onlySheet]);
 
   return { stocks: mergedStocks, sheetStocks, loading, error };
 };

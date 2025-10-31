@@ -1,5 +1,4 @@
-import { getRecommendationById } from "@/api/recommendations-apis";
-import { useSheetStocksStore } from "@/stores/recommendation-store";
+import useSheetStocks from "@/hooks/use-sheets-stocks";
 import { ExternalLink, FileText, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -17,8 +16,7 @@ import AnnouncementsUpdates from "./AnnouncementsUpdates";
 import Header from "./Header";
 import ResourcesQuarterly from "./ResourcesQuarterly";
 import {
-  fetchSingleRecommendationSheetData,
-  mapToStock,
+  fetchSingleRecommendationGraphSheetData,
   parseDate,
   type PBRow,
 } from "./utils";
@@ -67,49 +65,20 @@ function formatMonthYear(dateStr: string) {
 const SingleRecommendation = () => {
   const { id } = useParams<{ id: string }>();
   const [stock, setStock] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [timeRange, setTimeRange] = useState("ALL");
-  const rawSheetData = useSheetStocksStore((s) => s.rawSheetData);
+  const { stocks, loading } = useSheetStocks();
   const [externalRows, setExternalRows] = useState<PBRow[] | null>(null);
 
   useEffect(() => {
     if (!id) {
       setFetchError("Invalid recommendation id.");
-      setLoading(false);
       return;
     }
-    setLoading(true);
     setFetchError(null);
-    getRecommendationById(id)
-      .then((data) => {
-        let sheetRow: any = null;
-        if (id) {
-          sheetRow =
-            rawSheetData.find(
-              (row: any, idx: number) =>
-                `${idx}-${row.nseSymbol || row.companyName}` === id
-            ) ||
-            (data && (data.company_name || data.name)
-              ? rawSheetData.find(
-                  (row: any) =>
-                    row.companyName?.toLowerCase() ===
-                    (data.company_name?.toLowerCase() ||
-                      data.name?.toLowerCase())
-                )
-              : null);
-        }
-        let normalizedStock = mapToStock(sheetRow, data);
-        setStock(normalizedStock);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setFetchError(err.message || "An error occurred.");
-        setLoading(false);
-        setStock(null);
-      });
-  }, [id, rawSheetData]);
+    setStock(stocks.find((r) => r.id === Number(id)));
+  }, [id, stocks]);
 
   useEffect(() => {
     const isPBFintech =
@@ -120,7 +89,9 @@ const SingleRecommendation = () => {
       return;
     }
     let cancelled = false;
-    fetchSingleRecommendationSheetData(stock?.stock_performance_url as string)
+    fetchSingleRecommendationGraphSheetData(
+      stock?.stock_performance_url as string
+    )
       .then((rows) => {
         if (!cancelled) setExternalRows(rows);
       })
