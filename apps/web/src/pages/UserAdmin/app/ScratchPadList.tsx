@@ -53,14 +53,16 @@ const ScratchPadList: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
+      {/* Header */}
+      <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold mb-2">Scratch Pad</h1>
         <p className="text-muted-foreground text-lg">
           Market insights, analysis, and updates from our research team
         </p>
       </div>
 
-      <div className="mb-6">
+      {/* Search */}
+      <div className="mb-6 max-w-md mx-auto">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -72,6 +74,7 @@ const ScratchPadList: React.FC = () => {
         </div>
       </div>
 
+      {/* No Results */}
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="py-12">
@@ -82,76 +85,89 @@ const ScratchPadList: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        // Card Grid
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
           {filtered.map((newsletter) => (
             <Card
               key={newsletter.id}
-              className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              className="overflow-hidden bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer border border-gray-100 w-[90%] mx-auto"
+              onClick={() => handleRead(newsletter.id)}
             >
+              {/* Image */}
               {newsletter.featured_image && (
                 <div className="aspect-video w-full overflow-hidden">
                   <img
                     src={newsletter.featured_image}
                     alt={newsletter.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500"
                   />
                 </div>
               )}
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {(newsletter.tags || []).slice(0, 3).map((tag, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
 
-                  <h3 className="text-xl font-semibold line-clamp-2">
-                    {newsletter.title}
-                  </h3>
-
-                  {newsletter.description && (
-                    <p className="text-muted-foreground text-sm line-clamp-3">
-                      {newsletter.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    {newsletter.author && (
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        <span>{newsletter.author}</span>
-                      </div>
-                    )}
-                    {newsletter.published_date && (
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>
-                          {new Date(
-                            newsletter.published_date
-                          ).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <Button
-                    variant="ghost"
-                    className="w-full group"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRead(newsletter.id);
-                    }}
-                  >
-                    Read More
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+              {/* Content */}
+              <CardContent className="p-5 flex flex-col justify-between">
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {(newsletter.tags || []).slice(0, 3).map((tag, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="text-xs font-medium bg-blue-900 text-white cursor-default"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-[#1C2852] mb-2 line-clamp-2">
+                  {newsletter.title}
+                </h3>
+
+                {/* Description */}
+                {newsletter.description && (
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
+                    {newsletter.description}
+                  </p>
+                )}
+
+                {/* Author & Date */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                  {newsletter.author && (
+                    <div className="flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      <span>{newsletter.author}</span>
+                    </div>
+                  )}
+                  {newsletter.published_date && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {new Date(
+                          newsletter.published_date
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Read More */}
+                <Button
+                  variant="ghost"
+                  className="w-full text-[#C00000] hover:text-[#A00000] flex items-center justify-center gap-2 group font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRead(newsletter.id);
+                  }}
+                >
+                  Read More
+                  <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
               </CardContent>
             </Card>
           ))}

@@ -205,8 +205,9 @@ const RecommendationManagement: React.FC = () => {
             variant="secondary"
             onClick={handleRefresh}
             disabled={loading}
+            className="text-white"
           >
-            <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+            <RefreshCw className="mr-2 h-4 w-4 text-white" /> Refresh
           </Button>
           <Button onClick={downloadCsv}>
             <Download className="mr-2 h-4 w-4" /> Export CSV

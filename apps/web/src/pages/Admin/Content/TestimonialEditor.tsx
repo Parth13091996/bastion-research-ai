@@ -18,7 +18,7 @@ const TestimonialEditor: React.FC = () => {
 
   const [formData, setFormData] = useState({
     title: "",
-    text: "",
+    review: "",
     name: "",
     position: "",
   });
@@ -35,7 +35,7 @@ const TestimonialEditor: React.FC = () => {
     if (initialData) {
       setFormData({
         title: initialData.title || "",
-        text: initialData.text || "",
+        review: initialData.review || initialData.text || "",
         name: initialData.name || "",
         position: initialData.position || "",
       });
@@ -63,18 +63,24 @@ const TestimonialEditor: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!formData.title.trim() || !formData.text.trim() || !formData.name.trim() || !formData.position.trim()) {
+    if (!formData.title.trim() || !formData.review.trim() || !formData.name.trim() || !formData.position.trim()) {
       toast.error("All fields are required");
       return;
     }
 
     setIsSaving(true);
     try {
+      const dataToSave = {
+        title: formData.title,
+        text: formData.review,
+        name: formData.name,
+        position: formData.position,
+      };
       if (id) {
-        await testimonialApi.update(id, formData);
+        await testimonialApi.update(id, dataToSave);
         toast.success("Testimonial updated successfully");
       } else {
-        await testimonialApi.create(formData);
+        await testimonialApi.create(dataToSave);
         toast.success("Testimonial created successfully");
       }
       navigate("/admin/content/testimonials");
@@ -133,11 +139,11 @@ const TestimonialEditor: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="text">Review *</Label>
+            <Label htmlFor="review">Review *</Label>
             <textarea
-              id="text"
-              value={formData.text}
-              onChange={(e) => handleInputChange("text", e.target.value)}
+              id="review"
+              value={formData.review}
+              onChange={(e) => handleInputChange("review", e.target.value)}
               placeholder="Enter testimonial review"
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

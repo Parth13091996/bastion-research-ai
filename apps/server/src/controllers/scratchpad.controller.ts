@@ -59,6 +59,35 @@ export const getScratchPadNewsletterById = async (
   }
 };
 
+// Get single scratch pad newsletter by slug
+export const getScratchPadNewsletterBySlug = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { slug } = req.params;
+
+    const { data, error } = await supabase
+      .from("scratch_pad_newsletters")
+      .select("*")
+      .eq("slug", slug)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return res.status(404).json({ error: "Newsletter not found" });
+      }
+      console.error("Database error:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json(data);
+  } catch (error: any) {
+    console.error("Error fetching scratch pad newsletter:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 // Create new scratch pad newsletter (admin only)
 export const createScratchPadNewsletter = async (
   req: Request,

@@ -9,6 +9,7 @@ import { Play, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { format } from 'date-fns';
 
 const COLORS = {
   red: "#C00000",
@@ -130,7 +131,7 @@ const PublicWebinarsPage = () => {
                       </h3>
 
                       <p className="text-sm text-gray-500 mb-4">
-                        {new Date(webinar.created_at).toLocaleDateString()}
+                        {format(new Date(webinar.created_at), 'MMM dd, yyyy')}
                       </p>
 
                       {/* Actions */}

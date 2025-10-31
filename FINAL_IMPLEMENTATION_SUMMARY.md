@@ -143,7 +143,7 @@ DELETE /api/admin/scratch-pad-newsletters/:id
 **Admin Routes:**
 ```typescript
 { path: "/admin/content/scratch-pad", element: <ScratchPadManagement /> }
-{ path: "/admin/content/scratch-pad/new", element: <ScratchPadEditor /> }
+{ path: "/admin/content/scratch-pad/create", element: <ScratchPadEditor /> }
 { path: "/admin/content/scratch-pad/:id/edit", element: <ScratchPadEditor /> }
 ```
 

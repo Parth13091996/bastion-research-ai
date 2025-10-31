@@ -278,7 +278,7 @@ export async function updateTestimonial(req: Request, res: Response) {
       .from("testimonials")
       .update({
         title,
-        text,
+        review: text,
         name,
         position,
       })

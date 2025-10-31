@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AppRoutes } from "@/routes/app-routes";
 import { useAuth } from "@/contexts/AuthContext";
+import { format } from 'date-fns';
 
 const COLORS = {
   red: "#C00000",
@@ -158,7 +159,7 @@ export default function PremiumWebinarsPage() {
                       </h3>
 
                       <p className="text-sm text-gray-500 mb-4">
-                        {new Date(webinar.created_at).toLocaleDateString()}
+                        {format(new Date(webinar.created_at), 'MMM dd, yyyy')}
                       </p>
 
                       <div className="flex items-center justify-between text-gray-600 text-sm mt-auto mb-2">

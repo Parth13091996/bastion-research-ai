@@ -182,6 +182,7 @@ export default function Testimonial() {
 
   return (
     <div
+      id="testimonials"
       className="relative w-full overflow-hidden max-w-6xl mx-auto"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
