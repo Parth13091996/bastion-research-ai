@@ -70,7 +70,7 @@ const useSheetStocks = (onlySheet: boolean = false) => {
           const dbRow = dbData.find(
             (db: any) => db.company_name === sheetRow.companyName
           );
-          // Use dbRow fields if available, otherwise fallback to sheetRow/defaults
+
           return {
             id:
               dbRow?.id ??
@@ -94,6 +94,7 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             lastUpdated: (sheetRow.dateRecommended || "").toString(),
             logo: dbRow?.logo,
             business_note: dbRow?.business_note,
+            stock_performance_url: dbRow?.stock_performance_url || "",
             quick_bite: dbRow?.quick_bite,
             video: dbRow?.video,
             exit_rationale: dbRow?.exit_rationale,

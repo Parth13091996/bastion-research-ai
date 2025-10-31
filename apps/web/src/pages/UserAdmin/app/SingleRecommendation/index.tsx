@@ -1,13 +1,6 @@
 import { getRecommendationById } from "@/api/recommendations-apis";
-import {
-  Bell,
-  Building2,
-  ClipboardList,
-  ExternalLink,
-  FileText,
-  Video,
-  X,
-} from "lucide-react";
+import { useSheetStocksStore } from "@/stores/recommendation-store";
+import { ExternalLink, FileText, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -20,12 +13,56 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useSheetStocksStore } from "@/stores/recommendation-store";
-import Header from "./Header";
-import { mapToStock } from "./utils";
-import { parseDate } from "pdf-lib";
-import ResourcesQuarterly from "./ResourcesQuarterly";
 import AnnouncementsUpdates from "./AnnouncementsUpdates";
+import Header from "./Header";
+import ResourcesQuarterly from "./ResourcesQuarterly";
+import {
+  fetchSingleRecommendationSheetData,
+  mapToStock,
+  parseDate,
+  type PBRow,
+} from "./utils";
+
+function actionToNumeric(action: string | null | undefined): number | null {
+  if (!action) return null;
+  const val = action.toLowerCase();
+  if (val === "buy") return 1;
+  if (val === "sell") return -1;
+  if (val === "hold") return 0;
+  return null;
+}
+
+function formatMonthYear(dateStr: string) {
+  const dailyMatch = dateStr.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
+  if (dailyMatch) {
+    return `${dailyMatch[2]} ${dailyMatch[3]}`;
+  }
+  const monthYearMatch = dateStr.match(/^([A-Za-z]{3})-(\d{2})$/);
+  if (monthYearMatch) {
+    const year = parseInt(monthYearMatch[2], 10);
+    return `${monthYearMatch[1]} 20${year < 50 ? ("0" + year).slice(-2) : year}`; // e.g., "Mar 2024"
+  }
+  const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-\d{2}$/);
+  if (isoMatch) {
+    const dt = new Date(dateStr);
+    const mths = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${mths[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+  return dateStr;
+}
 
 const SingleRecommendation = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +72,7 @@ const SingleRecommendation = () => {
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [timeRange, setTimeRange] = useState("ALL");
   const rawSheetData = useSheetStocksStore((s) => s.rawSheetData);
+  const [externalRows, setExternalRows] = useState<PBRow[] | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -46,7 +84,6 @@ const SingleRecommendation = () => {
     setFetchError(null);
     getRecommendationById(id)
       .then((data) => {
-        // Try to find the relevant Sheet row by matching id or fallback to company_name if present in data
         let sheetRow: any = null;
         if (id) {
           sheetRow =
@@ -63,7 +100,6 @@ const SingleRecommendation = () => {
                 )
               : null);
         }
-        // Build normalized stock
         let normalizedStock = mapToStock(sheetRow, data);
         setStock(normalizedStock);
         setLoading(false);
@@ -75,51 +111,143 @@ const SingleRecommendation = () => {
       });
   }, [id, rawSheetData]);
 
-  // Helper function to parse "MMM-YY" date strings into Date objects
+  useEffect(() => {
+    const isPBFintech =
+      (stock?.nseSymbol &&
+        String(stock.nseSymbol).toUpperCase() === "POLICYBZR") ||
+      (stock?.name && /pb\s*fintech|policy\s*bazaar/i.test(String(stock.name)));
+    if (!isPBFintech) {
+      return;
+    }
+    let cancelled = false;
+    fetchSingleRecommendationSheetData(stock?.stock_performance_url as string)
+      .then((rows) => {
+        if (!cancelled) setExternalRows(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setExternalRows(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [stock?.nseSymbol, stock?.name]);
 
-  const allData =
-    stock && Array.isArray(stock.performance_series)
-      ? stock.performance_series
-      : [
-          { date: "Jan-24", stock: 100, bse500: 100 },
-          { date: "Feb-24", stock: 105, bse500: 102 },
-          { date: "Mar-24", stock: 110, bse500: 104 },
-          { date: "Apr-24", stock: 115, bse500: 106 },
-          { date: "May-24", stock: 125, bse500: 108 },
-          { date: "Jun-24", stock: 135, bse500: 110 },
-          { date: "Jul-24", stock: 140, bse500: 113 },
-          { date: "Aug-24", stock: 150, bse500: 115 },
-          { date: "Sep-24", stock: 155, bse500: 118 },
-          { date: "Oct-24", stock: 160, bse500: 120 },
-        ];
+  const parseAnyDate = (d: string) => {
+    if (/^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$/.test(d)) {
+      const dt = new Date(d);
+      return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    }
+    return parseDate(d);
+  };
+
+  function getGraphData(): Array<{
+    date: string;
+    "Stock NAV": number | null;
+    "Index NAV": number | null;
+    Action: number | null;
+    actualDate: string;
+  }> {
+    if (externalRows && externalRows.length) {
+      const first = externalRows[0] || {};
+      const dateKey = Object.keys(first).find(
+        (k) => k.toLowerCase() === "date"
+      );
+      const stockNavKey = Object.keys(first).find(
+        (k) => k.replace(/\s/g, "").toLowerCase() === "stocknav"
+      );
+      const indexNavKey = Object.keys(first).find(
+        (k) => k.replace(/\s/g, "").toLowerCase() === "indexnav"
+      );
+      const actionKey = Object.keys(first).find(
+        (k) => k.toLowerCase() === "action"
+      );
+      //@ts-ignore
+      return externalRows.map(
+        (
+          row
+        ): {
+          date: string;
+          "Stock NAV": number | null;
+          "Index NAV": number | null;
+          Action: number | null;
+        } => {
+          const dateVal = dateKey ? (row[dateKey] as string) : "";
+          let stockNavVal =
+            stockNavKey && typeof row[stockNavKey] !== "undefined"
+              ? Number(row[stockNavKey])
+              : null;
+          if (Number.isNaN(stockNavVal)) stockNavVal = null;
+          let indexNavVal =
+            indexNavKey && typeof row[indexNavKey] !== "undefined"
+              ? Number(row[indexNavKey])
+              : null;
+          if (Number.isNaN(indexNavVal)) indexNavVal = null;
+          let action = actionKey ? row[actionKey] : null;
+
+          return {
+            date: formatMonthYear(dateVal),
+            "Stock NAV": stockNavVal,
+            "Index NAV": indexNavVal,
+            Action: actionToNumeric(action as string),
+            //@ts-ignore
+            actualDate: dateVal,
+          };
+        }
+      );
+    }
+    return [
+      {
+        date: "Jan 2024",
+        "Stock NAV": 92,
+        "Index NAV": 80,
+        Action: 1,
+        actualDate: String(new Date()),
+      },
+      {
+        date: "Feb 2024",
+        "Stock NAV": 96,
+        "Index NAV": 95,
+        Action: 1,
+        actualDate: String(new Date()),
+      },
+      {
+        date: "Mar 2024",
+        "Stock NAV": 100,
+        "Index NAV": 100,
+        Action: 1,
+        actualDate: String(new Date()),
+      },
+    ];
+  }
+
+  const allData = getGraphData();
 
   // Function to filter data based on time range
   const getFilteredData = () => {
-    const now = new Date("2024-10-01");
     let cutoff: Date;
     switch (timeRange) {
       case "1M":
-        cutoff = new Date(now);
+        cutoff = new Date();
         cutoff.setMonth(cutoff.getMonth() - 1);
         break;
       case "3M":
-        cutoff = new Date(now);
+        cutoff = new Date();
         cutoff.setMonth(cutoff.getMonth() - 3);
         break;
       case "1Y":
-        cutoff = new Date(now);
+        cutoff = new Date();
         cutoff.setFullYear(cutoff.getFullYear() - 1);
         break;
       default:
         return allData;
     }
-    return allData.filter((d) => parseDate(d.date) >= cutoff);
+    return allData.filter((d: any) => parseAnyDate(d.actualDate) >= cutoff);
   };
 
   const announcements = Array.isArray(stock?.announcements_and_update)
     ? stock.announcements_and_update.map((item: any, idx: number) => ({
         id: idx,
-        date: item.date,
+        date: formatMonthYear(item.date),
         heading: item.title,
         preview: item.description,
         hasPdf: !!item.pdf_url,
@@ -150,9 +278,9 @@ const SingleRecommendation = () => {
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">
-                      Stock Performance vs BSE 500
+                      Stock NAV, Index NAV
                     </h2>
-                    <p className="text-sm text-gray-500">Since 12 Jan 2024</p>
+                    <p className="text-sm text-gray-500">Since Jan 2024</p>
                   </div>
                   <div className="flex gap-2">
                     {["1M", "3M", "1Y", "ALL"].map((range) => (
@@ -175,30 +303,44 @@ const SingleRecommendation = () => {
                   <LineChart data={getFilteredData()}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="date" stroke="#9ca3af" />
-                    <YAxis stroke="#9ca3af" />
+                    <YAxis stroke="#9ca3af" yAxisId="left" />
+
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#fff",
                         border: "1px solid #e5e7eb",
                         borderRadius: "8px",
                       }}
+                      formatter={(value: any, name: string) => {
+                        if (name === "Action") {
+                          if (value === 1) return ["BUY", "Action"];
+                          if (value === 0) return ["HOLD", "Action"];
+                          if (value === -1) return ["SELL", "Action"];
+                          return [value, "Action"];
+                        }
+                        return [value, name];
+                      }}
                     />
                     <Legend />
                     <Line
                       type="monotone"
-                      dataKey="stock"
+                      dataKey="Stock NAV"
                       stroke="#2563eb"
-                      strokeWidth={2}
-                      name="Stock"
-                      dot={{ fill: "#2563eb", r: 4 }}
+                      strokeWidth={1}
+                      name="Stock NAV"
+                      dot={false}
+                      yAxisId="left"
+                      connectNulls
                     />
                     <Line
                       type="monotone"
-                      dataKey="bse500"
+                      dataKey="Index NAV"
                       stroke="#10b981"
-                      strokeWidth={2}
-                      name="BSE 500"
-                      dot={{ fill: "#10b981", r: 4 }}
+                      strokeWidth={1}
+                      name="Index NAV"
+                      dot={false}
+                      yAxisId="left"
+                      connectNulls
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -225,7 +367,7 @@ const SingleRecommendation = () => {
                 <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-start">
                   <div>
                     <div className="text-sm text-gray-500 mb-2">
-                      {selectedUpdate.date}
+                      {formatMonthYear(selectedUpdate.date)}
                     </div>
                     <h3 className="text-xl font-bold text-gray-900">
                       {selectedUpdate.heading}

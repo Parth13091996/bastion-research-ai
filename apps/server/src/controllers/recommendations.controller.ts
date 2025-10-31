@@ -60,6 +60,7 @@ export const createRecommendation = async (req: Request, res: Response) => {
       exit_rationale,
       quarterly_update = [],
       announcements_and_update = [],
+      stock_performance_url = "",
     } = req.body ?? {};
 
     if (!company_name) {
@@ -78,6 +79,7 @@ export const createRecommendation = async (req: Request, res: Response) => {
           exit_rationale,
           quarterly_update,
           announcements_and_update,
+          stock_performance_url,
         },
       ])
       .select();
@@ -105,6 +107,7 @@ export const updateRecommendation = async (req: Request, res: Response) => {
     exit_rationale,
     quarterly_update,
     announcements_and_update,
+    stock_performance_url,
   } = req.body ?? {};
 
   const updateData: any = {};
@@ -114,6 +117,9 @@ export const updateRecommendation = async (req: Request, res: Response) => {
   if (quick_bite !== undefined) updateData.quick_bite = quick_bite;
   if (video !== undefined) updateData.video = video;
   if (exit_rationale !== undefined) updateData.exit_rationale = exit_rationale;
+  if (stock_performance_url !== undefined)
+    updateData.stock_performance_url = stock_performance_url;
+
   if (quarterly_update !== undefined)
     updateData.quarterly_update = quarterly_update;
   if (announcements_and_update !== undefined)
@@ -145,7 +151,10 @@ export const upsertRecommendationByCompany = async (
       exit_rationale,
       quarterly_update = [],
       announcements_and_update = [],
+      stock_performance_url = "",
     } = req.body ?? {};
+
+    console.log(req.body);
 
     if (!company_name) {
       return res.status(400).json({ error: "Company name is required" });
@@ -163,6 +172,7 @@ export const upsertRecommendationByCompany = async (
           exit_rationale,
           quarterly_update,
           announcements_and_update,
+          stock_performance_url,
         },
         { onConflict: "company_name" }
       )

@@ -78,6 +78,7 @@ const Header = ({ stock }) => {
       color: "text-blue-600",
     },
   ];
+
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm md:sticky md:top-0 md:z-10">
       <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">

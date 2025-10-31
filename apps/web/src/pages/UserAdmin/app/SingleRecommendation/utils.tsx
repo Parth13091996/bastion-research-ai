@@ -67,6 +67,7 @@ export const mapToStock = (sheetRow: any, apiRow: any) => {
 
     // Resources, communications, news...
     business_note: apiRow?.business_note ?? undefined,
+    stock_performance_url: apiRow?.stock_performance_url || "",
     quick_bite: apiRow?.quick_bite ?? undefined,
     video: apiRow?.video ?? undefined,
     exit_rationale: apiRow?.exit_rationale ?? undefined,
@@ -96,3 +97,134 @@ export const parseDate = (dateStr: string) => {
   ].indexOf(month);
   return new Date(2000 + parseInt(year), monthIndex, 1);
 };
+
+export type SeriesPoint = { date: string; stock: number; bse500: number };
+
+export type PBRow = Record<string, string | number | null>;
+
+function splitCsvRow(row: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i];
+    if (ch === '"') {
+      if (inQuotes && row[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === "," && !inQuotes) {
+      out.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function toNumber(val: string | undefined): number | null {
+  if (!val) return null;
+  const cleaned = val.replace(/[%",]/g, "").trim();
+  if (cleaned === "" || cleaned.toLowerCase() === "null") return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+// Utility function to extract sheetId and gid from a Google Sheets URL
+function extractSheetInfo(
+  sheetUrl: string
+): { sheetId: string; gid: string } | null {
+  // Example URL:
+  // https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=304797657
+  const regex = /\/d\/([a-zA-Z0-9-_]+)\/.*(?:\?|&)gid=([0-9]+)/;
+  const match = sheetUrl.match(regex);
+  if (match) {
+    return {
+      sheetId: match[1],
+      gid: match[2],
+    };
+  }
+  return null;
+}
+
+export async function fetchSingleRecommendationSheetData(
+  sheetUrl: string
+): Promise<PBRow[]> {
+  const sheetInfo = extractSheetInfo(sheetUrl);
+  if (!sheetInfo) {
+    throw new Error("Invalid Google Sheets URL");
+  }
+  const { sheetId, gid } = sheetInfo;
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch PB Fintech sheet");
+  const csv = await res.text();
+  const lines = csv.split(/\r?\n/).filter((l) => l.trim().length > 0);
+
+  let headerIndex = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const cols = splitCsvRow(lines[i]);
+    if (cols[0]?.trim().toLowerCase() === "date") {
+      headerIndex = i;
+      break;
+    }
+  }
+  if (headerIndex === -1) return [];
+  const rawHeaders = splitCsvRow(lines[headerIndex]).map((h) => h.trim());
+  const headers: string[] = [];
+  const seen = new Map<string, number>();
+  for (const h of rawHeaders) {
+    const base = h || "";
+    const count = seen.get(base) || 0;
+    if (count === 0) {
+      headers.push(base);
+      seen.set(base, 1);
+    } else {
+      const newName = `${base} (${count + 1})`;
+      headers.push(newName);
+      seen.set(base, count + 1);
+    }
+  }
+
+  const rows: PBRow[] = [];
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    const cols = splitCsvRow(lines[i]);
+    if (cols.length === 0 || cols.every((c) => c.trim() === "")) continue;
+    const obj: PBRow = {};
+    headers.forEach((h, idx) => {
+      const raw = (cols[idx] ?? "").trim();
+      const n = toNumber(raw);
+      obj[h] = n !== null ? n : raw || null;
+    });
+    // Skip rows with blank Date
+    if (obj[headers[0]] !== null) rows.push(obj);
+  }
+  return rows;
+}
+
+export function rowsToSeries(rows: PBRow[]): SeriesPoint[] {
+  const stockKey = Object.keys(rows[0] || {}).find((k) =>
+    k.toLowerCase().includes("stock nav")
+  );
+  const indexKey = Object.keys(rows[0] || {}).find((k) =>
+    k.toLowerCase().includes("index nav")
+  );
+  const dateKey = Object.keys(rows[0] || {}).find(
+    (k) => k.toLowerCase() === "date"
+  );
+  if (!stockKey || !indexKey || !dateKey) return [];
+  const series: SeriesPoint[] = [];
+  for (const r of rows) {
+    const date = (r[dateKey] as string) || "";
+    const s = Number(r[stockKey]);
+    const i = Number(r[indexKey]);
+    if (Number.isFinite(s) && Number.isFinite(i)) {
+      series.push({ date, stock: s, bse500: i });
+    }
+  }
+  return series;
+}

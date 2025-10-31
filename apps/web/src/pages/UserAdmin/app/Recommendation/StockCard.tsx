@@ -1,30 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { COLORS, getBandColor, getTextColor } from "./utils";
 
 const StockCard = ({ stock }: { stock: StockData }) => {
-  const [cmpPosition, setCmpPosition] = useState(0);
-
-  const barPercentage =
-    stock.cmp >= stock.entryPrice
-      ? Math.min(
-          ((stock.cmp - stock.entryPrice) /
-            (stock.target1 - stock.entryPrice)) *
-            100,
-          100
-        )
-      : Math.min(
-          ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
-          100
-        );
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setCmpPosition(barPercentage), 100);
-    return () => clearTimeout(timeout);
-  }, [barPercentage]);
-
   return (
     <div
       className="bg-white rounded-[20px] shadow-md border overflow-hidden transform transition-shadow hover:shadow-lg"
