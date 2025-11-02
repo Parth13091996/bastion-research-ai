@@ -7,14 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User, ArrowRight, Search } from "lucide-react";
 import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad";
 import { toast } from "sonner";
-<<<<<<< HEAD
 import { Eye } from "lucide-react";
 import { Link } from "react-router-dom";
-import { COLORS, getBandColor, getTextColor } from "./Recommendation/utils";
-=======
 import { useAuth } from "@/contexts/AuthContext";
+import { COLORS, getBandColor, getTextColor } from "./Recommendation/utils";
 
->>>>>>> 84aef86e06dfedf906346d4c7f7bbb0545e25135
+
 const ScratchPadList: React.FC = () => {
   const navigate = useNavigate();
   const [newsletters, setNewsletters] = useState<ScratchPadNewsletter[]>([]);

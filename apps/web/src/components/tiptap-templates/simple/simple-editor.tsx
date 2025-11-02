@@ -318,7 +318,7 @@ export function SimpleEditor({
   }, [isMobile, mobileView]);
 
   return (
-    <div className="simple-editor-wrapper">
+    <div className="simple-editor-wrapper relative max-h-[470px]">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}
