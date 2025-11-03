@@ -3,7 +3,7 @@ import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash2, Plus } from "lucide-react";
@@ -12,6 +12,7 @@ import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import { queryKeys } from "@/api/queryKeys";
 
 const Applications = () => {
+  const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
   const { data: rowData, isLoading } = useQuery({
     queryKey: [queryKeys.applications],
@@ -174,7 +175,21 @@ const Applications = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Applications</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Applications</h1>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (gridRef.current?.api) {
+                gridRef.current.api.exportDataAsCsv({ fileName: "applications-export.csv" });
+              }
+            }}
+          >
+            Export CSV
+          </Button>
+        </div>
+      </div>
       {/* <div className="bg-white p-4 rounded shadow mb-4 flex items-end gap-2">
         <div className="flex gap-2 items-end flex-wrap">
           <div>
@@ -248,6 +263,7 @@ const Applications = () => {
       </div> */}
       <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
         <AgGridReact
+          ref={gridRef as any}
           theme="legacy"
           rowData={rowData}
           columnDefs={columnDefs}

@@ -1,57 +1,61 @@
-import React from "react";
+import React, { useMemo } from "react";
+import useSheetStocks from "@/hooks/use-sheets-stocks";
 
-type Update = {
+type LatestUpdateItem = {
   title: string;
-  category: string;
-  categoryColor: string;
   description: string;
   date: string;
-  author: string;
-  borderColor: string;
-  dotColor: string;
-  link?: string;
+  company: string;
+  type: "Quarterly" | "Announcement";
+  pdf_url?: string;
 };
 
-const updates: Update[] = [
-  {
-    title: "NVIDIA Earnings Beat: Raising Price Target",
-    category: "Earnings Alert",
-    categoryColor: "text-gray-600 bg-gray-100",
-    description:
-      "Exceptional earnings beat indicates our AI infrastructure thesis - raising price target to $180",
-    date: "Jan 15",
-    author: "Sarah Chen",
-    borderColor: "border-red-200",
-    dotColor: "bg-red-500",
-    link: "#",
-  },
-  {
-    title: "Market Update: Tech Rotation Continues",
-    category: "Market Commentary",
-    categoryColor: "text-gray-600 bg-gray-100",
-    description:
-      "Quality tech outperformance continues - maintain overweight in our core holdings",
-    date: "Jan 12",
-    author: "Research Team",
-    borderColor: "border-yellow-200",
-    dotColor: "bg-yellow-500",
-    link: "#",
-  },
-  {
-    title: "CrowdStrike: New Enterprise Wins Accelerating",
-    category: "Stock Update",
-    categoryColor: "text-blue-600 bg-blue-100",
-    description:
-      "Strong enterprise momentum supports our bullish thesis",
-    date: "Jan 10",
-    author: "Analyst Team",
-    borderColor: "border-yellow-200",
-    dotColor: "bg-yellow-500",
-    link: "#",
-  },
-];
+const parseDate = (value: string): number => {
+  // Try common formats; fallback to Date.parse
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+};
 
 const LatestUpdates: React.FC = () => {
+  const { stocks, loading, error } = useSheetStocks();
+
+  const updates = useMemo<LatestUpdateItem[]>(() => {
+    const items: LatestUpdateItem[] = [];
+    stocks.forEach((s) => {
+      const company = s.name || s.code || "";
+      const quarterly = (s.quarterly_update || [])
+        .slice()
+        .sort((a, b) => parseDate(b.date) - parseDate(a.date))
+        .slice(0, 3)
+        .map((u) => ({
+          title: u.title,
+          description: u.description,
+          date: u.date,
+          company,
+          type: "Quarterly" as const,
+          pdf_url: u.pdf_url,
+        }));
+      const anns = (s.announcements_and_update || [])
+        .slice()
+        .sort((a, b) => parseDate(b.date) - parseDate(a.date))
+        .slice(0, 3)
+        .map((u) => ({
+          title: u.title,
+          description: u.description,
+          date: u.date,
+          company,
+          type: "Announcement" as const,
+          pdf_url: u.pdf_url,
+        }));
+      items.push(...quarterly, ...anns);
+    });
+
+    // Sort globally by date desc and limit to top 6 to keep it compact
+    return items
+      .sort((a, b) => parseDate(b.date) - parseDate(a.date))
+      .slice(0, 6);
+  }, [stocks]);
+
   return (
     <div className="bg-white rounded-lg p-3 sm:p-4 lg:p-6 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
@@ -60,40 +64,52 @@ const LatestUpdates: React.FC = () => {
             Latest Updates
           </h2>
           <p className="text-xs sm:text-sm text-gray-600">
-            Recent market insights
+            Top updates across recommendations
           </p>
         </div>
       </div>
 
-      <div className="space-y-4 sm:space-y-6 max-h-96 overflow-y-auto">
-        {updates.map((update, index) => (
-          <a
-            key={index}
-            href={update.link || "#"}
-            className={`block border-l-4 ${update.borderColor} pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg`}
-          >
-            <div className="flex items-center space-x-2 mb-2">
-              <div
-                className={`w-2 h-2 ${update.dotColor} rounded-full flex-shrink-0`}
-              ></div>
-              <span className="font-medium text-gray-900 text-sm sm:text-base">
-                {update.title}
-              </span>
-            </div>
-            <div
-              className={`text-xs ${update.categoryColor} px-2 py-1 rounded mb-2 inline-block`}
+      {loading ? (
+        <div className="text-sm text-gray-500">Loading updates...</div>
+      ) : error ? (
+        <div className="text-sm text-red-600">{error}</div>
+      ) : (
+        <div className="space-y-4 sm:space-y-5 max-h-96 overflow-y-auto">
+          {updates.map((u, idx) => (
+            <a
+              key={`${u.company}-${u.title}-${idx}`}
+              href={u.pdf_url || "#"}
+              target={u.pdf_url ? "_blank" : undefined}
+              rel={u.pdf_url ? "noopener noreferrer" : undefined}
+              className="block border-l-4 border-gray-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
             >
-              {update.category}
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600 mb-2">
-              {update.description}
-            </p>
-            <div className="text-xs text-gray-500">
-              {update.date} • {update.author}
-            </div>
-          </a>
-        ))}
-      </div>
+              <div className="flex items-center flex-wrap gap-2 mb-1.5">
+                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                <span className="font-medium text-gray-900 text-sm sm:text-base">
+                  {u.title}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs mb-2">
+                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                  {u.type}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                  {u.company}
+                </span>
+                <span className="text-gray-500">{u.date}</span>
+              </div>
+              {u.description && (
+                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+                  {u.description}
+                </p>
+              )}
+            </a>
+          ))}
+          {updates.length === 0 && (
+            <div className="text-xs text-gray-500">No updates available yet.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -103,19 +103,41 @@ const RecommendationManagement: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSave = async (updatedData: Partial<ExtendedRecommendation>) => {
+  const handleSave = async (updatedData: any) => {
     try {
+      // If modal passed FormData, use it directly; otherwise build it
+      const formData =
+        updatedData instanceof FormData ? updatedData : new FormData();
+
+      if (!(updatedData instanceof FormData)) {
+        Object.entries(updatedData || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null) return;
+          if (typeof value === "object" && !(value instanceof Blob)) {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value as any);
+          }
+        });
+      }
+
+      // Ensure company_symbol is included for backend upsert
+      formData.set(
+        "company_symbol",
+        (
+          editingRecommendation?.nseSymbol ||
+          editingRecommendation?.code ||
+          ""
+        ).toString()
+      );
+
       await axiosInstance.put(
         `/api/recommendations/company/${encodeURIComponent(
-          editingRecommendation?.companyName ||
-            editingRecommendation?.name ||
+          editingRecommendation?.nseSymbol ||
+            editingRecommendation?.nseSymbol ||
             ""
         )}`,
-        {
-          company_name:
-            editingRecommendation?.companyName || editingRecommendation?.name,
-          ...updatedData,
-        }
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
       toast.success("Recommendation updated successfully");
       setIsEditModalOpen(false);
@@ -132,7 +154,11 @@ const RecommendationManagement: React.FC = () => {
     if (actionLower === "buy") {
       return "bg-green-500 hover:bg-green-600";
     } else if (actionLower === "hold") {
+<<<<<<< HEAD
       return "bg-[#C4B696] hover:bg-[#C4B696]";
+=======
+      return "bg-yellow-500 hover:bg-yellow-600";
+>>>>>>> 14eedc7fe9c2dcba07368269003d4f3844bdd6fa
     } else if (actionLower === "exit" || actionLower === "exited") {
       return "bg-red-500 hover:bg-red-600";
     }
@@ -291,9 +317,11 @@ const RecommendationManagement: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={getActionBadgeColor(
-                            recommendation.action ?? recommendation.band
-                          )}
+                          className={
+                            getActionBadgeColor(
+                              recommendation.action ?? recommendation.band
+                            ) + " cursor-pointer"
+                          }
                         >
                           {recommendation.action ?? recommendation.band}
                         </Badge>

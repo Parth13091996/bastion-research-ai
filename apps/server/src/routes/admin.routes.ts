@@ -25,8 +25,14 @@ import {
 } from "../controllers/settings.controller";
 import { admin, protect } from "../middleware/auth.middleware";
 import {
+  getUserActivitySummary,
+  getUserPageVisits,
+  getUserRecommendationVisits
+} from "../controllers/userActivity.controller";
+import {
   getMailchimpNewsletter,
   listMailchimpNewsletters,
+  setMailchimpNewsletterHidden,
 } from "../controllers/mailchimp.controller";
 
 const router = Router();
@@ -38,6 +44,11 @@ router.get("/dashboard", protect, admin, (req, res) => {
 
 // Analytics summary for admin dashboard
 router.get("/analytics/summary", protect, admin, getAnalyticsSummary);
+// User-level analytics for Manage Members
+router.get("/users/activity-summary", protect, admin, getUserActivitySummary);
+// Detailed user activity - page visits and recommendation visits
+router.get("/users/:userId/page-visits", protect, admin, getUserPageVisits);
+router.get("/users/:userId/recommendation-visits", protect, admin, getUserRecommendationVisits);
 
 // Settings: Contact recipient email
 router.get("/settings/contact-email", protect, admin, getContactRecipientEmail);
@@ -54,6 +65,12 @@ router.get(
   protect,
   admin,
   getMailchimpNewsletter
+);
+router.put(
+  "/mailchimp/newsletters/:id/hide",
+  protect,
+  admin,
+  setMailchimpNewsletterHidden
 );
 
 // Content management - Webinars

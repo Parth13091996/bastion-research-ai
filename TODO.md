@@ -1,2 +1,15 @@
-- [ ] Add onSignUpClick function to navigate to "/bastion-core"
-- [ ] Modify the "Subscribe Now" button to use onClick instead of href
+- [x] Fix image alignment and content alignment issues in content editor
+- [x] Implement image upload feature in scratchpad
+- [ ] Resolve PDF upload issues in research view
+- [x] Provide full premium access for Admin users
+- [x] Add "Freemium" or "Premium" user tag to recommendations for visibility control
+- [x] Link company data by unique CSV ID (not index) in Google Sheets integrations
+- [x] All tables/data joined by unique ID
+- [x] Saved lists persist after sheet edits/deletions
+- [x] Auto-join all related data by unique ID on import
+- [x] Track user-level analytics (login count, pages viewed, recommendations accessed)
+- [x] Add export functionality (CSV/XLSX) for Job Applications and other Admin-level data
+- [x] Add "Hide" toggle to allow users to hide newsletters from view
+- [x] Latest updates should shown based on time and date top 5-6 recommendations
+- [x] Recommendation cards- price bar should have red line should left full. And the between card with CMP, entry price should center align.
+- [x] When non-premium user try to access then it should pop-up a dialogue box which show prices subscription.--additional just center the floating alert showing at the bottom

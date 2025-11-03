@@ -25,7 +25,6 @@ interface StockData {
   announcements_and_update?: Announcement[];
   created_at?: string;
   updated_at?: string;
-
   code?: string;
   marketCap?: string;
   upside?: string;
@@ -134,6 +133,7 @@ interface ExtendedRecommendationRecord {
   quarterly_update?: UpdateItem[];
   announcements_and_update?: UpdateItem[];
   stock_performance_url?: string;
+  tags?: string;
   created_at?: string;
 }
 

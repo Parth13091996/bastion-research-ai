@@ -12,10 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
-import { ArrowUpRight, Eye, Mail, Search } from "lucide-react";
+import { ArrowUpRight, Eye, Mail, Search, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import mailchimpApi from "@/api/mailchimp";
 
 const MAILCHIMP_DASHBOARD_URL = import.meta.env.VITE_MAILCHIMP_MANAGE_URL as
   | string
@@ -158,9 +160,8 @@ const NewsletterManagement: React.FC = () => {
                   <TableHead>Title</TableHead>
                   <TableHead>Summary</TableHead>
                   <TableHead>Published</TableHead>
-                  <TableHead className="w-[220px] text-center">
-                    Actions
-                  </TableHead>
+                  <TableHead>Hidden</TableHead>
+                  <TableHead className="w-[260px] text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,6 +185,26 @@ const NewsletterManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>{formatDate(newsletter.created_at)}</TableCell>
                     <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={Boolean((newsletter as any).hidden)}
+                          onCheckedChange={async (val) => {
+                            try {
+                              await mailchimpApi.admin.setHidden(newsletter.id, !!val);
+                              setNewsletters((prev) =>
+                                prev.map((n) =>
+                                  n.id === newsletter.id ? { ...n, hidden: !!val } : n
+                                )
+                              );
+                            } catch (e) {
+                              toast.error("Failed to update visibility");
+                            }
+                          }}
+                          aria-label="Hide from website"
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex justify-center gap-2">
                         <Button
                           size="sm"
@@ -192,6 +213,11 @@ const NewsletterManagement: React.FC = () => {
                         >
                           <Eye className="h-4 w-4 mr-1" /> View
                         </Button>
+                        {(newsletter as any).hidden && (
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            <EyeOff className="h-3 w-3" /> Hidden
+                          </Badge>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

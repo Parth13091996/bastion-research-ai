@@ -36,14 +36,17 @@ const useSheetStocks = (onlySheet: boolean = false) => {
                   maximumFractionDigits: 2,
                 })} Cr.`
               : "₹ 0.00 Cr.",
-            upside: Math.round((sheetRow.upsidePotential || 0) * 100).toString(),
+            upside: Math.round(
+              (sheetRow.upsidePotential || 0) * 100
+            ).toString(),
             cmp: Math.round(sheetRow.cmpOrExitPrice || 0),
             entryPrice: Math.round(sheetRow.priceAtRecommendation || 0),
             target1: Math.round(sheetRow.targetPrice || 0),
             sector: (sheetRow as any).sector || "",
             band: (sheetRow.action?.toUpperCase() as any) || "BUY",
             lastUpdated: (sheetRow.dateRecommended || "").toString(),
-            percentReturn: sheetRow.percentReturn || 0,
+            percentReturn:
+              Math.round((sheetRow.percentReturn || 0) * 100).toString() || 0,
           })
         );
         setSheetStocks(transformedSheetStocks);
@@ -57,10 +60,11 @@ const useSheetStocks = (onlySheet: boolean = false) => {
 
         // Otherwise, fetch from database API and merge
         const dbData = await getAllRecommendations();
+        console.log({ dbData, sheetData });
 
         const merged = sheetData.map((sheetRow, idx) => {
           const dbRow = dbData.find(
-            (db: any) => db.company_name === sheetRow.companyName
+            (db: any) => db.company_symbol === sheetRow.nseSymbol
           );
 
           return {
@@ -77,7 +81,9 @@ const useSheetStocks = (onlySheet: boolean = false) => {
                   maximumFractionDigits: 2,
                 })} Cr.`
               : "₹ 0.00 Cr.",
-            upside: Math.round((sheetRow.upsidePotential || 0) * 100).toString(),
+            upside: Math.round(
+              (sheetRow.upsidePotential || 0) * 100
+            ).toString(),
             cmp: Math.round(sheetRow.cmpOrExitPrice || 0),
             entryPrice: Math.round(sheetRow.priceAtRecommendation || 0),
             target1: Math.round(sheetRow.targetPrice || 0),
@@ -87,11 +93,13 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             logo: dbRow?.logo,
             business_note: dbRow?.business_note,
             stock_performance_url: dbRow?.stock_performance_url || "",
+            tags: dbRow?.tags || "",
             quick_bite: dbRow?.quick_bite,
             video: dbRow?.video,
             exit_rationale: dbRow?.exit_rationale,
             quarterly_update: dbRow?.quarterly_update || [],
             announcements_and_update: dbRow?.announcements_and_update || [],
+            percentReturn: sheetRow.percentReturn,
           } as StockData;
         });
 

@@ -1,37 +1,25 @@
 import type { Request, Response } from "express";
-import { randomUUID } from "crypto";
-import { supabase } from "../supabase";
+import { uploadToSupabase } from "../services/upload.service";
 
+// Unified upload controller: handles images, pdfs, and documents for all features
 export async function uploadFile(req: Request, res: Response) {
   try {
-    const bucket = process.env.SUPABASE_FILE_STORAGE_BUCKET || "files";
-
     const file = (req as any)?.file as Express.Multer.File | undefined;
-    if (!file) {
-      return res.status(400).json({ error: "No file provided" });
-    }
+    if (!file) return res.status(400).json({ error: "No file provided" });
 
-    const filename = `${randomUUID()}.${file?.mimetype}`;
-    const storagePath = `${filename}`;
+    const category = (req.body.category as any) || undefined; // optional hint
+    const dir = (req.body.dir as string) || undefined; // optional subfolder
+    const fileNameBase = (req.body.fileName as string) || undefined;
 
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(storagePath, file.buffer, {
-        contentType: file.mimetype,
-        upsert: false,
-      });
-
-    if (uploadError) {
-      return res.status(500).json({ error: uploadError.message });
-    }
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(storagePath);
-
-    return res.status(201).json({ url: publicUrl, path: storagePath });
+    const result = await uploadToSupabase({
+      file,
+      category,
+      dir,
+      filenameBase: fileNameBase,
+    });
+    return res.status(201).json(result);
   } catch (e: any) {
-    console.error(e);
-    return res.status(500).json({ error: e?.message || "Upload failed" });
+    console.error("uploadFile error:", e?.message || e);
+    return res.status(400).json({ error: e?.message || "Upload failed" });
   }
 }

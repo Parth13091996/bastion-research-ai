@@ -1,18 +1,17 @@
-import { Router } from 'express';
-import multer from 'multer';
+import { Router } from "express";
 import {
-  getApplications,
   createApplication,
-  updateApplication,
   deleteApplication,
-} from '../controllers/application.controller';
+  getApplications,
+  updateApplication,
+} from "../controllers/application.controller";
+import { upload } from "../services/multer.service";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
-router.get('/applications', getApplications);
-router.post('/applications', upload.single('resume'), createApplication);
-router.put('/applications/:id', updateApplication);
-router.delete('/applications/:id', deleteApplication);
+router.get("/applications", getApplications);
+router.post("/applications", upload.single("resume"), createApplication);
+router.put("/applications/:id", updateApplication);
+router.delete("/applications/:id", deleteApplication);
 
 export default router;
