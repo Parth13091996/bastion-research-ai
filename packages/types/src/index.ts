@@ -5,6 +5,7 @@ export interface Newsletter {
   headline_image_url?: string;
   created_at: string;
   category?: string;
+  hidden?: boolean; // admin flag to hide from public listing
 }
 
 export interface User {

@@ -75,7 +75,7 @@ export const endpoints = {
       get: "/api/admin/settings/contact-email",
       update: "/api/admin/settings/contact-email",
     },
-    admin: {
+  admin: {
       get: "/api/admin/settings",
       update: "/api/admin/settings",
     },
@@ -108,6 +108,7 @@ export const endpoints = {
         admin: {
           base: "/api/admin/mailchimp/newsletters",
           byId: (id: string) => `/api/admin/mailchimp/newsletters/${id}`,
+          setHidden: (id: string) => `/api/admin/mailchimp/newsletters/${id}/hide`,
         },
       },
     },

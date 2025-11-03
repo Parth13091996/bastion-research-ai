@@ -62,6 +62,28 @@ const MemberManagementDashboard = () => {
       axiosInstance.get(endpoints.users.base).then((res) => res.data),
   });
 
+  // Fetch per-user activity summary for analytics (login count, pageviews, recs)
+  const { data: activity } = useQuery({
+    queryKey: ["user-activity-summary"],
+    queryFn: () =>
+      axiosInstance
+        .get("/api/admin/users/activity-summary")
+        .then((res) => res.data as Array<{
+          user_id: string;
+          login_count: number;
+          pageviews_count: number;
+          recommendations_count: number;
+        }>),
+  });
+
+  const activityMap = (activity || []).reduce(
+    (acc, row) => {
+      acc[row.user_id] = row;
+      return acc;
+    },
+    {} as Record<string, { login_count: number; pageviews_count: number; recommendations_count: number }>
+  );
+
   const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
   const setIsModalOpen = useModalStore((s) => s.set);
 
@@ -84,6 +106,24 @@ const MemberManagementDashboard = () => {
       field: "username",
       flex: 1,
       minWidth: 150,
+    },
+    {
+      headerName: "Logins",
+      field: "id",
+      width: 100,
+      valueGetter: (params) => activityMap[params.data.id]?.login_count ?? 0,
+    },
+    {
+      headerName: "Pages Viewed",
+      field: "id",
+      width: 130,
+      valueGetter: (params) => activityMap[params.data.id]?.pageviews_count ?? 0,
+    },
+    {
+      headerName: "Recs Accessed",
+      field: "id",
+      width: 140,
+      valueGetter: (params) => activityMap[params.data.id]?.recommendations_count ?? 0,
     },
     {
       headerName: "Email",

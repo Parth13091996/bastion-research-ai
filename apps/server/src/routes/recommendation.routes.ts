@@ -4,7 +4,7 @@ import {
   createRecommendation,
   deleteRecommendation,
   getRecommendations,
-  getRecommendationByCompany,
+  getRecommendationByCompanySymbol,
   updateRecommendation,
   upsertRecommendationByCompany,
   getRecommendationById,
@@ -14,7 +14,10 @@ const router = Router();
 
 // Public routes
 router.get("/recommendations", getRecommendations);
-router.get("/recommendations/company/:companyName", getRecommendationByCompany);
+router.get(
+  "/recommendations/company/:companyName",
+  getRecommendationByCompanySymbol
+);
 
 // Admin routes (protected)
 router.post("/recommendations", protect, admin, createRecommendation);

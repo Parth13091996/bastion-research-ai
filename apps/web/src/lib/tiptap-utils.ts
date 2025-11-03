@@ -3,7 +3,7 @@ import { NodeSelection, Selection, TextSelection } from "@tiptap/pm/state"
 import type { Editor } from "@tiptap/react"
 import axiosInstance from "@/api/axios"
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB for editor images
 
 export const MAC_SYMBOLS: Record<string, string> = {
   mod: "⌘",
@@ -304,10 +304,12 @@ export const handleImageUpload = async (
 
   const formData = new FormData()
   formData.append("file", file)
+  formData.append("category", "image")
+  formData.append("dir", "editor-images")
 
   try {
     const response = await axiosInstance.post(
-      "/api/images/upload",
+      "/api/files/upload",
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },

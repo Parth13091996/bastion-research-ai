@@ -16,7 +16,6 @@ import cashfreeRoutes from "./routes/cashfree.routes";
 import contactRoutes from "./routes/contact.routes";
 import leadsRoutes from "./routes/leads.routes";
 import otpRoutes from "./routes/otp.routes";
-import imagesRoutes from "./routes/images.routes";
 import filesRoutes from "./routes/files.routes";
 import digioRoutes from "./routes/digio.routes";
 import mailChimpRoutes from "./routes/mailchimp.routes";
@@ -39,9 +38,9 @@ app.use(
 );
 app.use(
   express.json({
-    limit: process.env.BODY_PARSER_LIMIT || "5mb",
+    limit: process.env.BODY_PARSER_LIMIT || "25mb",
     verify: (req: any, res, buf) => {
-      req.rawBody = buf.toString();
+      req.rawBody = buf?.toString?.();
     },
   })
 );
@@ -67,7 +66,6 @@ app.use("/content", contentRoutes);
 app.use("/api/mailchimp", mailChimpRoutes);
 app.use("/api", contactRoutes);
 app.use("/api", leadsRoutes);
-app.use("/api/images", imagesRoutes);
 app.use("/api/files", filesRoutes);
 app.use("/api/digio", digioRoutes);
 app.use("/api", recommendationRoutes);

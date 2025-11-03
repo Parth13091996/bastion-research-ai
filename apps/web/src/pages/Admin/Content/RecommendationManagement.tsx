@@ -129,8 +129,10 @@ const RecommendationManagement: React.FC = () => {
 
   const getActionBadgeColor = (action: string) => {
     const actionLower = action?.toLowerCase();
-    if (actionLower === "buy" || actionLower === "hold") {
+    if (actionLower === "buy") {
       return "bg-green-500 hover:bg-green-600";
+    } else if (actionLower === "hold") {
+      return "bg-yellow-500 hover:bg-yellow-600";
     } else if (actionLower === "exit" || actionLower === "exited") {
       return "bg-red-500 hover:bg-red-600";
     }
@@ -289,9 +291,11 @@ const RecommendationManagement: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={getActionBadgeColor(
-                            recommendation.action ?? recommendation.band
-                          )}
+                          className={
+                            getActionBadgeColor(
+                              recommendation.action ?? recommendation.band
+                            ) + " cursor-pointer"
+                          }
                         >
                           {recommendation.action ?? recommendation.band}
                         </Badge>

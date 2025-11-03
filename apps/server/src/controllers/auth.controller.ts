@@ -207,6 +207,20 @@ export const signIn = async (req: Request, res: Response) => {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
+    // Fire-and-forget: record a login activity (do not block sign-in)
+    try {
+      await supabase.from("user_activity").insert({
+        user_id: user.id,
+        event_type: "login",
+        occurred_at: new Date().toISOString(),
+        ip: (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || null,
+        user_agent: (req.headers["user-agent"] as string) || null,
+        metadata: null,
+      } as any);
+    } catch (e) {
+      // ignore
+    }
+
     res.status(200).json({
       message: "Signed in successfully",
       user: {
@@ -526,6 +540,7 @@ export const getUserSession = async (req: Request, res: Response) => {
           ),
           created_at,
           updated_at,
+          is_premium,
           status,
           role,
           digio_documents(document_id)

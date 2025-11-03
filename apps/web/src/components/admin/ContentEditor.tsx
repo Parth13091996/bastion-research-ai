@@ -1,10 +1,12 @@
+import axiosInstance from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import Editor from "@/components/core/editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEditorStore } from "@/stores/editor-store";
-import { ArrowLeft, Eye, Save } from "lucide-react";
+import { ArrowLeft, Eye, Save, Upload } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -54,6 +56,35 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
+  const [uploading, setUploading] = useState<Record<string, boolean>>({
+    featured_image: false,
+  });
+
+  const handleFileUpload = async (
+    fieldName: string,
+    file: File,
+    setValue: (value: string) => void
+  ) => {
+    try {
+      setUploading((prev) => ({ ...prev, [fieldName]: true }));
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", "image");
+      formData.append("dir", type === "scratch-pad" ? "scratchpad" : type);
+      const response = await axiosInstance.post(
+        endpoints.files.upload,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      setValue(response?.data?.url);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to upload file");
+    } finally {
+      setUploading((prev) => ({ ...prev, [fieldName]: false }));
+    }
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -277,16 +308,45 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         </div>
       );
 
-      // Featured Image
       fields.push(
-        <div key="featured_image" className="space-y-2">
+        <div key="featured_image" className="space-y-2 ">
           <Label htmlFor="featured_image">Featured Image URL</Label>
-          <Input
-            id="featured_image"
-            value={formData.featured_image}
-            onChange={(e) => handleInputChange("featured_image", e.target.value)}
-            placeholder="Enter featured image URL"
-          />
+          <div className="flex gap-2">
+            <Input
+              id="featured_image"
+              value={formData.featured_image}
+              onChange={(e) =>
+                handleInputChange("featured_image", e.target.value)
+              }
+              placeholder="Enter featured image URL"
+            />
+            <label className="cursor-pointer">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading.logo}
+                asChild
+              >
+                <span>
+                  <Upload className="h-4 w-4 mr-1" />
+                  {uploading.logo ? "Uploading..." : "Upload"}
+                </span>
+              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file)
+                    handleFileUpload("featured_image", file, (url: string) => {
+                      handleInputChange("featured_image", url);
+                    });
+                }}
+              />
+            </label>
+          </div>
         </div>
       );
 
@@ -330,7 +390,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             type="checkbox"
             checked={formData.is_published}
             className="w-4 h-4 cursor-pointer"
-            onChange={(e) => handleInputChange("is_published", e.target.checked)}
+            onChange={(e) =>
+              handleInputChange("is_published", e.target.checked)
+            }
           />
           <Label htmlFor="is_published" className="mt-0.5 cursor-pointer">
             Is Published
@@ -348,7 +410,10 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             onChange={(e) =>
               handleInputChange(
                 "tags",
-                e.target.value.split(",").map((tag) => tag.trim()).filter(Boolean)
+                e.target.value
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean)
               )
             }
             placeholder="Enter tags separated by commas"
@@ -448,9 +513,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                   <div className="simple-editor-content">
                     <div
                       className={
-                        (type === "scratch-pad"
-                          ? formData.content
-                          : formData.contents)
+                        (
+                          type === "scratch-pad"
+                            ? formData.content
+                            : formData.contents
+                        )
                           ? "tiptap ProseMirror simple-editor prose max-w-none mb-0.5"
                           : ""
                       }
@@ -466,7 +533,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
               ) : (
                 <Editor
                   contents={
-                    type === "scratch-pad" ? formData?.content : formData?.contents
+                    type === "scratch-pad"
+                      ? formData?.content
+                      : formData?.contents
                   }
                 />
               )}

@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import axiosInstance from "../../../../api/axios"; // Adjust path as needed
-import { endpoints } from "@/api/endpoints"; // Adjust path as needed
+import axiosInstance from "../../../../api/axios";
+import { endpoints } from "@/api/endpoints";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 
+// Remove companyName validation and require only nseSymbol for symbol
 const recommendationSchema = z.object({
-  companyName: z.string().min(1, "Company Name is required"),
-  nseSymbol: z.string().optional(),
+  nseSymbol: z.string().min(1, "Symbol is required"),
   dateRecommended: z.string().optional(),
   priceAtRecommendation: z.string().optional(),
   dateExit: z.string().optional(),
@@ -40,6 +40,7 @@ const recommendationSchema = z.object({
   exit_rationale: z.string().optional(),
   quarterly_update: z.string().optional(),
   announcements_and_update: z.string().optional(),
+  tags: z.string().optional(),
 });
 
 type RecommendationFormValues = z.infer<typeof recommendationSchema>;
@@ -79,7 +80,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   useEffect(() => {
     if (open && record) {
       reset({
-        companyName: record.companyName || "",
         nseSymbol: record.nseSymbol || "",
         dateRecommended: record.dateRecommended || "",
         priceAtRecommendation: String(record.priceAtRecommendation || ""),
@@ -97,6 +97,10 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         quick_bite: record.quick_bite || "",
         video: record.video || "",
         exit_rationale: record.exit_rationale || "",
+        tags:
+          typeof (record as any).tags === "string" && (record as any).tags.length > 0
+            ? (record as any).tags.split(",")
+            : [],
       });
       setQuarterlyUpdates(record.quarterly_update || []);
       setAnnouncements(record.announcements_and_update || []);
@@ -112,6 +116,15 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       setUploading((prev) => ({ ...prev, [fieldName]: true }));
       const formData = new FormData();
       formData.append("file", file);
+      // Provide category hint for backend validation/routing
+      const mime = file.type || "";
+      let category: string | undefined = undefined;
+      if (fieldName === "logo" || mime.startsWith("image/")) category = "image";
+      else if (mime === "application/pdf") category = "pdf";
+      formData.append("category", category || "file");
+      // Group recommendation uploads under recommendations/{company_symbol}/
+      const companySymbol = record?.nseSymbol || "unknown";
+      formData.append("dir", `recommendations/${companySymbol}`);
 
       const response = await axiosInstance.post(
         endpoints.files.upload,
@@ -178,6 +191,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
   const onSubmit = async (data: RecommendationFormValues) => {
     try {
+      const tags = Array.isArray(data.tags) ? data.tags : [];
       const updatedData = {
         logo: data.logo,
         business_note: data.business_note,
@@ -187,7 +201,10 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         quarterly_update: quarterlyUpdates,
         announcements_and_update: announcements,
         stock_performance_url: data.stock_performance_url,
+        tags: tags,
       };
+
+      console.log(updatedData, "updated");
 
       await onSave(updatedData);
     } catch (error: any) {
@@ -197,17 +214,31 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
   if (!record) return null;
 
+  const TAG_OPTIONS = [
+    { label: "Core", value: "core" },
+    { label: "Core Annual", value: "core_annual" },
+    { label: "Research Hub", value: "research_hub" },
+    { label: "Freemium", value: "freemium" },
+  ];
+
+  const watchedTags = watch("tags");
+  const selectedTags = Array.isArray(watchedTags)
+    ? watchedTags
+    : typeof (record as any).tags === "string"
+    ? ((record as any).tags as string).split(",").filter(Boolean)
+    : [];
+
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50" />
         <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-6xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 shadow-lg overflow-y-auto">
           <Dialog.Title className="text-lg font-medium text-gray-900">
-            Edit Recommendation - {record.companyName} ({record.nseSymbol})
+            Edit Recommendation - {record.nseSymbol}
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-sm text-gray-600">
             Update additional fields for this recommendation. Sheet data
-            (company name, prices, etc.) is read-only. Upload PDFs and manage
+            (symbol, prices, etc.) is read-only. Upload PDFs and manage
             quarterly updates and announcements.
           </Dialog.Description>
 
@@ -215,10 +246,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
             <div className="bg-gray-50 p-4 rounded-md">
               <h3 className="font-medium mb-2">Sheet Data (Read-Only)</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <label className="text-gray-600">Company:</label>
-                  <p className="font-medium">{record.companyName}</p>
-                </div>
                 <div>
                   <label className="text-gray-600">Symbol:</label>
                   <p className="font-medium">{record.nseSymbol}</p>
@@ -396,6 +423,40 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                     {...register("stock_performance_url")}
                     placeholder="Spreadsheet URL"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Tags</label>
+                  <div className="flex flex-wrap gap-4">
+                    {TAG_OPTIONS.map((tag) => (
+                      <label
+                        key={tag.value}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          type="checkbox"
+                          value={tag.value}
+                          {...register("tags")}
+                          className="accent-blue-500"
+                          checked={selectedTags.includes(tag.value)}
+                          onChange={(e) => {
+                            let newTags = [...selectedTags];
+                            if (e.target.checked) {
+                              if (!newTags.includes(tag.value)) {
+                                newTags.push(tag.value);
+                              }
+                            } else {
+                              newTags = newTags.filter((v) => v !== tag.value);
+                            }
+                            setValue("tags", newTags, {
+                              shouldValidate: true,
+                            });
+                          }}
+                        />
+                        {tag.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

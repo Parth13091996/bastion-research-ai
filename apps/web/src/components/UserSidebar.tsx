@@ -86,6 +86,8 @@ const navItems = [
 
 export default function Sidebar() {
   const { user, subscription, isAdmin, logout } = useAuth();
+  console.log({ user, subscription, isAdmin });
+
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -101,8 +103,8 @@ export default function Sidebar() {
         "User"
       : "Guest",
     role: user?.role || "User",
-    avatarUrl: null, // You can add avatar URL to user object later
-    is_premium: subscription?.is_premium || false,
+    avatarUrl: null,
+    is_premium: user?.is_premium || false,
     currentPlan: subscription?.currentPlan || null,
   };
 
@@ -342,7 +344,10 @@ export default function Sidebar() {
                     rel="noopener noreferrer"
                     onClick={(e) => {
                       // Disable external CTA (e.g., WhatsApp group) for non-premium users
-                      if (!profile.is_premium && item.name.toLowerCase().includes("whatsapp")) {
+                      if (
+                        !profile.is_premium &&
+                        item.name.toLowerCase().includes("whatsapp")
+                      ) {
                         e.preventDefault();
                         toast.info("Upgrade to join the WhatsApp group");
                         return;
@@ -362,7 +367,11 @@ export default function Sidebar() {
                     to={item.path}
                     onClick={(e) => {
                       // Gate certain sections for freemium users
-                      if (!profile.is_premium && (item.name.toLowerCase().includes("scratch pad") || item.path.includes("/scratch-pad"))) {
+                      if (
+                        !profile.is_premium &&
+                        (item.name.toLowerCase().includes("scratch pad") ||
+                          item.path.includes("/scratch-pad"))
+                      ) {
                         e.preventDefault();
                         toast.info("Upgrade to access Scratch Pad");
                         return;

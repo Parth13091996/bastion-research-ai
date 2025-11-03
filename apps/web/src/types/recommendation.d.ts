@@ -134,6 +134,7 @@ interface ExtendedRecommendationRecord {
   quarterly_update?: UpdateItem[];
   announcements_and_update?: UpdateItem[];
   stock_performance_url?: string;
+  tags?: string;
   created_at?: string;
 }
 

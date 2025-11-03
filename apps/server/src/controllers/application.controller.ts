@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { randomUUID } from "crypto";
 import { supabase } from "../supabase";
+import { uploadToSupabase } from "../services/upload.service";
 
 export const getApplications = async (req: Request, res: Response) => {
   const { data, error } = await supabase
@@ -44,43 +44,12 @@ export const createApplication = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "resume file is required" });
     }
 
-    const bucket = process.env.SUPABASE_RESUME_STORAGE_BUCKET || "resumes";
-    const allowed = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    if (!allowed.includes(file.mimetype)) {
-      return res
-        .status(400)
-        .json({ error: "Only PDF, DOC, or DOCX files allowed" });
-    }
-
-    const ext =
-      file.mimetype === "application/pdf"
-        ? "pdf"
-        : file.mimetype === "application/msword"
-          ? "doc"
-          : "docx";
-    const filename = `${randomUUID()}.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(filename, file.buffer, {
-        contentType: file.mimetype,
-        upsert: false,
-      });
-
-    if (uploadError) {
-      console.error("Supabase upload error:", uploadError);
-      return res.status(500).json({ error: uploadError.message });
-    }
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(filename);
-
-    const resume_url = publicUrl;
+    // Unified uploader handles validation and storage
+    const { url: resume_url } = await uploadToSupabase({
+      file,
+      category: "resume",
+      dir: "resumes",
+    });
 
     const { data, error } = await supabase
       .from("applications")

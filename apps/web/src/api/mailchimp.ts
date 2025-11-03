@@ -36,6 +36,13 @@ export const mailchimpNewsletterApi = {
           params: { force: true },
         })
         .then((res) => res.data),
+
+    setHidden: (id: string, hidden: boolean): Promise<{ ok: boolean }> =>
+      axiosInstance
+        .put(endpoints.content.mailchimp.newsletters.admin.setHidden(id), {
+          hidden,
+        })
+        .then((res) => res.data),
   },
 };
 

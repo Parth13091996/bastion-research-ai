@@ -25,18 +25,36 @@ export const getRecommendationById = async (req: Request, res: Response) => {
     }
     return res.status(500).json({ error: error.message });
   }
+  try {
+    const userId = (req as any)?.user?.id;
+    if (userId) {
+      await supabase.from("user_activity").insert({
+        user_id: userId,
+        event_type: "recommendation_view",
+        subject_id: id,
+        occurred_at: new Date().toISOString(),
+        ip:
+          (req.headers["x-forwarded-for"] as string) ||
+          req.socket.remoteAddress ||
+          null,
+        user_agent: (req.headers["user-agent"] as string) || null,
+        metadata: null,
+      } as any);
+    }
+  } catch {}
+
   return res.status(200).json(data);
 };
 
-export const getRecommendationByCompany = async (
+export const getRecommendationByCompanySymbol = async (
   req: Request,
   res: Response
 ) => {
-  const { companyName } = req.params;
+  const { companySymbol } = req.params;
   const { data, error } = await supabase
     .from("recommendations")
     .select("*")
-    .eq("company_name", companyName)
+    .eq("company_symbol", companySymbol)
     .single();
 
   if (error) {
@@ -53,7 +71,7 @@ export const createRecommendation = async (req: Request, res: Response) => {
   try {
     const {
       logo,
-      company_name,
+      company_symbol,
       business_note,
       quick_bite,
       video,
@@ -61,10 +79,12 @@ export const createRecommendation = async (req: Request, res: Response) => {
       quarterly_update = [],
       announcements_and_update = [],
       stock_performance_url = "",
+      tags = [],
     } = req.body ?? {};
+    console.log(tags.join(","), "tags join");
 
-    if (!company_name) {
-      return res.status(400).json({ error: "Company name is required" });
+    if (!company_symbol) {
+      return res.status(400).json({ error: "Company symbol is required" });
     }
 
     const { data, error } = await supabase
@@ -72,7 +92,7 @@ export const createRecommendation = async (req: Request, res: Response) => {
       .insert([
         {
           logo,
-          company_name,
+          company_symbol,
           business_note,
           quick_bite,
           video,
@@ -80,6 +100,7 @@ export const createRecommendation = async (req: Request, res: Response) => {
           quarterly_update,
           announcements_and_update,
           stock_performance_url,
+          tags: tags.join(","),
         },
       ])
       .select();
@@ -100,7 +121,7 @@ export const updateRecommendation = async (req: Request, res: Response) => {
   const { id } = req.params;
   const {
     logo,
-    company_name,
+    company_symbol,
     business_note,
     quick_bite,
     video,
@@ -108,11 +129,12 @@ export const updateRecommendation = async (req: Request, res: Response) => {
     quarterly_update,
     announcements_and_update,
     stock_performance_url,
+    tags = [],
   } = req.body ?? {};
 
   const updateData: any = {};
   if (logo !== undefined) updateData.logo = logo;
-  if (company_name !== undefined) updateData.company_name = company_name;
+  if (company_symbol !== undefined) updateData.company_symbol = company_symbol;
   if (business_note !== undefined) updateData.business_note = business_note;
   if (quick_bite !== undefined) updateData.quick_bite = quick_bite;
   if (video !== undefined) updateData.video = video;
@@ -124,6 +146,9 @@ export const updateRecommendation = async (req: Request, res: Response) => {
     updateData.quarterly_update = quarterly_update;
   if (announcements_and_update !== undefined)
     updateData.announcements_and_update = announcements_and_update;
+  if (tags !== undefined) updateData.tags = tags.join(",");
+
+  console.log(updateData, "list");
 
   const { data, error } = await supabase
     .from("recommendations")
@@ -144,7 +169,7 @@ export const upsertRecommendationByCompany = async (
   try {
     const {
       logo,
-      company_name,
+      company_symbol,
       business_note,
       quick_bite,
       video,
@@ -152,10 +177,13 @@ export const upsertRecommendationByCompany = async (
       quarterly_update = [],
       announcements_and_update = [],
       stock_performance_url = "",
+      tags = [],
     } = req.body ?? {};
 
-    if (!company_name) {
-      return res.status(400).json({ error: "Company name is required" });
+    console.log("upsert", tags);
+
+    if (!company_symbol) {
+      return res.status(400).json({ error: "Company symbol is required" });
     }
 
     const { data, error } = await supabase
@@ -163,7 +191,7 @@ export const upsertRecommendationByCompany = async (
       .upsert(
         {
           logo,
-          company_name,
+          company_symbol,
           business_note,
           quick_bite,
           video,
@@ -171,8 +199,9 @@ export const upsertRecommendationByCompany = async (
           quarterly_update,
           announcements_and_update,
           stock_performance_url,
+          tags: tags.join(","),
         },
-        { onConflict: "company_name" }
+        { onConflict: "company_symbol" }
       )
       .select();
 

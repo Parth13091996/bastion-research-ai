@@ -103,18 +103,8 @@ export function AnalyticsDashboard() {
     ],
   };
 
-  // Revenue by Product chart
-  const revenueByProductData = summary?.revenue?.byProduct
-    ? {
-        labels: summary.revenue.byProduct.map((r) => r.product),
-        datasets: [
-          {
-            label: "Revenue",
-            data: summary.revenue.byProduct.map((r) => r.revenue),
-          },
-        ],
-      }
-    : undefined;
+  // Revenue by Product intentionally removed from dashboard per requirements
+  const revenueByProductData = undefined as any;
 
   // Table columns for detailed page analytics
   const pageColumns: ColDef<PageViewRow>[] = [
@@ -257,62 +247,11 @@ export function AnalyticsDashboard() {
           visitsData={visitsData}
           usersData={usersData}
           topPathsData={topPathsData}
-          revenueByProductData={revenueByProductData as any}
           loading={isLoading}
         />
       )}
-
-      {/* Detailed Page Analytics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <TrendingUp className="mr-2 h-5 w-5" />
-            Page Performance
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={summary?.topPaths || []}
-            columns={pageColumns}
-            loading={isLoading}
-            searchPlaceholder="Search pages..."
-            enableExport={true}
-            className="border-0"
-          />
-        </CardContent>
-      </Card>
-
-      {/* Real-time Activity & Business KPIs */}
+      {/* Business KPIs (Recent Activity removed) */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="mr-2 h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {summary?.topPaths.slice(0, 5).map((path, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    <span className="text-sm font-mono">{path.path}</span>
-                  </div>
-                  <Badge variant="outline">{path.views} views</Badge>
-                </div>
-              )) || (
-                <p className="text-sm text-muted-foreground">
-                  No recent activity
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Quick Stats</CardTitle>
