@@ -95,7 +95,7 @@ export default function PremiumWebinarsPage() {
   return (
     <div
       className="min-h-screen relative overflow-hidden"
-      style={{ backgroundColor: COLORS.gray }}
+      
     >
       <div className="absolute inset-0 z-0">
         <BackgroundShapes />
