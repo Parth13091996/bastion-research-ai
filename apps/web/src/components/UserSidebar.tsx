@@ -86,7 +86,6 @@ const navItems = [
 
 export default function Sidebar() {
   const { user, subscription, isAdmin, logout } = useAuth();
-  console.log({ user, subscription, isAdmin });
 
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);

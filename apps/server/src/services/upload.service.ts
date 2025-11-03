@@ -74,15 +74,20 @@ function validateMimetype(mime: string, category: UploadCategory) {
   return list.includes(mime);
 }
 
-export async function uploadToSupabase(options: {
+export async function uploadToSupabase({
+  file,
+  category: categoryProp,
+  dir,
+  filenameBase,
+  upsert = true,
+}: {
   file: Express.Multer.File;
   category?: UploadCategory;
   dir?: string; // e.g., "recommendations" or "resumes"
   filenameBase?: string; // optional base name without extension
   upsert?: boolean;
 }) {
-  const { file } = options;
-  const category = options.category || inferCategory(file.mimetype);
+  const category = categoryProp || inferCategory(file.mimetype);
 
   if (!validateMimetype(file.mimetype, category)) {
     throw new Error("Unsupported file type for this category");
@@ -93,15 +98,15 @@ export async function uploadToSupabase(options: {
     file.mimetype,
     path.extname(file.originalname).slice(1)
   );
-  const filename = `${options.filenameBase || randomUUID()}.${ext}`;
-  const subdir = options.dir || category;
+  const filename = `${filenameBase || randomUUID()}.${ext}`;
+  const subdir = dir || category;
   const storagePath = `${subdir}/${filename}`;
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)
     .upload(storagePath, file.buffer, {
       contentType: file.mimetype,
-      upsert: Boolean(options.upsert),
+      upsert: true,
     });
   if (uploadError) throw new Error(uploadError.message || "Upload failed");
 

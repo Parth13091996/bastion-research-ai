@@ -238,7 +238,6 @@ const SingleRecommendation = () => {
         </div>
       ) : (
         <>
-         
           {/* HEADER */}
           <Header stock={stock} />
 

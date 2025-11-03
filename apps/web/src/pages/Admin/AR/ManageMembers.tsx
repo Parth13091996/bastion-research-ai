@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { queryKeys } from "@/api/queryKeys";
+import { UserActivityDropdown } from "@/components/admin/UserActivityDropdown";
 
 // Reuse UI patterns from All Users table
 const RoleRenderer = (params: any) => {
@@ -49,6 +50,22 @@ const EmailRenderer = (params: any) => (
     {params.value}
   </a>
 );
+
+const ActivityRenderer = (params: any, activityMap: any) => {
+  const userId = params.data.id;
+  const activity = activityMap[userId] || {
+    pageviews_count: 0,
+    recommendations_count: 0,
+  };
+
+  return (
+    <UserActivityDropdown
+      userId={userId}
+      pageViewsCount={activity.pageviews_count}
+      recommendationsCount={activity.recommendations_count}
+    />
+  );
+};
 
 const MemberManagementDashboard = () => {
   const queryClient = useQueryClient();
@@ -124,6 +141,13 @@ const MemberManagementDashboard = () => {
       field: "id",
       width: 140,
       valueGetter: (params) => activityMap[params.data.id]?.recommendations_count ?? 0,
+    },
+    {
+      headerName: "Analytics",
+      field: "id",
+      width: 140,
+      cellRenderer: (params: any) => ActivityRenderer(params, activityMap),
+      sortable: false,
     },
     {
       headerName: "Email",

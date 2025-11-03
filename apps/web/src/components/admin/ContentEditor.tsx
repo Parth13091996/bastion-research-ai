@@ -537,6 +537,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                       ? formData?.content
                       : formData?.contents
                   }
+                  uploadDir={
+                    type === "scratch-pad"
+                      ? "content/scratchpad"
+                      : `content/${type}`
+                  }
                 />
               )}
             </CardContent>

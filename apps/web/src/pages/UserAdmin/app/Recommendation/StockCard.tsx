@@ -99,12 +99,15 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                   }}
                 ></div>
 
-                <div className="absolute top-6 left-0 text-xs text-gray-500">
-                  ₹{stock.entryPrice}
+                <div className="absolute top-6 left-0 flex flex-col text-xs text-gray-500">
+                  <span className="flex flex-col items-center justify-center">
+                    <span>₹{stock.entryPrice}</span>
+                    <span>Entry Price</span>
+                  </span>
                 </div>
 
                 <div
-                  className="absolute -top-5 text-xs font-semibold text-green-700"
+                  className="absolute -top-8 text-xs font-semibold text-green-700"
                   style={{
                     left: `${Math.min(
                       ((stock.cmp - stock.entryPrice) /
@@ -115,11 +118,17 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                     transform: "translateX(-50%)",
                   }}
                 >
-                  CMP: ₹{stock.cmp}
+                  <span className="flex flex-col items-center justify-center">
+                    <span>CMP</span>
+                    <span>₹{stock.cmp}</span>
+                  </span>
                 </div>
 
-                <div className="absolute top-6 right-0 text-xs text-gray-500">
-                  ₹{stock.target1}
+                <div className="absolute top-6 right-0 flex flex-col text-xs text-gray-500">
+                  <span className="flex flex-col items-center justify-center">
+                    <span>₹{stock.target1}</span>
+                    <span>Target Price</span>
+                  </span>
                 </div>
               </>
             )}
@@ -130,57 +139,63 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                   className="h-4 rounded-full transition-all duration-500 absolute"
                   style={{
                     width: `${Math.min(
-                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 50,
-                      50
+                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
+                      100
                     )}%`,
                     backgroundColor: COLORS.red,
-                    right: "50%",
+                    left: 0,
                   }}
                 ></div>
 
-                <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">
-                  ₹{stock.entryPrice}
+                <div className="absolute top-6 left-0 flex flex-col text-xs text-gray-500">
+                  <span className="flex flex-col items-center justify-center">
+                    <span>₹{stock.entryPrice}</span>
+                    <span>Entry Price</span>
+                  </span>
                 </div>
 
                 <div
-                  className="absolute -top-5 text-xs font-semibold text-red-700"
+                  className="absolute -top-8 text-xs font-semibold text-red-700"
                   style={{
-                    left: `${
-                      50 -
-                      Math.min(
-                        ((stock.entryPrice - stock.cmp) / stock.entryPrice) *
-                          50,
-                        50
-                      )
-                    }%`,
+                    left: `${Math.min(
+                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
+                      100
+                    )}%`,
                     transform: "translateX(-50%)",
                   }}
                 >
-                  CMP: ₹{stock.cmp}
+                  <span className="flex flex-col items-center justify-center">
+                    <span>CMP</span>
+                    <span>₹{stock.cmp}</span>
+                  </span>
                 </div>
 
-                <div className="absolute top-6 right-0 text-xs text-gray-500">
-                  ₹{stock.target1}
+                <div className="absolute top-6 right-0 flex flex-col text-xs text-gray-500">
+                  <span className="flex flex-col items-center justify-center">
+                    <span>₹{stock.target1}</span>
+                    <span>Target Price</span>
+                  </span>
                 </div>
               </>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 text-sm font-medium text-gray-700">
-          <div>
-            <div className="text-xs text-gray-500">Entry Price</div>₹
-            {stock.entryPrice}
+        {/* <div className="grid grid-cols-3 text-sm font-medium text-gray-700">
+          <div className="text-center">
+            <div className="text-xs text-gray-500">Entry Price</div>
+            ₹{stock.entryPrice}
           </div>
-          <div>
-            <div className="text-xs text-gray-500">CMP</div>₹{stock.cmp}
+          <div className="text-center">
+            <div className="text-xs text-gray-500">CMP</div>
+            ₹{stock.cmp}
           </div>
 
-          <div>
-            <div className="text-xs text-gray-500">Target Price</div>₹
-            {stock.target1}
+          <div className="text-center">
+            <div className="text-xs text-gray-500">Target Price</div>
+            ₹{stock.target1}
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="px-4 pb-4">

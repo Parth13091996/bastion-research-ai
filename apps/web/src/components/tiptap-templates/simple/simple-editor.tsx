@@ -174,8 +174,10 @@ const MobileToolbarContent = ({
 
 export function SimpleEditor({
   contents,
+  uploadDir,
 }: {
   contents: Record<any, any> | string;
+  uploadDir?: string;
 }) {
   const isMobile = useIsMobile();
   const { height } = useWindowSize();
@@ -280,7 +282,11 @@ export function SimpleEditor({
       TaskList,
       TaskItem.configure({ nested: true }),
       Highlight.configure({ multicolor: true }),
-      Image,
+      Image.configure({
+        resize: {
+          enabled: true,
+        },
+      }),
       Typography,
       Superscript,
       Subscript,
@@ -289,7 +295,8 @@ export function SimpleEditor({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
         limit: 3,
-        upload: handleImageUpload,
+        upload: (file, onProgress, abortSignal) =>
+          handleImageUpload(file, onProgress, abortSignal, uploadDir),
         onError: (error) => console.error("Upload failed:", error),
       }),
     ],

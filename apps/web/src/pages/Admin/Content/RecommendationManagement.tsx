@@ -103,19 +103,41 @@ const RecommendationManagement: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSave = async (updatedData: Partial<ExtendedRecommendation>) => {
+  const handleSave = async (updatedData: any) => {
     try {
+      // If modal passed FormData, use it directly; otherwise build it
+      const formData =
+        updatedData instanceof FormData ? updatedData : new FormData();
+
+      if (!(updatedData instanceof FormData)) {
+        Object.entries(updatedData || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null) return;
+          if (typeof value === "object" && !(value instanceof Blob)) {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value as any);
+          }
+        });
+      }
+
+      // Ensure company_symbol is included for backend upsert
+      formData.set(
+        "company_symbol",
+        (
+          editingRecommendation?.nseSymbol ||
+          editingRecommendation?.code ||
+          ""
+        ).toString()
+      );
+
       await axiosInstance.put(
         `/api/recommendations/company/${encodeURIComponent(
-          editingRecommendation?.companyName ||
-            editingRecommendation?.name ||
+          editingRecommendation?.nseSymbol ||
+            editingRecommendation?.nseSymbol ||
             ""
         )}`,
-        {
-          company_name:
-            editingRecommendation?.companyName || editingRecommendation?.name,
-          ...updatedData,
-        }
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
       toast.success("Recommendation updated successfully");
       setIsEditModalOpen(false);

@@ -6,12 +6,7 @@ import { formatDate } from "@/lib/utils";
 const Header = ({ stock }) => {
   const percentReturnNum =
     typeof stock?.percentReturn === "number" ? stock.percentReturn * 100 : 0;
-  const percentReturn =
-    typeof stock?.percentReturn === "number"
-      ? (stock.percentReturn * 100).toFixed(1)
-      : "0";
-  const totalReturnNum = percentReturnNum;
-  // const totalReturnFromSheet = stock?.percentReturn || stock?.percentReturn || 0;
+  const totalReturnNum = Math.round(Number(percentReturnNum));
   const entryPrice =
     typeof stock?.entryPrice !== "undefined" ? stock.entryPrice : 0;
   const cmp =
@@ -78,7 +73,6 @@ const Header = ({ stock }) => {
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm md:sticky md:top-0 md:z-10">
       <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
-
         <div className="flex items-center gap-4">
           {/* Logo Box (replicating logic from StockCard.tsx) */}
           {stock?.logo ? (
@@ -111,7 +105,6 @@ const Header = ({ stock }) => {
                 stock?.companyName ||
                 stock?.company_name ||
                 "Company Name Ltd."}
-
             </h1>
 
             <button
@@ -121,7 +114,6 @@ const Header = ({ stock }) => {
               ← Go Back
             </button>
           </div>
-
         </div>
         <div className="flex items-center gap-3">
           <button

@@ -25,7 +25,6 @@ interface StockData {
   announcements_and_update?: Announcement[];
   created_at?: string;
   updated_at?: string;
-
   code?: string;
   marketCap?: string;
   upside?: string;

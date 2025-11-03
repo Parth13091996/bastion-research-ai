@@ -34,7 +34,7 @@ function App() {
       </Suspense>
       <ModalsLayout />
       <Loader />
-      <Toaster position="top-right" />
+      <Toaster position="bottom-center" />
     </Router>
   );
 }

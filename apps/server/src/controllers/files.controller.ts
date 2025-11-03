@@ -9,8 +9,14 @@ export async function uploadFile(req: Request, res: Response) {
 
     const category = (req.body.category as any) || undefined; // optional hint
     const dir = (req.body.dir as string) || undefined; // optional subfolder
+    const fileNameBase = (req.body.fileName as string) || undefined;
 
-    const result = await uploadToSupabase({ file, category, dir });
+    const result = await uploadToSupabase({
+      file,
+      category,
+      dir,
+      filenameBase: fileNameBase,
+    });
     return res.status(201).json(result);
   } catch (e: any) {
     console.error("uploadFile error:", e?.message || e);

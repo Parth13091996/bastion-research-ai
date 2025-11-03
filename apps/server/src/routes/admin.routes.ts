@@ -24,7 +24,11 @@ import {
   updateContactRecipientEmail,
 } from "../controllers/settings.controller";
 import { admin, protect } from "../middleware/auth.middleware";
-import { getUserActivitySummary } from "../controllers/userActivity.controller";
+import {
+  getUserActivitySummary,
+  getUserPageVisits,
+  getUserRecommendationVisits
+} from "../controllers/userActivity.controller";
 import {
   getMailchimpNewsletter,
   listMailchimpNewsletters,
@@ -42,6 +46,9 @@ router.get("/dashboard", protect, admin, (req, res) => {
 router.get("/analytics/summary", protect, admin, getAnalyticsSummary);
 // User-level analytics for Manage Members
 router.get("/users/activity-summary", protect, admin, getUserActivitySummary);
+// Detailed user activity - page visits and recommendation visits
+router.get("/users/:userId/page-visits", protect, admin, getUserPageVisits);
+router.get("/users/:userId/recommendation-visits", protect, admin, getUserRecommendationVisits);
 
 // Settings: Contact recipient email
 router.get("/settings/contact-email", protect, admin, getContactRecipientEmail);

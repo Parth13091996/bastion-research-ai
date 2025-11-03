@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Upload, Plus, Trash2, Edit2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,6 +18,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Remove companyName validation and require only nseSymbol for symbol
 const recommendationSchema = z.object({
@@ -40,7 +49,7 @@ const recommendationSchema = z.object({
   exit_rationale: z.string().optional(),
   quarterly_update: z.string().optional(),
   announcements_and_update: z.string().optional(),
-  tags: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 type RecommendationFormValues = z.infer<typeof recommendationSchema>;
@@ -59,12 +68,37 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   onSave,
 }) => {
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [selectedFiles, setSelectedFiles] = useState<
+    Record<string, File | null>
+  >({});
   const [quarterlyUpdates, setQuarterlyUpdates] = useState<UpdateItem[]>([]);
   const [announcements, setAnnouncements] = useState<UpdateItem[]>([]);
   const [editingQuarterly, setEditingQuarterly] = useState<number | null>(null);
   const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(
     null
   );
+
+  // Track uploading states for each quarterly update and announcement PDF
+  const [quarterlyUploading, setQuarterlyUploading] = useState<
+    Record<number, boolean>
+  >({});
+  const [announcementUploading, setAnnouncementUploading] = useState<
+    Record<number, boolean>
+  >({});
+
+  // --- refs for file input fields (per file field for single main fields) ---
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const businessNoteInputRef = useRef<HTMLInputElement | null>(null);
+  const quickBiteInputRef = useRef<HTMLInputElement | null>(null);
+  const exitRationaleInputRef = useRef<HTMLInputElement | null>(null);
+
+  // --- refs for file input fields for dynamically generated items (quarterly/announcements) ---
+  const quarterlyPdfInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const announcementPdfInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  // Clear multilist refs before rendering to align length
+  quarterlyPdfInputRefs.current = [];
+  announcementPdfInputRefs.current = [];
 
   const {
     register,
@@ -98,7 +132,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         video: record.video || "",
         exit_rationale: record.exit_rationale || "",
         tags:
-          typeof (record as any).tags === "string" && (record as any).tags.length > 0
+          typeof (record as any).tags === "string" &&
+          (record as any).tags.length > 0
             ? (record as any).tags.split(",")
             : [],
       });
@@ -111,21 +146,26 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     }
   }, [open, record, reset]);
 
-  const handleFileUpload = async (fieldName: string, file: File) => {
+  // Collect file locally; send with main FormData on submit
+  const handleFileSelect = (fieldName: string, file: File) => {
+    setSelectedFiles((prev) => ({ ...prev, [fieldName]: file }));
+    // Store a display value (filename) to show something in the input if needed
+    setValue(fieldName as any, file.name as any);
+  };
+
+  // Updated: Pass fileName parameter as field name for backend recognition
+  const handleQuarterlyPdfUpload = async (index: number, file: File) => {
     try {
-      setUploading((prev) => ({ ...prev, [fieldName]: true }));
+      setQuarterlyUploading((prev) => ({ ...prev, [index]: true }));
       const formData = new FormData();
       formData.append("file", file);
-      // Provide category hint for backend validation/routing
-      const mime = file.type || "";
-      let category: string | undefined = undefined;
-      if (fieldName === "logo" || mime.startsWith("image/")) category = "image";
-      else if (mime === "application/pdf") category = "pdf";
-      formData.append("category", category || "file");
-      // Group recommendation uploads under recommendations/{company_symbol}/
+      formData.append("fileName", "quarterly_update_pdf_url_" + index);
+      formData.append("category", "pdf");
       const companySymbol = record?.nseSymbol || "unknown";
-      formData.append("dir", `recommendations/${companySymbol}`);
-
+      formData.append(
+        "dir",
+        `recommendations/${companySymbol}/quarterly_updates`
+      );
       const response = await axiosInstance.post(
         endpoints.files.upload,
         formData,
@@ -133,13 +173,66 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-
-      setValue(fieldName as any, response.data.url);
-      toast.success("File uploaded successfully");
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || "Failed to upload file");
+      // Set the url to quarterly update item
+      const newUpdates = [...quarterlyUpdates];
+      newUpdates[index] = { ...newUpdates[index], pdf_url: response.data.url };
+      setQuarterlyUpdates(newUpdates);
+      toast.success("PDF uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to upload PDF");
     } finally {
-      setUploading((prev) => ({ ...prev, [fieldName]: false }));
+      setQuarterlyUploading((prev) => ({ ...prev, [index]: false }));
+
+      // Clear the input after upload
+      if (
+        quarterlyPdfInputRefs.current &&
+        quarterlyPdfInputRefs.current[index]
+      ) {
+        quarterlyPdfInputRefs.current[index]!.value = "";
+      }
+    }
+  };
+
+  // Updated: Pass fileName as field name for backend recognition for each announcement item
+  const handleAnnouncementPdfUpload = async (index: number, file: File) => {
+    try {
+      setAnnouncementUploading((prev) => ({ ...prev, [index]: true }));
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", "announcement_pdf_url_" + index);
+      formData.append("category", "pdf");
+      const companySymbol = record?.nseSymbol || "unknown";
+      formData.append(
+        "dir",
+        `recommendations/${companySymbol}/announcements_and_update`
+      );
+      const response = await axiosInstance.post(
+        endpoints.files.upload,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      // Set the url to announcement item
+      const newAnnouncements = [...announcements];
+      newAnnouncements[index] = {
+        ...newAnnouncements[index],
+        pdf_url: response.data.url,
+      };
+      setAnnouncements(newAnnouncements);
+      toast.success("PDF uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to upload PDF");
+    } finally {
+      setAnnouncementUploading((prev) => ({ ...prev, [index]: false }));
+
+      // Clear the input after upload
+      if (
+        announcementPdfInputRefs.current &&
+        announcementPdfInputRefs.current[index]
+      ) {
+        announcementPdfInputRefs.current[index]!.value = "";
+      }
     }
   };
 
@@ -192,21 +285,30 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   const onSubmit = async (data: RecommendationFormValues) => {
     try {
       const tags = Array.isArray(data.tags) ? data.tags : [];
-      const updatedData = {
-        logo: data.logo,
-        business_note: data.business_note,
-        quick_bite: data.quick_bite,
-        video: data.video,
-        exit_rationale: data.exit_rationale,
-        quarterly_update: quarterlyUpdates,
-        announcements_and_update: announcements,
-        stock_performance_url: data.stock_performance_url,
-        tags: tags,
-      };
+      const formData = new FormData();
+      formData.append("company_symbol", record.nseSymbol || "");
+      formData.append("video", data.video || "");
+      formData.append(
+        "stock_performance_url",
+        data.stock_performance_url || ""
+      );
+      formData.append("quarterly_update", JSON.stringify(quarterlyUpdates));
+      formData.append(
+        "announcements_and_update",
+        JSON.stringify(announcements)
+      );
+      formData.append("tags", JSON.stringify(tags));
 
-      console.log(updatedData, "updated");
+      // Attach files if selected; backend will upload and set URLs
+      if (selectedFiles.logo) formData.append("logo", selectedFiles.logo);
+      if (selectedFiles.business_note)
+        formData.append("business_note", selectedFiles.business_note);
+      if (selectedFiles.quick_bite)
+        formData.append("quick_bite", selectedFiles.quick_bite);
+      if (selectedFiles.exit_rationale)
+        formData.append("exit_rationale", selectedFiles.exit_rationale);
 
-      await onSave(updatedData);
+      await onSave(formData as any);
     } catch (error: any) {
       console.error("Update error:", error);
     }
@@ -221,12 +323,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     { label: "Freemium", value: "freemium" },
   ];
 
-  const watchedTags = watch("tags");
-  const selectedTags = Array.isArray(watchedTags)
-    ? watchedTags
-    : typeof (record as any).tags === "string"
-    ? ((record as any).tags as string).split(",").filter(Boolean)
-    : [];
+  // Adapt tags logic for dropdown multiselect
+  const watchedTags = watch("tags") ?? [];
+  const handleTagsChange = (values: string[]) => {
+    setValue("tags", values, { shouldValidate: true, shouldDirty: true });
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
@@ -270,7 +371,10 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                     Company Logo (Image URL)
                   </label>
                   <div className="flex gap-2">
-                    <Input {...register("logo")} placeholder="Logo image URL" />
+                    <Input
+                      {...register("logo")}
+                      placeholder="Logo file or name"
+                    />
                     <label className="cursor-pointer">
                       <Button
                         type="button"
@@ -285,23 +389,22 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                         </span>
                       </Button>
                       <input
+                        ref={logoInputRef}
                         type="file"
                         accept="image/*"
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload("logo", file);
+                          if (file) handleFileSelect("logo", file);
                         }}
                       />
                     </label>
                   </div>
-                  {watch("logo") && (
+                  {watch("logo") && selectedFiles.logo && (
                     <div className="mt-2">
-                      <img
-                        src={watch("logo")}
-                        alt="Logo preview"
-                        className="h-16 w-16 object-contain border rounded"
-                      />
+                      <span className="text-xs text-gray-600">
+                        {selectedFiles.logo.name}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -313,7 +416,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   <div className="flex gap-2">
                     <Input
                       {...register("business_note")}
-                      placeholder="PDF URL"
+                      placeholder="PDF file or name"
                     />
                     <label className="cursor-pointer">
                       <Button
@@ -329,12 +432,13 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                         </span>
                       </Button>
                       <input
+                        ref={businessNoteInputRef}
                         type="file"
                         accept="application/pdf"
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload("business_note", file);
+                          if (file) handleFileSelect("business_note", file);
                         }}
                       />
                     </label>
@@ -346,7 +450,10 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                     Quick Bite (PDF)
                   </label>
                   <div className="flex gap-2">
-                    <Input {...register("quick_bite")} placeholder="PDF URL" />
+                    <Input
+                      {...register("quick_bite")}
+                      placeholder="PDF file or name"
+                    />
                     <label className="cursor-pointer">
                       <Button
                         type="button"
@@ -361,12 +468,13 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                         </span>
                       </Button>
                       <input
+                        ref={quickBiteInputRef}
                         type="file"
                         accept="application/pdf"
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload("quick_bite", file);
+                          if (file) handleFileSelect("quick_bite", file);
                         }}
                       />
                     </label>
@@ -380,7 +488,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   <div className="flex gap-2">
                     <Input
                       {...register("exit_rationale")}
-                      placeholder="PDF URL"
+                      placeholder="PDF file or name"
                     />
                     <label className="cursor-pointer">
                       <Button
@@ -396,12 +504,13 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                         </span>
                       </Button>
                       <input
+                        ref={exitRationaleInputRef}
                         type="file"
                         accept="application/pdf"
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload("exit_rationale", file);
+                          if (file) handleFileSelect("exit_rationale", file);
                         }}
                       />
                     </label>
@@ -427,36 +536,35 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Tags</label>
-                  <div className="flex flex-wrap gap-4">
-                    {TAG_OPTIONS.map((tag) => (
-                      <label
-                        key={tag.value}
-                        className="flex items-center gap-2"
-                      >
-                        <input
-                          type="checkbox"
-                          value={tag.value}
-                          {...register("tags")}
-                          className="accent-blue-500"
-                          checked={selectedTags.includes(tag.value)}
-                          onChange={(e) => {
-                            let newTags = [...selectedTags];
-                            if (e.target.checked) {
-                              if (!newTags.includes(tag.value)) {
-                                newTags.push(tag.value);
-                              }
-                            } else {
-                              newTags = newTags.filter((v) => v !== tag.value);
-                            }
-                            setValue("tags", newTags, {
-                              shouldValidate: true,
-                            });
-                          }}
-                        />
-                        {tag.label}
-                      </label>
-                    ))}
-                  </div>
+                  {/* <MultiSelect
+                    value={watchedTags}
+                    onValueChange={handleTagsChange}
+                    placeholder="Select tags..."
+                    className="w-full"
+                  >
+                    <SelectContent>
+                      <SelectGroup>
+                        {TAG_OPTIONS.map((tag) => (
+                          <MultiSelectItem key={tag.value} value={tag.value}>
+                            {tag.label}
+                          </MultiSelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </MultiSelect> */}
+                  <Select>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select a fruit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Select a Tag</SelectLabel>
+                        {TAG_OPTIONS.map((item) => (
+                          <SelectItem value="apple">{item.label}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -486,8 +594,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                           <TableHead className="w-[120px]">Date</TableHead>
                           <TableHead className="w-[180px]">Title</TableHead>
                           <TableHead>Description</TableHead>
-                          <TableHead className="w-[200px]">PDF URL</TableHead>
-                          <TableHead className="w-[100px] text-center">
+                          <TableHead className="w-[250px]">PDF URL</TableHead>
+                          <TableHead className="w-[120px] text-center">
                             Actions
                           </TableHead>
                         </TableRow>
@@ -541,18 +649,66 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   />
                                 </TableCell>
                                 <TableCell>
-                                  <Input
-                                    value={update.pdf_url}
-                                    onChange={(e) =>
-                                      handleUpdateQuarterlyUpdate(
-                                        index,
-                                        "pdf_url",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="https://..."
-                                    className="text-sm"
-                                  />
+                                  <div className="flex gap-2 items-center">
+                                    <Input
+                                      value={update.pdf_url}
+                                      onChange={(e) =>
+                                        handleUpdateQuarterlyUpdate(
+                                          index,
+                                          "pdf_url",
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder="https://..."
+                                      className="text-sm"
+                                    />
+                                    <label className="cursor-pointer">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={quarterlyUploading[index]}
+                                        asChild
+                                      >
+                                        <span>
+                                          <Upload className="h-4 w-4 mr-1" />
+                                          {quarterlyUploading[index]
+                                            ? "Uploading..."
+                                            : "Upload"}
+                                        </span>
+                                      </Button>
+                                      <input
+                                        ref={(el) => {
+                                          quarterlyPdfInputRefs.current[index] =
+                                            el;
+                                        }}
+                                        type="file"
+                                        accept="application/pdf"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file)
+                                            handleQuarterlyPdfUpload(
+                                              index,
+                                              file
+                                            );
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
+                                  {update.pdf_url &&
+                                    update.pdf_url.startsWith("http") && (
+                                      <div className="mt-1 text-xs">
+                                        <a
+                                          href={update.pdf_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline"
+                                        >
+                                          Preview PDF
+                                        </a>
+                                      </div>
+                                    )}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Button
@@ -653,8 +809,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                           <TableHead className="w-[120px]">Date</TableHead>
                           <TableHead className="w-[180px]">Title</TableHead>
                           <TableHead>Description</TableHead>
-                          <TableHead className="w-[200px]">PDF URL</TableHead>
-                          <TableHead className="w-[100px] text-center">
+                          <TableHead className="w-[250px]">PDF URL</TableHead>
+                          <TableHead className="w-[120px] text-center">
                             Actions
                           </TableHead>
                         </TableRow>
@@ -708,18 +864,67 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   />
                                 </TableCell>
                                 <TableCell>
-                                  <Input
-                                    value={announcement.pdf_url}
-                                    onChange={(e) =>
-                                      handleUpdateAnnouncement(
-                                        index,
-                                        "pdf_url",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="https://..."
-                                    className="text-sm"
-                                  />
+                                  <div className="flex gap-2 items-center">
+                                    <Input
+                                      value={announcement.pdf_url}
+                                      onChange={(e) =>
+                                        handleUpdateAnnouncement(
+                                          index,
+                                          "pdf_url",
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder="https://..."
+                                      className="text-sm"
+                                    />
+                                    <label className="cursor-pointer">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={announcementUploading[index]}
+                                        asChild
+                                      >
+                                        <span>
+                                          <Upload className="h-4 w-4 mr-1" />
+                                          {announcementUploading[index]
+                                            ? "Uploading..."
+                                            : "Upload"}
+                                        </span>
+                                      </Button>
+                                      <input
+                                        ref={(el) => {
+                                          announcementPdfInputRefs.current[
+                                            index
+                                          ] = el;
+                                        }}
+                                        type="file"
+                                        accept="application/pdf"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file)
+                                            handleAnnouncementPdfUpload(
+                                              index,
+                                              file
+                                            );
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
+                                  {announcement.pdf_url &&
+                                    announcement.pdf_url.startsWith("http") && (
+                                      <div className="mt-1 text-xs">
+                                        <a
+                                          href={announcement.pdf_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline"
+                                        >
+                                          Preview PDF
+                                        </a>
+                                      </div>
+                                    )}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Button

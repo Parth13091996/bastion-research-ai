@@ -1,17 +1,8 @@
 import { Router } from "express";
-import multer from "multer";
 import { uploadFile } from "../controllers/files.controller";
+import { upload } from "../services/multer.service";
 
 const router = Router();
-
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: Number(process.env.MAX_UPLOAD_FILE_SIZE || 25 * 1024 * 1024), // default 25MB
-    files: 1,
-  },
-});
 
 router.post("/upload", upload.single("file"), uploadFile);
 
