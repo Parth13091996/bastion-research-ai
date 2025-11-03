@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import SignUpForm from "../Register/SignupForm.tsx";
+// import ComingSoon from "@/components/ComingSoon.tsx";
 
 const NAVY = "#1C2852";
 const MAROON = "#C00000";
@@ -266,7 +267,7 @@ export default function LandingPage() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.25 }}
-                          className="h-full flex flex-col md:flex-row gap-6"
+                          className="h-full flex flex-col md:flex-row gap-6 blur-sm"
                         >
                           <Panel
                             title="Product Suitability"
@@ -401,7 +402,7 @@ export default function LandingPage() {
                           boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => openPopup("https://bastionresearch.gridkey.in/strategies/332")}
+                        onClick={() => openPopup("/coming-soon")}
                       >
                         View Product Page
                       </motion.button>
@@ -417,7 +418,7 @@ export default function LandingPage() {
                           boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                         }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => openPopup("https://bastionresearch.gridkey.in/dashboard")}
+                        onClick={() => openPopup("/coming-soon")}
                       >
                         Subscribe Portfolio
                       </motion.button>
