@@ -129,8 +129,10 @@ const RecommendationManagement: React.FC = () => {
 
   const getActionBadgeColor = (action: string) => {
     const actionLower = action?.toLowerCase();
-    if (actionLower === "buy" || actionLower === "hold") {
+    if (actionLower === "buy") {
       return "bg-green-500 hover:bg-green-600";
+    } else if (actionLower === "hold") {
+      return "bg-[#C4B696] hover:bg-[#C4B696]";
     } else if (actionLower === "exit" || actionLower === "exited") {
       return "bg-red-500 hover:bg-red-600";
     }
