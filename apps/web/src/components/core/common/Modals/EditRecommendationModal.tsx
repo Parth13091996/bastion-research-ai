@@ -49,7 +49,7 @@ const recommendationSchema = z.object({
   exit_rationale: z.string().optional(),
   quarterly_update: z.string().optional(),
   announcements_and_update: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  tags: z.string().optional(),
 });
 
 type RecommendationFormValues = z.infer<typeof recommendationSchema>;
@@ -131,11 +131,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         quick_bite: record.quick_bite || "",
         video: record.video || "",
         exit_rationale: record.exit_rationale || "",
-        tags:
-          typeof (record as any).tags === "string" &&
-          (record as any).tags.length > 0
-            ? (record as any).tags.split(",")
-            : [],
+        tags: (record as any).tags || "",
       });
       setQuarterlyUpdates(record.quarterly_update || []);
       setAnnouncements(record.announcements_and_update || []);
@@ -284,7 +280,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
   const onSubmit = async (data: RecommendationFormValues) => {
     try {
-      const tags = Array.isArray(data.tags) ? data.tags : [];
       const formData = new FormData();
       formData.append("company_symbol", record.nseSymbol || "");
       formData.append("video", data.video || "");
@@ -297,7 +292,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         "announcements_and_update",
         JSON.stringify(announcements)
       );
-      formData.append("tags", JSON.stringify(tags));
+      formData.append("tags", String(data.tags));
 
       // Attach files if selected; backend will upload and set URLs
       if (selectedFiles.logo) formData.append("logo", selectedFiles.logo);
@@ -323,10 +318,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     { label: "Freemium", value: "freemium" },
   ];
 
-  // Adapt tags logic for dropdown multiselect
-  const watchedTags = watch("tags") ?? [];
-  const handleTagsChange = (values: string[]) => {
-    setValue("tags", values, { shouldValidate: true, shouldDirty: true });
+  const handleTagsChange = (value) => {
+    setValue("tags", value, { shouldValidate: true, shouldDirty: true });
   };
 
   return (
@@ -536,31 +529,17 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Tags</label>
-                  {/* <MultiSelect
-                    value={watchedTags}
-                    onValueChange={handleTagsChange}
-                    placeholder="Select tags..."
-                    className="w-full"
-                  >
-                    <SelectContent>
-                      <SelectGroup>
-                        {TAG_OPTIONS.map((tag) => (
-                          <MultiSelectItem key={tag.value} value={tag.value}>
-                            {tag.label}
-                          </MultiSelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </MultiSelect> */}
-                  <Select>
+                  <Select onValueChange={handleTagsChange} value={record.tags}>
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select a fruit" />
+                      <SelectValue placeholder="Select a tag" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Select a Tag</SelectLabel>
                         {TAG_OPTIONS.map((item) => (
-                          <SelectItem value="apple">{item.label}</SelectItem>
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
                         ))}
                       </SelectGroup>
                     </SelectContent>

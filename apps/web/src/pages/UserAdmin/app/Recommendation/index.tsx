@@ -34,9 +34,14 @@ const RecommendationList = () => {
   const [filterBy, setFilterBy] = useState("All");
   const [visibleCount, setVisibleCount] = useState(9);
   const { stocks: sheetStocks, loading, error } = useSheetStocks();
-  console.log({ sheetStocks });
   const { user } = useAuth();
   const [showPricing, setShowPricing] = useState(false);
+  const tiers = {
+    freemium: ["freemium"],
+    core: ["freemium", "core"],
+    core_annual: ["freemium", "core", "core_annual"],
+    research_hub: ["freemium", "core", "core_annual", "research_hub"],
+  };
 
   const filteredStocks = sheetStocks.filter((stock) => {
     const matchesFilter = filterBy === "All" || stock.band === filterBy;
@@ -74,6 +79,13 @@ const RecommendationList = () => {
     }
   });
 
+  const userPlanCode = user?.membership_plans?.plan_code;
+  const tierFilteredStocks = sortedStocks.filter((r) => {
+    const tags = r.tags;
+    const currentTier = tiers[userPlanCode];
+    if (currentTier.includes(tags)) return r;
+  });
+
   const handleLoadMore = () => {
     if (!user?.is_premium) {
       setShowPricing(true);
@@ -104,7 +116,7 @@ const RecommendationList = () => {
         />
 
         <StockGrid
-          stocks={sortedStocks} // Pass pre-processed visible stocks
+          stocks={tierFilteredStocks}
           visibleCount={visibleCount}
           onLoadMore={handleLoadMore}
           loading={loading}
