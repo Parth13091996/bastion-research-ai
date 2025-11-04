@@ -5,32 +5,30 @@ interface PDFViewerProps {
 }
 
 declare global {
-  const pdfjsLib: any;
+  interface Window {
+    pdfjsLib: any;
+  }
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Unique render token
   const renderIdRef = useRef(0);
 
-  // Go Back button handler
   const handleGoBack = () => {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      // fallback, e.g. redirect to dashboard route
       window.location.assign("/user/app/scratch-pad");
     }
   };
 
   useEffect(() => {
-    const currentRenderId = ++renderIdRef.current; // increment for each PDF load
+    const currentRenderId = ++renderIdRef.current;
 
     const loadPDFJS = async () => {
-      if (typeof (window as any).pdfjsLib === "undefined") {
+      if (typeof window.pdfjsLib === "undefined") {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement("script");
           script.src =
@@ -41,7 +39,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         });
       }
 
-      const pdfLib = (window as any).pdfjsLib;
+      const pdfLib = window.pdfjsLib;
       pdfLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
@@ -54,26 +52,28 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
       try {
         setLoading(true);
         setError(null);
-        containerRef.current.innerHTML = ""; // clear container
+        containerRef.current.innerHTML = "";
 
         const loadingTask = pdfLib.getDocument(pdfUrl);
         const pdf = await loadingTask.promise;
 
+        const isMobile = window.innerWidth < 768;
+        const baseScale = isMobile ? 0.9 : 1.5;
+
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-          // Stop if another render started
           if (renderId !== renderIdRef.current) return;
 
           const page = await pdf.getPage(pageNumber);
-          const scale = 1.5;
-          const viewport = page.getViewport({ scale });
+          const viewport = page.getViewport({ scale: baseScale });
 
           const tempCanvas = document.createElement("canvas");
           const tempContext = tempCanvas.getContext("2d")!;
           tempCanvas.width = viewport.width;
           tempCanvas.height = viewport.height;
+
           await page.render({ canvasContext: tempContext, viewport }).promise;
 
-          // Crop top & bottom margins
+          // Crop top and bottom margins
           const imgData = tempContext.getImageData(
             0,
             0,
@@ -87,10 +87,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           for (let y = 0; y < tempCanvas.height; y++) {
             for (let x = 0; x < tempCanvas.width; x++) {
               const i = (y * tempCanvas.width + x) * 4;
-              const r = imgData.data[i],
-                g = imgData.data[i + 1],
-                b = imgData.data[i + 2],
-                a = imgData.data[i + 3];
+              const [r, g, b, a] = [
+                imgData.data[i],
+                imgData.data[i + 1],
+                imgData.data[i + 2],
+                imgData.data[i + 3],
+              ];
               if (!(r > 240 && g > 240 && b > 240) && a > 0) {
                 top = y;
                 foundTop = true;
@@ -103,10 +105,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           for (let y = tempCanvas.height - 1; y >= 0; y--) {
             for (let x = 0; x < tempCanvas.width; x++) {
               const i = (y * tempCanvas.width + x) * 4;
-              const r = imgData.data[i],
-                g = imgData.data[i + 1],
-                b = imgData.data[i + 2],
-                a = imgData.data[i + 3];
+              const [r, g, b, a] = [
+                imgData.data[i],
+                imgData.data[i + 1],
+                imgData.data[i + 2],
+                imgData.data[i + 3],
+              ];
               if (!(r > 240 && g > 240 && b > 240) && a > 0) {
                 bottom = y;
                 break;
@@ -132,7 +136,39 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
             croppedHeight
           );
 
-          containerRef.current.appendChild(canvas);
+          // Wrapper for responsiveness
+          const wrapper = document.createElement("div");
+          wrapper.className = "pdf-page";
+          wrapper.style.position = "relative";
+          wrapper.style.width = "100%";
+          wrapper.style.display = "flex";
+          wrapper.style.justifyContent = "center";
+          wrapper.style.scrollSnapAlign = "start";
+          wrapper.style.overflow = "hidden";
+          wrapper.style.marginBottom = "20px";
+
+          // Canvas styling
+          canvas.style.width = "100%";
+          canvas.style.height = "auto";
+          canvas.style.maxWidth = "920px";
+          canvas.style.borderRadius = "6px";
+          canvas.style.boxShadow = "0 1px 4px rgba(0,0,0,0.15)";
+          canvas.style.backgroundColor = "#fff";
+
+          // 🔒 Transparent overlay to block right-click/save
+          const overlay = document.createElement("div");
+          overlay.style.position = "absolute";
+          overlay.style.top = "0";
+          overlay.style.left = "0";
+          overlay.style.width = "100%";
+          overlay.style.height = "100%";
+          overlay.style.background = "rgba(255,255,255,0)";
+          overlay.style.cursor = "default";
+          overlay.oncontextmenu = (e) => e.preventDefault();
+
+          wrapper.appendChild(canvas);
+          wrapper.appendChild(overlay);
+          containerRef.current.appendChild(wrapper);
         }
 
         setLoading(false);
@@ -149,6 +185,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   return (
     <div
       className="pdf-viewer"
+      onContextMenu={(e) => e.preventDefault()}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -159,25 +196,26 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         backgroundColor: "#ffffff",
       }}
     >
-      {/* Header: Go Back Button and Title Side by Side */}
       <div
-        className="flex flex-row items-center w-full mb-5 relative width-810px"
-        style={{ minHeight: 40 }}
+        className="w-full flex items-center mb-4"
+        style={{
+          position: "sticky",
+          top: 0,
+          backgroundColor: "transparent",
+          padding: "10px 0",
+          zIndex: 20,
+        }}
       >
-       
-        <div className="fixed w-full flex justify-left">
-           <button
+        <button
           onClick={handleGoBack}
-          className="sticky top-4 left-4 z-10 text-xs px-3 py-1 bg-white border border-gray-300 rounded shadow-md text-blue-900 font-medium cursor-pointer hover:bg-gray-50"
+          className="text-xs px-3 py-1 bg-white border border-gray-300 rounded shadow-md text-blue-900 font-medium cursor-pointer hover:bg-gray-50"
           aria-label="Go back"
         >
           ← Go Back
         </button>
-        </div>
       </div>
 
       {loading && (
-        // <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
@@ -193,6 +231,9 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           gap: "20px",
           maxWidth: "920px",
           width: "100%",
+          overflowY: "auto",
+          scrollSnapType: "y mandatory",
+          WebkitOverflowScrolling: "touch",
         }}
       />
     </div>

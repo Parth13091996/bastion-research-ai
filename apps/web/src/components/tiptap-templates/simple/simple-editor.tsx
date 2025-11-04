@@ -174,10 +174,8 @@ const MobileToolbarContent = ({
 
 export function SimpleEditor({
   contents,
-  uploadDir,
 }: {
   contents: Record<any, any> | string;
-  uploadDir?: string;
 }) {
   const isMobile = useIsMobile();
   const { height } = useWindowSize();
@@ -285,6 +283,7 @@ export function SimpleEditor({
       Image.configure({
         resize: {
           enabled: true,
+          alwaysPreserveAspectRatio: true,
         },
       }),
       Typography,
@@ -295,8 +294,7 @@ export function SimpleEditor({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
         limit: 3,
-        upload: (file, onProgress, abortSignal) =>
-          handleImageUpload(file, onProgress, abortSignal, uploadDir),
+        upload: handleImageUpload,
         onError: (error) => console.error("Upload failed:", error),
       }),
     ],
