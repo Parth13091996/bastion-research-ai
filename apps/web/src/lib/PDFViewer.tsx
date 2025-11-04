@@ -193,7 +193,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         justifyContent: "flex-start",
         padding: "20px",
         minHeight: "100vh",
-        backgroundColor: "#f9fafb",
+        backgroundColor: "#ffffff",
       }}
     >
       <div
@@ -201,7 +201,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         style={{
           position: "sticky",
           top: 0,
-          backgroundColor: "#f9fafb",
+          backgroundColor: "transparent",
           padding: "10px 0",
           zIndex: 20,
         }}
