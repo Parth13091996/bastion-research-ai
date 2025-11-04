@@ -108,7 +108,7 @@ const Footer = () => {
             <div className="space-y-1 text-sm">
               <p>SEBI Registered Research Analyst</p>
               <p>SEBI Registration No: INH000023199</p>
-              <p>BASL Membership ID: 5922**</p>
+              <p>BASL Membership ID: ******</p>
             </div>
           </div>
 

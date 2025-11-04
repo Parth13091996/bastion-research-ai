@@ -215,7 +215,7 @@ export default function Sidebar() {
               onClick={handleExploreWebsite}
               variant="outline"
               size="sm"
-              className="flex-1 bg-blue-600 border-gray-600 text-white hover:bg-white hover:text-blue-900 transition-colors"
+              className="flex-1 bg-[#C4B696] border-gray-600 text-black hover:bg-white hover:text-blue-900 transition-colors"
             >
               <Home className="h-4 w-4 mr-2" />
               Explore Website
@@ -224,7 +224,7 @@ export default function Sidebar() {
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="flex-1 bg-red-600 border-gray-600 text-white hover:bg-white hover:text-red-600 hover:border-600 transition-colors"
+              className="flex-1 bg-[#C00000] border-gray-600 text-white hover:bg-white hover:text-[#C00000] hover:border-600 transition-colors"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Logout
@@ -236,7 +236,7 @@ export default function Sidebar() {
               onClick={handleExploreWebsite}
               variant="outline"
               size="icon"
-              className="w-full bg-transparent border-gray-600 text-white hover:bg-white hover:text-blue-900 transition-colors"
+              className="w-full bg-transparent border-gray-600 text-white hover:bg-white hover:text-blue-950 transition-colors"
               title="Explore Website"
             >
               <Home className="h-4 w-4" />
@@ -294,8 +294,8 @@ export default function Sidebar() {
                         isCollapsed ? "justify-center" : ""
                       } ${
                         isActive || isSubActive
-                          ? "bg-blue-900 text-white"
-                          : "text-gray-200 hover:bg-red-900"
+                          ? "bg-[#1C2852] text-white"
+                          : "text-gray-200 hover:bg-[#C00000]"
                       }`}
                       title={isCollapsed ? item.name : undefined}
                     >

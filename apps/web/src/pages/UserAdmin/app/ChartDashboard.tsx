@@ -18,16 +18,16 @@ const HorizontalBar = ({ label, value, percentage, color }) => {
   return (
     <div className="space-y-2 mt-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-300 font-medium">{label}</span>
-        <span className="text-xs text-white font-semibold">{value}</span>
+        <span className="text-xs text-gray-300 font-medium responsive-text">{label}</span>
+        <span className="text-xs text-white font-semibold responsive-text">{value}</span>
       </div>
-      <div className="h-6 w-full bg-white/10 rounded-lg overflow-hidden flex items-center">
+      <div className="h-6 w-full bg-white/10 rounded-lg overflow-hidden flex items-center responsive-bar">
         <div
           className={`${color} h-full transition-all duration-1000 ease-out`}
           style={{ width: `${fillWidth}%` }}
         ></div>
       </div>
-      <span className="text-xs text-gray-400">
+      <span className="text-xs text-gray-400 responsive-text">
         {percentage}% of {value}
       </span>
     </div>
@@ -36,17 +36,17 @@ const HorizontalBar = ({ label, value, percentage, color }) => {
 
 // Reusable Stat Card
 const StatCard = ({ label, value, subLabel, color, isUp = true }) => (
-  <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+  <div className="p-3 bg-white/5 rounded-xl border border-white/10 responsive-card">
     <div className="flex items-center gap-1.5 mb-2">
       {isUp ? (
-        <TrendingUp size={14} className={color} />
+        <TrendingUp size={14} className={`${color} responsive-icon`} />
       ) : (
-        <TrendingDown size={14} className={color} />
+        <TrendingDown size={14} className={`${color} responsive-icon`} />
       )}
-      <span className="text-xs text-gray-300 font-medium">{label}</span>
+      <span className="text-xs text-gray-300 font-medium responsive-text">{label}</span>
     </div>
-    <span className={`text-xl font-bold ${color}`}>{value}</span>
-    {subLabel && <p className="text-xs text-gray-400 mt-0.5">{subLabel}</p>}
+    <span className={`text-xl font-bold ${color} responsive-value`}>{value}</span>
+    {subLabel && <p className="text-xs text-gray-400 mt-0.5 responsive-subtext">{subLabel}</p>}
   </div>
 );
 
@@ -267,43 +267,43 @@ const ChartDashboard = () => {
   }
 
   return (
-    <div className="mb-8 rounded-xl bg-gradient-to-br from-[#13013d] to-[#010313] p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
+    <div className="mb-8 rounded-xl bg-gradient-to-br from-[#13013d] to-[#010313] p-4 sm:p-6 lg:p-8 responsive-container">
+      <div className="text-center mb-6 lg:mb-8">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 tracking-tight responsive-heading">
           Every Hit. Every Miss.{" "}
           <span className="text-blue-300">Shared with Clarity</span>
         </h1>
-        <p className="text-sm text-gray-300 font-light">
+        <p className="text-xs sm:text-sm text-gray-300 font-light responsive-subheading">
           Confidence is built, not borrowed
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Live Recommendations */}
-        <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-6 shadow-lg">
+        <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-4 lg:p-6 shadow-lg responsive-panel">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white">
+              <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse responsive-dot"></div>
+              <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-white responsive-panel-title">
                 {totals.liveCount} Live Recommendations
               </h2>
             </div>
             <Link
               to="/user/app/recommendation"
-              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline"
+              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link"
             >
               3 New
             </Link>
           </div>
 
-          <div className="rounded-xl p-4 mb-6 bg-gradient-to-r from-indigo-500 to-purple-500">
+          <div className="rounded-xl p-3 lg:p-4 mb-4 lg:mb-6 bg-gradient-to-r from-indigo-500 to-purple-500 responsive-metric-card">
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={18} className="text-white" />
-              <span className="text-xs sm:text-sm text-white font-medium">
+              <TrendingUp size={16} className="text-white responsive-icon" />
+              <span className="text-xs sm:text-sm text-white font-medium responsive-text">
                 Average Live Returns
               </span>
             </div>
-            <span className="text-3xl font-bold text-white">
+            <span className="text-2xl sm:text-3xl font-bold text-white responsive-metric-value">
               {isNaN(Number(totals.avgLiveReturn))
                 ? "0.0"
                 : Number(totals.avgLiveReturn).toFixed(1)}
@@ -312,42 +312,42 @@ const ChartDashboard = () => {
           </div>
 
           {/* Horizontal Bars */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
             <div>
               {liveStats.map((item, idx) => (
                 <HorizontalBar key={idx} {...item} />
               ))}
             </div>
 
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10 flex flex-col justify-between">
+            <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10 flex flex-col justify-between responsive-summary-card">
               <div>
-                <p className="text-xs text-white mb-3">Performance Breakdown</p>
-                <div className="space-y-3">
+                <p className="text-xs text-white mb-3 responsive-text">Performance Breakdown</p>
+                <div className="space-y-2 lg:space-y-3">
                   {liveStats.map((item, idx) => (
                     <div
                       className="flex justify-between items-center"
                       key={idx}
                     >
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 responsive-text">
                         {item.label}
                       </span>
-                      <span className={`text-sm font-bold text-gray-400`}>
+                      <span className={`text-sm font-bold text-gray-400 responsive-value`}>
                         {item.percentage}%
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-white/10">
-                <p className="text-xs text-gray-400">Total Holdings</p>
-                <p className="text-2xl font-bold text-white">
+              <div className="mt-3 lg:mt-4 pt-3 border-t border-white/10">
+                <p className="text-xs text-gray-400 responsive-text">Total Holdings</p>
+                <p className="text-xl lg:text-2xl font-bold text-white responsive-total-value">
                   {totals.liveCount}
                 </p>
               </div>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          
+          <div className="grid grid-cols-2 gap-2 lg:gap-3">
             <StatCard
               label="Top Gainer"
               value={totals.topGainerText || "+0.00%"}
@@ -365,30 +365,30 @@ const ChartDashboard = () => {
         </div>
 
         {/* Exits */}
-        <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-6 shadow-lg">
+        <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-4 lg:p-6 shadow-lg responsive-panel">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-              <h2 className="text-lg sm:text-xl font-semibold text-white">
+              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse responsive-dot"></div>
+              <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-white responsive-panel-title">
                 {totals.exitCount} Exits (past)
               </h2>
             </div>
             <Link
               to="/user/app/recommendation"
-              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline"
+              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link"
             >
               3 New
             </Link>
           </div>
 
-          <div className="rounded-xl p-4 mb-6 bg-gradient-to-r from-pink-500 to-orange-400">
+          <div className="rounded-xl p-3 lg:p-4 mb-4 lg:mb-6 bg-gradient-to-r from-pink-500 to-orange-400 responsive-metric-card">
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={18} className="text-white" />
-              <span className="text-xs sm:text-sm text-white font-medium">
+              <TrendingUp size={16} className="text-white responsive-icon" />
+              <span className="text-xs sm:text-sm text-white font-medium responsive-text">
                 Average Exit Returns
               </span>
             </div>
-            <span className="text-3xl font-bold text-white">
+            <span className="text-2xl sm:text-3xl font-bold text-white responsive-metric-value">
               {isNaN(Number(totals.avgExitReturn))
                 ? "0.0"
                 : Number(totals.avgExitReturn).toFixed(2)}
@@ -396,51 +396,51 @@ const ChartDashboard = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
             <div>
               {exitsStats.map((item, idx) => (
                 <HorizontalBar key={idx} {...item} />
               ))}
             </div>
 
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10 flex flex-col justify-between">
+            <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10 flex flex-col justify-between responsive-summary-card">
               <div>
-                <p className="text-xs text-gray-400 mb-3">Exit Summary</p>
-                <div className="space-y-3">
+                <p className="text-xs text-gray-400 mb-3 responsive-text">Exit Summary</p>
+                <div className="space-y-2 lg:space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-300">Success Rate</span>
-                    <span className="text-sm font-bold text-green-400">
+                    <span className="text-xs text-gray-300 responsive-text">Success Rate</span>
+                    <span className="text-sm font-bold text-green-400 responsive-value">
                       {isNaN(Number(totals.successRate))
                         ? "0%"
                         : `${Number(totals.successRate).toFixed(0)}%`}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-300">Avg Gain</span>
-                    <span className="text-sm font-bold text-green-400">
+                    <span className="text-xs text-gray-300 responsive-text">Avg Gain</span>
+                    <span className="text-sm font-bold text-green-400 responsive-value">
                       {isNaN(Number(totals.avgExitReturn))
                         ? "+0.00%"
                         : `+${Number(totals.avgExitReturn).toFixed(2)}%`}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-300">Losses</span>
-                    <span className="text-sm font-bold text-red-400">
+                    <span className="text-xs text-gray-300 responsive-text">Losses</span>
+                    <span className="text-sm font-bold text-red-400 responsive-value">
                       {exitsStats[1]?.value ?? 0}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-white/10">
-                <p className="text-xs text-gray-400">Total Exits</p>
-                <p className="text-2xl font-bold text-white">
+              <div className="mt-3 lg:mt-4 pt-3 border-t border-white/10">
+                <p className="text-xs text-gray-400 responsive-text">Total Exits</p>
+                <p className="text-xl lg:text-2xl font-bold text-white responsive-total-value">
                   {totals.exitCount}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 lg:gap-3">
             <StatCard
               label="Best Exit"
               value={totals.bestExitText || "+0.00%"}

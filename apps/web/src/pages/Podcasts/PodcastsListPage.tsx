@@ -75,7 +75,7 @@ const PublicPodcastsPage = () => {
   return (
     <div
       className="min-h-screen relative overflow-hidden"
-      style={{ backgroundColor: COLORS.gray }}
+      
     >
       {/* Background */}
       <div className="absolute inset-0 z-0">

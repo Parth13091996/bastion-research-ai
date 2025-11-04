@@ -26,6 +26,7 @@ export const AppRoutes = {
   smartFrameworks: "/smart-frameworks",
   research: "/research",
   paymentSuccess: "/payment/success",
+  comingSoon: "/coming-soon",
   admin: "/admin",
   adminDashboard: "/admin/dashboard",
   adminManageMembers: "/admin/ar/members",

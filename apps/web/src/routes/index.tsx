@@ -140,6 +140,7 @@ const Webinar = lazy(() => import("../pages/Webinars/WebinarsListPage"));
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );
+const ComingSoon = lazy(() => import("../components/ComingSoon"));
 const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
 const IpoUserDashboardPage = lazy(
   () => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard")
@@ -178,6 +179,10 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.dashboard, element: <Dashboard /> },
       { path: AppRoutes.paymentSuccess, element: <PaymentSuccess /> },
     ],
+  },
+  {
+    path: AppRoutes.comingSoon,
+    element: <ComingSoon />,
   },
   {
     path: AppRoutes.ipoLanding,

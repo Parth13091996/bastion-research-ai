@@ -97,9 +97,23 @@ export default function BastionCoreProductPage() {
     })();
   }, []);
 
-  const paidPlans = useMemo(() => (plans || []).filter((p: any) => Number(p?.amount || 0) > 0), [plans]);
-  const sortedPaid = useMemo(() => [...paidPlans].sort((a: any, b: any) => Number(a.amount) - Number(b.amount)), [paidPlans]);
-  const startingPrice = sortedPaid[0]?.amount ? `₹${sortedPaid[0].amount}` : null;
+  const paidPlans = useMemo(
+    () => (plans || []).filter((p: any) => Number(p?.amount || 0) > 0),
+    [plans]
+  );
+
+  const sortedPaid = useMemo(
+    () =>
+      [...paidPlans].sort(
+        (a: any, b: any) => Number(a.amount) - Number(b.amount)
+      ),
+    [paidPlans]
+  );
+
+  const startingPrice = useMemo(() => {
+    const amount = sortedPaid[0]?.amount;
+    return amount ? `₹${Number(amount).toLocaleString()}` : null;
+  }, [sortedPaid]);
 
   const items: Item[] = [
     {
@@ -152,8 +166,9 @@ export default function BastionCoreProductPage() {
       a: (
         <span>
           You can subscribe via the button below starting at{" "}
-          <strong>{startingPrice || "our latest pricing"}</strong>. After checkout, you’ll receive
-          instant access to research, archives, and updates.
+          <strong>{startingPrice || "our latest pricing"}</strong>. After
+          checkout, you’ll receive instant access to research, archives, and
+          updates.
         </span>
       ),
     },
@@ -210,7 +225,7 @@ export default function BastionCoreProductPage() {
   return (
     <div>
       <BackgroundShapes />
-      <div className="min-h-screen w-full" style={{ background: COLORS.gray }}>
+      <div className="min-h-screen w-full">
         {/* Section 1: Hero / Intro with two cards */}
         <section className="mx-auto max-w-7xl px-4 pt-10 md:pt-14">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -235,10 +250,19 @@ export default function BastionCoreProductPage() {
                 onClick={() => setIsSignUpOpen(true)}
                 className="w-full md:w-auto px-6 py-3 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors text-center font-semibold"
               >
+<<<<<<< HEAD
                 {startingPrice ? `Subscribe starting at ${startingPrice}` : "Subscribe Now"}
               </button>
               <button
                 onClick={() => setIsSignUpOpen(true)}
+=======
+                {startingPrice
+                  ? `Subscribe starting at ${startingPrice}`
+                  : "Subscribe Now"}
+              </a>
+              <a
+                href="/register"
+>>>>>>> 5761f51299c008ffac07a347ae2d942198a4f671
                 className="w-full md:w-auto px-6 py-3 border border-[#C00000] text-[#C00000] rounded-xl hover:bg-[#C00000] hover:text-white transition-colors text-center font-semibold"
               >
                 View Research
@@ -253,32 +277,57 @@ export default function BastionCoreProductPage() {
             Choose your plan
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {(sortedPaid.slice(0,2).length ? sortedPaid.slice(0,2) : [
-              { name: "Quarterly Plan", amount: 5000, _fallback: true },
-              { name: "Yearly Plan", amount: 18750, _fallback: true },
-            ]).map((plan: any, idx: number) => (
-              <div key={String(plan.code || plan.name || idx)} className={`${idx === 1 ? "border-[#C4B696]/40 bg-[#1C2852] text-white" : "border-[#E6E6E6] bg-white"} relative rounded-2xl border p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between`}>
+            {(sortedPaid.slice(0, 2).length
+              ? sortedPaid.slice(0, 2)
+              : [
+                  { name: "Quarterly Plan", amount: 5000, _fallback: true },
+                  { name: "Yearly Plan", amount: 18750, _fallback: true },
+                ]
+            ).map((plan: any, idx: number) => (
+              <div
+                key={String(plan.code || plan.name || idx)}
+                className={`${idx === 1 ? "border-[#C4B696]/40 bg-[#1C2852] text-white" : "border-[#E6E6E6] bg-white"} relative rounded-2xl border p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between`}
+              >
                 <div>
                   <div className="flex items-start justify-between">
-                    <h3 className="text-xl font-semibold">{plan.name || (idx === 0 ? "Quarterly Plan" : "Yearly Plan")}</h3>
+                    <h3 className="text-xl font-semibold">
+                      {plan.name ||
+                        (idx === 0 ? "Quarterly Plan" : "Yearly Plan")}
+                    </h3>
                     {idx === 1 && (
                       <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-[#C4B696] text-[#1C2852]">
                         Best value
                       </span>
                     )}
                   </div>
-                  <p className={`mt-3 text-3xl font-bold ${idx === 0 ? "text-[#C00000]" : ""}`}>
+                  <p
+                    className={`mt-3 text-3xl font-bold ${idx === 0 ? "text-[#C00000]" : ""}`}
+                  >
                     {`₹${Number(plan.amount || 0).toLocaleString()}/-`}
                   </p>
-                  <p className={`text-sm ${idx === 1 ? "text-gray-200" : "text-slate-500"}`}>Including GST</p>
+                  <p
+                    className={`text-sm ${idx === 1 ? "text-gray-200" : "text-slate-500"}`}
+                  >
+                    Including GST
+                  </p>
                 </div>
                 <div className="mt-6 flex justify-end">
+<<<<<<< HEAD
                   <button
                     onClick={() => setIsSignUpOpen(true)}
                     className={`px-4 py-2 rounded-xl transition-colors ${idx === 1 ? "bg-[#C4B696] text-[#1C2852] hover:bg-[#b3a67d]" : "bg-[#C00000] text-white hover:bg-[#a00000]"}`}
                   >
                     Subscribe Now
                   </button>
+=======
+                  <a href="/register">
+                    <button
+                      className={`px-4 py-2 rounded-xl transition-colors ${idx === 1 ? "bg-[#C4B696] text-[#1C2852] hover:bg-[#b3a67d]" : "bg-[#C00000] text-white hover:bg-[#a00000]"}`}
+                    >
+                      Subscribe Now
+                    </button>
+                  </a>
+>>>>>>> 5761f51299c008ffac07a347ae2d942198a4f671
                 </div>
               </div>
             ))}

@@ -64,7 +64,7 @@ const RecentRecommendations: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border rounded-lg hover:bg-gray-50 transition-colors gap-3">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div
-                  className={`w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm sm:text-base font-bold`}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 bg-[#1C2852] rounded-lg flex items-center justify-center text-white text-sm sm:text-base font-bold`}
                 >
                   {stock.code ? stock.code.slice(0, 2).toUpperCase() : "??"}
                 </div>
