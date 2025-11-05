@@ -10,7 +10,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 
 const profileSchema = z.object({
@@ -66,8 +72,6 @@ const EditProfile = () => {
       company: "",
     },
   });
-
-  
 
   useEffect(() => {
     if (user) {
@@ -137,6 +141,38 @@ const EditProfile = () => {
     return null; // Will redirect in useEffect
   }
 
+  const downloadDigioDocumentHandler = async () => {
+    if (
+      !user ||
+      !user.digio_documents ||
+      !Array.isArray(user.digio_documents) ||
+      user.digio_documents.length === 0
+    ) {
+      return;
+    }
+    const documentId = user.digio_documents[0]?.document_id;
+    if (!documentId) {
+      return;
+    }
+    try {
+      const response = await axiosInstance.get(
+        `/api/digio/esign/${documentId}/download`,
+        { responseType: "blob" }
+      );
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${documentId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Failed to download Digio document.");
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto my-12">
       <Card>
@@ -147,130 +183,145 @@ const EditProfile = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="first_name">First Name</Label>
+                <Input id="first_name" {...register("first_name")} />
+                {errors.first_name && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.first_name.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input id="last_name" {...register("last_name")} />
+                {errors.last_name && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.last_name.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" {...register("username")} />
+                {errors.username && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.username.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" {...register("email")} />
+                {errors.email && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" {...register("phone")} />
+                {errors.phone && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.phone.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="date_of_birth">Date of Birth</Label>
+                <Input
+                  id="date_of_birth"
+                  type="date"
+                  {...register("date_of_birth")}
+                />
+              </div>
+            </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="first_name">First Name</Label>
-            <Input id="first_name" {...register("first_name")} />
-            {errors.first_name && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.first_name.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="last_name">Last Name</Label>
-            <Input id="last_name" {...register("last_name")} />
-            {errors.last_name && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.last_name.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="username">Username</Label>
-            <Input id="username" {...register("username")} />
-            {errors.username && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.username.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register("email")} />
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" {...register("phone")} />
-            {errors.phone && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.phone.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="date_of_birth">Date of Birth</Label>
-            <Input
-              id="date_of_birth"
-              type="date"
-              {...register("date_of_birth")}
-            />
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="pan_card_number">PAN Card Number</Label>
+                <Input id="pan_card_number" {...register("pan_card_number")} />
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="pan_card_number">PAN Card Number</Label>
-            <Input id="pan_card_number" {...register("pan_card_number")} />
-          </div>
-        </div>
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    !user ||
+                    !user.digio_documents ||
+                    !Array.isArray(user.digio_documents) ||
+                    user.digio_documents.length === 0
+                  }
+                  onClick={downloadDigioDocumentHandler}
+                >
+                  Download Digio Document
+                </Button>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="company">Company</Label>
-            <Input id="company" {...register("company")} />
-          </div>
-          <div>
-            <Label htmlFor="address_1">Address Line 1</Label>
-            <Input id="address_1" {...register("address_1")} />
-          </div>
-          <div>
-            <Label htmlFor="address_2">Address Line 2</Label>
-            <Input id="address_2" {...register("address_2")} />
-          </div>
-          <div>
-            <Label htmlFor="state">State</Label>
-            <Input id="state" {...register("state")} />
-          </div>
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Input id="city" {...register("city")} />
-          </div>
-          <div>
-            <Label htmlFor="pin_code">PIN Code</Label>
-            <Input id="pin_code" {...register("pin_code")} />
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="company">Company</Label>
+                <Input id="company" {...register("company")} />
+              </div>
+              <div>
+                <Label htmlFor="address_1">Address Line 1</Label>
+                <Input id="address_1" {...register("address_1")} />
+              </div>
+              <div>
+                <Label htmlFor="address_2">Address Line 2</Label>
+                <Input id="address_2" {...register("address_2")} />
+              </div>
+              <div>
+                <Label htmlFor="state">State</Label>
+                <Input id="state" {...register("state")} />
+              </div>
+              <div>
+                <Label htmlFor="city">City</Label>
+                <Input id="city" {...register("city")} />
+              </div>
+              <div>
+                <Label htmlFor="pin_code">PIN Code</Label>
+                <Input id="pin_code" {...register("pin_code")} />
+              </div>
+            </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" disabled={mutation.isPending}>
-            {"Save Changes"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() =>
-              user &&
-              reset({
-                username: user.username || "",
-                email: user.email || "",
-                first_name: user.first_name || "",
-                last_name: user.last_name || "",
-                phone: user.phone || "",
-                date_of_birth: user.date_of_birth
-                  ? String(user.date_of_birth).split("T")[0]
-                  : "",
-                pan_card_number: user.pan_card_number || "",
-                address_1: user.address_1 || "",
-                address_2: user.address_2 || "",
-                state: user.state || "",
-                city: user.city || "",
-                pin_code: user.pin_code || "",
-                company: user.company || "",
-              })
-            }
-          >
-            Reset
-          </Button>
-        </div>
-      </form>
+            <div className="flex items-center gap-3">
+              <Button type="submit" disabled={mutation.isPending}>
+                {"Save Changes"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  user &&
+                  reset({
+                    username: user.username || "",
+                    email: user.email || "",
+                    first_name: user.first_name || "",
+                    last_name: user.last_name || "",
+                    phone: user.phone || "",
+                    date_of_birth: user.date_of_birth
+                      ? String(user.date_of_birth).split("T")[0]
+                      : "",
+                    pan_card_number: user.pan_card_number || "",
+                    address_1: user.address_1 || "",
+                    address_2: user.address_2 || "",
+                    state: user.state || "",
+                    city: user.city || "",
+                    pin_code: user.pin_code || "",
+                    company: user.company || "",
+                  })
+                }
+              >
+                Reset
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>
