@@ -35,6 +35,7 @@ interface StockData {
   band?: "BUY" | "HOLD" | "EXITED";
   lastUpdated?: string;
   percentReturn?: number;
+  tags?: string;
 }
 /**
  * Controls for search, sort, and filter.
