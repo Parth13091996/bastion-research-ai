@@ -38,12 +38,13 @@ app.use(
 );
 app.use(
   express.json({
-    limit: process.env.BODY_PARSER_LIMIT || "25mb",
+    limit: "10mb",
     verify: (req: any, res, buf) => {
       req.rawBody = buf?.toString?.();
     },
   })
 );
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 
 // Healthcheck endpoint
