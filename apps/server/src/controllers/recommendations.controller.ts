@@ -114,8 +114,6 @@ export const upsertRecommendationByCompany = async (
   try {
     // Support multipart/form-data as well as JSON
     const body = req.body ?? {};
-    console.log(req.body, "body log ===========");
-    console.log(req.files, "files log ===========");
 
     // company_symbol may come from body or route param in some setups
     const company_symbol: string | undefined =

@@ -404,7 +404,6 @@ const Subscription = () => {
                 ? "Current Plan"
                 : "Subscribe";
 
-              console.log({ featureKey, currentPlanCode });
               return (
                 <Card
                   key={plan.code}

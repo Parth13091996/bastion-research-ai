@@ -79,7 +79,6 @@ const SingleRecommendation = () => {
     }
     setFetchError(null);
     getRecommendationByCompanySymbol(symbol).then((response) => {
-      console.log(stocks.find((r) => r.code === symbol));
       setStock({ ...response, ...stocks.find((r) => r.code === symbol) });
     });
   }, [symbol, stocks]);

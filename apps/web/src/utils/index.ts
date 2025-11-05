@@ -4,17 +4,32 @@ export const videoUrlWithEmbed = (url) =>
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const getUserInfoToShowInPdf = (formData: any) => {
-  const actualAddress = `
-  Name: ${formData?.firstName || ""} ${formData?.lastName || ""}\n
-  PAN: ${formData?.panCard || ""}\n
-  Address: ${formData?.address1 || ""}\n
-  ${formData?.address2 || ""}\n
-  Email: ${formData?.email || ""}\n
-  Phone Number: ${formData?.phone || ""}
-  `;
-  return actualAddress;
-};
+  const firstName = formData?.firstName || "";
+  const lastName = formData?.lastName || "";
+  const address1 = formData?.address1 || "";
+  const address2 = formData?.address2 || "";
+  const email = formData?.email || "";
+  const phone = formData?.phone || "";
+  const pan = formData?.panCard || "";
 
+  const fullName = `${firstName} ${lastName}`.trim();
+  const address = [address1, address2].filter(Boolean).join("\n");
+
+  return {
+    // New explicit keys used by the PDF renderer
+    fullName,
+    address,
+    email,
+    mobile: phone,
+    pan,
+
+    // Backward-compat fields (if referenced elsewhere)
+    name: fullName,
+    address1,
+    address2,
+    phone,
+  };
+};
 
 export const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 
