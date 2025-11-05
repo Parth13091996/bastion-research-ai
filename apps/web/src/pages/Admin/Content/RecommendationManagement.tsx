@@ -74,11 +74,10 @@ const RecommendationManagement: React.FC = () => {
         upsidePotential: row.upsidePotential || row.upside,
         latestMcapCr: row.latestMcapCr || row.marketCap,
         cmpOrExitPrice: row.cmpOrExitPrice || row.cmp,
-        percentReturn:
-          row.percentReturn ??
-          (row.cmp !== undefined && row.entryPrice
-            ? (((row.cmp - row.entryPrice) / row.entryPrice) * 100).toFixed(1)
-            : undefined),
+        percentReturn: (
+          ((row.cmp - row.entryPrice) / row.entryPrice) *
+          100
+        ).toFixed(1),
       })),
     [stocks]
   );
