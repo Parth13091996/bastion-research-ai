@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Remove companyName validation and require only nseSymbol for symbol
+// Updated: Add required validations for logo, business_note, stock_performance_url, tags
 const recommendationSchema = z.object({
   nseSymbol: z.string().min(1, "Symbol is required"),
   dateRecommended: z.string().optional(),
@@ -41,15 +41,15 @@ const recommendationSchema = z.object({
   targetPrice: z.string().optional(),
   upsidePotential: z.string().optional(),
   latestMcapCr: z.string().optional(),
-  logo: z.string().optional(),
-  business_note: z.string().optional(),
+  logo: z.string().min(1, "Company Logo is required"),
+  business_note: z.string().min(1, "Business Note (PDF) is required"),
   quick_bite: z.string().optional(),
   video: z.string().optional(),
-  stock_performance_url: z.string().optional(),
+  stock_performance_url: z.string().min(1, "Performance URL is required"),
   exit_rationale: z.string().optional(),
   quarterly_update: z.string().optional(),
   announcements_and_update: z.string().optional(),
-  tags: z.string().optional(),
+  tags: z.string().min(1, "Tags is required"),
 });
 
 type RecommendationFormValues = z.infer<typeof recommendationSchema>;
@@ -107,9 +107,13 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     setValue,
     watch,
     formState: { errors, isSubmitting },
+    trigger,
   } = useForm<RecommendationFormValues>({
     resolver: zodResolver(recommendationSchema),
   });
+
+  // Track local error for file fields required check
+  const [localError, setLocalError] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (open && record) {
@@ -135,18 +139,24 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       });
       setQuarterlyUpdates(record.quarterly_update || []);
       setAnnouncements(record.announcements_and_update || []);
+      setLocalError({});
     } else if (!open) {
       reset();
       setQuarterlyUpdates([]);
       setAnnouncements([]);
+      setLocalError({});
     }
   }, [open, record, reset]);
 
   // Collect file locally; send with main FormData on submit
   const handleFileSelect = (fieldName: string, file: File) => {
     setSelectedFiles((prev) => ({ ...prev, [fieldName]: file }));
-    // Store a display value (filename) to show something in the input if needed
-    setValue(fieldName as any, file.name as any);
+    // Store a display value (filename) to show in the input
+    setValue(fieldName as any, file.name as any, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setLocalError((prev) => ({ ...prev, [fieldName]: "" }));
   };
 
   // Updated: Pass fileName parameter as field name for backend recognition
@@ -278,7 +288,54 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     setAnnouncements(updated);
   };
 
+  // Custom validation for required file fields before submit
+  const validateFileFields = () => {
+    const errors: Record<string, string> = {};
+
+    // For logo: user must have selected/uploaded a file (selectedFiles.logo), or existing record logo should be present
+    if (
+      (!selectedFiles.logo && !watch("logo")) ||
+      (typeof watch("logo") === "string" && watch("logo").trim() === "")
+    ) {
+      errors.logo = "Company Logo is required";
+    }
+
+    // For business_note: must have selected/uploaded a file or have a value
+    if (
+      (!selectedFiles.business_note && !watch("business_note")) ||
+      (typeof watch("business_note") === "string" &&
+        watch("business_note").trim() === "")
+    ) {
+      errors.business_note = "Business Note (PDF) is required";
+    }
+
+    // For stock_performance_url
+    if (
+      !watch("stock_performance_url") ||
+      watch("stock_performance_url").trim() === ""
+    ) {
+      errors.stock_performance_url = "Performance URL is required";
+    }
+
+    // For tags
+    if (!watch("tags") || watch("tags").trim() === "") {
+      errors.tags = "Tags is required";
+    }
+
+    setLocalError(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const onSubmit = async (data: RecommendationFormValues) => {
+    // Validate required file fields first
+    const valid = await trigger(); // Perform zod validation first (shows error messages)
+    const validatedFiles = validateFileFields();
+    if (!valid || !validatedFiles) {
+      // Show warning for missing client-side required fields
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("company_symbol", record.nseSymbol || "");
@@ -292,12 +349,17 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         "announcements_and_update",
         JSON.stringify(announcements)
       );
-      formData.append("tags", String(data.tags));
+      if (data.tags) {
+        formData.append("tags", String(data.tags));
+      }
 
-      // Attach files if selected; backend will upload and set URLs
-      if (selectedFiles.logo) formData.append("logo", selectedFiles.logo);
-      if (selectedFiles.business_note)
+      // For required file fields, always attach the actual selected files, not just the name
+      if (selectedFiles.logo) {
+        formData.append("logo", selectedFiles.logo);
+      }
+      if (selectedFiles.business_note) {
         formData.append("business_note", selectedFiles.business_note);
+      }
       if (selectedFiles.quick_bite)
         formData.append("quick_bite", selectedFiles.quick_bite);
       if (selectedFiles.exit_rationale)
@@ -320,6 +382,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
   const handleTagsChange = (value) => {
     setValue("tags", value, { shouldValidate: true, shouldDirty: true });
+    setLocalError((prev) => ({ ...prev, tags: "" }));
   };
 
   return (
@@ -336,7 +399,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
             quarterly updates and announcements.
           </Dialog.Description>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-6">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-4 space-y-6"
+            noValidate
+          >
             <div className="bg-gray-50 p-4 rounded-md">
               <h3 className="font-medium mb-2">Sheet Data (Read-Only)</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -350,7 +417,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </div>
                 <div>
                   <label className="text-gray-600">% Return:</label>
-                  <p className="font-medium">{record.percentReturn}%</p>
+                  <p className="font-medium">
+                    {Math.round(Number(record?.percentReturn) * 100)}%
+                  </p>
                 </div>
               </div>
             </div>
@@ -361,12 +430,16 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-2">
-                    Company Logo (Image URL)
+                    Company Logo (Image URL){" "}
+                    <span className="text-red-600">*</span>
                   </label>
                   <div className="flex gap-2">
                     <Input
                       {...register("logo")}
                       placeholder="Logo file or name"
+                      className={
+                        localError.logo || errors.logo ? "border-red-500" : ""
+                      }
                     />
                     <label className="cursor-pointer">
                       <Button
@@ -393,6 +466,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                       />
                     </label>
                   </div>
+                  {(localError.logo || errors.logo) && (
+                    <div className="text-xs text-red-600 mt-1">
+                      {localError.logo || errors.logo?.message}
+                    </div>
+                  )}
                   {watch("logo") && selectedFiles.logo && (
                     <div className="mt-2">
                       <span className="text-xs text-gray-600">
@@ -404,12 +482,17 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Business Note (PDF)
+                    Business Note (PDF) <span className="text-red-600">*</span>
                   </label>
                   <div className="flex gap-2">
                     <Input
                       {...register("business_note")}
                       placeholder="PDF file or name"
+                      className={
+                        localError.business_note || errors.business_note
+                          ? "border-red-500"
+                          : ""
+                      }
                     />
                     <label className="cursor-pointer">
                       <Button
@@ -436,6 +519,12 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                       />
                     </label>
                   </div>
+                  {(localError.business_note || errors.business_note) && (
+                    <div className="text-xs text-red-600 mt-1">
+                      {localError.business_note ||
+                        errors.business_note?.message}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -519,18 +608,40 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Stock Performance URL
+                    Stock Performance URL{" "}
+                    <span className="text-red-600">*</span>
                   </label>
                   <Input
                     {...register("stock_performance_url")}
                     placeholder="Spreadsheet URL"
+                    className={
+                      localError.stock_performance_url ||
+                      errors.stock_performance_url
+                        ? "border-red-500"
+                        : ""
+                    }
                   />
+                  {(localError.stock_performance_url ||
+                    errors.stock_performance_url) && (
+                    <div className="text-xs text-red-600 mt-1">
+                      {localError.stock_performance_url ||
+                        errors.stock_performance_url?.message}
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Tags</label>
-                  <Select onValueChange={handleTagsChange} value={record.tags}>
-                    <SelectTrigger className="w-[180px]">
+                  <label className="block text-sm font-medium mb-2">
+                    Tags <span className="text-red-600">*</span>
+                  </label>
+                  <Select
+                    onValueChange={handleTagsChange}
+                    value={watch("tags")}
+                    defaultValue={record.tags}
+                  >
+                    <SelectTrigger
+                      className={`w-[180px] ${localError.tags || errors.tags ? "border-red-500" : ""}`}
+                    >
                       <SelectValue placeholder="Select a tag" />
                     </SelectTrigger>
                     <SelectContent>
@@ -544,6 +655,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                       </SelectGroup>
                     </SelectContent>
                   </Select>
+                  {(localError.tags || errors.tags) && (
+                    <div className="text-xs text-red-600 mt-1">
+                      {localError.tags || errors.tags?.message}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -629,18 +745,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex gap-2 items-center">
-                                    <Input
-                                      value={update.pdf_url}
-                                      onChange={(e) =>
-                                        handleUpdateQuarterlyUpdate(
-                                          index,
-                                          "pdf_url",
-                                          e.target.value
-                                        )
-                                      }
-                                      placeholder="https://..."
-                                      className="text-sm"
-                                    />
                                     <label className="cursor-pointer">
                                       <Button
                                         type="button"
@@ -844,18 +948,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex gap-2 items-center">
-                                    <Input
-                                      value={announcement.pdf_url}
-                                      onChange={(e) =>
-                                        handleUpdateAnnouncement(
-                                          index,
-                                          "pdf_url",
-                                          e.target.value
-                                        )
-                                      }
-                                      placeholder="https://..."
-                                      className="text-sm"
-                                    />
                                     <label className="cursor-pointer">
                                       <Button
                                         type="button"

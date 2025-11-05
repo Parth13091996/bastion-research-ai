@@ -82,7 +82,6 @@ export const createRecommendation = async (req: Request, res: Response) => {
       stock_performance_url = "",
       tags = [],
     } = req.body ?? {};
-    console.log(tags.join(","), "tags join");
 
     if (!company_symbol) {
       return res.status(400).json({ error: "Company symbol is required" });
@@ -168,7 +167,6 @@ export const upsertRecommendationByCompany = async (
   try {
     // Support multipart/form-data as well as JSON
     const body = req.body ?? {};
-    console.log(req.files, "body");
 
     // company_symbol may come from body or route param in some setups
     const company_symbol: string | undefined =
@@ -233,7 +231,6 @@ export const upsertRecommendationByCompany = async (
 
     let logoUrl: string | undefined = body.logo;
     const logoFile = pickFirstFile("logo");
-    console.log(logoFile, "logo");
     if (logoFile) {
       const uploaded = await uploadToSupabase({
         file: logoFile,
@@ -247,7 +244,6 @@ export const upsertRecommendationByCompany = async (
 
     let business_noteUrl: string | undefined = body.business_note;
     const businessNoteFile = pickFirstFile("business_note");
-    console.log(businessNoteFile, "business");
 
     if (businessNoteFile) {
       const uploaded = await uploadToSupabase({

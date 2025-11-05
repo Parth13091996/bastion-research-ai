@@ -81,13 +81,6 @@ const SingleRecommendation = () => {
   }, [id, stocks]);
 
   useEffect(() => {
-    const isPBFintech =
-      (stock?.nseSymbol &&
-        String(stock.nseSymbol).toUpperCase() === "POLICYBZR") ||
-      (stock?.name && /pb\s*fintech|policy\s*bazaar/i.test(String(stock.name)));
-    if (!isPBFintech) {
-      return;
-    }
     let cancelled = false;
     fetchSingleRecommendationGraphSheetData(
       stock?.stock_performance_url as string
