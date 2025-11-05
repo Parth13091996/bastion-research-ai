@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { COLORS, getBandColor, getTextColor } from "./utils";
+import { userCompanyAnalytics } from "@/api/recommendations-apis";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StockCard = ({ stock }: { stock: StockData }) => {
+  const { user } = useAuth();
   return (
     <div
       className="bg-white rounded-[20px] shadow-md border overflow-hidden transform transition-shadow hover:shadow-lg"
@@ -199,7 +202,12 @@ const StockCard = ({ stock }: { stock: StockData }) => {
       </div>
 
       <div className="px-4 pb-4">
-        <Link to={`/user/app/view-research/${stock.id}`}>
+        <Link
+          to={`/user/app/view-research/${stock.code}`}
+          onClick={() => {
+            userCompanyAnalytics(stock.code, user?.id);
+          }}
+        >
           <Button
             variant="outline"
             className="w-full text-sm py-2 font-semibold relative overflow-hidden"

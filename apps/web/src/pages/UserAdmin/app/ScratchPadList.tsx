@@ -10,8 +10,7 @@ import { toast } from "sonner";
 import { Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { COLORS, getBandColor, getTextColor } from "./Recommendation/utils";
-
+import { COLORS, getBandColor, getTextColor } from "./RecommendationList/utils";
 
 const ScratchPadList: React.FC = () => {
   const navigate = useNavigate();
@@ -101,7 +100,6 @@ const ScratchPadList: React.FC = () => {
             <Card
               key={newsletter.id}
               className="overflow-hidden bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer border border-gray-100 w-[110%] sm:w-[105%] md:w-[100%] xl:w-[95%] h-[330px] flex flex-col justify-between"
-
               onClick={() => handleRead(newsletter.id)}
             >
               {/* Image */}
@@ -155,43 +153,47 @@ const ScratchPadList: React.FC = () => {
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       <span>
-                        {new Date(
-                          newsletter.published_date
-                        ).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {new Date(newsletter.published_date).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
                       </span>
                     </div>
                   )}
                 </div>
 
                 {/* Read More */}
-                  <Link to={`${newsletter.id}`} onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="outline"
-                      className="w-full text-sm py-2 font-semibold relative overflow-hidden"
-                      style={{
-                        borderColor: COLORS.lightGray,
-                        color: COLORS.white,
-                        background: `linear-gradient(90deg, ${COLORS.deepBlue} 0%, ${COLORS.red} 100%)`,
-                        boxShadow: "0 6px 18px rgba(28,40,82,0.06)",
-                        borderRadius: 8,
-                      }}
-                      onMouseEnter={(e) => {
-                        const el = e.currentTarget as HTMLButtonElement;
-                        el.style.boxShadow = "0 10px 26px rgba(28,40,82,0.12)";
-                      }}
-                      onMouseLeave={(e) => {
-                        const el = e.currentTarget as HTMLButtonElement;
-                        el.style.boxShadow = "0 6px 18px rgba(28,40,82,0.06)";
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-2 inline-block" />
-                      Read More
-                    </Button>
-                  </Link>
+                <Link
+                  to={`${newsletter.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full text-sm py-2 font-semibold relative overflow-hidden"
+                    style={{
+                      borderColor: COLORS.lightGray,
+                      color: COLORS.white,
+                      background: `linear-gradient(90deg, ${COLORS.deepBlue} 0%, ${COLORS.red} 100%)`,
+                      boxShadow: "0 6px 18px rgba(28,40,82,0.06)",
+                      borderRadius: 8,
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLButtonElement;
+                      el.style.boxShadow = "0 10px 26px rgba(28,40,82,0.12)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLButtonElement;
+                      el.style.boxShadow = "0 6px 18px rgba(28,40,82,0.06)";
+                    }}
+                  >
+                    <Eye className="h-4 w-4 mr-2 inline-block" />
+                    Read More
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           ))}

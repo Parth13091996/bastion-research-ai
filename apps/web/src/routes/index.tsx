@@ -35,7 +35,7 @@ const UserAdminDashboard = lazy(
   () => import("@/pages/UserAdmin/app/UserDashboard")
 );
 const UserAdminRecommendation = lazy(
-  () => import("@/pages/UserAdmin/app/Recommendation")
+  () => import("@/pages/UserAdmin/app/RecommendationList")
 );
 const UserAdminResearchHub = lazy(
   () => import("@/pages/UserAdmin/app/ResearchHub")
@@ -341,7 +341,10 @@ export const routes: RouteObject[] = [
           { path: "app/", element: <UserAdminDashboard /> },
           { path: "app/dashboard", element: <UserAdminDashboard /> },
           { path: "app/recommendation", element: <UserAdminRecommendation /> },
-          { path: "app/view-research/:id", element: <ViewResearch /> },
+          {
+            path: "app/view-research/:symbol",
+            element: <ViewResearch />,
+          },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
           { path: "app/scratch-pad", element: <ScratchPadList /> },
           { path: "app/scratch-pad/:id", element: <ScratchPadView /> },

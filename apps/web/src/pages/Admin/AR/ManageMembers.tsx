@@ -1,16 +1,16 @@
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
+import { queryKeys } from "@/api/queryKeys";
+import { UserActivityDropdown } from "@/components/admin/UserActivityDropdown";
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useEditMemberStore } from "@/stores/edit-member-store";
 import { useModalStore } from "@/stores/modal-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColDef } from "ag-grid-community";
-import { Plus, Trash2, UserPlus, Mail, Shield, User } from "lucide-react";
+import { Mail, Shield, Trash2, User, UserPlus } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { queryKeys } from "@/api/queryKeys";
-import { UserActivityDropdown } from "@/components/admin/UserActivityDropdown";
 
 // Reuse UI patterns from All Users table
 const RoleRenderer = (params: any) => {
@@ -83,14 +83,15 @@ const MemberManagementDashboard = () => {
   const { data: activity } = useQuery({
     queryKey: ["user-activity-summary"],
     queryFn: () =>
-      axiosInstance
-        .get("/api/admin/users/activity-summary")
-        .then((res) => res.data as Array<{
-          user_id: string;
-          login_count: number;
-          pageviews_count: number;
-          recommendations_count: number;
-        }>),
+      axiosInstance.get("/api/admin/users/activity-summary").then(
+        (res) =>
+          res.data as Array<{
+            user_id: string;
+            login_count: number;
+            pageviews_count: number;
+            recommendations_count: number;
+          }>
+      ),
   });
 
   const activityMap = (activity || []).reduce(
@@ -98,7 +99,14 @@ const MemberManagementDashboard = () => {
       acc[row.user_id] = row;
       return acc;
     },
-    {} as Record<string, { login_count: number; pageviews_count: number; recommendations_count: number }>
+    {} as Record<
+      string,
+      {
+        login_count: number;
+        pageviews_count: number;
+        recommendations_count: number;
+      }
+    >
   );
 
   const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
@@ -131,16 +139,11 @@ const MemberManagementDashboard = () => {
       valueGetter: (params) => activityMap[params.data.id]?.login_count ?? 0,
     },
     {
-      headerName: "Pages Viewed",
-      field: "id",
-      width: 130,
-      valueGetter: (params) => activityMap[params.data.id]?.pageviews_count ?? 0,
-    },
-    {
       headerName: "Recs Accessed",
       field: "id",
       width: 140,
-      valueGetter: (params) => activityMap[params.data.id]?.recommendations_count ?? 0,
+      valueGetter: (params) =>
+        activityMap[params.data.id]?.recommendations_count ?? 0,
     },
     {
       headerName: "Analytics",

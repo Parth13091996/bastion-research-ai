@@ -20,6 +20,7 @@ import {
   parseDate,
   type PBRow,
 } from "./utils";
+import { getRecommendationByCompanySymbol } from "@/api/recommendations-apis";
 
 function actionToNumeric(action: string | null | undefined): number | null {
   if (!action) return null;
@@ -63,22 +64,25 @@ function formatMonthYear(dateStr: string) {
 }
 
 const SingleRecommendation = () => {
-  const { id } = useParams<{ id: string }>();
+  const { symbol } = useParams<{ symbol: string }>();
   const [stock, setStock] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [timeRange, setTimeRange] = useState("ALL");
-  const { stocks, loading } = useSheetStocks();
+  const { stocks, loading } = useSheetStocks(true);
   const [externalRows, setExternalRows] = useState<PBRow[] | null>(null);
 
   useEffect(() => {
-    if (!id) {
-      setFetchError("Invalid recommendation id.");
+    if (!symbol) {
+      setFetchError("invalid recommendation symbol.");
       return;
     }
     setFetchError(null);
-    setStock(stocks.find((r) => r.id === Number(id)));
-  }, [id, stocks]);
+    getRecommendationByCompanySymbol(symbol).then((response) => {
+      console.log(stocks.find((r) => r.code === symbol));
+      setStock({ ...response, ...stocks.find((r) => r.code === symbol) });
+    });
+  }, [symbol, stocks]);
 
   useEffect(() => {
     let cancelled = false;
