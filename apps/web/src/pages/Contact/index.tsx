@@ -333,7 +333,7 @@ function SocialButton({ href, label, icon }) {
       className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium text-white shadow-lg bg-primary hover:bg-primary/90"
     >
       {icon}
-      <span>{label}</span>
+      <span className="hidden sm:block">{label}</span>
     </a>
   );
 }

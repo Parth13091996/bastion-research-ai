@@ -134,8 +134,8 @@ const ScratchPadView: React.FC = () => {
               </p>
             )}
 
-            <div className="flex items-center justify-between border-y py-4">
-              <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <div className="flex items-start justify-between border-y py-4">
+              <div className="flex items-start gap-2 text-sm text-muted-foreground sm:flex-row flex-col">
                 {newsletter.author && (
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4" />

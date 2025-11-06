@@ -69,7 +69,7 @@ body,
 
 .simple-editor-content .tiptap.ProseMirror.simple-editor {
   flex: 1;
-  padding: 1rem 1rem 1vh;
+  // padding: 1rem 1rem 1vh;
 }
 
 /* Ensure images are responsive and centered in editor and preview */
@@ -83,7 +83,7 @@ body,
 }
 
 @media screen and (max-width: 480px) {
-  .simple-editor-content .tiptap.ProseMirror.simple-editor {
-    padding: 1rem 1rem 1vh;
-  }
+  // .simple-editor-content .tiptap.ProseMirror.simple-editor {
+  //   padding: 1rem 1rem 1vh;
+  // }
 }

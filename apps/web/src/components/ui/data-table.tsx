@@ -233,8 +233,8 @@ export function DataTable<T = any>({
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center space-x-0">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

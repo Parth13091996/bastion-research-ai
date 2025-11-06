@@ -256,6 +256,19 @@
   animation: sparkle 1.5s infinite ease-in-out;
 }
 
+/* Tiptap padding override */
+.simple-editor-content .bodyCell {
+  padding: 0 !important;
+}
+
+@media only screen and (max-width: 480px) {
+  .simple-editor-content td,
+  .simple-editor-content [id^="b"] .mceTextBlockContainer {
+    padding: 12px 0 !important;
+  }
+}
+
+
 
 @media (min-width: 1000px) and (max-width: 1500px) {
   .responsive-container {

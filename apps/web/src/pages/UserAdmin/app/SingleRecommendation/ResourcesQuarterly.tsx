@@ -27,9 +27,11 @@ const ResourcesQuarterly = ({ stock, setSelectedUpdate }) => {
             <Link
               to="/user/app/pdf-viewer"
               state={{ url: stock.business_note }}
-              className="w-full flex justify-center items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-6 py-4 rounded-lg font-semibold shadow-sm"
+              className="w-full flex justify-center sm:items-center items-start gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 sm:px-6 px-4 py-4 rounded-lg font-semibold shadow-sm"
             >
-              <FileText size={18} />
+              <FileText size={18} className="hidden md:inline" />
+              {/* Mobile (28px) */}
+              <FileText size={28} className="inline md:hidden" />
               Read Business Understanding Note
             </Link>
           )}

@@ -32,7 +32,7 @@ const CareerPage = () => {
   }, [jobs, searchQuery, jobType, jobLocation]);
 
   return (
-    <div className="min-h-50vh bg-gray-50 p-8">
+    <div className="min-h-50vh sm:px-8 px-2 py-8">
       <BackgroundShapes />
 
       {/* Main Content */}

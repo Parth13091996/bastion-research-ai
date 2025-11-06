@@ -5,7 +5,7 @@ const MobileNav = ({ setIsNavOpen, setIsProfileOpen }) => {
   const { user, isLoading } = useAuth();
 
   return (
-    <div className="md:hidden flex items-center space-x-4">
+    <div className="md:hidden flex items-center space-x-4 flex-wrap">
       {/* Burger Icon */}
       <button
         onClick={() => setIsNavOpen(true)}
