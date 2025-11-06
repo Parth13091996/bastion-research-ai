@@ -52,7 +52,6 @@ const useSheetStocks = (onlySheet: boolean = false) => {
         setSheetStocks(transformedSheetStocks);
 
         if (onlySheet) {
-          // If flag set, do not fetch API nor merge – just finish here
           setMergedStocks(transformedSheetStocks);
           setLoading(false);
           return;
@@ -60,7 +59,6 @@ const useSheetStocks = (onlySheet: boolean = false) => {
 
         // Otherwise, fetch from database API and merge
         const dbData = await getAllRecommendations();
-        console.log({ dbData, sheetData });
 
         const merged = sheetData.map((sheetRow, idx) => {
           const dbRow = dbData.find(

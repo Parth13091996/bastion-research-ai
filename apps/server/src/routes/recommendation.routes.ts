@@ -5,9 +5,8 @@ import {
   deleteRecommendation,
   getRecommendations,
   getRecommendationByCompanySymbol,
-  updateRecommendation,
   upsertRecommendationByCompany,
-  getRecommendationById,
+  updateUserRecommendationAnalytics,
 } from "../controllers/recommendations.controller";
 import { upload } from "../services/multer.service";
 
@@ -16,14 +15,17 @@ const router = Router();
 // Public routes
 router.get("/recommendations", getRecommendations);
 router.get(
+  "/recommendations/company/analytics/:companySymbol",
+  updateUserRecommendationAnalytics
+);
+
+router.get(
   "/recommendations/company/:companySymbol",
   getRecommendationByCompanySymbol
 );
 
 // Admin routes (protected)
 router.post("/recommendations", protect, admin, createRecommendation);
-router.put("/recommendations/:id", protect, admin, updateRecommendation);
-router.get("/recommendations/:id", protect, admin, getRecommendationById);
 
 router.put(
   "/recommendations/company/:companySymbol",

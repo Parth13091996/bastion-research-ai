@@ -28,12 +28,21 @@ export const getAllRecommendations = async (): Promise<any[]> => {
   return response.data || [];
 };
 
-/**
- * Fetch a recommendation by its ID from the API.
- * @param {string} id - The recommendation ID.
- * @returns {Promise<any>} Promise resolving to the recommendation object.
- */
-export const getRecommendationById = async (id: string): Promise<any> => {
-  const response = await axiosInstance.get(endpoints.recommendations.byId(id));
+export const getRecommendationByCompanySymbol = async (
+  symbol: string
+): Promise<any> => {
+  const response = await axiosInstance.get(
+    endpoints.recommendations.bySymbol(symbol)
+  );
+  return response.data;
+};
+
+export const userCompanyAnalytics = async (
+  symbol: string,
+  userId: string
+): Promise<any> => {
+  const response = await axiosInstance.get(
+    endpoints.recommendations.bySymbolAnalytics(symbol, userId)
+  );
   return response.data;
 };

@@ -119,7 +119,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     }
 
     setIsLoading(true);
-    console.log({ selectedPlanDetails, finalAmount });
     try {
       if (isFreeOrZero) {
         const userId = user?.id || formData.email;

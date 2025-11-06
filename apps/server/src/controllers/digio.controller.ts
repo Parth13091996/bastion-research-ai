@@ -168,14 +168,17 @@ export const downloadSignedDocument = async (req: Request, res: Response) => {
   try {
     const documentId =
       (req.params as any).documentId || (req.query as any).document_id;
+    console.log({ documentId });
     if (!documentId) {
       return res.status(400).json({ message: "document_id is required" });
     }
     const url = `${DIGIO_BASE_URL}/v2/client/document/download?document_id=${encodeURIComponent(documentId)}`;
+    console.log({ url });
     const response = await axios.get(url, {
       headers: getAuthHeader(),
       responseType: "arraybuffer",
     });
+    console.log(response);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -183,6 +186,7 @@ export const downloadSignedDocument = async (req: Request, res: Response) => {
     );
     return res.status(200).send(Buffer.from(response.data));
   } catch (error: any) {
+    console.log(error);
     const status = error?.response?.status || 500;
     const payload = error?.response?.data || {
       message: "Failed to download document",

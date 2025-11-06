@@ -43,47 +43,58 @@ const RecommendationList = () => {
     research_hub: ["freemium", "core", "core_annual", "research_hub"],
   };
 
-  const filteredStocks = sheetStocks.filter((stock) => {
+  // Ensuring null checks on sheetStocks
+  const filteredStocks = (sheetStocks || []).filter((stock) => {
     const matchesFilter = filterBy === "All" || stock.band === filterBy;
     const matchesSearch =
-      stock.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stock.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stock.band.toLowerCase().includes(searchTerm.toLowerCase());
+      (stock.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (stock.code?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (stock.band?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     return matchesFilter && matchesSearch;
   });
 
   const sortedStocks = [...filteredStocks].sort((a, b) => {
     switch (sortBy) {
       case "MCAP Wise":
+        // Null checks for marketCap
         return (
-          Number(b.marketCap.replace(/[^0-9.]/g, "")) -
-          Number(a.marketCap.replace(/[^0-9.]/g, ""))
+          Number((b.marketCap ?? "0").replace(/[^0-9.]/g, "")) -
+          Number((a.marketCap ?? "0").replace(/[^0-9.]/g, ""))
         );
       case "Newest":
+        // Null checks for lastUpdated
         return (
-          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+          new Date(b.lastUpdated ?? 0).getTime() -
+          new Date(a.lastUpdated ?? 0).getTime()
         );
       case "Oldest":
         return (
-          new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime()
+          new Date(a.lastUpdated ?? 0).getTime() -
+          new Date(b.lastUpdated ?? 0).getTime()
         );
       case "Upside Wise":
-        return Number(b.upside) - Number(a.upside);
+        // Null check for upside
+        return Number(b.upside ?? 0) - Number(a.upside ?? 0);
       case "Return Wise":
+        // Null checks for target1, entryPrice
+        const aEntry = a.entryPrice ?? 1; // avoid zero division; fallback to 1
+        const bEntry = b.entryPrice ?? 1;
         return (
-          (b.target1 - b.entryPrice) / b.entryPrice -
-          (a.target1 - a.entryPrice) / a.entryPrice
+          ((b.target1 ?? bEntry) - bEntry) / bEntry -
+          ((a.target1 ?? aEntry) - aEntry) / aEntry
         );
       default:
         return 0;
     }
   });
 
-  const userPlanCode = user?.membership_plans?.plan_code;
+  const userPlanCode = user?.membership_plans?.plan_code || "freemium";
   const tierFilteredStocks = sortedStocks.filter((r) => {
-    const tags = r.tags;
-    const currentTier = tiers[userPlanCode];
-    if (currentTier.includes(tags)) return r;
+    // Null checks for tags
+    const tags = r.tags ?? "";
+    const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
+    if (Array.isArray(currentTier) && currentTier.includes(tags)) return r;
+    return false;
   });
 
   const handleLoadMore = () => {
@@ -91,7 +102,7 @@ const RecommendationList = () => {
       setShowPricing(true);
       return;
     }
-    setVisibleCount(visibleCount + 9);
+    setVisibleCount((prev) => (prev ?? 0) + 9);
   };
 
   return (
@@ -116,7 +127,7 @@ const RecommendationList = () => {
         />
 
         <StockGrid
-          stocks={tierFilteredStocks}
+          stocks={tierFilteredStocks ?? []}
           visibleCount={visibleCount}
           onLoadMore={handleLoadMore}
           loading={loading}

@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import { getBandColor } from "../Recommendation/utils";
+import { getBandColor } from "../RecommendationList/utils";
 import { Building2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 const Header = ({ stock }) => {
-  const percentReturnNum =
-    typeof stock?.percentReturn === "number" ? stock.percentReturn * 100 : 0;
+  const percentReturnNum = stock.percentReturn;
   const totalReturnNum = Math.round(Number(percentReturnNum));
   const entryPrice =
     typeof stock?.entryPrice !== "undefined" ? stock.entryPrice : 0;
