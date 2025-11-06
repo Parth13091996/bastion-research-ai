@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { getBandColor } from "../RecommendationList/utils";
-import { Building2 } from "lucide-react";
+import { getBandColor, getTextColor } from "../RecommendationList/utils";
+// import { Building2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 const Header = ({ stock }) => {
@@ -71,8 +71,8 @@ const Header = ({ stock }) => {
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm md:sticky md:top-0 md:z-10">
-      <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
-        <div className="flex items-center gap-4">
+      <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-left gap-4 md:gap-0">
+        <div className="flex items-center gap-4 order-2 md:order-1">
           {/* Logo Box (replicating logic from StockCard.tsx) */}
           {stock?.logo ? (
             <img
@@ -98,33 +98,36 @@ const Header = ({ stock }) => {
             </div>
           )}
           <div className="flex items-center gap-2">
-            <Building2 className="w-7 h-7 md:w-8 md:h-8 text-blue-600" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight mr-5">
+            {/* <Building2 className="w-7 h-7 md:w-8 md:h-8 text-blue-600" /> */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight">
               {stock?.name ||
                 stock?.companyName ||
                 stock?.company_name ||
                 "Company Name Ltd."}
             </h1>
-
-            <button
-              onClick={() => window.history.back()}
-              className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
-            >
-              ← Go Back
-            </button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 order-1 md:order-2">
           <button
-            className={`${getBandColor(
-              stock?.band || stock?.action || "BUY"
-            )} px-4 py-1 rounded-full text-sm shadow-sm font-medium flex items-center gap-1`}
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1 md:gap-2 px-1 md:px-2 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+          >
+            ← Go Back
+          </button>
+          <button
+            style={{
+              backgroundColor: getBandColor(
+                stock?.band || stock?.action || "BUY"
+              ),
+              color: getTextColor(stock?.band || stock?.action || "BUY"),
+            }}
+            className="px-2 md:px-4 py-1 rounded-full text-xs md:text-sm shadow-sm font-medium flex items-center gap-1"
           >
             {stock?.band || stock?.action || "BUY"}
           </button>
           <Link
             to="/contact-us"
-            className="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-sm shadow-sm font-medium inline-block text-center"
+            className="bg-blue-100 text-blue-700 px-2 md:px-4 py-1 rounded-full text-xs md:text-sm shadow-sm font-medium inline-block text-center"
           >
             Raise a Query
           </Link>

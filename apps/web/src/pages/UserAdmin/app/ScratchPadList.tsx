@@ -99,9 +99,10 @@ const ScratchPadList: React.FC = () => {
           {filtered.map((newsletter) => (
             <Card
               key={newsletter.id}
-              className="overflow-hidden bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer border border-gray-100 w-[110%] sm:w-[105%] md:w-[100%] xl:w-[95%] h-[330px] flex flex-col justify-between"
+              className="bg-card text-card-foreground overflow-hidden bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer border border-gray-100 w-full sm:w-[95%] md:w-[90%] lg:w-[100%] xl:w-[95%] max-w-sm mx-auto h-[330px] flex flex-col justify-between"
               onClick={() => handleRead(newsletter.id)}
             >
+
               {/* Image */}
               {newsletter.featured_image && (
                 <div className="aspect-[4/3] w-full overflow-hidden">
