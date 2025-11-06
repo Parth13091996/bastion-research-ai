@@ -34,7 +34,7 @@ export const getTextColor = (band: string) => {
       return "#059669"; // Dark Green
     case "HOLD":
       return "#b8860b"; // Dark Gold
-    case "EXIT":
+    case "EXITED":
       return "#494949"; // Dark Gray
     default:
       return "#FFFFFF";

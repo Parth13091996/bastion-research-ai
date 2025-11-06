@@ -264,17 +264,24 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden flex flex-col sm:flex-row">
-        {/* Sidebar */}
-        <div className="w-full sm:w-80 bg-gray-50 p-4 sm:p-6 border-b sm:border-b-0 sm:border-r overflow-y-auto pt-8 sm:pt-6">
-          {/* ↑ Added pt-8 for mobile spacing */}
-          <div className="mb-6 sm:mb-8">
+    <div
+      className="fixed
+    inset-0
+    bg-black bg-opacity-50
+    flex items-center justify-center
+    p-2 sm:p-4
+    z-50
+    sm:top-[8rem]"
+    >
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-fit max-h-screen overflow-hidden flex flex-col sm:flex-row">
+        {/* Vertical Sidebar for larger screens */}
+        <div className="hidden sm:block w-80 bg-gray-50 p-6 border-r overflow-y-auto">
+          <div className="mb-8">
             <div className="flex items-center mb-2">
               <img src={favicon} alt="BASTION" className="w-8 h-8 mr-3" />
               <span className="font-bold text-lg">BASTION</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">
               TripleEdge
             </h1>
           </div>
@@ -283,22 +290,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             {steps.map((step) => (
               <div
                 key={step.id}
-                className={`flex items-center p-3 rounded-lg transition-colors text-sm sm:text-base ${
-                  currentStep === step.id
+                className={`flex items-center p-3 rounded-lg transition-colors text-base ${currentStep === step.id
                     ? "bg-red-100 text-red-700 border-l-4 border-red-500"
                     : currentStep > step.id
                       ? "bg-green-50 text-green-700"
                       : "text-gray-500"
-                }`}
+                  }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${
-                    currentStep === step.id
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentStep === step.id
                       ? "bg-red-500 text-white"
                       : currentStep > step.id
                         ? "bg-green-500 text-white"
                         : "bg-gray-300 text-gray-600"
-                  }`}
+                    }`}
                 >
                   {currentStep > step.id ? <Check size={12} /> : step.id}
                 </div>
@@ -309,19 +314,93 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
-            <p className="text-xs sm:text-sm text-gray-600">
-              Subscribe to invest in <strong>TripleEdge</strong>
-            </p>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X size={22} />
-            </button>
+        <div className="flex-1 overflow-y-auto">
+          {/* Mobile Header (Logo above steps) */}
+          <div className="block sm:hidden bg-gray-50 p-4 border-b">
+            {/* Logo + Title */}
+            <div className="mb-4">
+              <div className="flex items-center mb-1 sm:flex">
+                <img src={favicon} alt="BASTION" className="w-8 h-8 mr-2" />
+                <span className="font-bold text-lg">BASTION</span>
+              </div>
+              <h1 className="text-xl font-bold text-gray-900 ">TripleEdge</h1>
+            </div>
+
+            {/* Step Indicators */}
+            <div className="space-y-2">
+              {/* First row: steps 1–4 */}
+              <div className="flex justify-between">
+                {steps.slice(0, 4).map((step) => (
+                  <div
+                    key={step.id}
+                    className={`flex flex-col items-center p-2 rounded-lg transition-colors text-xs flex-1 mx-1 ${currentStep === step.id
+                        ? "bg-red-100 text-red-700"
+                        : currentStep > step.id
+                          ? "bg-green-50 text-green-700"
+                          : "text-gray-500"
+                      }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 sm:flex ${currentStep === step.id
+                          ? "bg-red-500 text-white"
+                          : currentStep > step.id
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-300 text-gray-600"
+                        }`}
+                    >
+                      {currentStep > step.id ? <Check size={10} /> : step.id}
+                    </div>
+                    <span className="font-medium text-center">{step.name}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Second row: steps 5–7 */}
+              <div className="flex justify-between">
+                {steps.slice(4).map((step) => (
+                  <div
+                    key={step.id}
+                    className={`flex flex-col items-center p-2 rounded-lg transition-colors text-xs flex-1 mx-1 ${currentStep === step.id
+                        ? "bg-red-100 text-red-700"
+                        : currentStep > step.id
+                          ? "bg-green-50 text-green-700"
+                          : "text-gray-500"
+                      }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${currentStep === step.id
+                          ? "bg-red-500 text-white"
+                          : currentStep > step.id
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-300 text-gray-600"
+                        }`}
+                    >
+                      {currentStep > step.id ? <Check size={10} /> : step.id}
+                    </div>
+                    <span className="font-medium text-center">{step.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          {renderStep()}
+
+          {/* Form Content */}
+          <div className="p-4 sm:p-8">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <p className="text-xs sm:text-sm text-gray-600">
+                Subscribe to invest in <strong>TripleEdge</strong>
+              </p>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {renderStep()}
+          </div>
+
         </div>
       </div>
     </div>

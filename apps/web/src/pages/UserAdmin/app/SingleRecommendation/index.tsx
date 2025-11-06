@@ -1,4 +1,5 @@
 import useSheetStocks from "@/hooks/use-sheets-stocks";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ExternalLink, FileText, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -71,6 +72,7 @@ const SingleRecommendation = () => {
   const [timeRange, setTimeRange] = useState("ALL");
   const { stocks, loading } = useSheetStocks(true);
   const [externalRows, setExternalRows] = useState<PBRow[] | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!symbol) {
@@ -242,7 +244,7 @@ const SingleRecommendation = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Chart */}
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2 md:gap-0">
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">
                       Index NAV, Stock NAV
@@ -266,8 +268,8 @@ const SingleRecommendation = () => {
                   </div>
                 </div>
 
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={getFilteredData()}>
+                <div className={isMobile ? "overflow-x-auto" : "overflow-hidden"}>
+                  <LineChart width={550} height={400} data={getFilteredData()}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="date" stroke="#9ca3af" />
                     <YAxis stroke="#9ca3af" yAxisId="left" />
@@ -310,7 +312,7 @@ const SingleRecommendation = () => {
                       connectNulls
                     />
                   </LineChart>
-                </ResponsiveContainer>
+                </div>
               </div>
 
               {/* Resources + Quarterly Updates */}

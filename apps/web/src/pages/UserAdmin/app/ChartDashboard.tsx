@@ -36,7 +36,7 @@ const HorizontalBar = ({ label, value, percentage, color }) => {
 
 // Reusable Stat Card
 const StatCard = ({ label, value, subLabel, color, isUp = true }) => (
-  <div className="p-3 bg-white/5 rounded-xl border border-white/10 responsive-card">
+  <div className="p-2 sm:p-3 bg-white/5 rounded-xl border border-white/10 responsive-card">
     <div className="flex items-center gap-1.5 mb-2">
       {isUp ? (
         <TrendingUp size={14} className={`${color} responsive-icon`} />
@@ -45,7 +45,7 @@ const StatCard = ({ label, value, subLabel, color, isUp = true }) => (
       )}
       <span className="text-xs text-gray-300 font-medium responsive-text">{label}</span>
     </div>
-    <span className={`text-xl font-bold ${color} responsive-value`}>{value}</span>
+    <span className={`text-lg sm:text-xl font-bold ${color} responsive-value`}>{value}</span>
     {subLabel && <p className="text-xs text-gray-400 mt-0.5 responsive-subtext">{subLabel}</p>}
   </div>
 );
@@ -281,7 +281,7 @@ const ChartDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Live Recommendations */}
         <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-4 lg:p-6 shadow-lg responsive-panel">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row items-left justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse responsive-dot"></div>
               <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-white responsive-panel-title">
@@ -290,7 +290,7 @@ const ChartDashboard = () => {
             </div>
             <Link
               to="/user/app/recommendation"
-              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link"
+              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link ml-4"
             >
               3 New
             </Link>
@@ -312,7 +312,7 @@ const ChartDashboard = () => {
           </div>
 
           {/* Horizontal Bars */}
-          <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
             <div>
               {liveStats.map((item, idx) => (
                 <HorizontalBar key={idx} {...item} />
@@ -347,7 +347,7 @@ const ChartDashboard = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-2 lg:gap-3">
+          <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3">
             <StatCard
               label="Top Gainer"
               value={totals.topGainerText || "+0.00%"}
@@ -365,8 +365,8 @@ const ChartDashboard = () => {
         </div>
 
         {/* Exits */}
-        <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-4 lg:p-6 shadow-lg responsive-panel">
-          <div className="flex items-center justify-between mb-4">
+        <div className="backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl p-4 lg:p-6 shadow-lg responsive-panel flex flex-col">
+          <div className="flex flex-col sm:flex-row items-left justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse responsive-dot"></div>
               <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-white responsive-panel-title">
@@ -375,7 +375,7 @@ const ChartDashboard = () => {
             </div>
             <Link
               to="/user/app/recommendation"
-              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link"
+              className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link ml-4"
             >
               3 New
             </Link>
@@ -396,15 +396,15 @@ const ChartDashboard = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
-            <div>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
+            <div className="flex flex-col h-full">
               {exitsStats.map((item, idx) => (
                 <HorizontalBar key={idx} {...item} />
               ))}
             </div>
 
-            <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10 flex flex-col justify-between responsive-summary-card">
-              <div>
+            <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10 flex flex-col justify-between h-full mt-auto">
+              <div className="flex-grow">
                 <p className="text-xs text-gray-400 mb-3 responsive-text">Exit Summary</p>
                 <div className="space-y-2 lg:space-y-3">
                   <div className="flex justify-between items-center">
@@ -440,7 +440,7 @@ const ChartDashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 lg:gap-3">
+          <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3 mt-auto">
             <StatCard
               label="Best Exit"
               value={totals.bestExitText || "+0.00%"}
