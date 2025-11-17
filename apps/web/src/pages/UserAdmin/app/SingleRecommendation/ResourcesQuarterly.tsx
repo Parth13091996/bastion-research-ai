@@ -1,10 +1,12 @@
+import { format } from "date-fns";
 import { ClipboardList, FileText, Video } from "lucide-react";
 import { Link } from "react-router-dom";
 const ResourcesQuarterly = ({ stock, setSelectedUpdate }) => {
+  console.log(stock?.quarterly_update);
   const quarterlyUpdates = Array.isArray(stock?.quarterly_update)
     ? stock.quarterly_update.map((item: any, idx: number) => ({
         id: idx,
-        date: item.date,
+        date: format(new Date(item.date), "d MMM, yyyy"),
         heading: item.title,
         preview: item.description,
         hasPdf: !!item.pdf_url,

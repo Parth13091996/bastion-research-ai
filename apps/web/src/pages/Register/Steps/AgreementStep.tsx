@@ -17,7 +17,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   formData,
 }) => {
   const pdfUrl =
-    "https://ftuuyfhfrhvlllfwfbjx.supabase.co/storage/v1/object/public/system_docs/TERMS%20AND%20CONDITIONS%20OF%20RESEARCH%20ANALYST%20SERVICES%20-%20Client%20Agreement.pdf";
+    "https://ftuuyfhfrhvlllfwfbjx.supabase.co/storage/v1/object/public/system_docs/terms-and-condition-client-agreement.pdf";
   const [error, setError] = useState<string | null>(null);
   const [pdfUrlWithAddress, setPdfUrlWithAddress] = useState("");
   const [isEsignSubmitting, setIsEsignSubmitting] = useState(false);

@@ -1,12 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { fetchSheetObjects } from "../lib/googleSheet";
+import { getSheetRecommendations } from "@/api/recommendations-apis";
 
 const ActionableAccountableBastion = () => {
-  // 👉 Replace this with your actual Google Sheet URL
-  const SHEET_URL =
-    "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=0#gid=0";
-
   const [stats, setStats] = useState([
     { number: "0", label: "Total Ideas" },
     { number: "0", label: "Active Ideas" },
@@ -16,10 +12,10 @@ const ActionableAccountableBastion = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const rows = await fetchSheetObjects(SHEET_URL);
+        const rows = await getSheetRecommendations();
 
         const actions = rows
-          .map((row) => row["Action"]?.toString().trim().toUpperCase())
+          .map((row: any) => row.action?.toString().trim().toUpperCase())
           .filter(Boolean);
 
         const totalIdeas = actions.length;
@@ -34,7 +30,7 @@ const ActionableAccountableBastion = () => {
           { number: `${sectors}`, label: "Sectors" },
         ]);
       } catch (err) {
-        console.error("Error fetching sheet data:", err);
+        console.error("Error fetching recommendations stats:", err);
       }
     };
 
@@ -55,7 +51,6 @@ const ActionableAccountableBastion = () => {
       transition={{ duration: 0.8 }}
       className="space-y-8"
     >
-      {/* Heading */}
       <div className="space-y-4">
         <motion.h1
           className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight"
@@ -78,7 +73,6 @@ const ActionableAccountableBastion = () => {
         </motion.p>
       </div>
 
-      {/* Stats */}
       <motion.div
         className="grid grid-cols-2 md:grid-cols-4 gap-6"
         initial={{ opacity: 0, y: 20 }}

@@ -21,7 +21,7 @@ function App() {
               <img
                 src="/media/header-logo.webp"
                 alt="Bastion Research"
-                className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32 max-w-full object-contain"
+                className="h-16 sm:h-18 md:h-20 lg:h-20 xl:h-20 max-w-full object-contain"
               />
             </main>
           </div>

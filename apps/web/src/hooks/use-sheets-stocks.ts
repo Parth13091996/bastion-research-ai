@@ -1,8 +1,7 @@
-import { getAllRecommendations } from "@/api/recommendations-apis";
 import {
-  fetchRecommendationsFromSheet,
-  getSheetUrl,
-} from "@/lib/recommendations";
+  getAllRecommendations,
+  getSheetRecommendations,
+} from "@/api/recommendations-apis";
 import { useEffect, useState } from "react";
 
 const useSheetStocks = (onlySheet: boolean = false) => {
@@ -16,12 +15,8 @@ const useSheetStocks = (onlySheet: boolean = false) => {
       setLoading(true);
       setError(null);
       try {
-        // Fetch from Google Sheets
-        const url = await getSheetUrl("recommendations");
-        const sheetData = await fetchRecommendationsFromSheet(
-          url,
-          "recommendations"
-        );
+        // Fetch sheet-backed recommendations from backend
+        const sheetData = await getSheetRecommendations();
 
         const transformedSheetStocks: StockData[] = sheetData.map(
           (sheetRow, idx) => ({
