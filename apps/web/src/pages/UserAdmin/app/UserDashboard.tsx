@@ -8,6 +8,7 @@ const UserDashboard = () => {
   const { user, subscription } = useAuth();
 
   // 👤 User Profile
+  // 👤 Check Push 20 Nov Late Night
   const profile = {
     name: user
       ? `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
