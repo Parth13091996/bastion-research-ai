@@ -12,7 +12,7 @@ const PdfViewerPage = () => {
 
   if (!url) {
     return (
-      <div className="p-6 space-y-3">
+      <div className="space-y-3">
         <p className="text-sm text-gray-600">No PDF URL provided.</p>
         <Link to=".." relative="path" className="text-blue-600 hover:underline">
           Go back
