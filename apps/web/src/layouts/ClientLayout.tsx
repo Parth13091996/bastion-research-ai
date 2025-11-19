@@ -11,7 +11,7 @@ const ClientLayout = () => {
   const location = useLocation();
   const isActive = user?.status === "active";
 
-  if (user && isActive && AuthRoutes.includes(location.pathname)) {
+  if (user && isActive && AuthRoutes.includes(location.pathname as any)) {
     return <Navigate to={AppRoutes.home} replace />;
   }
 

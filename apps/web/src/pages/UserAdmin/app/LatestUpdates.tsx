@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
+import { format } from "date-fns";
 
 type LatestUpdateItem = {
   title: string;
@@ -30,7 +31,7 @@ const LatestUpdates: React.FC = () => {
         .map((u) => ({
           title: u.title,
           description: u.description,
-          date: u.date,
+          date: format(new Date(u.date), "d MMM, yyyy"),
           company,
           type: "Quarterly" as const,
           pdf_url: u.pdf_url,
@@ -42,7 +43,7 @@ const LatestUpdates: React.FC = () => {
         .map((u) => ({
           title: u.title,
           description: u.description,
-          date: u.date,
+          date: format(new Date(u.date), "d MMM, yyyy"),
           company,
           type: "Announcement" as const,
           pdf_url: u.pdf_url,
@@ -106,7 +107,9 @@ const LatestUpdates: React.FC = () => {
             </a>
           ))}
           {updates.length === 0 && (
-            <div className="text-xs text-gray-500">No updates available yet.</div>
+            <div className="text-xs text-gray-500">
+              No updates available yet.
+            </div>
           )}
         </div>
       )}

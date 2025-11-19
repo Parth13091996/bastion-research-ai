@@ -289,7 +289,7 @@ export default function BastionCoreProductPage() {
                         (idx === 0 ? "Quarterly Plan" : "Yearly Plan")}
                     </h3>
                     {idx === 1 && (
-                      <span className="ml-3 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-[#C4B696] text-[#1C2852]">
+                      <span className="ml-3 inline-flex items-center rounded-full px-3 whitespace-nowrap py-1 text-xs font-medium bg-[#C4B696] text-[#1C2852]">
                         Best value
                       </span>
                     )}

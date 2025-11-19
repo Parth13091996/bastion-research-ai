@@ -103,15 +103,15 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="sm:px-6 px-2 mx-auto py-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={onBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <span className="text-2xl">{getTypeIcon()}</span>
             <Badge className={getTypeColor()}>
               {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -127,9 +127,9 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 mt-4">
           {/* Combined Content Container */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow sm:p-6 p-2">
             {/* Title and Meta */}
             <div className={
               " " +
@@ -137,7 +137,7 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
                 ? "mb-6"
                 : "")
             }>
-              <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+              <div className="flex items-center text-sm text-gray-600 mb-2">
                 <Calendar className="h-4 w-4" />
                 <span>{formatDate(content.created_at)}</span>
               </div>
@@ -243,11 +243,11 @@ const ContentViewer: React.FC<ContentViewerProps> = ({ type, api, onBack }) => {
               <CardTitle>About this {type}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center space-x-2 text-sm">
+              <div className="flex items-center text-sm">
                 <Calendar className="h-4 w-4 text-gray-500" />
                 <span>Published {formatDate(content.created_at)}</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm">
+              <div className="flex items-center text-sm">
                 <span className="text-gray-500">Type:</span>
                 <Badge className={getTypeColor()}>
                   {type.charAt(0).toUpperCase() + type.slice(1)}

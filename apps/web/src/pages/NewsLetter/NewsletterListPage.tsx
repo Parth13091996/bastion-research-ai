@@ -1,11 +1,17 @@
-import { ChevronLeft, ChevronRight, Crown, Search,Play, Share2, } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  Search,
+  Play,
+  Share2,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { mailchimpNewsletterApi } from "@/api/mailchimp";
 import { toast } from "sonner";
 import { Newsletter } from "@repo/types";
-
 
 const COLORS = {
   red: "#C00000",
@@ -144,10 +150,7 @@ const NewsletterArchive = () => {
     newsletter.sub_title || newsletter.plain_text || "";
 
   return (
-    <div
-      className="min-h-screen relative overflow-hidden"
-      
-    >
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <BackgroundShapes />
@@ -287,7 +290,8 @@ const NewsletterArchive = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-12">
+            <div className="flex justify-center items-center gap-2 mt-12 flex-wrap">
+              {/* Previous Button */}
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
@@ -296,28 +300,79 @@ const NewsletterArchive = () => {
                 <ChevronLeft className="h-5 w-5" />
               </button>
 
-              {[...Array(totalPages)].map((_, index) => {
-                const page = index + 1;
-                const isActive = page === currentPage;
+              {/* Dynamic Page Numbers */}
+              {(() => {
+                const pagesToShow: (number | string)[] = [];
+                const maxVisible = 3;
 
-                return (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      isActive
-                        ? "text-white shadow-md"
-                        : "text-gray-700 hover:bg-gray-100 border border-gray-300"
-                    }`}
-                    style={{
-                      backgroundColor: isActive ? COLORS.red : COLORS.white,
-                    }}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
+                if (totalPages <= maxVisible + 2) {
+                  // Show all if few pages
+                  for (let i = 1; i <= totalPages; i++) pagesToShow.push(i);
+                } else {
+                  // Always show first 3
+                  const firstPages = [1, 2, 3];
+                  const lastPage = totalPages;
 
+                  if (currentPage <= 3) {
+                    // Near start
+                    pagesToShow.push(...firstPages, "...", lastPage);
+                  } else if (currentPage >= totalPages - 2) {
+                    // Near end
+                    pagesToShow.push(
+                      1,
+                      "...",
+                      totalPages - 2,
+                      totalPages - 1,
+                      totalPages
+                    );
+                  } else {
+                    // Middle range
+                    pagesToShow.push(
+                      1,
+                      "...",
+                      currentPage - 1,
+                      currentPage,
+                      currentPage + 1,
+                      "...",
+                      lastPage
+                    );
+                  }
+                }
+
+                return pagesToShow.map((page, index) => {
+                  if (page === "...") {
+                    return (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="px-2 text-gray-500"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const isActive = page === currentPage;
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page as number)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        isActive
+                          ? "text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-100 border border-gray-300"
+                      }`}
+                      style={{
+                        backgroundColor: isActive ? COLORS.red : COLORS.white,
+                      }}
+                    >
+                      {page}
+                    </button>
+                  );
+                });
+              })()}
+
+              {/* Next Button */}
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}

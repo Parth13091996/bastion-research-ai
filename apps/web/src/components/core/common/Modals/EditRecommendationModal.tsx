@@ -374,9 +374,9 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   if (!record) return null;
 
   const TAG_OPTIONS = [
-    { label: "Core", value: "core" },
+    { label: "Core (Quarterly)", value: "core" },
     { label: "Core Annual", value: "core_annual" },
-    { label: "Research Hub", value: "research_hub" },
+    { label: "Research Ally", value: "research_hub" },
     { label: "Freemium", value: "freemium" },
   ];
 

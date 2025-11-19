@@ -233,7 +233,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
               { value: "scratch-pad", label: "Scratch Pad" },
               { value: "topical-update", label: "Topical Update" },
             ].map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
+              <div key={option.value} className="flex items-center">
                 <input
                   type="radio"
                   id={option.value}
@@ -429,7 +429,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     <div className="container space-y-6 min-h-screen relative pb-16">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back

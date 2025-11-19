@@ -15,6 +15,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const renderIdRef = useRef(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const pdfDocRef = useRef<any>(null);
 
   const handleGoBack = () => {
     if (window.history.length > 1) {
@@ -24,6 +26,30 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     }
   };
 
+  // Detect zoom changes
+  useEffect(() => {
+    let resizeTimer: NodeJS.Timeout;
+    
+    const handleZoomChange = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const newZoom = window.devicePixelRatio;
+        setZoomLevel(newZoom);
+      }, 150); // Debounce to avoid excessive re-renders
+    };
+
+    // Listen for resize events (which fire on zoom)
+    window.addEventListener('resize', handleZoomChange);
+    
+    // Initial zoom level
+    setZoomLevel(window.devicePixelRatio);
+
+    return () => {
+      window.removeEventListener('resize', handleZoomChange);
+      clearTimeout(resizeTimer);
+    };
+  }, []);
+
   useEffect(() => {
     const currentRenderId = ++renderIdRef.current;
 
@@ -31,8 +57,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
       if (typeof window.pdfjsLib === "undefined") {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement("script");
-          script.src =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+          script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
           script.onload = () => resolve();
           script.onerror = () => reject(new Error("Failed to load PDF.js"));
           document.head.appendChild(script);
@@ -54,24 +79,34 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         setError(null);
         containerRef.current.innerHTML = "";
 
-        const loadingTask = pdfLib.getDocument(pdfUrl);
-        const pdf = await loadingTask.promise;
+        // Load PDF only once and cache it
+        if (!pdfDocRef.current) {
+          const loadingTask = pdfLib.getDocument(pdfUrl);
+          pdfDocRef.current = await loadingTask.promise;
+        }
 
+        const pdf = pdfDocRef.current;
         const isMobile = window.innerWidth < 768;
         const baseScale = isMobile ? 0.9 : 1.5;
+        
+        // Multiply base scale by zoom level for crisp rendering
+        const scale = baseScale * zoomLevel;
 
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
           if (renderId !== renderIdRef.current) return;
 
           const page = await pdf.getPage(pageNumber);
-          const viewport = page.getViewport({ scale: baseScale });
+          const viewport = page.getViewport({ scale });
 
           const tempCanvas = document.createElement("canvas");
           const tempContext = tempCanvas.getContext("2d")!;
           tempCanvas.width = viewport.width;
           tempCanvas.height = viewport.height;
 
-          await page.render({ canvasContext: tempContext, viewport }).promise;
+          await page.render({
+            canvasContext: tempContext,
+            viewport,
+          }).promise;
 
           // Crop top and bottom margins
           const imgData = tempContext.getImageData(
@@ -80,6 +115,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
             tempCanvas.width,
             tempCanvas.height
           );
+
           let top = 0,
             bottom = tempCanvas.height - 1,
             foundTop = false;
@@ -124,6 +160,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           const context = canvas.getContext("2d")!;
           canvas.width = tempCanvas.width;
           canvas.height = croppedHeight;
+
           context.drawImage(
             tempCanvas,
             0,
@@ -147,13 +184,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           wrapper.style.overflow = "hidden";
           wrapper.style.marginBottom = "20px";
 
-          // Canvas styling
+          // Canvas styling - scale down to original size for display
           canvas.style.width = "100%";
           canvas.style.height = "auto";
           canvas.style.maxWidth = "920px";
           canvas.style.borderRadius = "6px";
           canvas.style.boxShadow = "0 1px 4px rgba(0,0,0,0.15)";
           canvas.style.backgroundColor = "#fff";
+          
+          // Scale canvas display size back down while keeping high-res rendering
+          canvas.style.imageRendering = "high-quality";
 
           // 🔒 Transparent overlay to block right-click/save
           const overlay = document.createElement("div");
@@ -180,7 +220,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
     };
 
     loadPDFJS();
-  }, [pdfUrl]);
+  }, [pdfUrl, zoomLevel]); // Re-render when zoom changes
 
   return (
     <div
@@ -220,6 +260,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
       )}
+
       {error && <div style={{ color: "red" }}>{error}</div>}
 
       <div

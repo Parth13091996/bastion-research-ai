@@ -39,14 +39,12 @@ const RowActions = ({
   <div className="flex items-center space-x-2">
     <button
       className="text-blue-600 hover:text-blue-800 p-1"
-      onClick={() => console.log("View Invoice", data.invoice_id)}
       title="View Invoice"
     >
       <FileText size={16} />
     </button>
     <button
       className="text-blue-600 hover:text-blue-800 p-1"
-      onClick={() => console.log("View Details", data.transaction_id)}
       title="View Details"
     >
       <Eye size={16} />
@@ -159,7 +157,10 @@ const PaymentHistory = () => {
           />
           {/* Add more filters UI here if needed */}
         </div>
-        <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+        <div
+          className="rounded-md border bg-white ag-theme-alpine"
+          style={{ height: 600, width: "100%" }}
+        >
           <AgGridReact
             theme="legacy"
             rowData={filteredData}

@@ -25,7 +25,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    // "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/**/*", "vite-env.d.ts"],
   "exclude": ["node_modules"]

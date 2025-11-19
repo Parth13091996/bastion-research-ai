@@ -1,7 +1,4 @@
-import {
-  fetchRecommendationsFromSheet,
-  getSheetUrl,
-} from "@/lib/recommendations";
+import { getLiveRecommendationsDashboardData } from "@/api/recommendations-apis";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -223,10 +220,8 @@ const ChartDashboard = () => {
   useEffect(() => {
     (async () => {
       try {
-        // Only fetch once, this just fetches one sheet (LIVE) in the backend, even for EXITS
-        const url = await getSheetUrl("live");
-        // API returns a flat list of objects, not recs as array per stock
-        const dashboardData = await fetchRecommendationsFromSheet(url, "live");
+        // Backend API returns a flat list of objects from the live recommendations sheet
+        const dashboardData = await getLiveRecommendationsDashboardData();
         // If data is not an array, error
         if (!Array.isArray(dashboardData)) {
           setError("Data not in expected array format");

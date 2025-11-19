@@ -5,6 +5,8 @@ import {
   deleteRecommendation,
   getRecommendations,
   getRecommendationByCompanySymbol,
+  getRecommendationsFromSheet,
+  getLiveRecommendationsSummary,
   upsertRecommendationByCompany,
   updateUserRecommendationAnalytics,
 } from "../controllers/recommendations.controller";
@@ -14,6 +16,8 @@ const router = Router();
 
 // Public routes
 router.get("/recommendations", getRecommendations);
+router.get("/recommendations/sheet", getRecommendationsFromSheet);
+router.get("/recommendations/live-dashboard", getLiveRecommendationsSummary);
 router.get(
   "/recommendations/company/analytics/:companySymbol",
   updateUserRecommendationAnalytics

@@ -149,6 +149,8 @@ export const endpoints = {
   },
   recommendations: {
     base: "/api/recommendations/",
+    sheet: "/api/recommendations/sheet",
+    liveDashboard: "/api/recommendations/live-dashboard",
     bySymbol: (symbol: string) => `/api/recommendations/company/${symbol}`,
     bySymbolAnalytics: (symbol: string, userId: string) =>
       `/api/recommendations/company/analytics/${symbol}?id=${userId}`,

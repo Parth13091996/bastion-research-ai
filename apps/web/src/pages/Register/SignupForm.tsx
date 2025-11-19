@@ -40,6 +40,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     agreementSignaturePath: "",
     agreementSignedAt: "",
   });
+
   const stepsValues = [
     { id: 1, name: "Register", icon: "👤" },
     { id: 2, name: "Verify", icon: "✓" },
@@ -49,6 +50,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     { id: 6, name: "Plans", icon: "📋" },
     { id: 7, name: "Payment", icon: "💳" },
   ];
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -79,6 +81,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     }
     if (agreementSigned) {
       setCurrentStep(6);
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      setCurrentStep(5);
     }
   }, [user]);
 
@@ -134,6 +140,22 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       }
     };
     fetchPlans();
+  }, [currentStep]);
+
+  // ✅ Auto-scroll mobile step bar when step changes
+  useEffect(() => {
+    const activeStep = document.getElementById(`step-${currentStep}`);
+    const scrollContainer = document.getElementById("mobile-steps");
+    if (activeStep && scrollContainer) {
+      const stepLeft =
+        activeStep.offsetLeft -
+        scrollContainer.clientWidth / 2 +
+        activeStep.clientWidth / 2;
+      scrollContainer.scrollTo({
+        left: stepLeft,
+        behavior: "smooth",
+      });
+    }
   }, [currentStep]);
 
   if (!isOpen) return null;
@@ -264,6 +286,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   };
 
   return (
+<<<<<<< HEAD
     <div
       className="fixed
     inset-0
@@ -275,6 +298,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     >
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-fit max-h-screen overflow-hidden flex flex-col sm:flex-row">
         {/* Vertical Sidebar for larger screens */}
+=======
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center  justify-center p-2 sm:p-4 z-50 top-0">
+      <div className="bg-white rounded-xl shadow-2xl sm:mt-[0px] mt-[10vh] w-full max-w-5xl max-h-[84dvh] overflow-auto flex flex-col sm:flex-row">
+        {/* Sidebar for larger screens */}
+>>>>>>> 45acb7f14cceadcf79814e4f77cd80de4069984c
         <div className="hidden sm:block w-80 bg-gray-50 p-6 border-r overflow-y-auto">
           <div className="mb-8">
             <div className="flex items-center mb-2">
@@ -290,20 +318,22 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             {steps.map((step) => (
               <div
                 key={step.id}
-                className={`flex items-center p-3 rounded-lg transition-colors text-base ${currentStep === step.id
+                className={`flex items-center p-3 rounded-lg transition-colors text-base ${
+                  currentStep === step.id
                     ? "bg-red-100 text-red-700 border-l-4 border-red-500"
                     : currentStep > step.id
                       ? "bg-green-50 text-green-700"
                       : "text-gray-500"
-                  }`}
+                }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentStep === step.id
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${
+                    currentStep === step.id
                       ? "bg-red-500 text-white"
                       : currentStep > step.id
                         ? "bg-green-500 text-white"
                         : "bg-gray-300 text-gray-600"
-                    }`}
+                  }`}
                 >
                   {currentStep > step.id ? <Check size={12} /> : step.id}
                 </div>
@@ -315,7 +345,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          {/* Mobile Header (Logo above steps) */}
+          {/* Mobile Header */}
           <div className="block sm:hidden bg-gray-50 p-4 border-b">
             {/* Logo + Title */}
             <div className="mb-4">
@@ -323,68 +353,46 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
                 <img src={favicon} alt="BASTION" className="w-8 h-8 mr-2" />
                 <span className="font-bold text-lg">BASTION</span>
               </div>
-              <h1 className="text-xl font-bold text-gray-900 ">TripleEdge</h1>
+              <h1 className="text-xl font-bold text-gray-900">TripleEdge</h1>
             </div>
 
-            {/* Step Indicators */}
-            <div className="space-y-2">
-              {/* First row: steps 1–4 */}
-              <div className="flex justify-between">
-                {steps.slice(0, 4).map((step) => (
+            {/* 🔥 Horizontal Scroll Steps */}
+            <div
+              id="mobile-steps"
+              className="flex overflow-x-auto no-scrollbar space-x-2 py-2"
+            >
+              {steps.map((step) => (
+                <div
+                  key={step.id}
+                  id={`step-${step.id}`}
+                  className={`flex flex-col items-center flex-shrink-0 px-3 py-2 rounded-lg transition-colors text-xs ${
+                    currentStep === step.id
+                      ? "bg-red-100 text-red-700"
+                      : currentStep > step.id
+                        ? "bg-green-50 text-green-700"
+                        : "text-gray-500"
+                  }`}
+                >
                   <div
-                    key={step.id}
-                    className={`flex flex-col items-center p-2 rounded-lg transition-colors text-xs flex-1 mx-1 ${currentStep === step.id
-                        ? "bg-red-100 text-red-700"
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${
+                      currentStep === step.id
+                        ? "bg-red-500 text-white"
                         : currentStep > step.id
-                          ? "bg-green-50 text-green-700"
-                          : "text-gray-500"
-                      }`}
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-300 text-gray-600"
+                    }`}
                   >
-                    <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 sm:flex ${currentStep === step.id
-                          ? "bg-red-500 text-white"
-                          : currentStep > step.id
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-300 text-gray-600"
-                        }`}
-                    >
-                      {currentStep > step.id ? <Check size={10} /> : step.id}
-                    </div>
-                    <span className="font-medium text-center">{step.name}</span>
+                    {currentStep > step.id ? <Check size={10} /> : step.id}
                   </div>
-                ))}
-              </div>
-
-              {/* Second row: steps 5–7 */}
-              <div className="flex justify-between">
-                {steps.slice(4).map((step) => (
-                  <div
-                    key={step.id}
-                    className={`flex flex-col items-center p-2 rounded-lg transition-colors text-xs flex-1 mx-1 ${currentStep === step.id
-                        ? "bg-red-100 text-red-700"
-                        : currentStep > step.id
-                          ? "bg-green-50 text-green-700"
-                          : "text-gray-500"
-                      }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${currentStep === step.id
-                          ? "bg-red-500 text-white"
-                          : currentStep > step.id
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-300 text-gray-600"
-                        }`}
-                    >
-                      {currentStep > step.id ? <Check size={10} /> : step.id}
-                    </div>
-                    <span className="font-medium text-center">{step.name}</span>
-                  </div>
-                ))}
-              </div>
+                  <span className="font-medium text-center whitespace-nowrap">
+                    {step.name}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Form Content */}
+          {/* Form */}
           <div className="p-4 sm:p-8">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <p className="text-xs sm:text-sm text-gray-600">
@@ -400,7 +408,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
             {renderStep()}
           </div>
-
         </div>
       </div>
     </div>

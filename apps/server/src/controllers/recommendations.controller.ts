@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import { uploadToSupabase } from "../services/upload.service";
 import { supabase } from "../supabase";
+import {
+  fetchSheetObjects,
+  liveRecMapRow,
+  mapRow,
+  RecommendationRecord,
+} from "../utils/recommendationsSheet";
 
 export const getRecommendations = async (req: Request, res: Response) => {
   const { data, error } = await supabase.from("recommendations").select("*");
@@ -8,6 +14,69 @@ export const getRecommendations = async (req: Request, res: Response) => {
     return res.status(500).json({ error: error.message });
   }
   return res.status(200).json(data);
+};
+
+type Settings = {
+  recommendation_sheet_url?: string;
+  live_recommendation_sheet_url?: string;
+};
+
+const SETTINGS_TABLE = "settings";
+
+async function getSettingsData(): Promise<Settings> {
+  const { data, error } = await supabase
+    .from(SETTINGS_TABLE)
+    .select("*")
+    .maybeSingle();
+  if (error) throw error;
+  const raw = (data?.data || {}) as Settings;
+  return raw;
+}
+
+export const getRecommendationsFromSheet = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const settings = await getSettingsData();
+    const sheetUrl =
+      settings.recommendation_sheet_url ||
+      "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=0#gid=0";
+
+    const rows = await fetchSheetObjects(sheetUrl);
+    const recs: RecommendationRecord[] = rows
+      .map(mapRow)
+      .filter((r) => r.companyName);
+
+    return res.status(200).json(recs);
+  } catch (error: any) {
+    console.error("Error fetching recommendations from sheet:", error);
+    return res
+      .status(500)
+      .json({ error: error?.message || "Failed to load sheet data" });
+  }
+};
+
+export const getLiveRecommendationsSummary = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const settings = await getSettingsData();
+    const sheetUrl =
+      settings.live_recommendation_sheet_url ||
+      "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=1899227714#gid=1899227714";
+
+    const rows = await fetchSheetObjects(sheetUrl);
+    const summary = rows.map(liveRecMapRow).filter(Boolean);
+
+    return res.status(200).json(summary);
+  } catch (error: any) {
+    console.error("Error fetching live recommendations summary:", error);
+    return res
+      .status(500)
+      .json({ error: error?.message || "Failed to load live data" });
+  }
 };
 
 export const getRecommendationByCompanySymbol = async (

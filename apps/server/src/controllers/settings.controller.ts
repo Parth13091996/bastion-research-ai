@@ -35,8 +35,6 @@ export async function getPublicSettings(req: Request, res: Response) {
 
     // Only expose non-sensitive keys publicly
     const pub = {
-      recommendation_sheet_url: data.recommendation_sheet_url,
-      live_recommendation_sheet_url: data.live_recommendation_sheet_url,
       site_name: data.site_name || "Admin Dashboard",
       maintenance_mode: !!data.maintenance_mode,
       allow_user_registrations: !!data.allow_user_registrations,
@@ -44,10 +42,6 @@ export async function getPublicSettings(req: Request, res: Response) {
     return res.status(200).json(pub);
   } catch (e: any) {
     return res.status(200).json({
-      recommendation_sheet_url:
-        "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=0#gid=0",
-      live_recommendation_sheet_url:
-        "https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=1899227714#gid=1899227714",
       site_name: "Admin Dashboard",
       maintenance_mode: false,
       allow_user_registrations: true,
