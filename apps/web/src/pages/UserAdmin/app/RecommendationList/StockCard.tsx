@@ -7,11 +7,25 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const StockCard = ({ stock }: { stock: StockData }) => {
   const { user } = useAuth();
+
+  // Percent when CMP > Entry
+  const gainPercent = Math.min(
+    ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
+    100
+  );
+
+  // Percent when CMP < Entry
+  const lossPercent = Math.min(
+    ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
+    100
+  );
+
   return (
     <div
       className="bg-white rounded-[20px] shadow-md border overflow-hidden transform transition-shadow hover:shadow-lg"
       style={{ borderColor: COLORS.lightGray, minHeight: 260 }}
     >
+      {/* Header */}
       <div
         className="flex items-center p-4"
         style={{
@@ -44,8 +58,8 @@ const StockCard = ({ stock }: { stock: StockData }) => {
             {stock.name}
           </h3>
           <p className="text-xs text-gray-600 mt-1">
-            {stock.sector} <span className="text-gray-400">|</span> MCAP:{" "}
-            <span className="text-gray-800">{stock.marketCap}</span>
+            {stock.sector} <span className="text-gray-400">|</span> MCAP:
+            <span className="text-gray-800"> {stock.marketCap}</span>
           </p>
           <p className="text-xs text-gray-500 mt-1">
             Last Updated On: {stock.lastUpdated}
@@ -53,8 +67,8 @@ const StockCard = ({ stock }: { stock: StockData }) => {
         </div>
       </div>
 
+      {/* Band & Upside Pills */}
       <div className="flex gap-2 p-4 flex-wrap mb-2 items-center">
-        {/* Band pill (BUY/HOLD/EXITED) - solid color based on getBandColor */}
         <span
           className="px-3 py-1 rounded-full text-xs font-semibold"
           style={{
@@ -77,31 +91,25 @@ const StockCard = ({ stock }: { stock: StockData }) => {
         </span>
       </div>
 
-      <div
-        className="p-4 mx-4 mb-4 rounded-lg border"
-        style={{ backgroundColor: COLORS.lightGray }}
-      >
-        <div
-          className="mb-3 relative"
-          style={{ paddingTop: "20px", paddingBottom: "20px" }}
-        >
+      {/* Progress Bar */}
+      <div className="p-4 mx-4 mb-4 rounded-lg border" style={{ backgroundColor: COLORS.lightGray }}>
+        <div className="mb-3 relative" style={{ paddingTop: "20px", paddingBottom: "20px" }}>
           <div className="relative w-full h-4 bg-gray-300 rounded-full flex items-center">
+
+            {/* -------- CMP > ENTRY -------- */}
             {stock.cmp >= stock.entryPrice && (
               <>
+                {/* Green filled bar */}
                 <div
                   className="h-4 rounded-full transition-all duration-500 absolute"
                   style={{
-                    width: `${Math.min(
-                      ((stock.cmp - stock.entryPrice) /
-                        (stock.target1 - stock.entryPrice)) *
-                        100,
-                      100
-                    )}%`,
+                    width: `${gainPercent}%`,
                     backgroundColor: COLORS.darkGreen,
                     left: 0,
                   }}
                 ></div>
 
+                {/* Entry Price (left) */}
                 <div className="absolute top-6 left-0 flex flex-col text-xs text-gray-500">
                   <span className="flex flex-col items-center justify-center">
                     <span>₹{stock.entryPrice}</span>
@@ -109,15 +117,11 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                   </span>
                 </div>
 
+                {/* CMP on bar */}
                 <div
                   className="absolute -top-8 text-xs font-semibold text-green-700"
                   style={{
-                    left: `${Math.min(
-                      ((stock.cmp - stock.entryPrice) /
-                        (stock.target1 - stock.entryPrice)) *
-                        100,
-                      100
-                    )}%`,
+                    left: `${gainPercent}%`,
                     transform: "translateX(-50%)",
                   }}
                 >
@@ -127,6 +131,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                   </span>
                 </div>
 
+                {/* Target Price (right) */}
                 <div className="absolute top-6 right-0 flex flex-col text-xs text-gray-500">
                   <span className="flex flex-col items-center justify-center">
                     <span>₹{stock.target1}</span>
@@ -136,35 +141,25 @@ const StockCard = ({ stock }: { stock: StockData }) => {
               </>
             )}
 
+            {/* -------- CMP < ENTRY -------- */}
             {stock.cmp < stock.entryPrice && (
               <>
+                {/* Red filled bar */}
                 <div
-                  className="h-4 rounded-full transition-all duration-500 absolute"
+                  className="h-4 rounded-l-full rounded-r-none transition-all duration-500 absolute"
                   style={{
-                    width: `${Math.min(
-                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
-                      100
-                    )}%`,
+                    width: `${lossPercent}%`,
                     backgroundColor: COLORS.red,
                     left: 0,
                   }}
                 ></div>
 
-                <div className="absolute top-6 left-0 flex flex-col text-xs text-gray-500">
-                  <span className="flex flex-col items-center justify-center">
-                    <span>₹{stock.entryPrice}</span>
-                    <span>Entry Price</span>
-                  </span>
-                </div>
-
+                {/* CMP at start of red bar */}
                 <div
                   className="absolute -top-8 text-xs font-semibold text-red-700"
                   style={{
-                    left: `${Math.min(
-                      ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
-                      100
-                    )}%`,
-                    transform: "translateX(-50%)",
+                    left: "0%",
+                    transform: "translateX(0)",
                   }}
                 >
                   <span className="flex flex-col items-center justify-center">
@@ -173,6 +168,21 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                   </span>
                 </div>
 
+                {/* Entry Price at end of red bar */}
+                <div
+                  className="absolute top-6 text-xs text-gray-500"
+                  style={{
+                    left: `${lossPercent}%`,
+                    transform: "translateX(-60%)",
+                  }}
+                >
+                  <span className="flex flex-col items-center justify-center">
+                    <span>₹{stock.entryPrice}</span>
+                    <span>Entry Price</span>
+                  </span>
+                </div>
+
+                {/* Target Price fixed right */}
                 <div className="absolute top-6 right-0 flex flex-col text-xs text-gray-500">
                   <span className="flex flex-col items-center justify-center">
                     <span>₹{stock.target1}</span>
@@ -183,24 +193,9 @@ const StockCard = ({ stock }: { stock: StockData }) => {
             )}
           </div>
         </div>
-
-        {/* <div className="grid grid-cols-3 text-sm font-medium text-gray-700">
-          <div className="text-center">
-            <div className="text-xs text-gray-500">Entry Price</div>
-            ₹{stock.entryPrice}
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-gray-500">CMP</div>
-            ₹{stock.cmp}
-          </div>
-
-          <div className="text-center">
-            <div className="text-xs text-gray-500">Target Price</div>
-            ₹{stock.target1}
-          </div>
-        </div> */}
       </div>
 
+      {/* View Research Button */}
       <div className="px-4 pb-4">
         <Link
           to={`/user/app/view-research/${stock.code}`}

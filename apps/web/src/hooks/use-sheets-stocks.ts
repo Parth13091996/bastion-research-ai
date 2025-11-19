@@ -40,8 +40,7 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             sector: (sheetRow as any).sector || "",
             band: (sheetRow.action?.toUpperCase() as any) || "BUY",
             lastUpdated: (sheetRow.dateRecommended || "").toString(),
-            percentReturn:
-              Math.round((sheetRow.percentReturn || 0) * 100).toString() || 0,
+            percentReturn: Math.round((sheetRow.percentReturn || 0) * 100),
           })
         );
         setSheetStocks(transformedSheetStocks);
