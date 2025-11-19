@@ -90,7 +90,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         const baseScale = isMobile ? 0.9 : 1.5;
         
         // Multiply base scale by zoom level for crisp rendering
-        const scale = baseScale * zoomLevel * 3;
+        const scale = baseScale * zoomLevel * 2.5;
 
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
           if (renderId !== renderIdRef.current) return;
