@@ -56,7 +56,11 @@ export const fetchSheetObjects = async (
       const obj: RowObject = {};
       headers.forEach((h: string, i: number) => {
         const cell = r.c?.[i] ?? null;
-        obj[h] = cell?.v ?? "";
+        if (h === "Date Recommended") {
+          obj[h] = cell?.f ?? cell?.v ?? "";
+        } else {
+          obj[h] = cell?.v ?? "";
+        }
       });
       return obj;
     });
@@ -111,9 +115,9 @@ export const mapRow = (row: RowObject): RecommendationRecord => {
   const holdingPeriod = (dict["holdingperiod"] ?? "").toString();
   const cmpOrExitPrice = toNumber(
     dict["cmpexitprice"] ??
-      dict["cmp/exitprice"] ??
-      dict["cmp"] ??
-      dict["exitprice"]
+    dict["cmp/exitprice"] ??
+    dict["cmp"] ??
+    dict["exitprice"]
   );
   const percentReturn = toPercent(
     dict["return"] ?? dict["percentreturn"] ?? dict["percentreturns"]
@@ -122,8 +126,8 @@ export const mapRow = (row: RowObject): RecommendationRecord => {
   const targetPrice = toNumber(dict["targetprice"] ?? dict["target"]);
   const upsidePotential = toPercent(
     dict["upsidepotential"] ??
-      dict["upsidepotentialpercent"] ??
-      dict["expectedupside"]
+    dict["upsidepotentialpercent"] ??
+    dict["expectedupside"]
   );
   const latestMcapCr = toNumber(
     dict["latestmcaprscr"] ?? dict["latestmcap"] ?? dict["mcap"]

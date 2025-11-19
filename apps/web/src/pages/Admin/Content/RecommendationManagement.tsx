@@ -11,11 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, RefreshCw, Edit } from "lucide-react";
+import { Download, RefreshCw, Edit, PlusIcon } from "lucide-react";
 import axiosInstance from "@/api/axios";
 import { toast } from "sonner";
 import EditRecommendationModal from "@/components/core/common/Modals/EditRecommendationModal";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
+import AddRecommendationModal from "@/components/core/common/Modals/AddRecommendationModal";
 
 const toCsv = (rows: ExtendedRecommendation[]): string => {
   const headers = [
@@ -41,9 +42,9 @@ const toCsv = (rows: ExtendedRecommendation[]): string => {
     r.holdingPeriod ?? "",
     r.cmpOrExitPrice ?? r.cmp ?? "",
     r.percentReturn ??
-      (r.cmp !== undefined && r.entryPrice
-        ? (((r.cmp - r.entryPrice) / r.entryPrice) * 100).toFixed(1)
-        : ""),
+    (r.cmp !== undefined && r.entryPrice
+      ? (((r.cmp - r.entryPrice) / r.entryPrice) * 100).toFixed(1)
+      : ""),
     r.action || r.band,
     r.targetPrice ?? r.target1 ?? "",
     r.upsidePotential ?? r.upside ?? "",
@@ -53,17 +54,17 @@ const toCsv = (rows: ExtendedRecommendation[]): string => {
 };
 
 const RecommendationManagement: React.FC = () => {
-  // Use custom hook for merged (API+sheet) stocks
-  const { stocks, loading, error } = useSheetStocks(); // DO NOT pass 'true'
+  const { stocks, dbData, notInserterData, loading, error } = useSheetStocks(); // DO NOT pass 'true'
   const [search, setSearch] = useState<string>("");
   const [editingRecommendation, setEditingRecommendation] =
     useState<ExtendedRecommendation | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Mutate/copy hook data to ensure all legacy/expected fields are present for CSV/etc
   const processedRows: ExtendedRecommendation[] = useMemo(
     () =>
-      stocks.map((row: any) => ({
+      dbData.map((row: any) => ({
         ...row,
         companyName: row.companyName || row.name,
         nseSymbol: row.nseSymbol || row.code,
@@ -119,21 +120,26 @@ const RecommendationManagement: React.FC = () => {
         });
       }
 
+      const { company_symbol } = Object.fromEntries(updatedData)
+
       // Ensure company_symbol is included for backend upsert
       formData.set(
         "company_symbol",
         (
           editingRecommendation?.nseSymbol ||
           editingRecommendation?.code ||
+          company_symbol ||
           ""
         ).toString()
       );
 
+
       await axiosInstance.put(
         `/api/recommendations/company/${encodeURIComponent(
           editingRecommendation?.nseSymbol ||
-            editingRecommendation?.nseSymbol ||
-            ""
+          editingRecommendation?.nseSymbol ||
+          company_symbol ||
+          ""
         )}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -169,6 +175,10 @@ const RecommendationManagement: React.FC = () => {
     link.click();
   };
 
+  const createRecommendationHandler = () => {
+    setIsCreateModalOpen(true)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -199,7 +209,15 @@ const RecommendationManagement: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recommendations</CardTitle>
+          <CardTitle className="flex justify-between items-center">
+            <span>
+              Recommendations
+            </span>
+            <Button onClick={createRecommendationHandler}>
+              <PlusIcon className="mr-2 h-4 w-4" /> Create Recommendation
+            </Button>
+          </CardTitle>
+
         </CardHeader>
         <CardContent>
           <div className="mb-4">
@@ -283,13 +301,13 @@ const RecommendationManagement: React.FC = () => {
                             (
                               recommendation.percentReturn?.toString() ??
                               (recommendation.cmp !== undefined &&
-                              recommendation.entryPrice
+                                recommendation.entryPrice
                                 ? (
-                                    ((recommendation.cmp -
-                                      recommendation.entryPrice) /
-                                      recommendation.entryPrice) *
-                                    100
-                                  ).toFixed(1)
+                                  ((recommendation.cmp -
+                                    recommendation.entryPrice) /
+                                    recommendation.entryPrice) *
+                                  100
+                                ).toFixed(1)
                                 : "")
                             )
                               .toString()
@@ -300,13 +318,13 @@ const RecommendationManagement: React.FC = () => {
                         >
                           {recommendation.percentReturn ??
                             (recommendation.cmp !== undefined &&
-                            recommendation.entryPrice
+                              recommendation.entryPrice
                               ? (
-                                  ((recommendation.cmp -
-                                    recommendation.entryPrice) /
-                                    recommendation.entryPrice) *
-                                  100
-                                ).toFixed(1)
+                                ((recommendation.cmp -
+                                  recommendation.entryPrice) /
+                                  recommendation.entryPrice) *
+                                100
+                              ).toFixed(1)
                               : "")}
                         </span>
                       </TableCell>
@@ -359,6 +377,13 @@ const RecommendationManagement: React.FC = () => {
           onSave={handleSave as any}
         />
       )}
+
+      <AddRecommendationModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        sheetStocks={notInserterData as any}
+        onSave={handleSave as any}
+      />
     </div>
   );
 };

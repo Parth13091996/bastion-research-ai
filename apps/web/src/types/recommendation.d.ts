@@ -34,7 +34,7 @@ interface StockData {
   sector?: string;
   band?: "BUY" | "HOLD" | "EXITED";
   lastUpdated?: string;
-  percentReturn?: number;
+  percentReturn?: number | string;
   tags?: string;
 }
 /**
@@ -122,7 +122,7 @@ interface ExtendedRecommendationRecord {
   dateExit?: string;
   holdingPeriod?: string;
   cmpOrExitPrice: string;
-  percentReturn?: string;
+  percentReturn?: string | number;
   action: string;
   targetPrice?: string;
   upsidePotential?: string;

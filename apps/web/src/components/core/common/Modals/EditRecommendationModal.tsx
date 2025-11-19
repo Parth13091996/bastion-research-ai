@@ -67,7 +67,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   recommendation: record,
   onSave,
 }) => {
-  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploading] = useState<Record<string, boolean>>({});
   const [selectedFiles, setSelectedFiles] = useState<
     Record<string, File | null>
   >({});
@@ -380,7 +380,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     { label: "Freemium", value: "freemium" },
   ];
 
-  const handleTagsChange = (value) => {
+  const handleTagsChange = (value: string) => {
     setValue("tags", value, { shouldValidate: true, shouldDirty: true });
     setLocalError((prev) => ({ ...prev, tags: "" }));
   };

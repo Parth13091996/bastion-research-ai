@@ -8,7 +8,7 @@ import {
   RecommendationRecord,
 } from "../utils/recommendationsSheet";
 
-export const getRecommendations = async (req: Request, res: Response) => {
+export const getRecommendations = async (_: Request, res: Response) => {
   const { data, error } = await supabase.from("recommendations").select("*");
   if (error) {
     return res.status(500).json({ error: error.message });
@@ -34,7 +34,7 @@ async function getSettingsData(): Promise<Settings> {
 }
 
 export const getRecommendationsFromSheet = async (
-  req: Request,
+  _: Request,
   res: Response
 ) => {
   try {
@@ -58,7 +58,7 @@ export const getRecommendationsFromSheet = async (
 };
 
 export const getLiveRecommendationsSummary = async (
-  req: Request,
+  _: Request,
   res: Response
 ) => {
   try {
@@ -124,55 +124,6 @@ export const updateUserRecommendationAnalytics = async (
     return res.status(200).json({ data: true });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
-  }
-};
-
-export const createRecommendation = async (req: Request, res: Response) => {
-  try {
-    const {
-      logo,
-      company_symbol,
-      business_note,
-      quick_bite,
-      video,
-      exit_rationale,
-      quarterly_update = [],
-      announcements_and_update = [],
-      stock_performance_url = "",
-      tags = [],
-    } = req.body ?? {};
-
-    if (!company_symbol) {
-      return res.status(400).json({ error: "Company symbol is required" });
-    }
-
-    const { data, error } = await supabase
-      .from("recommendations")
-      .insert([
-        {
-          logo,
-          company_symbol,
-          business_note,
-          quick_bite,
-          video,
-          exit_rationale,
-          quarterly_update,
-          announcements_and_update,
-          stock_performance_url,
-          tags: tags.join(","),
-        },
-      ])
-      .select();
-
-    if (error) {
-      console.error("Database error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.status(201).json(data);
-  } catch (error) {
-    console.error("Recommendation creation error:", error);
-    res.status(500).json({ error: "Internal server error" });
   }
 };
 

@@ -11,7 +11,7 @@ export const endpoints = {
   users: {
     base: "/api/users",
     byId: (id: string | number) => `/api/users/${id}`,
-    update: (id) => `/api/users/${id}`,
+    update: (id: string) => `/api/users/${id}`,
   },
   jobs: {
     base: "/api/jobs",

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { supabase } from "../supabase";
 
-export const getCoupons = async (req: Request, res: Response) => {
+export const getCoupons = async (_: any, res: Response) => {
   const { data, error } = await supabase.from("coupons").select("*");
   if (error) {
     return res.status(500).json({ error: error.message });
@@ -10,10 +10,11 @@ export const getCoupons = async (req: Request, res: Response) => {
 };
 
 export const createCoupon = async (req: Request, res: Response) => {
-  const { coupon_code, discount_type, discount_value, expiry_date } = req.body;
+  const { coupon_code, discount_type, discount_value, expiry_date, max_uses, active } = req.body;
+  console.log(req.body)
   const { data, error } = await supabase
     .from("coupons")
-    .insert([{ coupon_code, discount_type, discount_value, expiry_date }])
+    .insert([{ coupon_code, discount_type, discount_value, expiry_date, active, max_uses }])
     .select();
 
   if (error) {
@@ -24,10 +25,10 @@ export const createCoupon = async (req: Request, res: Response) => {
 
 export const updateCoupon = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { coupon_code, discount_type, discount_value, expiry_date } = req.body;
+  const { coupon_code, discount_type, discount_value, expiry_date, max_uses, active } = req.body;
   const { data, error } = await supabase
     .from("coupons")
-    .update({ coupon_code, discount_type, discount_value, expiry_date })
+    .update({ coupon_code, discount_type, discount_value, expiry_date, max_uses, active })
     .eq("coupon_id", id)
     .select();
 

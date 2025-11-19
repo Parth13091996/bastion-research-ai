@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { protect, admin } from "../middleware/auth.middleware";
 import {
-  createRecommendation,
   deleteRecommendation,
   getRecommendations,
   getRecommendationByCompanySymbol,
@@ -28,8 +27,6 @@ router.get(
   getRecommendationByCompanySymbol
 );
 
-// Admin routes (protected)
-router.post("/recommendations", protect, admin, createRecommendation);
 
 router.put(
   "/recommendations/company/:companySymbol",

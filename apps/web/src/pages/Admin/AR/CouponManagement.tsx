@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Edit, Trash2, Plus } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
@@ -38,8 +38,8 @@ const fmtDiscount = (t: string, n: number) =>
   t === "percentage"
     ? `${Number(n).toFixed(2)}%`
     : new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(
-        Number(n)
-      );
+      Number(n)
+    );
 
 const CouponsManagement = () => {
   const [rows, setRows] = useState<RowCoupon[]>([]);
@@ -132,6 +132,7 @@ const CouponsManagement = () => {
       active: Boolean(form.active),
       max_uses: form.max_uses == null || (form.max_uses as any) === "" ? null : Number(form.max_uses),
     } as any;
+    console.log(editing, payload)
     if (editing?.coupon_id) {
       await axiosInstance.put(`${endpoints.coupons.base}/${editing.coupon_id}`, payload);
     } else {
@@ -148,13 +149,16 @@ const CouponsManagement = () => {
   };
 
   const CheckboxRenderer = (p: any) => (
-    <input
-      type="checkbox"
-      checked={selectedIds.includes(p.data.id)}
-      onChange={(e) =>
-        setSelectedIds((prev) => (e.target.checked ? [...prev, p.data.id] : prev.filter((x) => x !== p.data.id)))
-      }
-    />
+    <span className="flex gap-3">
+      <input
+        type="checkbox"
+        checked={selectedIds.includes(p.data.id)}
+        onChange={(e) =>
+          setSelectedIds((prev) => (e.target.checked ? [...prev, p.data.id] : prev.filter((x) => x !== p.data.id)))
+        }
+      />
+      <span>{p.data.id}</span>
+    </span>
   );
   const CodeRenderer = (p: any) => <div className="font-mono text-sm">{p.value}</div>;
   const StatusRenderer = (p: any) => (
@@ -183,9 +187,8 @@ const CouponsManagement = () => {
   );
 
   const columnDefs: ColDef[] = [
-    { headerName: "", field: "id", width: 50, cellRenderer: CheckboxRenderer, sortable: false, filter: false },
+    { headerName: "Id", field: "coupon_id", width: 50, cellRenderer: CheckboxRenderer, sortable: false, filter: false },
     { headerName: "Code", field: "code", cellRenderer: CodeRenderer },
-    { headerName: "Label", field: "label" },
     { headerName: "Discount", field: "discount" },
     { headerName: "Start Date", field: "startDate" },
     { headerName: "Expire Date", field: "expireDate", cellRenderer: ExpireRenderer },
