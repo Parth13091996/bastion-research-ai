@@ -90,7 +90,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         const baseScale = isMobile ? 0.9 : 1.5;
         
         // Multiply base scale by zoom level for crisp rendering
-        const scale = baseScale * zoomLevel * 2.50;
+        const scale = baseScale * zoomLevel * 3;
 
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
           if (renderId !== renderIdRef.current) return;
@@ -231,7 +231,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
-        // padding: "20px",
+        padding: "20px",
         minHeight: "100vh",
         backgroundColor: "#ffffff",
       }}
@@ -242,7 +242,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           position: "sticky",
           top: 0,
           backgroundColor: "transparent",
-          // padding: "10px 0",
+          padding: "10px 0",
           zIndex: 20,
         }}
       >
