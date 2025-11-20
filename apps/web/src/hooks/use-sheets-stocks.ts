@@ -2,25 +2,32 @@ import {
   getAllRecommendations,
   getSheetRecommendations,
 } from "@/api/recommendations-apis";
+import { useRecommendationsStore } from "@/stores/recommendations-store";
 import { useEffect, useState } from "react";
 
-const useSheetStocks = (onlySheet: boolean = false) => {
-  const [mergedStocks, setMergedStocks] = useState<StockData[]>([]);
-  const [dbData, setDbData] = useState<StockData[]>([]);
-  const [notInserterData, setNotInsertedData] = useState<StockData[]>([]);
-  const [sheetStocks, setSheetStocks] = useState<StockData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const useSheetStocks = (
+  onlySheet: boolean = false,
+  forceRefresh: boolean = false
+) => {
+  const store = useRecommendationsStore();
+  const [localLoading, setLocalLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
-      setLoading(true);
-      setError(null);
+      // Check if we should use cached data
+      if (!forceRefresh && !store.shouldRefetch() && store.stocks.length > 0) {
+        // Use cached data
+        return;
+      }
+
+      // Fetch fresh data
+      setLocalLoading(true);
+      store.setLoading(true);
+      store.setError(null);
+
       try {
         // Fetch sheet-backed recommendations from backend
         const sheetData = await getSheetRecommendations();
-        console.log(sheetData, 'list shse')
-
         const transformedSheetStocks: StockData[] = sheetData.map(
           (sheetRow, idx) => ({
             id: `${idx}-${sheetRow.nseSymbol || sheetRow.companyName}`,
@@ -28,11 +35,11 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             code: sheetRow.nseSymbol || "",
             marketCap: sheetRow.latestMcapCr
               ? `₹ ${Math.round(
-                parseFloat(String(sheetRow.latestMcapCr))
-              ).toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })} Cr.`
+                  parseFloat(String(sheetRow.latestMcapCr))
+                ).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })} Cr.`
               : "₹ 0.00 Cr.",
             upside: Math.round(
               (sheetRow.upsidePotential || 0) * 100
@@ -42,18 +49,15 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             target1: Math.round(sheetRow.targetPrice || 0),
             sector: (sheetRow as any).sector || "",
             band: (sheetRow.action?.toUpperCase() as any) || "BUY",
-<<<<<<< HEAD
-=======
             lastUpdated: (sheetRow.dateRecommended || "").toString(),
             percentReturn: Math.round((sheetRow.percentReturn || 0) * 100),
->>>>>>> 4120fd5e4cc26cd5570353d271d0833c3f40c928
           })
         );
-        setSheetStocks(transformedSheetStocks);
+        store.setSheetStocks(transformedSheetStocks);
 
         if (onlySheet) {
-          setMergedStocks(transformedSheetStocks);
-          setLoading(false);
+          store.setStocks(transformedSheetStocks);
+          store.updateLastFetched();
           return;
         }
 
@@ -71,11 +75,11 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             code: sheetRow.nseSymbol || "",
             marketCap: sheetRow.latestMcapCr
               ? `₹ ${Math.round(
-                parseFloat(String(sheetRow.latestMcapCr))
-              ).toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })} Cr.`
+                  parseFloat(String(sheetRow.latestMcapCr))
+                ).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })} Cr.`
               : "₹ 0.00 Cr.",
             upside: Math.round(
               (sheetRow.upsidePotential || 0) * 100
@@ -99,20 +103,35 @@ const useSheetStocks = (onlySheet: boolean = false) => {
           } as StockData;
         });
 
-        setDbData(merged.filter(r => dbData.map(r => r.company_symbol).includes(r.code)))
-        setNotInsertedData(merged.filter(r => !dbData.map(r => r.company_symbol).includes(r.code)))
-        setMergedStocks(merged);
+        const filteredDbData = merged.filter((r) =>
+          dbData.map((r) => r.company_symbol).includes(r.code)
+        );
+        const notInserted = merged.filter(
+          (r) => !dbData.map((r) => r.company_symbol).includes(r.code)
+        );
 
+        store.setDbData(filteredDbData);
+        store.setNotInsertedData(notInserted);
+        store.setStocks(merged);
+        store.updateLastFetched();
       } catch (e: any) {
-        setError(e?.message || "Failed to load recommendations");
+        const errorMsg = e?.message || "Failed to load recommendations";
+        store.setError(errorMsg);
       } finally {
-        setLoading(false);
+        setLocalLoading(false);
+        store.setLoading(false);
       }
     })();
-  }, [onlySheet]);
+  }, [onlySheet, forceRefresh]);
 
-
-  return { stocks: mergedStocks, dbData, sheetStocks, notInserterData, loading, error };
+  return {
+    stocks: store.stocks,
+    dbData: store.dbData,
+    sheetStocks: store.sheetStocks,
+    notInserterData: store.notInsertedData,
+    loading: store.loading || localLoading,
+    error: store.error,
+  };
 };
 
 export default useSheetStocks;

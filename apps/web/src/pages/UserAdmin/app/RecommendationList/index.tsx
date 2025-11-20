@@ -33,7 +33,12 @@ const RecommendationList = () => {
   const [sortBy, setSortBy] = useState("MCAP Wise");
   const [filterBy, setFilterBy] = useState("All");
   const [visibleCount, setVisibleCount] = useState(9);
-  const { stocks: sheetStocks, loading, error } = useSheetStocks();
+  const [forceRefresh, setForceRefresh] = useState(false);
+  const {
+    stocks: sheetStocks,
+    loading,
+    error,
+  } = useSheetStocks(false, forceRefresh);
   const { user } = useAuth();
   const [showPricing, setShowPricing] = useState(false);
   const tiers = {
@@ -105,6 +110,10 @@ const RecommendationList = () => {
     setVisibleCount((prev) => (prev ?? 0) + 9);
   };
 
+  const handleRefresh = () => {
+    setForceRefresh((prev) => !prev);
+  };
+
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.gray }}>
       <div className="max-w-7xl mx-auto">
@@ -124,6 +133,8 @@ const RecommendationList = () => {
           onSortChange={setSortBy}
           filterBy={filterBy}
           onFilterChange={setFilterBy}
+          onRefresh={handleRefresh}
+          loading={loading}
         />
 
         <StockGrid

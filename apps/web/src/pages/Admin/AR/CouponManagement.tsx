@@ -33,13 +33,16 @@ type RowCoupon = {
   _raw: ApiCoupon;
 };
 
-const fmtDate = (v?: string | null) => (!v ? "" : new Date(v).toLocaleDateString());
+const fmtDate = (v?: string | null) =>
+  !v ? "" : new Date(v).toLocaleDateString();
 const fmtDiscount = (t: string, n: number) =>
   t === "percentage"
     ? `${Number(n).toFixed(2)}%`
-    : new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(
-      Number(n)
-    );
+    : new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 2,
+      }).format(Number(n));
 
 const CouponsManagement = () => {
   const [rows, setRows] = useState<RowCoupon[]>([]);
@@ -96,7 +99,9 @@ const CouponsManagement = () => {
     return rows.filter((r) => {
       const matchesQ = !q || r.code.toLowerCase().includes(q);
       const matchesActive =
-        activeFilter === "all" || (activeFilter === "active" && r.active) || (activeFilter === "inactive" && !r.active);
+        activeFilter === "all" ||
+        (activeFilter === "active" && r.active) ||
+        (activeFilter === "inactive" && !r.active);
       const matchesValidity =
         validityFilter === "all" ||
         (validityFilter === "expired" && isExpired(r.expireDate)) ||
@@ -108,7 +113,14 @@ const CouponsManagement = () => {
 
   const onAdd = () => {
     setEditing(null);
-    setForm({ coupon_code: "", discount_type: "percentage", discount_value: 0, expiry_date: null, active: true, max_uses: null });
+    setForm({
+      coupon_code: "",
+      discount_type: "percentage",
+      discount_value: 0,
+      expiry_date: null,
+      active: true,
+      max_uses: null,
+    });
     setModalOpen(true);
   };
   const onEdit = (r: RowCoupon) => {
@@ -130,11 +142,17 @@ const CouponsManagement = () => {
       discount_value: Number(form.discount_value || 0),
       expiry_date: form.expiry_date || null,
       active: Boolean(form.active),
-      max_uses: form.max_uses == null || (form.max_uses as any) === "" ? null : Number(form.max_uses),
+      max_uses:
+        form.max_uses == null || (form.max_uses as any) === ""
+          ? null
+          : Number(form.max_uses),
     } as any;
-    console.log(editing, payload)
+    console.log(editing, payload);
     if (editing?.coupon_id) {
-      await axiosInstance.put(`${endpoints.coupons.base}/${editing.coupon_id}`, payload);
+      await axiosInstance.put(
+        `${endpoints.coupons.base}/${editing.coupon_id}`,
+        payload
+      );
     } else {
       await axiosInstance.post(endpoints.coupons.base, payload);
     }
@@ -154,26 +172,44 @@ const CouponsManagement = () => {
         type="checkbox"
         checked={selectedIds.includes(p.data.id)}
         onChange={(e) =>
-          setSelectedIds((prev) => (e.target.checked ? [...prev, p.data.id] : prev.filter((x) => x !== p.data.id)))
+          setSelectedIds((prev) =>
+            e.target.checked
+              ? [...prev, p.data.id]
+              : prev.filter((x) => x !== p.data.id)
+          )
         }
       />
       <span>{p.data.id}</span>
     </span>
   );
-  const CodeRenderer = (p: any) => <div className="font-mono text-sm">{p.value}</div>;
+  const CodeRenderer = (p: any) => (
+    <div className="font-mono text-sm">{p.value}</div>
+  );
   const StatusRenderer = (p: any) => (
-    <span className={p.value ? "px-2 py-1 rounded text-green-700 bg-green-100" : "px-2 py-1 rounded text-gray-700 bg-gray-100"}>
+    <span
+      className={
+        p.value
+          ? "px-2 py-1 rounded text-green-700 bg-green-100"
+          : "px-2 py-1 rounded text-gray-700 bg-gray-100"
+      }
+    >
       {p.value ? "Active" : "Inactive"}
     </span>
   );
   const ExpireRenderer = (p: any) => {
     if (!p.value) return <span>Unlimited</span>;
     const expired = isExpired(p.value);
-    return <span className={expired ? "text-red-600" : ""}>{fmtDate(p.value)}</span>;
+    return (
+      <span className={expired ? "text-red-600" : ""}>{fmtDate(p.value)}</span>
+    );
   };
   const ActionsRenderer = (p: any) => (
     <div className="flex items-center space-x-1">
-      <button className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800" title="Edit" onClick={() => onEdit(p.data)}>
+      <button
+        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
+        title="Edit"
+        onClick={() => onEdit(p.data)}
+      >
         <Edit className="h-4 w-4" />
       </button>
       <button
@@ -187,25 +223,59 @@ const CouponsManagement = () => {
   );
 
   const columnDefs: ColDef[] = [
-    { headerName: "Id", field: "coupon_id", width: 50, cellRenderer: CheckboxRenderer, sortable: false, filter: false },
+    {
+      headerName: "Id",
+      field: "coupon_id",
+      width: 50,
+      cellRenderer: CheckboxRenderer,
+      sortable: false,
+      filter: false,
+    },
     { headerName: "Code", field: "code", cellRenderer: CodeRenderer },
     { headerName: "Discount", field: "discount" },
     { headerName: "Start Date", field: "startDate" },
-    { headerName: "Expire Date", field: "expireDate", cellRenderer: ExpireRenderer },
+    {
+      headerName: "Expire Date",
+      field: "expireDate",
+      cellRenderer: ExpireRenderer,
+    },
     { headerName: "Status", field: "active", cellRenderer: StatusRenderer },
-    { headerName: "Used", field: "used", valueFormatter: (p) => `${p.value} / ${p.data.allowedUses}` },
-    { headerName: "Actions", field: "actions", cellRenderer: ActionsRenderer, sortable: false, filter: false, width: 120 },
+    {
+      headerName: "Used",
+      field: "used",
+      valueFormatter: (p) => `${p.value} / ${p.data.allowedUses}`,
+    },
+    {
+      headerName: "Actions",
+      field: "actions",
+      cellRenderer: ActionsRenderer,
+      sortable: false,
+      filter: false,
+      width: 120,
+    },
   ];
 
   const handleBulk = async (action: "activate" | "deactivate" | "delete") => {
     if (selectedIds.length === 0) return;
     if (action === "delete") {
-      const ok = await confirm({ title: `Delete ${selectedIds.length} coupon(s)?`, confirmText: "Delete All", tone: "danger" });
+      const ok = await confirm({
+        title: `Delete ${selectedIds.length} coupon(s)?`,
+        confirmText: "Delete All",
+        tone: "danger",
+      });
       if (!ok) return;
-      await Promise.all(selectedIds.map((id) => axiosInstance.delete(`${endpoints.coupons.base}/${id}`)));
+      await Promise.all(
+        selectedIds.map((id) =>
+          axiosInstance.delete(`${endpoints.coupons.base}/${id}`)
+        )
+      );
     } else {
       await Promise.all(
-        selectedIds.map((id) => axiosInstance.put(`${endpoints.coupons.base}/${id}`, { active: action === "activate" }))
+        selectedIds.map((id) =>
+          axiosInstance.put(`${endpoints.coupons.base}/${id}`, {
+            active: action === "activate",
+          })
+        )
       );
     }
     setSelectedIds([]);
@@ -216,7 +286,10 @@ const CouponsManagement = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Coupon Management</h1>
-        <button onClick={onAdd} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+        <button
+          onClick={onAdd}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+        >
           <Plus size={20} className="mr-2" />
           Add Coupon
         </button>
@@ -226,7 +299,10 @@ const CouponsManagement = () => {
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-64">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Search coupons..."
@@ -261,8 +337,15 @@ const CouponsManagement = () => {
 
         {selectedIds.length > 0 && (
           <div className="mt-4 flex items-center gap-2">
-            <span className="text-sm text-gray-600">{selectedIds.length} selected</span>
-            <select onChange={(e) => e.target.value && handleBulk(e.target.value as any)} className="px-3 py-1 border border-gray-300 rounded text-sm">
+            <span className="text-sm text-gray-600">
+              {selectedIds.length} selected
+            </span>
+            <select
+              onChange={(e) =>
+                e.target.value && handleBulk(e.target.value as any)
+              }
+              className="px-3 py-1 border border-gray-300 rounded text-sm"
+            >
               <option value="">Bulk Actions</option>
               <option value="activate">Activate</option>
               <option value="deactivate">Deactivate</option>
@@ -273,12 +356,20 @@ const CouponsManagement = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+        <div
+          className="rounded-md border bg-white ag-theme-alpine"
+          style={{ height: 600, width: "100%" }}
+        >
           <AgGridReact
             theme="legacy"
             rowData={filtered}
             columnDefs={columnDefs}
-            defaultColDef={{ sortable: true, filter: true, resizable: true, flex: 1 }}
+            defaultColDef={{
+              sortable: true,
+              filter: true,
+              resizable: true,
+              flex: 1,
+            }}
             pagination={true}
             paginationPageSize={20}
             paginationPageSizeSelector={[10, 20, 50, 100]}
@@ -287,14 +378,20 @@ const CouponsManagement = () => {
         </div>
       </div>
 
-      <Modal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Coupon" : "Add Coupon"}>
+      <Modal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        title={editing ? "Edit Coupon" : "Add Coupon"}
+      >
         <div className="space-y-4">
           <div>
             <label className="text-sm">Code</label>
             <input
               className="mt-1 w-full border rounded p-2"
               value={form.coupon_code || ""}
-              onChange={(e) => setForm((f) => ({ ...f, coupon_code: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, coupon_code: e.target.value }))
+              }
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -303,7 +400,9 @@ const CouponsManagement = () => {
               <select
                 className="mt-1 w-full border rounded p-2"
                 value={(form.discount_type as any) || "percentage"}
-                onChange={(e) => setForm((f) => ({ ...f, discount_type: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, discount_type: e.target.value }))
+                }
               >
                 <option value="percentage">Percentage</option>
                 <option value="fixed">Fixed Amount</option>
@@ -315,7 +414,12 @@ const CouponsManagement = () => {
                 type="number"
                 className="mt-1 w-full border rounded p-2"
                 value={Number(form.discount_value || 0)}
-                onChange={(e) => setForm((f) => ({ ...f, discount_value: Number(e.target.value) }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    discount_value: Number(e.target.value),
+                  }))
+                }
               />
             </div>
           </div>
@@ -325,8 +429,17 @@ const CouponsManagement = () => {
               <input
                 type="date"
                 className="mt-1 w-full border rounded p-2"
-                value={form.expiry_date ? String(form.expiry_date).substring(0, 10) : ""}
-                onChange={(e) => setForm((f) => ({ ...f, expiry_date: e.target.value ? e.target.value : null }))}
+                value={
+                  form.expiry_date
+                    ? String(form.expiry_date).substring(0, 10)
+                    : ""
+                }
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    expiry_date: e.target.value ? e.target.value : null,
+                  }))
+                }
               />
             </div>
             <div>
@@ -338,7 +451,10 @@ const CouponsManagement = () => {
                 value={form.max_uses == null ? "" : String(form.max_uses)}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setForm((f) => ({ ...f, max_uses: val === "" ? null : Number(val) }));
+                  setForm((f) => ({
+                    ...f,
+                    max_uses: val === "" ? null : Number(val),
+                  }));
                 }}
               />
             </div>
@@ -348,15 +464,23 @@ const CouponsManagement = () => {
               id="coupon-active"
               type="checkbox"
               checked={Boolean(form.active)}
-              onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, active: e.target.checked }))
+              }
             />
             <label htmlFor="coupon-active">Active</label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button className="px-4 py-2 border rounded" onClick={() => setModalOpen(false)}>
+            <button
+              className="px-4 py-2 border rounded"
+              onClick={() => setModalOpen(false)}
+            >
               Cancel
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={save}>
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+              onClick={save}
+            >
               Save
             </button>
           </div>
@@ -367,4 +491,3 @@ const CouponsManagement = () => {
 };
 
 export default CouponsManagement;
-

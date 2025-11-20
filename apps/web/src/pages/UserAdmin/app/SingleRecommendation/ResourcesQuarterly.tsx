@@ -1,16 +1,22 @@
 import { format } from "date-fns";
 import { ClipboardList, FileText, Video } from "lucide-react";
 import { Link } from "react-router-dom";
+
 const ResourcesQuarterly = ({ stock, setSelectedUpdate }) => {
   const quarterlyUpdates = Array.isArray(stock?.quarterly_update)
-    ? stock.quarterly_update.map((item: any, idx: number) => ({
-        id: idx,
-        date: format(new Date(item.date), "d MMM, yyyy"),
-        heading: item.title,
-        preview: item.description,
-        hasPdf: !!item.pdf_url,
-        pdf_url: item.pdf_url,
-      }))
+    ? stock.quarterly_update.map((item: any, idx: number) => {
+        const date = item.date ? new Date(item.date) : null;
+        const formattedDate =
+          date && !isNaN(date.getTime()) ? format(date, "dd MMM, yyyy") : "N/A";
+        return {
+          id: idx,
+          date: formattedDate,
+          heading: item.title,
+          preview: item.description,
+          hasPdf: !!item.pdf_url,
+          pdf_url: item.pdf_url,
+        };
+      })
     : [];
 
   const businessNoteAvailable = !!stock?.business_note;

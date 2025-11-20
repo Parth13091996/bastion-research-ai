@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 type LatestUpdateItem = {
   title: string;
@@ -12,9 +12,31 @@ type LatestUpdateItem = {
 };
 
 const parseDate = (value: string): number => {
-  // Try common formats; fallback to Date.parse
-  const d = new Date(value);
-  return isNaN(d.getTime()) ? 0 : d.getTime();
+  if (!value) return 0;
+
+  // Try parsing as ISO date first
+  let d = parseISO(value);
+
+  // If that fails, try standard Date constructor
+  if (!isValid(d)) {
+    d = new Date(value);
+  }
+
+  return isValid(d) ? d.getTime() : 0;
+};
+
+const formatDate = (value: string): string | null => {
+  if (!value) return null;
+
+  // Try parsing as ISO date first
+  let d = parseISO(value);
+
+  // If that fails, try standard Date constructor
+  if (!isValid(d)) {
+    d = new Date(value);
+  }
+
+  return isValid(d) ? format(d, "d MMM, yyyy") : null;
 };
 
 const LatestUpdates: React.FC = () => {
@@ -26,24 +48,26 @@ const LatestUpdates: React.FC = () => {
       const company = s.name || s.code || "";
       const quarterly = (s.quarterly_update || [])
         .slice()
+        .filter((u) => formatDate(u.date) !== null) // Filter out invalid dates
         .sort((a, b) => parseDate(b.date) - parseDate(a.date))
         .slice(0, 3)
         .map((u) => ({
           title: u.title,
           description: u.description,
-          date: format(new Date(u.date), "d MMM, yyyy"),
+          date: formatDate(u.date)!,
           company,
           type: "Quarterly" as const,
           pdf_url: u.pdf_url,
         }));
       const anns = (s.announcements_and_update || [])
         .slice()
+        .filter((u) => formatDate(u.date) !== null) // Filter out invalid dates
         .sort((a, b) => parseDate(b.date) - parseDate(a.date))
         .slice(0, 3)
         .map((u) => ({
           title: u.title,
           description: u.description,
-          date: format(new Date(u.date), "d MMM, yyyy"),
+          date: formatDate(u.date)!,
           company,
           type: "Announcement" as const,
           pdf_url: u.pdf_url,

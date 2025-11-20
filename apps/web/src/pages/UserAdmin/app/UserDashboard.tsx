@@ -74,7 +74,6 @@ const UserDashboard = () => {
     if (diffDays <= 10 && diffDays > 5)
       colorClass = "bg-orange-500 hover:bg-orange-600"; // 10–6 days
     else if (diffDays <= 5) colorClass = "bg-red-600 hover:bg-red-700"; // 5–0 days
-
     return { show: true, color: colorClass, daysLeft: diffDays };
   };
 
