@@ -101,7 +101,6 @@ const RecommendationList = () => {
     if (Array.isArray(currentTier) && currentTier.includes(tags)) return r;
     return false;
   });
-
   const handleLoadMore = () => {
     if (!user?.is_premium) {
       setShowPricing(true);

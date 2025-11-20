@@ -91,13 +91,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           login,
           logout,
           refetchUser,
-          refetchSubscription,
           isAuthenticated,
           isAdmin,
           isLoading,
-          subscription: subscriptionData || null,
-          isSubscriptionLoading,
           refetchUserAfterAgreement,
+          subscription: subscriptionData,
+          isSubscriptionLoading,
+          refetchSubscription,
         } as any
       }
     >

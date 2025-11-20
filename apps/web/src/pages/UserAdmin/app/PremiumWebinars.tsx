@@ -75,7 +75,7 @@ export default function PremiumWebinarsPage() {
   }, [loading]);
 
   // Access guard: only allow users with premium subscription
-  const { user, subscription, isLoading, isSubscriptionLoading, isAdmin } =
+  const { user, isLoading, isAdmin, subscription, isSubscriptionLoading } =
     useAuth();
   const navigate = useNavigate();
 
@@ -90,7 +90,7 @@ export default function PremiumWebinarsPage() {
         navigate(AppRoutes.bastionCore);
       }
     }
-  }, [user, subscription, isLoading, isSubscriptionLoading]);
+  }, [user, subscription, isLoading, isSubscriptionLoading, isAdmin, navigate]);
 
   return (
     <div className="min-h-screen relative overflow-hidden">

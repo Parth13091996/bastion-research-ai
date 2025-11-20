@@ -14,13 +14,16 @@ const useSheetStocks = (
 
   useEffect(() => {
     (async () => {
-      // Check if we should use cached data
-      if (!forceRefresh && !store.shouldRefetch() && store.stocks.length > 0) {
-        // Use cached data
+      if (
+        !forceRefresh &&
+        !store.shouldRefetch() &&
+        (store.stocks.length > 0 ||
+          store.sheetStocks.length > 0 ||
+          store.dbData.length > 0)
+      ) {
         return;
       }
 
-      // Fetch fresh data
       setLocalLoading(true);
       store.setLoading(true);
       store.setError(null);
