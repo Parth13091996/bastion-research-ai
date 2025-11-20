@@ -132,8 +132,6 @@ const RecommendationList = () => {
           onSortChange={setSortBy}
           filterBy={filterBy}
           onFilterChange={setFilterBy}
-          onRefresh={handleRefresh}
-          loading={loading}
         />
 
         <StockGrid

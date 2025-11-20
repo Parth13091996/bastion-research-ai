@@ -16,6 +16,16 @@ const useSheetStocks = (
     (async () => {
       if (
         !forceRefresh &&
+        store.loading &&
+        (store.stocks.length > 0 ||
+          store.sheetStocks.length > 0 ||
+          store.dbData.length > 0)
+      ) {
+        return;
+      }
+
+      if (
+        !forceRefresh &&
         !store.shouldRefetch() &&
         (store.stocks.length > 0 ||
           store.sheetStocks.length > 0 ||

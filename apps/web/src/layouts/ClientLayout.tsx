@@ -18,7 +18,7 @@ const ClientLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <BetaBanner />
+      {/* <BetaBanner /> */}
       <main className="flex-grow main pt-[80px] md:pt-[88px]">
         <Outlet />
         <BackToTop />

@@ -34,19 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     retry: 1,
   });
 
-  const {
-    data: subscriptionData,
-    isLoading: isSubscriptionLoading,
-    refetch: refetchSubscription,
-  } = useQuery({
-    queryKey: [queryKeys.subscription],
-    queryFn: async () =>
-      (await axiosInstance.get(endpoints.cashfree.subscription)).data,
-    enabled: !!user, // Only fetch when user is authenticated
-    staleTime: 30 * 1000, // 30 seconds cache freshness for subscription
-    gcTime: 5 * 60 * 1000, // 5 minutes cache retention
-  });
-
   useEffect(() => {
     setUser(data?.user ?? null);
     setIsLoading(sessionLoading);
@@ -95,9 +82,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           isAdmin,
           isLoading,
           refetchUserAfterAgreement,
-          subscription: subscriptionData,
-          isSubscriptionLoading,
-          refetchSubscription,
         } as any
       }
     >

@@ -3,9 +3,11 @@ import ChartDashboard from "./ChartDashboard";
 import LatestUpdates from "./LatestUpdates";
 import RecentRecommendations from "./RecentRecommendations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const UserDashboard = () => {
-  const { user, subscription } = useAuth();
+  const { user } = useAuth();
+  const { data: subscription } = useSubscription();
 
   // 👤 User Profile
   // 👤 Check Push 20 Nov Late Night
@@ -139,13 +141,7 @@ const UserDashboard = () => {
                 </p>
 
                 {/* Optional: Days left indicator */}
-                {daysLeft !== null &&
-                  // <p className="text-xs text-gray-500 mt-1">
-                  //   {daysLeft > 0
-                  //     ? `${daysLeft} days left before renewal`
-                  //     : "Expired — renew now"}
-                  // </p>
-                  ""}
+                {daysLeft !== null && ""}
 
                 {show && (
                   <button

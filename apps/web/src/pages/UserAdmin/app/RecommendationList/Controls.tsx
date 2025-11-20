@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Filter, Search, RefreshCw } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 
 const RecommendationsControls = ({
   searchTerm,
@@ -8,12 +8,7 @@ const RecommendationsControls = ({
   onSortChange,
   filterBy,
   onFilterChange,
-  onRefresh,
-  loading,
-}: RecommendationsControlsProps & {
-  onRefresh?: () => void;
-  loading?: boolean;
-}) => {
+}: RecommendationsControlsProps) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
       <div className="flex flex-col lg:flex-row gap-4 items-center">
@@ -57,18 +52,6 @@ const RecommendationsControls = ({
             <option value="EXITED">EXITED</option>
           </select>
         </div>
-
-        {onRefresh && (
-          <button
-            onClick={onRefresh}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            title="Refresh recommendations"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-        )}
       </div>
     </div>
   );

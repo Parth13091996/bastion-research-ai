@@ -46,7 +46,4 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
-  subscription: SubscriptionData | undefined;
-  isSubscriptionLoading: boolean;
-  refetchSubscription: () => Promise<any>;
 }
