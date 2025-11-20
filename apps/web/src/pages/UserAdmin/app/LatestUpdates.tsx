@@ -12,46 +12,56 @@ type LatestUpdateItem = {
 };
 
 const parseDate = (value: string): number => {
-  // Try common formats; fallback to Date.parse
   const d = new Date(value);
   return isNaN(d.getTime()) ? 0 : d.getTime();
+};
+
+// Safe formatter to prevent crashes
+const safeFormatDate = (value: string): string => {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? "N/A" : format(d, "d MMM, yyyy");
 };
 
 const LatestUpdates: React.FC = () => {
   const { stocks, loading, error } = useSheetStocks();
 
   const updates = useMemo<LatestUpdateItem[]>(() => {
+    if (!stocks || !Array.isArray(stocks)) return [];
+
     const items: LatestUpdateItem[] = [];
+
     stocks.forEach((s) => {
       const company = s.name || s.code || "";
+
       const quarterly = (s.quarterly_update || [])
-        .slice()
+        .filter((u) => u?.date) // Avoid empty date items
         .sort((a, b) => parseDate(b.date) - parseDate(a.date))
         .slice(0, 3)
         .map((u) => ({
-          title: u.title,
-          description: u.description,
-          date: format(new Date(u.date), "d MMM, yyyy"),
+          title: u.title || "No Title",
+          description: u.description || "",
+          date: safeFormatDate(u.date),
           company,
           type: "Quarterly" as const,
           pdf_url: u.pdf_url,
         }));
+
       const anns = (s.announcements_and_update || [])
-        .slice()
+        .filter((u) => u?.date)
         .sort((a, b) => parseDate(b.date) - parseDate(a.date))
         .slice(0, 3)
         .map((u) => ({
-          title: u.title,
-          description: u.description,
-          date: format(new Date(u.date), "d MMM, yyyy"),
+          title: u.title || "No Title",
+          description: u.description || "",
+          date: safeFormatDate(u.date),
           company,
           type: "Announcement" as const,
           pdf_url: u.pdf_url,
         }));
+
       items.push(...quarterly, ...anns);
     });
 
-    // Sort globally by date desc and limit to top 6 to keep it compact
     return items
       .sort((a, b) => parseDate(b.date) - parseDate(a.date))
       .slice(0, 6);
@@ -74,6 +84,8 @@ const LatestUpdates: React.FC = () => {
         <div className="text-sm text-gray-500">Loading updates...</div>
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
+      ) : updates.length === 0 ? (
+        <div className="text-xs text-gray-500">No updates available yet.</div>
       ) : (
         <div className="space-y-4 sm:space-y-5 max-h-96 overflow-y-auto">
           {updates.map((u, idx) => (
@@ -90,6 +102,7 @@ const LatestUpdates: React.FC = () => {
                   {u.title}
                 </span>
               </div>
+
               <div className="flex items-center gap-2 text-xs mb-2">
                 <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
                   {u.type}
@@ -99,6 +112,7 @@ const LatestUpdates: React.FC = () => {
                 </span>
                 <span className="text-gray-500">{u.date}</span>
               </div>
+
               {u.description && (
                 <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
                   {u.description}
@@ -106,11 +120,6 @@ const LatestUpdates: React.FC = () => {
               )}
             </a>
           ))}
-          {updates.length === 0 && (
-            <div className="text-xs text-gray-500">
-              No updates available yet.
-            </div>
-          )}
         </div>
       )}
     </div>
