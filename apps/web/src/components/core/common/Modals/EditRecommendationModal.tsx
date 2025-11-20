@@ -388,8 +388,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-6xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 shadow-lg overflow-y-auto">
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[99]" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-6xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 shadow-lg overflow-y-auto  z-[99999]">
           <Dialog.Title className="text-lg font-medium text-gray-900">
             Edit Recommendation - {record.nseSymbol}
           </Dialog.Title>

@@ -25,9 +25,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   const [couponError, setCouponError] = useState("");
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  // GST configuration
-  const GST_RATE = 0.18; // 18%
-
   const formatMoney = (value: number) => {
     try {
       return (
@@ -54,23 +51,12 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     return 0;
   };
 
-  // Get final amount after discount
+  // Final payable amount (no GST)
   const getFinalAmount = () => {
     if (!selectedPlanDetails) return 0;
     const originalAmount = selectedPlanDetails.amount;
     const discount = calculateDiscount(appliedCoupon, originalAmount);
     return Math.max(0, originalAmount - discount);
-  };
-
-  // GST amount and final payable with GST
-  const getGstAmount = () => {
-    const taxable = getFinalAmount();
-    return +(taxable * GST_RATE).toFixed(2);
-  };
-
-  const getFinalAmountWithGst = () => {
-    const taxable = getFinalAmount();
-    return +(taxable + getGstAmount()).toFixed(2);
   };
 
   // Validate and apply coupon
@@ -102,7 +88,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     }
   };
 
-  // Remove applied coupon
   const removeCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
@@ -111,24 +96,26 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
   const handlePayment = async () => {
     setError(null);
+
     if (!formData?.panVerification?.valid) {
-      setError(
-        "Please complete PAN verification before proceeding to payment."
-      );
+      setError("Please complete PAN verification before proceeding to payment.");
       return;
     }
 
     setIsLoading(true);
     try {
+      const finalAmount = getFinalAmount();
+      const isFreeOrZero = finalAmount === 0 || selectedPlanDetails?.code === "1";
+
       if (isFreeOrZero) {
         const userId = user?.id || formData.email;
         const planCode = selectedPlanDetails?.code || "1";
+
         await axiosInstance.put(endpoints.users.update(userId), {
           status: "active",
           plan_id: planCode,
         });
 
-        // Create a subscription record for free tier
         await axiosInstance.post(endpoints.cashfree.orders, {
           plan: formData.selectedPlan,
           customer_id: userId,
@@ -140,12 +127,10 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           discount_amount: 0,
         });
 
-        // Redirect to login/dashboard
         window.location.href = location.origin + "/login";
         return;
       }
 
-      // Normal payment flow for paid plans
       const orderResponse = await axiosInstance.post(
         endpoints.cashfree.orders,
         {
@@ -154,9 +139,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           customer_email: formData.email,
           customer_phone: formData.phone,
           source: "register",
-          // Do not override return_url so server embeds order_id for reconciliation
           coupon_code: appliedCoupon?.coupon_code || null,
-          discount_amount: getFinalAmountWithGst(),
+          discount_amount: finalAmount,
           metadata: {
             panReference: formData.panVerification?.referenceId || null,
             panStatus: formData.panVerification?.status || null,
@@ -184,7 +168,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     onBack();
   };
 
-  const finalAmount = getFinalAmountWithGst();
+  const finalAmount = getFinalAmount();
   const isFreeOrZero = finalAmount === 0 || selectedPlanDetails?.code === "1";
 
   return (
@@ -203,27 +187,22 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           <h3 className="text-center text-lg font-semibold mb-3">
             Payment Summary
           </h3>
+
           <div className="text-center text-sm text-gray-700 mb-4">
             Your currently selected plan :
             <span className="font-semibold"> {selectedPlanDetails.name}</span>
           </div>
 
           <div className="flex justify-between items-center mb-2">
-            <span>Plan Taxable Amount</span>
+            <span>Plan Amount</span>
             <span className="font-semibold">
               {formatMoney(selectedPlanDetails.amount)}
             </span>
           </div>
 
-          <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
-            <span>GST 18.00%</span>
-            <span>{formatMoney(getGstAmount())}</span>
-          </div>
-
-          {/* Coupon discount (reflected in taxable amount) */}
           {appliedCoupon && (
             <div className="flex justify-between items-center text-xs text-green-700 mb-2">
-              <span>Includes discount ({appliedCoupon.coupon_code})</span>
+              <span>Discount ({appliedCoupon.coupon_code})</span>
               <span>
                 -
                 {formatMoney(
@@ -234,9 +213,10 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           )}
 
           <hr className="my-2" />
+
           <div className="flex justify-between items-center font-semibold">
-            <span>Final Payable Amount (incl. GST 18.00%)</span>
-            <span>{formatMoney(getFinalAmountWithGst())}</span>
+            <span>Final Payable Amount</span>
+            <span>{formatMoney(finalAmount)}</span>
           </div>
         </div>
       )}
@@ -308,6 +288,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         >
           <ArrowLeft size={20} className="mr-1" /> Back
         </button>
+
         <button
           onClick={handlePayment}
           disabled={isLoading}
@@ -315,7 +296,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         >
           {selectedPlanDetails?.code === "free"
             ? "Complete Signup"
-            : `Pay ${formatMoney(getFinalAmountWithGst())}`}
+            : `Pay ${formatMoney(finalAmount)}`}
         </button>
       </div>
     </div>

@@ -84,7 +84,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     }
 
     if (process.env.NODE_ENV === "development") {
-      setCurrentStep(5);
+      setCurrentStep(6);
     }
   }, [user]);
 
@@ -286,7 +286,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center  justify-center p-2 sm:p-4 z-50 top-0">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center  justify-center p-2 sm:p-4 z-[999999] top-0">
       <div className="bg-white rounded-xl shadow-2xl sm:mt-[0px] mt-[10vh] w-full max-w-5xl max-h-[84dvh] overflow-auto flex flex-col sm:flex-row">
         {/* Sidebar for larger screens */}
         <div className="hidden sm:block w-80 bg-gray-50 p-6 border-r overflow-y-auto">
@@ -295,9 +295,9 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
               <img src={favicon} alt="BASTION" className="w-8 h-8 mr-3" />
               <span className="font-bold text-lg">BASTION</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              TripleEdge
-            </h1>
+            {/* <h1 className="text-2xl font-bold text-gray-900 mb-1">
+              Bastion Core
+            </h1> */}
           </div>
 
           <div className="space-y-2">
@@ -339,7 +339,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
                 <img src={favicon} alt="BASTION" className="w-8 h-8 mr-2" />
                 <span className="font-bold text-lg">BASTION</span>
               </div>
-              <h1 className="text-xl font-bold text-gray-900">TripleEdge</h1>
+              {/* <h1 className="text-xl font-bold text-gray-900">Bastion Core</h1> */}
             </div>
 
             {/* 🔥 Horizontal Scroll Steps */}
@@ -382,7 +382,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
           <div className="p-4 sm:p-8">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <p className="text-xs sm:text-sm text-gray-600">
-                Subscribe to invest in <strong>TripleEdge</strong>
+                Subscribe to invest in <strong>Bastion Core</strong>
               </p>
               <button
                 onClick={onClose}

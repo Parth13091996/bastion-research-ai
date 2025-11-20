@@ -46,8 +46,8 @@ const EditRowModal = ({
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 w-[92vw] max-w-2xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 shadow-lg overflow-y-auto">
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 z-[99]" />
+        <Dialog.Content className="fixed top-1/2 left-1/2 w-[92vw] max-w-2xl max-h-[85vh] -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-6 shadow-lg overflow-y-auto z-[99999]">
           <Dialog.Title className="text-lg font-semibold text-gray-900">
             {title}
           </Dialog.Title>
