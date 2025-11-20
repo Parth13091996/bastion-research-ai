@@ -33,12 +33,7 @@ const RecommendationList = () => {
   const [sortBy, setSortBy] = useState("MCAP Wise");
   const [filterBy, setFilterBy] = useState("All");
   const [visibleCount, setVisibleCount] = useState(9);
-  const [forceRefresh, setForceRefresh] = useState(false);
-  const {
-    stocks: sheetStocks,
-    loading,
-    error,
-  } = useSheetStocks(false, forceRefresh);
+  const { stocks: sheetStocks, loading, error } = useSheetStocks();
   const { user } = useAuth();
   const [showPricing, setShowPricing] = useState(false);
   const tiers = {
@@ -107,10 +102,6 @@ const RecommendationList = () => {
       return;
     }
     setVisibleCount((prev) => (prev ?? 0) + 9);
-  };
-
-  const handleRefresh = () => {
-    setForceRefresh((prev) => !prev);
   };
 
   return (

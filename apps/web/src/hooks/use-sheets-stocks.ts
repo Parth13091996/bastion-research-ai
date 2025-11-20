@@ -2,44 +2,24 @@ import {
   getAllRecommendations,
   getSheetRecommendations,
 } from "@/api/recommendations-apis";
-import { useRecommendationsStore } from "@/stores/recommendations-store";
 import { useEffect, useState } from "react";
 
-const useSheetStocks = (
-  onlySheet: boolean = false,
-  forceRefresh: boolean = false
-) => {
-  const store = useRecommendationsStore();
-  const [localLoading, setLocalLoading] = useState(false);
+const useSheetStocks = (onlySheet: boolean = false) => {
+  const [mergedStocks, setMergedStocks] = useState<StockData[]>([]);
+  const [dbData, setDbData] = useState<StockData[]>([]);
+  const [notInserterData, setNotInsertedData] = useState<StockData[]>([]);
+  const [sheetStocks, setSheetStocks] = useState<StockData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      if (
-        !forceRefresh &&
-        store.loading &&
-        (store.stocks.length > 0 ||
-          store.sheetStocks.length > 0 ||
-          store.dbData.length > 0)
-      ) {
-        return;
-      }
-
-      if (
-        !forceRefresh &&
-        !store.shouldRefetch() &&
-        (store.stocks.length > 0 ||
-          store.sheetStocks.length > 0 ||
-          store.dbData.length > 0)
-      ) {
-        return;
-      }
-
-      setLocalLoading(true);
-      store.setLoading(true);
-      store.setError(null);
-
+      setLoading(true);
+      setError(null);
       try {
         const sheetData = await getSheetRecommendations();
+        console.log(sheetData, "list shse");
+
         const transformedSheetStocks: StockData[] = sheetData.map(
           (sheetRow, idx) => ({
             id: `${idx}-${sheetRow.nseSymbol || sheetRow.companyName}`,
@@ -65,11 +45,11 @@ const useSheetStocks = (
             percentReturn: Math.round((sheetRow.percentReturn || 0) * 100),
           })
         );
-        store.setSheetStocks(transformedSheetStocks);
+        setSheetStocks(transformedSheetStocks);
 
         if (onlySheet) {
-          store.setStocks(transformedSheetStocks);
-          store.updateLastFetched();
+          setMergedStocks(transformedSheetStocks);
+          setLoading(false);
           return;
         }
 
@@ -115,34 +95,32 @@ const useSheetStocks = (
           } as StockData;
         });
 
-        const filteredDbData = merged.filter((r) =>
-          dbData.map((r) => r.company_symbol).includes(r.code)
+        setDbData(
+          merged.filter((r) =>
+            dbData.map((r) => r.company_symbol).includes(r.code)
+          )
         );
-        const notInserted = merged.filter(
-          (r) => !dbData.map((r) => r.company_symbol).includes(r.code)
+        setNotInsertedData(
+          merged.filter(
+            (r) => !dbData.map((r) => r.company_symbol).includes(r.code)
+          )
         );
-
-        store.setDbData(filteredDbData);
-        store.setNotInsertedData(notInserted);
-        store.setStocks(merged);
-        store.updateLastFetched();
+        setMergedStocks(merged);
       } catch (e: any) {
-        const errorMsg = e?.message || "Failed to load recommendations";
-        store.setError(errorMsg);
+        setError(e?.message || "Failed to load recommendations");
       } finally {
-        setLocalLoading(false);
-        store.setLoading(false);
+        setLoading(false);
       }
     })();
-  }, [onlySheet, forceRefresh]);
+  }, [onlySheet]);
 
   return {
-    stocks: store.stocks,
-    dbData: store.dbData,
-    sheetStocks: store.sheetStocks,
-    notInserterData: store.notInsertedData,
-    loading: store.loading || localLoading,
-    error: store.error,
+    stocks: mergedStocks,
+    dbData,
+    sheetStocks,
+    notInserterData,
+    loading,
+    error,
   };
 };
 

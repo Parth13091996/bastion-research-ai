@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
-import { format, isValid, parseISO } from "date-fns";
+import { format } from "date-fns";
 
 type LatestUpdateItem = {
   title: string;
@@ -12,14 +12,9 @@ type LatestUpdateItem = {
 };
 
 const parseDate = (value: string): number => {
+  // Try common formats; fallback to Date.parse
   const d = new Date(value);
   return isNaN(d.getTime()) ? 0 : d.getTime();
-};
-
-// Safe formatter to prevent crashes
-const safeFormatDate = (value: string): string => {
-  const d = new Date(value);
-  return isNaN(d.getTime()) ? "N/A" : format(d, "d MMM, yyyy");
 };
 
 const LatestUpdates: React.FC = () => {
@@ -34,26 +29,26 @@ const LatestUpdates: React.FC = () => {
       const company = s.name || s.code || "";
 
       const quarterly = (s.quarterly_update || [])
-        .filter((u) => u?.date) // Avoid empty date items
+        .slice()
         .sort((a, b) => parseDate(b.date) - parseDate(a.date))
         .slice(0, 3)
         .map((u) => ({
-          title: u.title || "No Title",
-          description: u.description || "",
-          date: safeFormatDate(u.date),
+          title: u.title,
+          description: u.description,
+          date: format(new Date(u.date), "d MMM, yyyy"),
           company,
           type: "Quarterly" as const,
           pdf_url: u.pdf_url,
         }));
 
       const anns = (s.announcements_and_update || [])
-        .filter((u) => u?.date)
+        .slice()
         .sort((a, b) => parseDate(b.date) - parseDate(a.date))
         .slice(0, 3)
         .map((u) => ({
-          title: u.title || "No Title",
-          description: u.description || "",
-          date: safeFormatDate(u.date),
+          title: u.title,
+          description: u.description,
+          date: format(new Date(u.date), "d MMM, yyyy"),
           company,
           type: "Announcement" as const,
           pdf_url: u.pdf_url,

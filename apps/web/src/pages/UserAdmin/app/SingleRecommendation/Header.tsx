@@ -1,19 +1,26 @@
 import { Link } from "react-router-dom";
 import { getBandColor, getTextColor } from "../RecommendationList/utils";
+// import { Building2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 const Header = ({ stock }) => {
-  if (!stock) {
-    return null; // Or render a loading state or an empty component
-  }
-
-  const percentReturnNum = stock.percentReturn ?? 0;
+  const percentReturnNum = stock.percentReturn;
   const totalReturnNum = Math.round(Number(percentReturnNum));
-  const entryPrice = stock.entryPrice ?? 0;
-  const cmp = stock.cmp ?? stock.cmpOrExitPrice ?? 0;
-  const target1 = stock.target1 ?? stock.targetPrice ?? 0;
-  const upsideNum =
-    cmp !== 0 && target1 !== 0 ? Math.round(((target1 - cmp) / cmp) * 100) : 0;
+  const entryPrice =
+    typeof stock?.entryPrice !== "undefined" ? stock.entryPrice : 0;
+  const cmp =
+    typeof stock?.cmp !== "undefined"
+      ? stock.cmp
+      : typeof stock?.cmpOrExitPrice !== "undefined"
+        ? stock.cmpOrExitPrice
+        : 0;
+  const target1 =
+    typeof stock?.target1 !== "undefined"
+      ? stock.target1
+      : typeof stock?.targetPrice !== "undefined"
+        ? stock.targetPrice
+        : 0;
+  const upsideNum = cmp > 0 ? Math.round(((target1 - cmp) / cmp) * 100) : 0;
   const totalReturnColor =
     totalReturnNum >= 0 ? "text-green-600" : "text-red-600";
 
@@ -21,25 +28,31 @@ const Header = ({ stock }) => {
   const stockMetrics = [
     {
       label: "Recommendation Date",
-      value: stock.dateRecommended
+      value: stock?.dateRecommended
         ? formatDate(stock.dateRecommended)
-        : stock.created_at
+        : stock?.created_at
           ? formatDate(stock.created_at)
-          : stock.lastUpdated
+          : stock?.lastUpdated
             ? formatDate(stock.lastUpdated)
             : "N/A",
     },
     {
       label: "Recommendation Price",
-      value: entryPrice !== 0 ? `₹${entryPrice}` : "₹0",
+      value:
+        typeof entryPrice !== "undefined" && entryPrice !== null
+          ? `₹${entryPrice}`
+          : "₹0",
     },
     {
       label: "Target Price",
-      value: target1 !== 0 ? `₹${target1}` : "₹0",
+      value:
+        typeof target1 !== "undefined" && target1 !== null
+          ? `₹${target1}`
+          : "₹0",
     },
     {
       label: "CMP",
-      value: cmp !== 0 ? `₹${cmp}` : "₹0",
+      value: typeof cmp !== "undefined" && cmp !== null ? `₹${cmp}` : "₹0",
     },
     {
       label: "Total Return",
@@ -48,27 +61,28 @@ const Header = ({ stock }) => {
     },
     {
       label: "Upside Left",
-      value: `${upsideNum}%`,
+      value:
+        typeof upsideNum !== "undefined" && upsideNum !== null
+          ? `${upsideNum}%`
+          : "0%",
       color: "text-blue-600",
     },
   ];
-
-  const companyName =
-    stock.name ||
-    stock.companyName ||
-    stock.company_name ||
-    "Company Name Ltd.";
-  const bandOrAction = stock.band || stock.action || "BUY";
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm md:sticky md:top-0 md:z-10">
       <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-left gap-4 md:gap-0">
         <div className="flex items-center gap-4 order-2 md:order-1">
           {/* Logo Box (replicating logic from StockCard.tsx) */}
-          {stock.logo ? (
+          {stock?.logo ? (
             <img
               src={stock.logo}
-              alt={companyName}
+              alt={
+                stock?.name ||
+                stock?.companyName ||
+                stock?.company_name ||
+                "Logo"
+              }
               className="w-14 h-14 md:w-16 md:h-16 object-contain rounded-md"
             />
           ) : (
@@ -84,8 +98,12 @@ const Header = ({ stock }) => {
             </div>
           )}
           <div className="flex items-center gap-2">
+            {/* <Building2 className="w-7 h-7 md:w-8 md:h-8 text-blue-600" /> */}
             <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 tracking-tight">
-              {companyName}
+              {stock?.name ||
+                stock?.companyName ||
+                stock?.company_name ||
+                "Company Name Ltd."}
             </h1>
           </div>
         </div>
@@ -98,12 +116,14 @@ const Header = ({ stock }) => {
           </button>
           <button
             style={{
-              backgroundColor: getBandColor(bandOrAction),
-              color: getTextColor(bandOrAction),
+              backgroundColor: getBandColor(
+                stock?.band || stock?.action || "BUY"
+              ),
+              color: getTextColor(stock?.band || stock?.action || "BUY"),
             }}
             className="px-2 md:px-4 py-1 rounded-full text-xs md:text-sm shadow-sm font-medium flex items-center gap-1"
           >
-            {bandOrAction}
+            {stock?.band || stock?.action || "BUY"}
           </button>
           <Link
             to="/contact-us"
