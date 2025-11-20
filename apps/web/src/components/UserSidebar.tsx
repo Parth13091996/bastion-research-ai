@@ -27,6 +27,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import PricingDialogModal from "./core/common/Modals/PricingDialogModal";
 
 // Brand Colors
 const BrandColors = {
@@ -88,6 +89,7 @@ const navItems = [
 export default function Sidebar() {
   const { user, isAdmin, logout } = useAuth();
   const { data: subscription } = useSubscription();
+  const [showPricing, setShowPricing] = useState(false);
 
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -339,45 +341,65 @@ export default function Sidebar() {
                     )}
                   </div>
                 ) : item.path.startsWith("http") ? (
-                  <a
-                    href={item.path}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => {
-                      // Disable external CTA (e.g., WhatsApp group) for non-premium users
+                  <div
+                    onClick={() => {
+                      if (
+                        !user ||
+                        !subscription ||
+                        (!subscription.is_premium &&
+                          !isAdmin &&
+                          (item.name === "Premium Webinars" ||
+                            item.name === "Scratch Pad Newsletter"))
+                      ) {
+                        setShowPricing(true);
+                        return;
+                      }
                       if (
                         !profile.is_premium &&
                         item.name.toLowerCase().includes("whatsapp")
                       ) {
-                        e.preventDefault();
                         toast.info("Upgrade to join the WhatsApp group");
                         return;
                       }
                       setIsMobileOpen(false);
+                      // Open in new tab only if NOT gated above
+                      window.open(item.path, "_blank", "noopener,noreferrer");
                     }}
                     title={isCollapsed ? item.name : undefined}
                     className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
                       isCollapsed ? "justify-center" : ""
-                    } text-gray-200 hover:bg-red-900`}
+                    } text-gray-200 hover:bg-red-900 cursor-pointer`}
+                    role="button"
+                    tabIndex={0}
                   >
                     <item.icon className="h-5 w-5" />
                     {!isCollapsed && <span className="ml-3">{item.name}</span>}
-                  </a>
+                  </div>
                 ) : (
-                  <Link
-                    to={item.path}
-                    onClick={(e) => {
-                      // Gate certain sections for freemium users
+                  <div
+                    onClick={() => {
+                      if (
+                        !user ||
+                        !subscription ||
+                        (!subscription.is_premium &&
+                          !isAdmin &&
+                          (item.name === "Premium Webinars" ||
+                            item.name === "Scratch Pad Newsletter"))
+                      ) {
+                        setShowPricing(true);
+                        return;
+                      }
                       if (
                         !profile.is_premium &&
                         (item.name.toLowerCase().includes("scratch pad") ||
                           item.path.includes("/scratch-pad"))
                       ) {
-                        e.preventDefault();
                         toast.info("Upgrade to access Scratch Pad");
                         return;
                       }
                       setIsMobileOpen(false);
+                      // Navigate internally
+                      window.location.href = item.path;
                     }}
                     title={isCollapsed ? item.name : undefined}
                     className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
@@ -386,11 +408,13 @@ export default function Sidebar() {
                       isActive
                         ? "bg-white text-blue-900"
                         : "text-gray-200 hover:bg-red-900"
-                    }`}
+                    } cursor-pointer`}
+                    role="button"
+                    tabIndex={0}
                   >
                     <item.icon className="h-5 w-5" />
                     {!isCollapsed && <span className="ml-3">{item.name}</span>}
-                  </Link>
+                  </div>
                 )}
               </div>
             );
@@ -551,6 +575,10 @@ export default function Sidebar() {
       >
         {sidebarContent}
       </aside>
+      <PricingDialogModal
+        showPricing={showPricing}
+        setShowPricing={setShowPricing}
+      />
     </>
   );
 }

@@ -2,6 +2,8 @@ import { getLiveRecommendationsDashboardData } from "@/api/recommendations-apis"
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import Modal from "@/components/core/Modal";
 
 // Reusable Horizontal Bar Component
 const HorizontalBar = ({ label, value, percentage, color }) => {
@@ -228,6 +230,9 @@ const ChartDashboard = () => {
     worstExitText: "",
     worstExitSub: "",
   });
+  const { user } = useAuth();
+  const [showPricing, setShowPricing] = useState(false);
+  const isPremiumUser = !!user?.is_premium;
 
   useEffect(() => {
     (async () => {
@@ -298,6 +303,12 @@ const ChartDashboard = () => {
             <Link
               to="/user/app/recommendation"
               className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link ml-4"
+              onClick={(e) => {
+                if (!isPremiumUser) {
+                  e.preventDefault();
+                  setShowPricing(true);
+                }
+              }}
             >
               3 New
             </Link>
@@ -389,6 +400,12 @@ const ChartDashboard = () => {
             <Link
               to="/user/app/recommendation"
               className="text-xs sm:text-sm text-blue-300 font-medium hover:underline responsive-link ml-4"
+              onClick={(e) => {
+                if (!isPremiumUser) {
+                  e.preventDefault();
+                  setShowPricing(true);
+                }
+              }}
             >
               3 New
             </Link>
@@ -480,8 +497,39 @@ const ChartDashboard = () => {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={showPricing}
+        onOpenChange={setShowPricing}
+        title={"Premium Access"}
+        className="max-w-md"
+      >
+        <PricingDialogContent />
+      </Modal>
     </div>
   );
 };
+
+const PricingDialogContent = () => (
+  <div className="space-y-4 bg-white">
+    <h3 className="text-lg font-semibold text-gray-900">Upgrade Required</h3>
+    <p className="text-sm text-gray-600">
+      Access all recommendations and premium research by subscribing to Bastion
+      Research Core.
+    </p>
+    <div className="rounded-xl border p-4 bg-gray-50">
+      <div className="flex items-baseline gap-2">
+        <span className="text-3xl font-bold text-blue-600">₹ 18,750</span>
+        <span className="text-gray-500">/ Annually (incl. GST)</span>
+      </div>
+      <a
+        href="/user/app/account/subscription"
+        className="mt-3 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 w-full"
+      >
+        View Plans / Subscribe
+      </a>
+    </div>
+  </div>
+);
 
 export default ChartDashboard;

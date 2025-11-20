@@ -233,6 +233,9 @@ export const reconcileOrder = async (req: Request, res: Response) => {
 
     const tagPlanId = order?.order_tags?.plan_id;
     const tagPlanCode = order?.order_tags?.plan_code;
+    const taggedTransactionId = order?.order_tags?.transaction_id as
+      | string
+      | undefined;
 
     // Fetch plan row
     let planRow: any = null;
@@ -275,6 +278,9 @@ export const reconcileOrder = async (req: Request, res: Response) => {
       .update({ status: "active", plan_code: planRow.plan_code || null })
       .eq("id", userId);
 
+    // Try to reuse the transaction id set at order creation (if any)
+    const transactionId = taggedTransactionId || undefined;
+
     // Check if a subscription already exists for this user+plan (latest)
     const { data: existing } = await supabase
       .from("subscriptions")
@@ -298,8 +304,48 @@ export const reconcileOrder = async (req: Request, res: Response) => {
           ? expireDate.toISOString().slice(0, 10)
           : null,
         amount: order?.order_amount,
+        transaction_id: transactionId ?? null,
         user_id: userId,
       });
+    }
+
+    // Best-effort: align payment_history with successful reconciliation
+    if (transactionId) {
+      const { data: existingPayment } = await supabase
+        .from("payment_history")
+        .select("transaction_id")
+        .eq("transaction_id", transactionId)
+        .maybeSingle();
+
+      const paymentDate =
+        (order as any)?.order_expiry_time ||
+        (order as any)?.order_time ||
+        new Date().toISOString();
+
+      if (existingPayment) {
+        await supabase
+          .from("payment_history")
+          .update({
+            transaction_status: "SUCCESS",
+            plan_id: planRow.plan_id,
+            user_id: userId,
+            payer_email: customer?.customer_email ?? null,
+            created_at: paymentDate,
+          })
+          .eq("transaction_id", transactionId);
+      } else {
+        await supabase
+          .from("payment_history")
+          .insert({
+            transaction_status: "SUCCESS",
+            plan_id: planRow.plan_id,
+            user_id: userId,
+            payer_email: customer?.customer_email ?? null,
+            transaction_id: transactionId,
+            created_at: paymentDate,
+          })
+          .maybeSingle();
+      }
     }
 
     return res.status(200).json({ message: "Subscription reconciled" });

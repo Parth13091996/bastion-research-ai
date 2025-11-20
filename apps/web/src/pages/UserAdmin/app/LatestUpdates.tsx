@@ -1,12 +1,23 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import PricingDialogModal from "@/components/core/common/Modals/PricingDialogModal";
+
+// Copied from RecentRecommendations.tsx
+const tiers: Record<string, string[]> = {
+  freemium: ["freemium"],
+  core: ["freemium", "core"],
+  core_annual: ["freemium", "core", "core_annual"],
+  research_hub: ["freemium", "core", "core_annual", "research_hub"],
+};
 
 type LatestUpdateItem = {
   title: string;
   description: string;
   date: string;
   company: string;
+  tag: string | undefined; // For access control
   type: "Quarterly" | "Announcement";
   pdf_url?: string;
 };
@@ -27,14 +38,19 @@ const safeFormatDate = (dateInput: string): string => {
 
 const LatestUpdates: React.FC = () => {
   const { stocks, loading, error } = useSheetStocks();
+  const { user } = useAuth();
+  const [showPricing, setShowPricing] = useState(false);
+
+  const userPlanCode = user?.membership_plans?.plan_code || "freemium";
+  const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
 
   const updates = useMemo<LatestUpdateItem[]>(() => {
     if (!stocks || !Array.isArray(stocks)) return [];
-
     const items: LatestUpdateItem[] = [];
 
     stocks.forEach((s) => {
       const company = s.name || s.code || "";
+      const tag = s.tags;
 
       const quarterly = (s.quarterly_update || [])
         .slice()
@@ -45,6 +61,7 @@ const LatestUpdates: React.FC = () => {
           description: u.description,
           date: safeFormatDate(u.date),
           company,
+          tag,
           type: "Quarterly" as const,
           pdf_url: u.pdf_url,
         }));
@@ -58,6 +75,7 @@ const LatestUpdates: React.FC = () => {
           description: u.description,
           date: safeFormatDate(u.date),
           company,
+          tag,
           type: "Announcement" as const,
           pdf_url: u.pdf_url,
         }));
@@ -91,40 +109,68 @@ const LatestUpdates: React.FC = () => {
         <div className="text-xs text-gray-500">No updates available yet.</div>
       ) : (
         <div className="space-y-4 sm:space-y-5 max-h-96 overflow-y-auto">
-          {updates.map((u, idx) => (
-            <a
-              key={`${u.company}-${u.title}-${idx}`}
-              href={u.pdf_url || "#"}
-              target={u.pdf_url ? "_blank" : undefined}
-              rel={u.pdf_url ? "noopener noreferrer" : undefined}
-              className="block border-l-4 border-gray-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
-            >
-              <div className="flex items-center flex-wrap gap-2 mb-1.5">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span className="font-medium text-gray-900 text-sm sm:text-base">
-                  {u.title}
-                </span>
-              </div>
+          {updates.map((u, idx) => {
+            // Access check: tag in currentTier array (like in RecentRecommendations)
+            const hasAccess =
+              Array.isArray(currentTier) &&
+              u.tag &&
+              currentTier.includes(u.tag);
 
-              <div className="flex items-center gap-2 text-xs mb-2">
-                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
-                  {u.type}
-                </span>
-                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
-                  {u.company}
-                </span>
-                <span className="text-gray-500">{u.date}</span>
-              </div>
+            return (
+              <div key={`${u.company}-${u.title}-${idx}`} className="relative">
+                <a
+                  href={hasAccess && u.pdf_url ? u.pdf_url : "#"}
+                  target={hasAccess && u.pdf_url ? "_blank" : undefined}
+                  rel={
+                    hasAccess && u.pdf_url ? "noopener noreferrer" : undefined
+                  }
+                  className="block border-l-4 border-gray-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
+                  onClick={(e) => {
+                    if (!hasAccess) {
+                      e.preventDefault();
+                      setShowPricing(true);
+                    }
+                  }}
+                >
+                  <div className="flex items-center flex-wrap gap-2 mb-1.5">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">
+                      {u.title}
+                    </span>
+                  </div>
 
-              {u.description && (
-                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
-                  {u.description}
-                </p>
-              )}
-            </a>
-          ))}
+                  <div className="flex items-center gap-2 text-xs mb-2">
+                    <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                      {u.type}
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                      {u.company}
+                    </span>
+                    <span className="text-gray-500">{u.date}</span>
+                  </div>
+
+                  {u.description && (
+                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+                      {u.description}
+                    </p>
+                  )}
+
+                  {!hasAccess && (
+                    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center text-xs sm:text-sm font-medium text-gray-700 z-10">
+                      Upgrade your plan to view this update
+                    </div>
+                  )}
+                </a>
+              </div>
+            );
+          })}
         </div>
       )}
+
+      <PricingDialogModal
+        showPricing={showPricing}
+        setShowPricing={setShowPricing}
+      />
     </div>
   );
 };

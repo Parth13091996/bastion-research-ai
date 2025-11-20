@@ -72,6 +72,7 @@ export const createOrderForPlanService = async (params: {
   coupon_code?: string;
 }) => {
   const planRow = await resolvePlanById(params.planId);
+  const transactionId = crypto.randomUUID();
 
   const selected: PublicPlan = {
     code: String(planRow.plan_id),
@@ -83,7 +84,6 @@ export const createOrderForPlanService = async (params: {
 
   // Handle free tier or zero-amount subscription
   if (params.is_free || params.discount_amount === 0) {
-    const transactionId = crypto.randomUUID();
     const startDate = new Date();
 
     // For free tier, set expiry to null (lifetime) or far future
@@ -134,6 +134,7 @@ export const createOrderForPlanService = async (params: {
     order_tags: {
       plan_id: String(planRow.plan_id),
       plan_code: String(planRow.plan_code || ""),
+      transaction_id: transactionId,
     },
     customer_details: {
       customer_id: params.customer_id,
@@ -151,6 +152,8 @@ export const createOrderForPlanService = async (params: {
     transaction_status: "PENDING",
     user_id: params.customer_id,
     plan_id: planRow.plan_id,
+    transaction_id: transactionId,
+    created_at: new Date().toISOString(),
   });
 
   return { selected, order: response?.data || response };
