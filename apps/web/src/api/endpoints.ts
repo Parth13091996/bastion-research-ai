@@ -29,10 +29,6 @@ export const endpoints = {
     base: "/api/membership-plans",
     byId: (id: string | number) => `/api/membership-plans/${id}`,
   },
-  subscriptions: {
-    base: "/api/subscriptions",
-    byId: (id: string | number) => `/api/subscriptions/${id}`,
-  },
   paymentHistory: {
     base: "/api/payment-history",
     me: "/api/payment-history/me",
@@ -50,7 +46,6 @@ export const endpoints = {
     plans: "/api/cashfree/plans",
     orders: "/api/cashfree/orders",
     orderById: (id: string | number) => `/api/cashfree/orders/${id}`,
-    subscription: "/api/cashfree/subscription",
   },
   cashfreeVerification: {
     verifyPan: "/api/cashfree/verification/pan",

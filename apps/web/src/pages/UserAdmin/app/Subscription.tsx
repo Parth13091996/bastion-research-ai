@@ -338,8 +338,8 @@ const Subscription = () => {
                 <div className="flex-1">
                   {isSubscriptionError && (
                     <p className="text-xs text-red-600 mb-1">
-                      Unable to load subscription details. Showing basic
-                      account info.
+                      Unable to load subscription details. Showing basic account
+                      info.
                     </p>
                   )}
                   <h3 className="text-base sm:text-lg font-semibold">

@@ -17,7 +17,7 @@ type UpgradeFormState = {
 
 interface SubscriptionData {
   is_premium: boolean;
-  currentPlan: string;
+  currentPlan: string | null;
   subscription: {
     name: string;
     startDate: string;
