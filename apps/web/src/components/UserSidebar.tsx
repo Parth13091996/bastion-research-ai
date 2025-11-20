@@ -361,8 +361,7 @@ export default function UserSidebar() {
                         return;
                       }
                       setIsMobileOpen(false);
-                      // Open in new tab only if NOT gated above
-                      window.open(item.path, "_blank", "noopener,noreferrer");
+                      navigate(item.path);
                     }}
                     title={isCollapsed ? item.name : undefined}
                     className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
@@ -397,8 +396,7 @@ export default function UserSidebar() {
                         return;
                       }
                       setIsMobileOpen(false);
-                      // Navigate internally
-                      window.location.href = item.path;
+                      navigate(item.path);
                     }}
                     title={isCollapsed ? item.name : undefined}
                     className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${

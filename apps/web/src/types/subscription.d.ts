@@ -21,17 +21,16 @@ interface SubscriptionData {
   subscription: {
     name: string;
     startDate: string;
-    expireDate: string | null;
+    expireNextRenewal: string | null;
     amount: number;
     transactionId: string;
     plan_code?: string | null;
     tier?: number | null;
   } | null;
   lastPayment: {
-    amount: number;
+    amount: number | null;
     status: string;
-    planId: number;
-    email: string;
+    email: string | null;
     date: string;
     plan_code?: string | null;
   } | null;

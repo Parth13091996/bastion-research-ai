@@ -26,8 +26,14 @@ import { useSubscription } from "@/hooks/use-subscription";
 
 const Subscription = () => {
   const { user, refetchUser, isAuthenticated, isLoading } = useAuth();
-  const { data: subscription, isLoading: isSubscriptionLoading } =
-    useSubscription();
+  const {
+    data: subscription,
+    isLoading: isSubscriptionLoading,
+    isError: isSubscriptionError,
+  } = useSubscription() as { data: SubscriptionData | undefined } & {
+    isLoading: boolean;
+    isError: boolean;
+  };
   const loader = useLoader();
   const navigate = useNavigate();
 
@@ -60,7 +66,8 @@ const Subscription = () => {
     agreementSignedAt: undefined,
   });
 
-  const currentPlanCode = user?.membership_plans?.plan_code;
+  const currentPlanCode =
+    subscription?.currentPlan || user?.membership_plans?.plan_code || null;
   useEffect(() => {
     const fetchPlans = async () => {
       setIsPlansLoading(true);
@@ -237,9 +244,12 @@ const Subscription = () => {
     const selectedPlan = plans.find((p) => p.code === code);
     if (!selectedPlan) return;
 
-    const upgradingFromFree = !currentPlanCode;
     const hasKyc = PAN_REGEX.test(userPan);
-    if (upgradingFromFree && !hasKyc && !opts?.bypassKyc) {
+    const isPaidPlan =
+      selectedPlan.amount > 0 && selectedPlan.plan_code !== "freemium";
+
+    // Require KYC only for paid plans when PAN is missing
+    if (isPaidPlan && !hasKyc && !opts?.bypassKyc) {
       startUpgradeFlow(selectedPlan);
       return;
     }
@@ -280,7 +290,11 @@ const Subscription = () => {
     }
   };
 
-  const onFreePlan = user?.membership_plans?.plan_code === "freemium";
+  const onFreePlan =
+    currentPlanCode === "freemium" ||
+    user?.membership_plans?.plan_code === "freemium";
+
+  const hasAnyPlan = Boolean(currentPlanCode);
 
   if (!isAuthenticated) {
     return null;
@@ -322,31 +336,51 @@ const Subscription = () => {
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex-1">
+                  {isSubscriptionError && (
+                    <p className="text-xs text-red-600 mb-1">
+                      Unable to load subscription details. Showing basic
+                      account info.
+                    </p>
+                  )}
                   <h3 className="text-base sm:text-lg font-semibold">
-                    {subscription?.subscription?.name ||
-                      (onFreePlan
-                        ? "No Active"
-                        : //@ts-ignore
-                          String(currentPlanCode)
-                            //@ts-ignore
-                            .replaceAll("_", " ")
-                            .toUpperCase())}{" "}
-                    Plan
+                    {subscription?.subscription?.name
+                      ? `${subscription.subscription.name} Plan`
+                      : hasAnyPlan
+                        ? `${
+                            currentPlanCode === "freemium"
+                              ? "Freemium"
+                              : String(currentPlanCode)
+                                  .replaceAll("_", " ")
+                                  .toUpperCase()
+                          } Plan`
+                        : "No Active Plan"}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {onFreePlan
+                    {!hasAnyPlan
                       ? "No active subscription"
-                      : subscription?.is_premium
-                        ? `Active subscription`
-                        : "Subscription pending"}
+                      : onFreePlan
+                        ? "Free plan active"
+                        : subscription?.is_premium
+                          ? "Active subscription"
+                          : "Subscription pending"}
                   </p>
                 </div>
                 <div className="flex flex-col sm:items-end gap-3">
                   <Badge
-                    variant={subscription?.is_premium ? "default" : "secondary"}
+                    variant={
+                      hasAnyPlan && subscription?.is_premium
+                        ? "default"
+                        : "secondary"
+                    }
                     className="self-start sm:self-auto"
                   >
-                    {subscription?.is_premium ? "Active" : "Pending"}
+                    {!hasAnyPlan
+                      ? "None"
+                      : onFreePlan
+                        ? "Free"
+                        : subscription?.is_premium
+                          ? "Active"
+                          : "Pending"}
                   </Badge>
                   {subscription?.subscription && (
                     <div className="text-xs sm:text-sm text-muted-foreground space-y-1">
@@ -359,11 +393,11 @@ const Subscription = () => {
                           subscription.subscription.startDate
                         ).toLocaleDateString()}
                       </p>
-                      {subscription.subscription.expireDate && (
+                      {subscription.subscription.expireNextRenewal && (
                         <p>
                           Expires:{" "}
                           {new Date(
-                            subscription.subscription.expireDate
+                            subscription.subscription.expireNextRenewal
                           ).toLocaleDateString()}
                         </p>
                       )}

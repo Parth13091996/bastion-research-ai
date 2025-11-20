@@ -54,11 +54,11 @@ const navItems = [
         icon: FileText,
         path: AppRoutes.adminManagePlans,
       },
-      {
-        name: "Manage Subscriptions",
-        icon: Calendar,
-        path: AppRoutes.adminManageSubscriptions,
-      },
+      // {
+      //   name: "Manage Subscriptions",
+      //   icon: Calendar,
+      //   path: AppRoutes.adminManageSubscriptions,
+      // },
       {
         name: "Payment History",
         icon: CreditCard,

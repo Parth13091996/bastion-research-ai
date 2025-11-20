@@ -13,23 +13,19 @@ export const getMembershipPlans = async (req: Request, res: Response) => {
 };
 
 export const getSubscriptions = async (req: Request, res: Response) => {
-  // Enrich subscriptions with user, plan and payment info for UI tables
+  // Enrich subscription-like rows (derived from payment_history) with user and plan info for UI tables
   const { data, error } = await supabase
-    .from("subscriptions")
+    .from("payment_history")
     .select(
       `
-      id,
-      membership_id,
-      start_date,
-      expire_next_renewal,
-      amount,
-      created_at,
       user_id,
+      plan_id,
       transaction_id,
-      users:first_name, users:last_name, users:email,
-      users!subscriptions_user_id_fkey ( id, first_name, last_name, email ),
-      membership_plans!subscriptions_membership_id_fkey ( plan_id, plan_name, currency, price_amount, plan_code ),
-      payment_history!subscriptions_transaction_id_fkey ( transaction_id, transaction_status, payer_email, created_at )
+      transaction_status,
+      payer_email,
+      created_at,
+      users!payment_history_user_id_fkey ( id, first_name, last_name, email ),
+      membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, currency, price_amount, plan_code, duration_months )
     `
     )
     .order("created_at", { ascending: false });
@@ -42,22 +38,34 @@ export const getSubscriptions = async (req: Request, res: Response) => {
   const mapped = rows.map((r: any) => {
     const user = r?.users || {};
     const plan = r?.membership_plans || {};
-    const payment = r?.payment_history || {};
+
+    const startDate = r.created_at ? new Date(r.created_at) : null;
+    let expireNextRenewal: string | null = null;
+    if (
+      startDate &&
+      typeof plan.duration_months === "number" &&
+      plan.duration_months > 0
+    ) {
+      const exp = new Date(startDate);
+      exp.setMonth(exp.getMonth() + plan.duration_months);
+      expireNextRenewal = exp.toISOString();
+    }
+
     return {
-      // original fields
-      id: r.id,
-      membership_id: r.membership_id,
-      start_date: r.start_date,
-      expire_next_renewal: r.expire_next_renewal,
-      amount: r.amount ?? plan.price_amount ?? null,
+      // original fields (aligned with previous subscriptions response)
+      id: r.transaction_id,
+      membership_id: r.plan_id,
+      start_date: startDate ? startDate.toISOString() : null,
+      expire_next_renewal: expireNextRenewal,
+      amount: plan.price_amount ?? null,
       created_at: r.created_at,
       user_id: r.user_id,
-      transaction_id: r.transaction_id ?? payment.transaction_id ?? null,
+      transaction_id: r.transaction_id,
       // enriched fields expected by admin UI
       name: [user.first_name, user.last_name].filter(Boolean).join(" ") || null,
       currency: plan.currency || null,
       payment_type: "Subscription",
-      status: payment.transaction_status || "Active",
+      status: r.transaction_status || "Active",
       user_email: user.email || null,
       membership_name: plan.plan_name || null,
       plan_code: plan.plan_code || null,
@@ -67,7 +75,7 @@ export const getSubscriptions = async (req: Request, res: Response) => {
 };
 
 export const getPaymentHistory = async (req: Request, res: Response) => {
-  // Join with users, plans, and subscriptions to provide full rows
+  // Join with users and plans to provide full rows
   const { data, error } = await supabase
     .from("payment_history")
     .select(
@@ -79,8 +87,7 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
       plan_id,
       created_at,
       users!payment_history_user_id_fkey ( id, email, first_name, last_name ),
-      membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, price_amount, currency ),
-      subscriptions!subscriptions_transaction_id_fkey ( amount )
+      membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, price_amount, currency )
     `
     )
     .order("created_at", { ascending: false });
@@ -91,19 +98,19 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
   const mapped = rows.map((r: any) => {
     const user = r?.users || {};
     const plan = r?.membership_plans || {};
-    const sub = r?.subscriptions || {};
     return {
       transaction_id: r.transaction_id,
       invoice_id: r.transaction_id, // using txn id as invoice placeholder
       user_id: r.user_id,
       user_email: user.email || null,
-      membership: plan.plan_name || (plan.plan_id != null ? String(plan.plan_id) : null),
+      membership:
+        plan.plan_name || (plan.plan_id != null ? String(plan.plan_id) : null),
       payment_gateway: "Cashfree",
       payment_type: "Subscription",
       payer_email: r.payer_email || user.email || null,
       transaction_status: r.transaction_status || null,
       payment_date: r.created_at,
-      amount: sub?.amount ?? plan?.price_amount ?? null,
+      amount: plan?.price_amount ?? null,
       currency: plan?.currency || "INR",
       plan_id: r.plan_id,
       created_at: r.created_at,
@@ -129,8 +136,7 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
         user_id,
         plan_id,
         created_at,
-        membership_plans!payment_history_plan_id_fkey ( plan_name, price_amount, currency ),
-        subscriptions!subscriptions_transaction_id_fkey ( amount )
+        membership_plans!payment_history_plan_id_fkey ( plan_name, price_amount, currency )
       `
       )
       .eq("user_id", user.id as string)
@@ -143,7 +149,6 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
     const rows = (data as any[]) || [];
     const mapped = rows.map((r: any) => {
       const plan = r?.membership_plans || {};
-      const sub = r?.subscriptions || {};
       return {
         transaction_id: r.transaction_id,
         invoice_id: r.transaction_id,
@@ -154,7 +159,7 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
         user_id: r.user_id,
         plan_id: r.plan_id,
         payment_date: r.created_at,
-        amount: sub?.amount ?? plan?.price_amount ?? null,
+        amount: plan?.price_amount ?? null,
         membership: plan?.plan_name || null,
         currency: plan?.currency || "INR",
       };
@@ -228,79 +233,22 @@ export const deleteMembershipPlan = async (req: Request, res: Response) => {
   res.status(200).json(data);
 };
 
-export const createSubscription = async (req: Request, res: Response) => {
-  const {
-    user_id,
-    membership_id,
-    start_date,
-    expire_next_renewal,
-    amount,
-    // currency,
-    // payment_type,
-    transaction_id,
-    // status,
-  } = req.body;
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .insert([
-      {
-        user_id,
-        membership_id,
-        start_date,
-        expire_next_renewal,
-        amount,
-        // currency,
-        // payment_type,
-        transaction_id,
-        // status,
-      },
-    ])
-    .select();
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data);
+export const createSubscription = async (_req: Request, res: Response) => {
+  return res
+    .status(410)
+    .json({ error: "Manual subscription creation is no longer supported." });
 };
 
-export const updateSubscription = async (req: Request, res: Response) => {
-  const { id } = req.params; // assume primary key is membership_id or id column
-  const {
-    user_id,
-    membership_id,
-    start_date,
-    expire_next_renewal,
-    amount,
-    // currency,
-    // payment_type,
-    transaction_id,
-    // status,
-  } = req.body;
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .update({
-      user_id,
-      membership_id,
-      start_date,
-      expire_next_renewal,
-      amount,
-      // currency,
-      // payment_type,
-      transaction_id,
-      // status,
-    })
-    .eq("membership_id", id)
-    .select();
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(200).json(data);
+export const updateSubscription = async (_req: Request, res: Response) => {
+  return res
+    .status(410)
+    .json({ error: "Manual subscription updates are no longer supported." });
 };
 
-export const deleteSubscription = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .delete()
-    .eq("membership_id", id)
-    .select();
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(200).json(data);
+export const deleteSubscription = async (_req: Request, res: Response) => {
+  return res.status(410).json({
+    error: "Manual subscription deletion is no longer supported.",
+  });
 };
 
 export const createPaymentHistory = async (req: Request, res: Response) => {

@@ -111,37 +111,6 @@ export const handlePaymentSuccess = async (payload: any) => {
         .maybeSingle();
 
   await Promise.all([updateUserPromise, paymentHistoryPromise]);
-
-  // Prepare dates as YYYY-MM-DD strings for date columns
-  const startDate = payment?.payment_time
-    ? new Date(payment.payment_time)
-    : new Date();
-  const expireDate = currentPlan?.duration_months
-    ? new Date(
-        startDate.getTime() +
-          currentPlan.duration_months * 30 * 24 * 60 * 60 * 1000
-      )
-    : null;
-
-  // Avoid creating duplicate subscriptions for the same transaction
-  const { data: existingSubscription } = await supabase
-    .from("subscriptions")
-    .select("id")
-    .eq("transaction_id", transactionId)
-    .maybeSingle();
-
-  if (!existingSubscription) {
-    await supabase.from("subscriptions").insert({
-      membership_id: currentPlan?.plan_id,
-      start_date: startDate.toISOString().slice(0, 10),
-      expire_next_renewal: expireDate
-        ? expireDate.toISOString().slice(0, 10)
-        : null,
-      amount: payment?.payment_amount,
-      transaction_id: transactionId,
-      user_id: customer_details?.customer_id,
-    });
-  }
 };
 
 export const handlePaymentUserDropped = async (payload: any) => {

@@ -275,39 +275,16 @@ export const reconcileOrder = async (req: Request, res: Response) => {
     // Update user plan_code
     await supabase
       .from("users")
-      .update({ status: "active", plan_code: planRow.plan_code || null })
+      .update({
+        status: "active",
+        plan_id: planRow.plan_id,
+        plan_code: planRow.plan_code || null,
+        is_premium: true,
+      })
       .eq("id", userId);
 
     // Try to reuse the transaction id set at order creation (if any)
     const transactionId = taggedTransactionId || undefined;
-
-    // Check if a subscription already exists for this user+plan (latest)
-    const { data: existing } = await supabase
-      .from("subscriptions")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("membership_id", planRow.plan_id)
-      .order("created_at", { ascending: false })
-      .limit(1);
-    if (!existing || existing.length === 0) {
-      const startDate = new Date();
-      const expireDate = planRow?.duration_months
-        ? new Date(
-            startDate.getTime() +
-              planRow.duration_months * 30 * 24 * 60 * 60 * 1000
-          )
-        : null;
-      await supabase.from("subscriptions").insert({
-        membership_id: planRow.plan_id,
-        start_date: startDate.toISOString().slice(0, 10),
-        expire_next_renewal: expireDate
-          ? expireDate.toISOString().slice(0, 10)
-          : null,
-        amount: order?.order_amount,
-        transaction_id: transactionId ?? null,
-        user_id: userId,
-      });
-    }
 
     // Best-effort: align payment_history with successful reconciliation
     if (transactionId) {

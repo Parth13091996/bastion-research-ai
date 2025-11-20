@@ -134,16 +134,58 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
     // ===== Membership/Revenue analytics =====
     const nowIso = new Date().toISOString();
 
-    // Fetch subscriptions (latest first per user)
-    const { data: subsRows, error: subsError } = await supabase
-      .from("subscriptions")
+    // Fetch payment history (latest first per user) and derive subscription-like rows
+    const { data: paymentsRows, error: paymentsError } = await supabase
+      .from("payment_history")
       .select(
-        `user_id, start_date, expire_next_renewal, amount, membership_id`
+        `
+        user_id,
+        plan_id,
+        transaction_status,
+        created_at,
+        membership_plans!payment_history_plan_id_fkey (
+          plan_id,
+          plan_name,
+          plan_code,
+          price_amount,
+          currency,
+          tier,
+          duration_months
+        )
+      `
       )
-      .order("start_date", { ascending: false });
-    if (subsError) {
-      return res.status(500).json({ message: "Failed to load subscriptions" });
+      .order("created_at", { ascending: false });
+
+    if (paymentsError) {
+      return res
+        .status(500)
+        .json({ message: "Failed to load payment history" });
     }
+
+    // Derive subscription-like rows from payment history + plans
+    const subsRows =
+      paymentsRows?.map((p: any) => {
+        const plan = p.membership_plans || {};
+        const startDate = p.created_at;
+        let expireNextRenewal: string | null = null;
+        if (
+          startDate &&
+          typeof plan.duration_months === "number" &&
+          plan.duration_months > 0
+        ) {
+          const d = new Date(startDate);
+          d.setMonth(d.getMonth() + plan.duration_months);
+          expireNextRenewal = d.toISOString();
+        }
+        return {
+          user_id: p.user_id,
+          start_date: startDate,
+          expire_next_renewal: expireNextRenewal,
+          amount: plan.price_amount ?? 0,
+          membership_id: p.plan_id,
+          plan_code: plan.plan_code || null,
+        };
+      }) || [];
 
     // Fetch plans for price and product mapping
     const { data: plansRows } = await supabase

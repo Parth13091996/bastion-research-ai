@@ -80,24 +80,23 @@ export const createOrderForPlanService = async (params: {
     amount: params.discount_amount,
     currency: planRow.currency || "INR",
     tier: planRow.tier,
+    plan_code: planRow.plan_code,
   };
 
   // Handle free tier or zero-amount subscription
   if (params.is_free || params.discount_amount === 0) {
     const startDate = new Date();
 
-    // For free tier, set expiry to null (lifetime) or far future
-    const expireDate = null;
-
-    // Create subscription record for free tier
-    await supabase.from("subscriptions").upsert({
-      membership_id: planRow.plan_id,
-      start_date: startDate.toISOString().slice(0, 10),
-      expire_next_renewal: expireDate,
-      amount: 0,
-      transaction_id: transactionId,
-      user_id: params.customer_id,
-    });
+    // For free tier, mark the user as active on this plan in users table
+    await supabase
+      .from("users")
+      .update({
+        status: "active",
+        plan_id: planRow.plan_id,
+        plan_code: planRow.plan_code || null,
+        is_premium: true,
+      })
+      .eq("id", params.customer_id);
 
     // Record in payment history as FREE or COUPON_APPLIED
     await supabase.from("payment_history").insert({
