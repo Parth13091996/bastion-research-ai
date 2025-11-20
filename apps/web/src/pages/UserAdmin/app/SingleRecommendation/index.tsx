@@ -215,13 +215,13 @@ const SingleRecommendation = () => {
 
   const announcements = Array.isArray(stock?.announcements_and_update)
     ? stock.announcements_and_update.map((item: any, idx: number) => ({
-      id: idx,
-      date: formatMonthYear(item.date),
-      heading: item.title,
-      preview: item.description,
-      hasPdf: !!item.pdf_url,
-      pdf_url: item.pdf_url,
-    }))
+        id: idx,
+        date: formatMonthYear(item.date),
+        heading: item.title,
+        preview: item.description,
+        hasPdf: !!item.pdf_url,
+        pdf_url: item.pdf_url,
+      }))
     : [];
 
   return (
@@ -256,10 +256,11 @@ const SingleRecommendation = () => {
                       <button
                         key={range}
                         onClick={() => setTimeRange(range)}
-                        className={`px-3 py-1 text-xs rounded-full border shadow-sm ${timeRange === range
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
-                          }`}
+                        className={`px-3 py-1 text-xs rounded-full border shadow-sm ${
+                          timeRange === range
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-gray-600 border-gray-300 hover:bg-gray-100"
+                        }`}
                       >
                         {range}
                       </button>
@@ -267,7 +268,9 @@ const SingleRecommendation = () => {
                   </div>
                 </div>
 
-                <div className={isMobile ? "overflow-x-auto" : "overflow-hidden"}>
+                <div
+                  className={isMobile ? "overflow-x-auto" : "overflow-hidden"}
+                >
                   <LineChart width={550} height={400} data={getFilteredData()}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="date" stroke="#9ca3af" />

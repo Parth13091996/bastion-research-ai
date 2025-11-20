@@ -39,7 +39,7 @@ function inferCategory(mime?: string): UploadCategory {
   if (
     mime === "application/msword" ||
     mime ===
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   )
     return "doc";
   return "file";
@@ -88,7 +88,6 @@ export async function uploadToSupabase({
   upsert?: boolean;
 }) {
   const category = categoryProp || inferCategory(file.mimetype);
-  console.log(category, file.mimetype, 'upload error')
 
   if (!validateMimetype(file.mimetype, category)) {
     throw new Error("Unsupported file type for this category");

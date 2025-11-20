@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 type LatestUpdateItem = {
   title: string;

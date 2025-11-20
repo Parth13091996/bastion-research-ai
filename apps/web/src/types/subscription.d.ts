@@ -43,10 +43,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refetchUser: () => Promise<User>;
   refetchUserAfterAgreement: () => Promise<User>;
-  refetchSubscription: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
-  subscription: SubscriptionData | null;
-  isSubscriptionLoading: boolean;
 }

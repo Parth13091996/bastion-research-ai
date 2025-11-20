@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppRoutes } from "@/routes/app-routes";
+import { useSubscription } from "@/hooks/use-subscription";
 import { PersonIcon } from "@radix-ui/react-icons";
 import {
   BarChart3,
@@ -85,7 +86,8 @@ const navItems = [
 ];
 
 export default function Sidebar() {
-  const { user, subscription, isAdmin, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
+  const { data: subscription } = useSubscription();
 
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);

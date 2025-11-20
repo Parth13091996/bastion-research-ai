@@ -15,8 +15,12 @@ const HorizontalBar = ({ label, value, percentage, color }) => {
   return (
     <div className="space-y-2 mt-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-300 font-medium responsive-text">{label}</span>
-        <span className="text-xs text-white font-semibold responsive-text">{value}</span>
+        <span className="text-xs text-gray-300 font-medium responsive-text">
+          {label}
+        </span>
+        <span className="text-xs text-white font-semibold responsive-text">
+          {value}
+        </span>
       </div>
       <div className="h-6 w-full bg-white/10 rounded-lg overflow-hidden flex items-center responsive-bar">
         <div
@@ -40,10 +44,18 @@ const StatCard = ({ label, value, subLabel, color, isUp = true }) => (
       ) : (
         <TrendingDown size={14} className={`${color} responsive-icon`} />
       )}
-      <span className="text-xs text-gray-300 font-medium responsive-text">{label}</span>
+      <span className="text-xs text-gray-300 font-medium responsive-text">
+        {label}
+      </span>
     </div>
-    <span className={`text-lg sm:text-xl font-bold ${color} responsive-value`}>{value}</span>
-    {subLabel && <p className="text-xs text-gray-400 mt-0.5 responsive-subtext">{subLabel}</p>}
+    <span className={`text-lg sm:text-xl font-bold ${color} responsive-value`}>
+      {value}
+    </span>
+    {subLabel && (
+      <p className="text-xs text-gray-400 mt-0.5 responsive-subtext">
+        {subLabel}
+      </p>
+    )}
   </div>
 );
 
@@ -316,7 +328,9 @@ const ChartDashboard = () => {
 
             <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10 flex flex-col justify-between responsive-summary-card">
               <div>
-                <p className="text-xs text-white mb-3 responsive-text">Performance Breakdown</p>
+                <p className="text-xs text-white mb-3 responsive-text">
+                  Performance Breakdown
+                </p>
                 <div className="space-y-2 lg:space-y-3">
                   {liveStats.map((item, idx) => (
                     <div
@@ -326,7 +340,9 @@ const ChartDashboard = () => {
                       <span className="text-xs text-gray-400 responsive-text">
                         {item.label}
                       </span>
-                      <span className={`text-sm font-bold text-gray-400 responsive-value`}>
+                      <span
+                        className={`text-sm font-bold text-gray-400 responsive-value`}
+                      >
                         {item.percentage}%
                       </span>
                     </div>
@@ -334,14 +350,16 @@ const ChartDashboard = () => {
                 </div>
               </div>
               <div className="mt-3 lg:mt-4 pt-3 border-t border-white/10">
-                <p className="text-xs text-gray-400 responsive-text">Total Holdings</p>
+                <p className="text-xs text-gray-400 responsive-text">
+                  Total Holdings
+                </p>
                 <p className="text-xl lg:text-2xl font-bold text-white responsive-total-value">
                   {totals.liveCount}
                 </p>
               </div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3">
             <StatCard
               label="Top Gainer"
@@ -400,10 +418,14 @@ const ChartDashboard = () => {
 
             <div className="bg-white/5 rounded-xl p-3 lg:p-4 border border-white/10 flex flex-col justify-between h-full mt-auto">
               <div className="flex-grow">
-                <p className="text-xs text-gray-400 mb-3 responsive-text">Exit Summary</p>
+                <p className="text-xs text-gray-400 mb-3 responsive-text">
+                  Exit Summary
+                </p>
                 <div className="space-y-2 lg:space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-300 responsive-text">Success Rate</span>
+                    <span className="text-xs text-gray-300 responsive-text">
+                      Success Rate
+                    </span>
                     <span className="text-sm font-bold text-green-400 responsive-value">
                       {isNaN(Number(totals.successRate))
                         ? "0%"
@@ -411,7 +433,9 @@ const ChartDashboard = () => {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-300 responsive-text">Avg Gain</span>
+                    <span className="text-xs text-gray-300 responsive-text">
+                      Avg Gain
+                    </span>
                     <span className="text-sm font-bold text-green-400 responsive-value">
                       {isNaN(Number(totals.avgExitReturn))
                         ? "+0.00%"
@@ -419,7 +443,9 @@ const ChartDashboard = () => {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-300 responsive-text">Losses</span>
+                    <span className="text-xs text-gray-300 responsive-text">
+                      Losses
+                    </span>
                     <span className="text-sm font-bold text-red-400 responsive-value">
                       {exitsStats[1]?.value ?? 0}
                     </span>
@@ -427,7 +453,9 @@ const ChartDashboard = () => {
                 </div>
               </div>
               <div className="mt-3 lg:mt-4 pt-3 border-t border-white/10">
-                <p className="text-xs text-gray-400 responsive-text">Total Exits</p>
+                <p className="text-xs text-gray-400 responsive-text">
+                  Total Exits
+                </p>
                 <p className="text-xl lg:text-2xl font-bold text-white responsive-total-value">
                   {totals.exitCount}
                 </p>

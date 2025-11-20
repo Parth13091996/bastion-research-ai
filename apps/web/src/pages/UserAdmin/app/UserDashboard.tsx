@@ -3,9 +3,11 @@ import ChartDashboard from "./ChartDashboard";
 import LatestUpdates from "./LatestUpdates";
 import RecentRecommendations from "./RecentRecommendations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const UserDashboard = () => {
-  const { user, subscription } = useAuth();
+  const { user } = useAuth();
+  const { data: subscription } = useSubscription();
 
   // 👤 User Profile
   // 👤 Check Push 20 Nov Late Night
@@ -74,7 +76,6 @@ const UserDashboard = () => {
     if (diffDays <= 10 && diffDays > 5)
       colorClass = "bg-orange-500 hover:bg-orange-600"; // 10–6 days
     else if (diffDays <= 5) colorClass = "bg-red-600 hover:bg-red-700"; // 5–0 days
-
     return { show: true, color: colorClass, daysLeft: diffDays };
   };
 
@@ -140,13 +141,7 @@ const UserDashboard = () => {
                 </p>
 
                 {/* Optional: Days left indicator */}
-                {daysLeft !== null &&
-                  // <p className="text-xs text-gray-500 mt-1">
-                  //   {daysLeft > 0
-                  //     ? `${daysLeft} days left before renewal`
-                  //     : "Expired — renew now"}
-                  // </p>
-                  ""}
+                {daysLeft !== null && ""}
 
                 {show && (
                   <button

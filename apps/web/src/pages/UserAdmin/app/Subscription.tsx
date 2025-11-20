@@ -22,16 +22,15 @@ import { toast } from "sonner";
 import AgreementStep from "../../Register/Steps/AgreementStep";
 import { Config } from "@/utils/config";
 import { formatINR, getFeatureKey, PAN_REGEX, planFeatures } from "@/utils";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const Subscription = () => {
+  const { user, refetchUser, isAuthenticated, isLoading } = useAuth();
   const {
-    user,
-    subscription,
-    isSubscriptionLoading,
-    refetchUser,
-    isAuthenticated,
-    isLoading,
-  } = useAuth();
+    data: subscription,
+    isLoading: isSubscriptionLoading,
+    refetch: refetchSubscription,
+  } = useSubscription();
   const loader = useLoader();
   const navigate = useNavigate();
 

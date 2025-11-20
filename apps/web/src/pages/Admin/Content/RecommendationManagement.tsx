@@ -42,9 +42,9 @@ const toCsv = (rows: ExtendedRecommendation[]): string => {
     r.holdingPeriod ?? "",
     r.cmpOrExitPrice ?? r.cmp ?? "",
     r.percentReturn ??
-    (r.cmp !== undefined && r.entryPrice
-      ? (((r.cmp - r.entryPrice) / r.entryPrice) * 100).toFixed(1)
-      : ""),
+      (r.cmp !== undefined && r.entryPrice
+        ? (((r.cmp - r.entryPrice) / r.entryPrice) * 100).toFixed(1)
+        : ""),
     r.action || r.band,
     r.targetPrice ?? r.target1 ?? "",
     r.upsidePotential ?? r.upside ?? "",
@@ -120,7 +120,7 @@ const RecommendationManagement: React.FC = () => {
         });
       }
 
-      const { company_symbol } = Object.fromEntries(updatedData)
+      const { company_symbol } = Object.fromEntries(updatedData);
 
       // Ensure company_symbol is included for backend upsert
       formData.set(
@@ -133,13 +133,12 @@ const RecommendationManagement: React.FC = () => {
         ).toString()
       );
 
-
       await axiosInstance.put(
         `/api/recommendations/company/${encodeURIComponent(
           editingRecommendation?.nseSymbol ||
-          editingRecommendation?.nseSymbol ||
-          company_symbol ||
-          ""
+            editingRecommendation?.nseSymbol ||
+            company_symbol ||
+            ""
         )}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -176,8 +175,8 @@ const RecommendationManagement: React.FC = () => {
   };
 
   const createRecommendationHandler = () => {
-    setIsCreateModalOpen(true)
-  }
+    setIsCreateModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -210,14 +209,11 @@ const RecommendationManagement: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
-            <span>
-              Recommendations
-            </span>
+            <span>Recommendations</span>
             <Button onClick={createRecommendationHandler}>
               <PlusIcon className="mr-2 h-4 w-4" /> Create Recommendation
             </Button>
           </CardTitle>
-
         </CardHeader>
         <CardContent>
           <div className="mb-4">
@@ -301,13 +297,13 @@ const RecommendationManagement: React.FC = () => {
                             (
                               recommendation.percentReturn?.toString() ??
                               (recommendation.cmp !== undefined &&
-                                recommendation.entryPrice
+                              recommendation.entryPrice
                                 ? (
-                                  ((recommendation.cmp -
-                                    recommendation.entryPrice) /
-                                    recommendation.entryPrice) *
-                                  100
-                                ).toFixed(1)
+                                    ((recommendation.cmp -
+                                      recommendation.entryPrice) /
+                                      recommendation.entryPrice) *
+                                    100
+                                  ).toFixed(1)
                                 : "")
                             )
                               .toString()
@@ -318,13 +314,13 @@ const RecommendationManagement: React.FC = () => {
                         >
                           {recommendation.percentReturn ??
                             (recommendation.cmp !== undefined &&
-                              recommendation.entryPrice
+                            recommendation.entryPrice
                               ? (
-                                ((recommendation.cmp -
-                                  recommendation.entryPrice) /
-                                  recommendation.entryPrice) *
-                                100
-                              ).toFixed(1)
+                                  ((recommendation.cmp -
+                                    recommendation.entryPrice) /
+                                    recommendation.entryPrice) *
+                                  100
+                                ).toFixed(1)
                               : "")}
                         </span>
                       </TableCell>

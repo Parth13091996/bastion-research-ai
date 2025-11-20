@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { getSheetRecommendations } from "@/api/recommendations-apis";
+import useSheetStocks from "@/hooks/use-sheets-stocks";
 
 const ActionableAccountableBastion = () => {
   const [stats, setStats] = useState([
@@ -9,40 +9,29 @@ const ActionableAccountableBastion = () => {
     { number: "0", label: "Sectors" },
   ]);
 
+  const { sheetStocks } = useSheetStocks(true);
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const rows = await getSheetRecommendations();
+    try {
+      const actions = (sheetStocks || [])
+        .map((row: any) => row.band?.toString().trim().toUpperCase())
+        .filter(Boolean);
 
-        const actions = rows
-          .map((row: any) => row.action?.toString().trim().toUpperCase())
-          .filter(Boolean);
+      const totalIdeas = actions.length;
+      const activeIdeas = actions.filter(
+        (a) => a === "BUY" || a === "HOLD"
+      ).length;
+      const sectors = 13;
 
-        const totalIdeas = actions.length;
-        const activeIdeas = actions.filter(
-          (a) => a === "BUY" || a === "HOLD"
-        ).length;
-        const sectors = 13;
-
-        setStats([
-          { number: `${totalIdeas}`, label: "Total Ideas" },
-          { number: `${activeIdeas}`, label: "Active Ideas" },
-          { number: `${sectors}`, label: "Sectors" },
-        ]);
-      } catch (err) {
-        console.error("Error fetching recommendations stats:", err);
-      }
-    };
-
-    // Initial fetch
-    loadData();
-
-    // Auto refresh every 60 seconds
-    const interval = setInterval(loadData, 60000);
-
-    // Cleanup interval on unmount
-    return () => clearInterval(interval);
-  }, []);
+      setStats([
+        { number: `${totalIdeas}`, label: "Total Ideas" },
+        { number: `${activeIdeas}`, label: "Active Ideas" },
+        { number: `${sectors}`, label: "Sectors" },
+      ]);
+    } catch (err) {
+      console.error("Error computing recommendations stats:", err);
+    }
+  }, [sheetStocks]);
 
   return (
     <motion.div

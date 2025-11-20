@@ -11,13 +11,14 @@ import { Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { COLORS, getBandColor, getTextColor } from "./RecommendationList/utils";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const ScratchPadList: React.FC = () => {
   const navigate = useNavigate();
   const [newsletters, setNewsletters] = useState<ScratchPadNewsletter[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const { subscription } = useAuth();
+  const { data: subscription } = useSubscription();
 
   useEffect(() => {
     loadNewsletters();

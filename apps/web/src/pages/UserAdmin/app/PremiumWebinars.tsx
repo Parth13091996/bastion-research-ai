@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { AppRoutes } from "@/routes/app-routes";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const COLORS = {
   red: "#C00000",
@@ -75,8 +76,11 @@ export default function PremiumWebinarsPage() {
   }, [loading]);
 
   // Access guard: only allow users with premium subscription
-  const { user, subscription, isLoading, isSubscriptionLoading, isAdmin } =
-    useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
+  const {
+    data: subscription,
+    isLoading: isSubscriptionLoading,
+  } = useSubscription();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,7 +94,7 @@ export default function PremiumWebinarsPage() {
         navigate(AppRoutes.bastionCore);
       }
     }
-  }, [user, subscription, isLoading, isSubscriptionLoading]);
+  }, [user, subscription, isLoading, isSubscriptionLoading, isAdmin, navigate]);
 
   return (
     <div className="min-h-screen relative overflow-hidden">
