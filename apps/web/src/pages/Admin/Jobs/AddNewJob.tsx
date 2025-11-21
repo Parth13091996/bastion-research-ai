@@ -4,8 +4,7 @@ import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { createJob } from "@/api/jobs-api";
 
 const addJobSchema = z.object({
   job_title: z.string().min(3, "Title is required"),
@@ -53,9 +52,7 @@ const AddNewJob = () => {
         good_to_have: toList(data.good_to_have as any),
         benefits: toList(data.benefits as any),
       };
-      return axiosInstance
-        .post(endpoints.jobs.base, payload)
-        .then((res) => res.data);
+      return createJob(payload);
     },
     onSuccess: () => {
       reset();

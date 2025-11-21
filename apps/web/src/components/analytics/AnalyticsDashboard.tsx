@@ -1,24 +1,21 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { fetchAnalyticsSummary } from "@/api/analytics-api";
 import { Badge } from "@/components/ui/badge";
-import { DataTable } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { ColDef } from "ag-grid-community";
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  Eye,
+  Globe,
+  RefreshCw,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 import { AnalyticsCard } from "./AnalyticsCard";
 import { AnalyticsCharts } from "./AnalyticsCharts";
-import { fetchAnalyticsSummary } from "@/api/analytics";
-import {
-  Users,
-  Eye,
-  Activity,
-  TrendingUp,
-  Globe,
-  Clock,
-  RefreshCw,
-  Calendar,
-  BarChart3,
-} from "lucide-react";
-import { ColDef } from "ag-grid-community";
 
 interface PageViewRow {
   path: string;

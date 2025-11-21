@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { podcastApi } from "@/api/content";
 import { queryKeys } from "@/api/queryKeys";
 import BackgroundShapes from "@/components/generic/framer-motion";
 import { useLoader } from "@/hooks/use-loader";
@@ -27,10 +26,7 @@ const PublicPodcastsPage = () => {
 
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.podcasts],
-    queryFn: () =>
-      axiosInstance
-        .get(endpoints.content.podcasts.base)
-        .then((res) => res.data),
+    queryFn: () => podcastApi.getAll(),
   });
 
   const { start, stop } = useLoader();

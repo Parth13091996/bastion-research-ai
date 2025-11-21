@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { MapPin, Clock, Home } from "lucide-react";
 import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints.ts";
 import { toast } from "sonner";
 
 const SingleCareer = () => {
@@ -28,7 +27,7 @@ const SingleCareer = () => {
         setLoading(true);
         setError(null);
         const id = params.slug as string;
-        const res = await axiosInstance.get(endpoints.jobs.byId(id));
+        const res = await axiosInstance.get(`/api/jobs/${id}`);
         setCareerData(res.data);
       } catch (err) {
         setError("Failed to load career details");
@@ -86,7 +85,7 @@ const SingleCareer = () => {
       form.append("cover_letter", formData.coverLetter);
       form.append("resume", formData.resume);
 
-      await axiosInstance.post(endpoints.applications.base, form, {
+      await axiosInstance.post("/api/applications", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Application submitted successfully!");

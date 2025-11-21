@@ -1,7 +1,7 @@
 import axiosInstance from "./axios";
 import { endpoints } from "./endpoints";
 
-export const mailchimpNewsletterApi = {
+const mailchimpNewsletterApi = {
   getAll: (): Promise<Newsletter[]> =>
     axiosInstance
       .get(endpoints.content.mailchimp.newsletters.base)

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ContentEditor from "@/components/admin/ContentEditor";
-import { scratchPadApi } from "@/api/content";
 import { toast } from "sonner";
+import { scratchPadApi } from "@/api/scratchpad-api";
 
 const ScratchPadEditor: React.FC = () => {
   const { id } = useParams();

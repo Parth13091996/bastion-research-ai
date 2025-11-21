@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { uploadFile } from "@/api/files-api";
 import Editor from "@/components/core/editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,13 +70,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
       formData.append("file", file);
       formData.append("category", "image");
       formData.append("dir", type === "scratch-pad" ? "scratchpad" : type);
-      const response = await axiosInstance.post(
-        endpoints.files.upload,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await uploadFile(formData);
       setValue(response?.data?.url);
     } catch (error: any) {
       toast.error(error?.response?.data?.error || "Failed to upload file");

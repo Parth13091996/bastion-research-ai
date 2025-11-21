@@ -1,11 +1,10 @@
 import { useForm } from "react-hook-form";
-import { endpoints } from "@/api/endpoints";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import axiosInstance from "@/api/axios";
+import { createUser } from "@/api/users-api";
 
 const RoleEnum = z.enum([
   "admin",
@@ -49,8 +48,7 @@ const AddUser = () => {
   });
 
   const mutation = useMutation<unknown, Error, AddUserFormValues>({
-    mutationFn: (data) =>
-      axiosInstance.post(endpoints.users.base, data).then((res) => res.data),
+    mutationFn: (data) => createUser(data),
     onSuccess: () => {
       reset();
       queryClient.invalidateQueries({ queryKey: ["users"] });

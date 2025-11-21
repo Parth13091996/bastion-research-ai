@@ -3,9 +3,13 @@ import { Search, Plus, Eye, FileText, Trash2, X, Edit } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "@/api/axios";
 import { confirm } from "@/utils/confirm";
-import { endpoints } from "@/api/endpoints";
+import {
+  cancelSubscription,
+  getMembershipPlans,
+  getPaymentHistory,
+  getSubscriptions,
+} from "@/api/membership-api";
 
 const SubscriptionGrid = ({
   rowData,
@@ -106,18 +110,15 @@ const ManageSubscriptions = () => {
   const queryClient = useQueryClient();
   const { data: subsRaw } = useQuery({
     queryKey: ["subscriptions"],
-    queryFn: () =>
-      axiosInstance.get(endpoints.subscriptions.base).then((res) => res.data),
+    queryFn: () => getSubscriptions(),
   });
   const { data: activitiesRaw } = useQuery({
     queryKey: ["payment-history"],
-    queryFn: () =>
-      axiosInstance.get(endpoints.paymentHistory.base).then((res) => res.data),
+    queryFn: () => getPaymentHistory(),
   });
   const { data: plansRaw } = useQuery({
     queryKey: ["membership-plans"],
-    queryFn: () =>
-      axiosInstance.get(endpoints.membershipPlans.base).then((res) => res.data),
+    queryFn: () => getMembershipPlans(),
   });
 
   const planMap: Record<string, string> = useMemo(() => {
@@ -130,7 +131,7 @@ const ManageSubscriptions = () => {
 
   const cancelMutation = useMutation({
     mutationFn: (payload: any) =>
-      axiosInstance.delete(endpoints.subscriptions.byId(payload.membership_id)),
+      cancelSubscription(payload.membership_id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] }),
   });

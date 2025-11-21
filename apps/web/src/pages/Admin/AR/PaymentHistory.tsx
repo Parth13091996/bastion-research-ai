@@ -1,5 +1,7 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import {
+  deletePaymentHistory,
+  getPaymentHistory,
+} from "@/api/membership-api";
 import { confirmDelete } from "@/utils/confirm";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColDef } from "ag-grid-community";
@@ -72,13 +74,11 @@ const PaymentHistory = () => {
   const queryClient = useQueryClient();
   const { data } = useQuery({
     queryKey: ["payment-history"],
-    queryFn: () =>
-      axiosInstance.get(endpoints.paymentHistory.base).then((res) => res.data),
+    queryFn: () => getPaymentHistory(),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) =>
-      axiosInstance.delete(endpoints.paymentHistory.byId(id)),
+    mutationFn: (id: string) => deletePaymentHistory(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["payment-history"] }),
   });

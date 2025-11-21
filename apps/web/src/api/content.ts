@@ -32,41 +32,6 @@ export const newsletterApi = {
       .then((res) => res.data),
 };
 
-export const scratchPadApi = {
-  // Public APIs
-  getAll: (): Promise<ScratchPadNewsletter[]> =>
-    axiosInstance
-      .get(endpoints.content.scratchPad.base)
-      .then((res) => res.data),
-
-  getById: (id: string): Promise<ScratchPadNewsletter> =>
-    axiosInstance
-      .get(endpoints.content.scratchPad.byId(id))
-      .then((res) => res.data),
-
-  create: (
-    data: Omit<ScratchPadNewsletter, "id" | "created_at" | "updated_at">
-  ): Promise<ScratchPadNewsletter> =>
-    axiosInstance
-      .post(endpoints.content.scratchPad.admin.base, data)
-      .then((res) => res.data),
-
-  update: (
-    id: string,
-    data: Partial<
-      Omit<ScratchPadNewsletter, "id" | "created_at" | "updated_at">
-    >
-  ): Promise<ScratchPadNewsletter> =>
-    axiosInstance
-      .put(endpoints.content.scratchPad.admin.byId(id), data)
-      .then((res) => res.data),
-
-  delete: (id: string): Promise<{ message: string }> =>
-    axiosInstance
-      .delete(endpoints.content.scratchPad.admin.byId(id))
-      .then((res) => res.data),
-};
-
 export const webinarApi = {
   // Public APIs
   getAll: (): Promise<Webinar[]> =>

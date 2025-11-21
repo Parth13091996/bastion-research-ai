@@ -1,7 +1,6 @@
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { deleteJob, getJobs } from "@/api/jobs-api";
 import { Briefcase, Users, MapPin, Home, Trash2 } from "lucide-react";
 import { useModalStore } from "@/stores/modal-store";
 import { toast } from "sonner";
@@ -11,13 +10,11 @@ const JobOpenings = () => {
   const queryClient = useQueryClient();
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["jobs"],
-    queryFn: () =>
-      axiosInstance.get(endpoints.jobs.base).then((res) => res.data),
+    queryFn: () => getJobs(),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number | string) =>
-      axiosInstance.delete(endpoints.jobs.byId(id)),
+    mutationFn: (id: number | string) => deleteJob(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job deleted successfully");
@@ -162,7 +159,7 @@ const JobOpenings = () => {
         try {
           await Promise.all(
             selected.map((job) =>
-              axiosInstance.delete(endpoints.jobs.byId(job.job_id))
+              deleteJob(job.job_id)
             )
           );
           queryClient.invalidateQueries({ queryKey: ["jobs"] });

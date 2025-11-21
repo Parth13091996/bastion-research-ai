@@ -3,12 +3,11 @@ import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import axiosInstance from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppRoutes } from "@/routes/app-routes";
 import { motion } from "framer-motion";
-import { endpoints } from "@/api/endpoints";
+import { resetPassword } from "@/api/auth-api";
 
 const schema = z
   .object({
@@ -36,7 +35,7 @@ const ResetPassword = () => {
   const onSubmit = async (data: FormValues) => {
     setServerError(null);
     try {
-      await axiosInstance.post(endpoints.auth.resetPassword, {
+      await resetPassword({
         token,
         password: data.password,
       });

@@ -8,13 +8,12 @@ import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import axiosInstance from "@/api/axios";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import { endpoints } from "@/api/endpoints";
 import favicon from "../../../../server/public/favicon.webp";
 import { AppRoutes } from "@/routes/app-routes";
 import ActionableAccountableBastion from "@/components/ActionableAccountableBastion";
+import { sendEmailOtp, signIn } from "@/api/auth-api";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -41,8 +40,7 @@ const Login = () => {
   });
 
   const mutation = useMutation<any, Error, LoginFormValues>({
-    mutationFn: (data) =>
-      axiosInstance.post(endpoints.auth.signin, data).then((res) => res.data),
+    mutationFn: (data) => signIn(data),
     onSuccess: (data) => {
       login(data.user);
       const shouldResumeOnboarding = data?.user?.status === "onboarding";
@@ -64,8 +62,7 @@ const Login = () => {
   });
 
   const sendOtpMutation = useMutation({
-    mutationFn: (email: string) =>
-      axiosInstance.post(endpoints.otp.sendEmail, { email }),
+    mutationFn: (email: string) => sendEmailOtp(email),
     onSuccess: () => {
       toast.success("OTP sent to your email!");
       setOtpSent(true);

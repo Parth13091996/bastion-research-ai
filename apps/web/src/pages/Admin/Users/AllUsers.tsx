@@ -1,7 +1,6 @@
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { deleteUserById, getUsers, updateUserById } from "@/api/users-api";
 import { Trash2, Mail, Shield, User } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { useModalStore } from "@/stores/modal-store";
@@ -47,13 +46,12 @@ const AllUsers = () => {
   const queryClient = useQueryClient();
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["users"],
-    queryFn: () =>
-      axiosInstance.get(endpoints.users.base).then((res) => res.data),
+    queryFn: () => getUsers(),
   });
 
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) =>
-      axiosInstance.put(endpoints.users.byId(payload.id), payload.body),
+      updateUserById(payload.id, payload.body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User updated successfully");
@@ -61,7 +59,7 @@ const AllUsers = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => axiosInstance.delete(endpoints.users.byId(id)),
+    mutationFn: (id: string) => deleteUserById(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User deleted successfully");
@@ -169,7 +167,7 @@ const AllUsers = () => {
       confirmText: "Delete",
       cancelText: "Cancel",
       tone: "danger",
-      onConfirm: () => {
+          onConfirm: () => {
         deleteMutation.mutate(row.id);
         setModalOpen("confirm", false);
         setModalProps("confirm", undefined);
@@ -195,7 +193,7 @@ const AllUsers = () => {
         try {
           await Promise.all(
             selected.map((user) =>
-              axiosInstance.delete(endpoints.users.byId(user.id))
+              deleteUserById(user.id)
             )
           );
           queryClient.invalidateQueries({ queryKey: ["users"] });

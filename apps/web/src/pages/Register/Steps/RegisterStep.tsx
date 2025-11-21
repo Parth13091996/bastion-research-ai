@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { sendOtp } from "@/api/onboarding-apis";
 import { Eye, EyeOff } from "lucide-react";
 
 const RegisterStep: React.FC<RegisterStepProps> = ({
@@ -41,13 +40,11 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     setIsLoading(true);
     try {
       // Data is already updated in the session via useEffect
-      await axiosInstance.post(endpoints.otp.send, {
-        phone: "+91" + formData.phone,
-      });
+      await sendOtp("+91" + formData.phone);
       nextStep();
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || "An unexpected error occurred.";
+        err?.response?.data?.message || err?.message || "An unexpected error occurred.";
       setError(errorMessage);
       console.error(err);
     } finally {

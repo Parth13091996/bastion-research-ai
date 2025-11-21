@@ -1,8 +1,12 @@
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import {
+  createApplication,
+  deleteApplication,
+  getApplications,
+  updateApplication,
+} from "@/api/applications-api";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +21,8 @@ const Applications = () => {
   const { data: rowData, isLoading } = useQuery({
     queryKey: [queryKeys.applications],
     queryFn: async () => {
-      const response = await axiosInstance.get(endpoints.applications.base);
-      return response.data.map(({ job_openings, ...rest }) => ({
+      const response = await getApplications();
+      return response.map(({ job_openings, ...rest }: any) => ({
         ...rest,
         job_title: job_openings.job_title,
       }));
@@ -38,7 +42,7 @@ const Applications = () => {
 
   const createMutation = useMutation({
     mutationFn: () =>
-      axiosInstance.post(endpoints.applications.base, {
+      createApplication({
         job_id: Number(form.job_id),
         applicant_name: form.applicant_name,
         email: form.email,
@@ -64,14 +68,13 @@ const Applications = () => {
 
   const updateMutation = useMutation({
     mutationFn: (payload: any) =>
-      axiosInstance.put(endpoints.applications.byId(payload.id), payload.body),
+      updateApplication(payload.id, payload.body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["applications"] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number | string) =>
-      axiosInstance.delete(endpoints.applications.byId(id)),
+    mutationFn: (id: number | string) => deleteApplication(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["applications"] }),
   });

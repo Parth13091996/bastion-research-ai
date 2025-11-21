@@ -1,5 +1,5 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { uploadDigioEsignJson, updateUser } from "@/api/onboarding-apis";
+import { getPublicSettings } from "@/api/settings-api";
 import { useAuth } from "@/contexts/AuthContext";
 import useDigioSdk from "@/hooks/use-digio-sdk";
 import { getUserInfoToShowInPdf } from "@/utils";
@@ -16,8 +16,6 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
   onNext,
   formData,
 }) => {
-  const pdfUrl =
-    "https://ftuuyfhfrhvlllfwfbjx.supabase.co/storage/v1/object/public/system_docs/terms-and-condition-client-agreement.pdf";
   const [error, setError] = useState<string | null>(null);
   const [pdfUrlWithAddress, setPdfUrlWithAddress] = useState("");
   const [isEsignSubmitting, setIsEsignSubmitting] = useState(false);
@@ -47,7 +45,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
           response?.digio_doc_id &&
           response?.message === "Signed Successfully"
         ) {
-          await axiosInstance.put(endpoints.users.update(user?.id), {
+          await updateUser(user?.id, {
             status: "agreement_signed",
           });
           updateFormData("agreementSignedAt", new Date().toISOString());
@@ -60,8 +58,9 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
   useEffect(() => {
     (async () => {
+      const response = await getPublicSettings();
       const base64Value = await handlePersonalizedPdf(
-        pdfUrl,
+        response?.agreement_file_url,
         getUserInfoToShowInPdf(formData)
       );
       const pdfDataUrl = `data:application/pdf;base64,${base64Value}`;
@@ -82,7 +81,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
     try {
       setIsEsignSubmitting(true);
       initDigio();
-      const resp = await axiosInstance.post(endpoints.digio.esignUploadJson, {
+      const resp = await uploadDigioEsignJson({
         file_data: pdfUrlWithAddress,
         file_name: Config.agreement_file_name(formData),
         will_self_sign: true,
@@ -96,7 +95,9 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
       });
 
       const _documentId =
-        resp?.data?.data?.id || resp?.data?.data?.document_id || resp?.data?.id;
+        (resp as any)?.data?.id ||
+        (resp as any)?.data?.document_id ||
+        (resp as any)?.id;
       if (!_documentId) {
         throw new Error("Failed to create e-sign request (no document id)");
       }

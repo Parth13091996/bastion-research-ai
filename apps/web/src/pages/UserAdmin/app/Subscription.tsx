@@ -1,5 +1,4 @@
 import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
 import Modal from "@/components/core/Modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,7 @@ const Subscription = () => {
       setIsPlansLoading(true);
       setError(null);
       try {
-        const res = await axiosInstance.get(endpoints.cashfree.plans);
+        const res = await axiosInstance.get("/api/cashfree/plans");
         const apiPlans: ApiPlan[] = res.data?.plans || [];
         setPlans(apiPlans);
       } catch (e: any) {
@@ -149,7 +148,7 @@ const Subscription = () => {
     setKycError(null);
     try {
       const verificationResponse = await axiosInstance.post(
-        endpoints.cashfreeVerification.verifyPan,
+        "/api/cashfree/verification/pan",
         {
           pan,
           name: fullName,
@@ -178,7 +177,7 @@ const Subscription = () => {
 
       toast.success("PAN verified successfully");
 
-      await axiosInstance.put(endpoints.users.byId(user.id), {
+      await axiosInstance.put(`/api/users/${user.id}`, {
         pan_card_number: pan,
       });
       setUpgradeForm((prev) => ({ ...prev, panCard: pan }));
@@ -257,7 +256,7 @@ const Subscription = () => {
     try {
       setCheckingOut(selectedPlan.code);
       const resp = await loader.withLoader(
-        axiosInstance.post(endpoints.cashfree.orders, {
+        axiosInstance.post("/api/cashfree/orders", {
           plan: selectedPlan.code,
           customer_id: user.id,
           customer_email: user.email,

@@ -1,14 +1,6 @@
-import * as Dialog from "@radix-ui/react-dialog";
-import { X, Upload, Plus, Trash2, Edit2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import axiosInstance from "../../../../api/axios";
-import { endpoints } from "@/api/endpoints";
+import { uploadFile } from "@/api/files-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -17,12 +9,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as Dialog from "@radix-ui/react-dialog";
+import { Edit2, Plus, Trash2, Upload, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import * as z from "zod";
+import axiosInstance from "../../../../api/axios";
+// --- Patch for Radix Select & Dialog stacking issue ---
 import {
   Select,
-  SelectItem,
   SelectContent,
   SelectGroup,
+  SelectItem,
   SelectLabel,
   SelectTrigger,
   SelectValue,
@@ -172,13 +173,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         "dir",
         `recommendations/${companySymbol}/quarterly_updates`
       );
-      const response = await axiosInstance.post(
-        endpoints.files.upload,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await uploadFile(formData);
       // Set the url to quarterly update item
       const newUpdates = [...quarterlyUpdates];
       newUpdates[index] = { ...newUpdates[index], pdf_url: response.data.url };
@@ -212,13 +207,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         "dir",
         `recommendations/${companySymbol}/announcements_and_update`
       );
-      const response = await axiosInstance.post(
-        endpoints.files.upload,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await uploadFile(formData);
       // Set the url to announcement item
       const newAnnouncements = [...announcements];
       newAnnouncements[index] = {
@@ -637,14 +626,17 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   <Select
                     onValueChange={handleTagsChange}
                     value={watch("tags")}
-                    defaultValue={record.tags}
                   >
                     <SelectTrigger
                       className={`w-[180px] ${localError.tags || errors.tags ? "border-red-500" : ""}`}
                     >
                       <SelectValue placeholder="Select a tag" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      side="bottom"
+                      sideOffset={4}
+                      style={{ zIndex: 1000001 }}
+                    >
                       <SelectGroup>
                         <SelectLabel>Select a Tag</SelectLabel>
                         {TAG_OPTIONS.map((item) => (

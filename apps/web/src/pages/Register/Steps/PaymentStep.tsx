@@ -1,5 +1,8 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import {
+  createCashfreeOrder,
+  updateUser,
+  validateCoupon as apiValidateCoupon,
+} from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
 import { Config } from "@/utils/config";
 import { load } from "@cashfreepayments/cashfree-js";
@@ -70,17 +73,14 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     setCouponError("");
 
     try {
-      const response = await axiosInstance.get(
-        `${endpoints.coupons.base}/validate?code=${couponCode.trim()}`
-      );
-      const coupon = response.data;
-
+      const coupon = await apiValidateCoupon(couponCode.trim());
       setAppliedCoupon(coupon);
       setCouponError("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Coupon validation error:", error);
       const errorMessage =
-        error.response?.data?.error ||
+        error?.response?.data?.error ||
+        error?.message ||
         "Failed to validate coupon. Please try again.";
       setCouponError(errorMessage);
     } finally {
@@ -111,12 +111,12 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         const userId = user?.id || formData.email;
         const planCode = selectedPlanDetails?.code || "1";
 
-        await axiosInstance.put(endpoints.users.update(userId), {
+        await updateUser(userId, {
           status: "active",
           plan_id: planCode,
         });
 
-        await axiosInstance.post(endpoints.cashfree.orders, {
+        await createCashfreeOrder({
           plan: formData.selectedPlan,
           customer_id: userId,
           customer_email: formData.email,
@@ -131,24 +131,21 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         return;
       }
 
-      const orderResponse = await axiosInstance.post(
-        endpoints.cashfree.orders,
-        {
-          plan: formData.selectedPlan,
-          customer_id: user?.id || formData.firstName + "_" + formData.lastName,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
-          source: "register",
-          coupon_code: appliedCoupon?.coupon_code || null,
-          discount_amount: finalAmount,
-          metadata: {
-            panReference: formData.panVerification?.referenceId || null,
-            panStatus: formData.panVerification?.status || null,
-          },
-        }
-      );
+      const orderResponse = await createCashfreeOrder({
+        plan: formData.selectedPlan,
+        customer_id: user?.id || formData.firstName + "_" + formData.lastName,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        source: "register",
+        coupon_code: appliedCoupon?.coupon_code || null,
+        discount_amount: finalAmount,
+        metadata: {
+          panReference: formData.panVerification?.referenceId || null,
+          panStatus: formData.panVerification?.status || null,
+        },
+      });
 
-      const { payment_session_id } = orderResponse.data.order;
+      const { payment_session_id } = (orderResponse as any).order;
 
       const cashfree = await load({ mode: Config.cashfree_environment });
       await cashfree.checkout({

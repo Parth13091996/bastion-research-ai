@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,7 +100,7 @@ const EditProfile = () => {
       if (!user?.id) throw new Error("User not loaded");
       // Send only provided fields; backend already whitelists
       const res = await axiosInstance.put(
-        endpoints.users.byId(user.id),
+        `/api/users/${user.id}`,
         payload
       );
       return res.data;

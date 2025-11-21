@@ -3,8 +3,7 @@ import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { getMyPaymentHistory } from "@/api/membership-api";
 import { useAuth } from "@/contexts/AuthContext";
 
 type PaymentRow = {
@@ -68,8 +67,8 @@ const TransactionHistory: React.FC = () => {
   const { data, isLoading, isError } = useQuery<PaymentRow[]>({
     queryKey: ["my-payment-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get(endpoints.paymentHistory.me);
-      return res.data as PaymentRow[];
+      const res = await getMyPaymentHistory();
+      return res as PaymentRow[];
     },
     enabled: isAuthenticated, // Only fetch when authenticated
   });

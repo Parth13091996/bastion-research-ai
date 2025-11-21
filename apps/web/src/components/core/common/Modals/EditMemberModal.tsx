@@ -4,12 +4,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "../../../../api/axios";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { useEffect } from "react";
 import { useEditMemberStore } from "@/stores/edit-member-store";
-import { endpoints } from "@/api/endpoints";
+import { updateUserById } from "@/api/users-api";
 
 const editMemberSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -86,7 +85,7 @@ const EditMemberModal = () => {
   const mutation = useMutation({
     mutationFn: (values: EditMemberValues) => {
       if (!member?.id) return Promise.reject(new Error("Missing member id"));
-      return axiosInstance.put(endpoints.users.byId(member.id), values);
+      return updateUserById(member.id, values);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

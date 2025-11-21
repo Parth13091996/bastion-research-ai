@@ -2,8 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, Edit, Trash2, Plus } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import {
+  createCoupon,
+  deleteCoupon,
+  getCoupons,
+  updateCoupon,
+} from "@/api/coupons-api";
 import { confirm, confirmDelete } from "@/utils/confirm";
 import Modal from "@/components/core/Modal";
 
@@ -76,8 +80,8 @@ const CouponsManagement = () => {
   });
 
   const load = async () => {
-    const { data } = await axiosInstance.get(endpoints.coupons.base);
-    const arr = (data || []) as ApiCoupon[];
+    const data = (await getCoupons()) as ApiCoupon[];
+    const arr = data || [];
     setRows(arr.map(mapToRow));
   };
   useEffect(() => {
@@ -148,12 +152,9 @@ const CouponsManagement = () => {
           : Number(form.max_uses),
     } as any;
     if (editing?.coupon_id) {
-      await axiosInstance.put(
-        `${endpoints.coupons.base}/${editing.coupon_id}`,
-        payload
-      );
+      await updateCoupon(editing.coupon_id, payload);
     } else {
-      await axiosInstance.post(endpoints.coupons.base, payload);
+      await createCoupon(payload);
     }
     setModalOpen(false);
     await load();
@@ -161,7 +162,7 @@ const CouponsManagement = () => {
   const onDelete = async (r: RowCoupon) => {
     const ok = await confirmDelete(r.code);
     if (!ok) return;
-    await axiosInstance.delete(`${endpoints.coupons.base}/${r.id}`);
+    await deleteCoupon(r.id);
     await load();
   };
 
@@ -265,15 +266,13 @@ const CouponsManagement = () => {
       if (!ok) return;
       await Promise.all(
         selectedIds.map((id) =>
-          axiosInstance.delete(`${endpoints.coupons.base}/${id}`)
+          deleteCoupon(id)
         )
       );
     } else {
       await Promise.all(
         selectedIds.map((id) =>
-          axiosInstance.put(`${endpoints.coupons.base}/${id}`, {
-            active: action === "activate",
-          })
+          updateCoupon(id, { active: action === "activate" })
         )
       );
     }

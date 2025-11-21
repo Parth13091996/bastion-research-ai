@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { sendContactMessage } from "@/api/contact-api";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -42,7 +41,7 @@ export default function ContactPage() {
     }
     try {
       setSubmitting(true);
-      await axiosInstance.post(endpoints.contact.send, {
+      await sendContactMessage({
         name: form.name,
         email: form.email,
         phone: form.phone,

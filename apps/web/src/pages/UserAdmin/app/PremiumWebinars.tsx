@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { webinarApi } from "@/api/content";
 import { queryKeys } from "@/api/queryKeys";
 import BackgroundShapes from "@/components/generic/framer-motion";
 import { useLoader } from "@/hooks/use-loader";
@@ -30,10 +29,7 @@ export default function PremiumWebinarsPage() {
 
   const { data: rowData = [], isLoading: loading } = useQuery({
     queryKey: [queryKeys.webinars],
-    queryFn: () =>
-      axiosInstance
-        .get(endpoints.content.webinars.base)
-        .then((res) => res.data),
+    queryFn: () => webinarApi.getAll(),
   });
 
   const { start, stop } = useLoader();

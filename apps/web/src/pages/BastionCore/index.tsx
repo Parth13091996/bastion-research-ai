@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
 import SignUpForm from "../Register/SignupForm.tsx";
 
 // Brand Colors
@@ -88,7 +87,7 @@ export default function BastionCoreProductPage() {
     (async () => {
       try {
         setPlansLoading(true);
-        const res = await axiosInstance.get(endpoints.cashfree.plans);
+        const res = await axiosInstance.get("/api/cashfree/plans");
         setPlans(res.data?.plans || []);
       } catch (e: any) {
         setPlansError(e?.response?.data?.message || "Failed to load plans");

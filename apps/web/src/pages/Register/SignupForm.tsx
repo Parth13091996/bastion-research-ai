@@ -1,6 +1,5 @@
 import { Check, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../../api/axios";
 import AgreementStep from "./Steps/AgreementStep";
 import KYCStep from "./Steps/KYCStep";
 import OnboardStep from "./Steps/OnboardingStep";
@@ -8,7 +7,7 @@ import PaymentStep from "./Steps/PaymentStep";
 import PlansStep from "./Steps/PlansStep";
 import RegisterStep from "./Steps/RegisterStep";
 import VerifyStep from "./Steps/VerifyStep";
-import { endpoints } from "@/api/endpoints";
+import { fetchPlans } from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
 import favicon from "../../../../server/public/favicon.webp";
 
@@ -125,21 +124,24 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   }, [plans.length]);
 
   useEffect(() => {
-    const fetchPlans = async () => {
+    const loadPlans = async () => {
       if (currentStep >= 5) {
         setIsLoading(true);
         try {
-          const response = await axiosInstance.get(endpoints.cashfree.plans);
-          const apiPlans: Plan[] = response.data.plans || [];
+          const apiPlans: Plan[] = await fetchPlans();
           setPlans(apiPlans);
         } catch (err: any) {
-          setError(err.response?.data?.message || "Failed to fetch plans.");
+          setError(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Failed to fetch plans."
+          );
         } finally {
           setIsLoading(false);
         }
       }
     };
-    fetchPlans();
+    loadPlans();
   }, [currentStep]);
 
   // ✅ Auto-scroll mobile step bar when step changes

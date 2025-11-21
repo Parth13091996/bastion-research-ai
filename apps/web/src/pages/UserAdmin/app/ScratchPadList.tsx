@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, User, ArrowRight, Search } from "lucide-react";
-import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad";
+import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad-api";
 import { toast } from "sonner";
 import { Eye } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -103,7 +103,6 @@ const ScratchPadList: React.FC = () => {
               className="bg-card text-card-foreground overflow-hidden bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer border border-gray-100 w-full sm:w-[95%] md:w-[90%] lg:w-[100%] xl:w-[95%] max-w-sm mx-auto h-[330px] flex flex-col justify-between"
               onClick={() => handleRead(newsletter.id)}
             >
-
               {/* Image */}
               {newsletter.featured_image && (
                 <div className="aspect-[4/3] w-full overflow-hidden">

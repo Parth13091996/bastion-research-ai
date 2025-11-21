@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../../../api/axios";
-import { endpoints } from "@/api/endpoints";
+import { uploadFile } from "@/api/files-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -126,9 +126,7 @@ const AddRecommendationModal: React.FC<AddRecommendationModalProps> = ({
       formData.append("category", "pdf");
       formData.append("dir", `recommendations/${symbol}/quarterly_updates`);
 
-      const response = await axiosInstance.post(endpoints.files.upload, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await uploadFile(formData);
 
       setQuarterlyUpdates((prev) => {
         const updated = [...prev];
@@ -155,10 +153,7 @@ const AddRecommendationModal: React.FC<AddRecommendationModalProps> = ({
       formData.append("fileName", `announcement_pdf_${index}`);
       formData.append("category", "pdf");
       formData.append("dir", `recommendations/${symbol}/announcements_and_update`);
-
-      const response = await axiosInstance.post(endpoints.files.upload, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await uploadFile(formData);
 
       setAnnouncements((prev) => {
         const updated = [...prev];

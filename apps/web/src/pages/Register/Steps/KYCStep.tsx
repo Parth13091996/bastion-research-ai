@@ -6,8 +6,11 @@ import {
   Loader2,
   RefreshCcw,
 } from "lucide-react";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import {
+  getPanStatus,
+  startOnboarding,
+  verifyPan as apiVerifyPan,
+} from "@/api/onboarding-apis";
 import { toast } from "sonner";
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -51,15 +54,10 @@ const KYCStep: React.FC<KYCStepProps> = ({
 
     setIsVerifying(true);
     try {
-      const response = await axiosInstance.post(
-        endpoints.cashfreeVerification.verifyPan,
-        {
-          pan,
-          name: formData.firstName + " " + formData.lastName,
-        }
-      );
-
-      const data = response?.data || {};
+      const data = await apiVerifyPan({
+        pan,
+        name: formData.firstName + " " + formData.lastName,
+      });
       const result: PanVerificationSummary = {
         referenceId: data.referenceId,
         valid: Boolean(data.valid),
@@ -104,10 +102,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
     setError(null);
     setIsCheckingStatus(true);
     try {
-      const response = await axiosInstance.get(
-        endpoints.cashfreeVerification.panStatus(verification.referenceId)
-      );
-      const data = response?.data || {};
+      const data = await getPanStatus(verification.referenceId);
       const result: PanVerificationSummary = {
         referenceId: data.referenceId ?? verification.referenceId,
         valid: Boolean(data.valid),
@@ -155,7 +150,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
 
     setLoading(true);
     try {
-      await axiosInstance.post(endpoints.auth.onboardStart, {
+      await startOnboarding({
         email: formData.email,
         phone: formData.phone,
         password: formData.password,

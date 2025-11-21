@@ -2,8 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Search, MapPin, Clock, Home } from "lucide-react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { useQuery } from "@tanstack/react-query";
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { getJobs } from "@/api/jobs-api";
 
 const CareerPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -12,7 +11,7 @@ const CareerPage = () => {
 
   const { data: jobs, isLoading } = useQuery({
     queryKey: ["public-jobs"],
-    queryFn: () => axiosInstance.get(endpoints.jobs.base).then((r) => r.data),
+    queryFn: () => getJobs(),
   });
 
   // Filtering Logic

@@ -3,14 +3,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import axiosInstance from "@/api/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { endpoints } from "@/api/endpoints";
+import { updateUserById } from "@/api/users-api";
 
 const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -84,11 +83,7 @@ const Profile = () => {
   const mutation = useMutation({
     mutationFn: async (payload: ProfileFormValues) => {
       if (!user?.id) throw new Error("User not loaded");
-      const res = await axiosInstance.put(
-        endpoints.users.byId(user.id),
-        payload
-      );
-      return res.data;
+      return updateUserById(user.id, payload);
     },
     onSuccess: async () => {
       toast.success("Profile updated successfully");

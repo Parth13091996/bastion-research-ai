@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { deleteUserById, getUsers, updateUserById } from "@/api/users-api";
 import { queryKeys } from "@/api/queryKeys";
 import { UserActivityDropdown } from "@/components/admin/UserActivityDropdown";
 import { Button } from "@/components/ui/button";
@@ -75,8 +74,7 @@ const MemberManagementDashboard = () => {
     error,
   } = useQuery({
     queryKey: [queryKeys.users],
-    queryFn: () =>
-      axiosInstance.get(endpoints.users.base).then((res) => res.data),
+    queryFn: () => getUsers(),
   });
 
   // Fetch per-user activity summary for analytics (login count, pageviews, recs)
@@ -114,13 +112,13 @@ const MemberManagementDashboard = () => {
 
   const updateMutation = useMutation({
     mutationFn: (payload: { id: string; body: any }) =>
-      axiosInstance.put(endpoints.users.byId(payload.id), payload.body),
+      updateUserById(payload.id, payload.body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => axiosInstance.delete(endpoints.users.byId(id)),
+    mutationFn: (id: string) => deleteUserById(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] }),
   });
@@ -249,7 +247,7 @@ const MemberManagementDashboard = () => {
         try {
           await Promise.all(
             selected.map((member) =>
-              axiosInstance.delete(endpoints.users.byId(member.id))
+              deleteUserById(member.id)
             )
           );
           queryClient.invalidateQueries({ queryKey: ["users"] });

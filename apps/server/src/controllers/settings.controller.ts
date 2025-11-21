@@ -8,6 +8,7 @@ type Settings = {
   allow_user_registrations?: boolean;
   recommendation_sheet_url?: string; // Admin recommendations list
   live_recommendation_sheet_url?: string; // Dashboard live recommendations
+  agreement_file_url?: string;
 };
 
 const TABLE = "settings";
@@ -38,6 +39,7 @@ export async function getPublicSettings(req: Request, res: Response) {
       site_name: data.site_name || "Admin Dashboard",
       maintenance_mode: !!data.maintenance_mode,
       allow_user_registrations: !!data.allow_user_registrations,
+      agreement_file_url: data?.agreement_file_url,
     };
     return res.status(200).json(pub);
   } catch (e: any) {

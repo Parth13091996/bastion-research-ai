@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { getSession, logoutUser } from "@/api/auth-api";
 import { queryKeys } from "@/api/queryKeys";
 import { Config } from "@/utils/config";
 import { User } from "@repo/types";
@@ -26,7 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     refetch,
   } = useQuery({
     queryKey: [queryKeys.auth_session],
-    queryFn: async () => (await axiosInstance.get(endpoints.auth.session)).data,
+    queryFn: async () => getSession(),
     staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
     gcTime: 60 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
     refetchOnWindowFocus: false,
@@ -44,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refetchUserAfterAgreement = async () => {
-    const data = (await axiosInstance.get(endpoints.auth.session)).data;
+    const data = await getSession();
     setUser(data?.user);
     return data?.user;
   };
@@ -57,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      const response = await axiosInstance.post(endpoints.auth.logout);
+      const response = await logoutUser();
       await refetch();
       toast.success(response?.data?.message || "Logged out successfully");
     } catch (error) {

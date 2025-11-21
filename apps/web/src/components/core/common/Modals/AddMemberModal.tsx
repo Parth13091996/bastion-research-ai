@@ -4,11 +4,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axiosInstance from "../../../../api/axios";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { useModalStore } from "@/stores/modal-store";
-import { endpoints } from "@/api/endpoints";
+import { createUser } from "@/api/users-api";
 
 // Zod schema updated based on DB schema
 const memberSchema = z
@@ -56,7 +55,7 @@ const AddMemberModal = () => {
 
   const mutation = useMutation({
     mutationFn: (newMember: MemberFormValues) => {
-      return axiosInstance.post(endpoints.users.base, newMember);
+      return createUser(newMember);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { createCashfreeOrder, updateUser } from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { useEffect } from "react";
@@ -22,12 +21,12 @@ const PlansStep: React.FC<PlansStepProps> = ({
     if (isFree) {
       const userId = user?.id || formData.email;
       const planCode = selectedPlanDetails?.code || "1";
-      await axiosInstance.put(endpoints.users.update(userId), {
+      await updateUser(userId, {
         status: "active",
         plan_id: planCode,
       });
 
-      await axiosInstance.post(endpoints.cashfree.orders, {
+      await createCashfreeOrder({
         plan: formData.selectedPlan,
         customer_id: userId,
         customer_email: formData.email,

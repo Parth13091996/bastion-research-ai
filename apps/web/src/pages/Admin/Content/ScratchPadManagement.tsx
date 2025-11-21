@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, RefreshCw, Edit, Trash2, Eye, Calendar } from "lucide-react";
-import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad";
+import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad-api";
 import { toast } from "sonner";
 import {
   AlertDialog,

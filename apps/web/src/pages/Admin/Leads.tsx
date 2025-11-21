@@ -1,5 +1,4 @@
-import axiosInstance from "@/api/axios";
-import { endpoints } from "@/api/endpoints";
+import { deleteLead, getLeads, updateLead } from "@/api/leads-api";
 import { queryKeys } from "@/api/queryKeys";
 import { DataTable } from "@/components/ui/data-table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,18 +23,18 @@ const LeadsPage = () => {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: [queryKeys.leads],
-    queryFn: async () => (await axiosInstance.get(endpoints.leads.base)).data,
+    queryFn: async () => getLeads(),
   });
 
   const updateMutation = useMutation({
     mutationFn: (payload: { id: number; body: Partial<Lead> }) =>
-      axiosInstance.put(endpoints.leads.byId(payload.id), payload.body),
+      updateLead(payload.id, payload.body),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.leads] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => axiosInstance.delete(endpoints.leads.byId(id)),
+    mutationFn: (id: number) => deleteLead(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [queryKeys.leads] }),
   });

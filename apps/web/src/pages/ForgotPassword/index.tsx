@@ -3,12 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import axiosInstance from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppRoutes } from "@/routes/app-routes";
 import { motion } from "framer-motion";
-import { endpoints } from "@/api/endpoints";
+import { sendForgotPassword } from "@/api/auth-api";
 
 const schema = z.object({ email: z.string().email() });
 type FormValues = z.infer<typeof schema>;
@@ -25,10 +24,7 @@ const ForgotPassword = () => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      const response = await axiosInstance.post(
-        endpoints.auth.forgotPassword,
-        data
-      );
+      const response = await sendForgotPassword(data.email);
       if (response?.data?.sentStatus === "failed") {
         setError(response?.data?.message || "Mail sending failed");
       }

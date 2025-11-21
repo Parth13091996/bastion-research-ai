@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, User, Share2 } from "lucide-react";
-import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad";
+import { scratchPadApi, ScratchPadNewsletter } from "@/api/scratchpad-api";
 import { toast } from "sonner";
 
 const ScratchPadView: React.FC = () => {
