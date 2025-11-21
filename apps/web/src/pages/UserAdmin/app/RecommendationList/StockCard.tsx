@@ -1,12 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { COLORS, getBandColor, getTextColor } from "./utils";
 import { userCompanyAnalytics } from "@/api/recommendations-apis";
 import { useAuth } from "@/contexts/AuthContext";
+import PricingDialogModal from "@/components/core/common/Modals/PricingDialogModal";
+import { useNavigate } from "react-router-dom";
 
 const StockCard = ({ stock }: { stock: StockData }) => {
   const { user } = useAuth();
+  const isFreemium = user?.membership_plans?.plan_code === "freemium";
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const navigate = useNavigate();
 
   // Percent when CMP > Entry
   const gainPercent = Math.min(
@@ -19,6 +24,15 @@ const StockCard = ({ stock }: { stock: StockData }) => {
     ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
     100
   );
+
+  // Blur utility style
+  const blurStyle = isFreemium
+    ? ({
+        filter: "blur(7px)",
+        userSelect: "none",
+        pointerEvents: "none",
+      } as any)
+    : (undefined as any);
 
   return (
     <div
@@ -54,7 +68,10 @@ const StockCard = ({ stock }: { stock: StockData }) => {
         )}
 
         <div className="ml-4 flex-1 text-gray-900">
-          <h3 className="font-semibold text-base leading-tight">
+          <h3
+            className="font-semibold text-base leading-tight"
+            style={blurStyle}
+          >
             {stock.name}
           </h3>
           <p className="text-xs text-gray-600 mt-1">
@@ -92,10 +109,12 @@ const StockCard = ({ stock }: { stock: StockData }) => {
       </div>
 
       {/* Progress Bar */}
-      <div className="p-4 mx-4 mb-4 rounded-lg border" style={{ backgroundColor: COLORS.lightGray }}>
-        <div className="mb-3 relative" style={{ paddingTop: "20px", paddingBottom: "20px" }}>
+      <div className="p-4 mx-4 mb-4 rounded-lg border">
+        <div
+          className="mb-3 relative"
+          style={{ paddingTop: "20px", paddingBottom: "20px" }}
+        >
           <div className="relative w-full h-4 bg-gray-300 rounded-full flex items-center">
-
             {/* -------- CMP > ENTRY -------- */}
             {stock.cmp >= stock.entryPrice && (
               <>
@@ -112,7 +131,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                 {/* Entry Price (left) */}
                 <div className="absolute top-6 left-0 flex flex-col text-xs text-gray-500">
                   <span className="flex flex-col items-center justify-center">
-                    <span>₹{stock.entryPrice}</span>
+                    <span style={blurStyle}>₹{stock.entryPrice}</span>
                     <span>Entry Price</span>
                   </span>
                 </div>
@@ -127,14 +146,14 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                 >
                   <span className="flex flex-col items-center justify-center">
                     <span>CMP</span>
-                    <span>₹{stock.cmp}</span>
+                    <span style={blurStyle}>₹{stock.cmp}</span>
                   </span>
                 </div>
 
                 {/* Target Price (right) */}
                 <div className="absolute top-6 right-0 flex flex-col text-xs text-gray-500">
                   <span className="flex flex-col items-center justify-center">
-                    <span>₹{stock.target1}</span>
+                    <span style={blurStyle}>₹{stock.target1}</span>
                     <span>Target Price</span>
                   </span>
                 </div>
@@ -164,7 +183,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                 >
                   <span className="flex flex-col items-center justify-center">
                     <span>CMP</span>
-                    <span>₹{stock.cmp}</span>
+                    <span style={blurStyle}>₹{stock.cmp}</span>
                   </span>
                 </div>
 
@@ -177,7 +196,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                   }}
                 >
                   <span className="flex flex-col items-center justify-center">
-                    <span>₹{stock.entryPrice}</span>
+                    <span style={blurStyle}>₹{stock.entryPrice}</span>
                     <span>Entry Price</span>
                   </span>
                 </div>
@@ -185,7 +204,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
                 {/* Target Price fixed right */}
                 <div className="absolute top-6 right-0 flex flex-col text-xs text-gray-500">
                   <span className="flex flex-col items-center justify-center">
-                    <span>₹{stock.target1}</span>
+                    <span style={blurStyle}>₹{stock.target1}</span>
                     <span>Target Price</span>
                   </span>
                 </div>
@@ -197,35 +216,40 @@ const StockCard = ({ stock }: { stock: StockData }) => {
 
       {/* View Research Button */}
       <div className="px-4 pb-4">
-        <Link
-          to={`/user/app/view-research/${stock.code}`}
+        <Button
+          variant="outline"
+          className="w-full text-sm py-2 font-semibold relative overflow-hidden"
+          style={{
+            borderColor: COLORS.lightGray,
+            color: COLORS.white,
+            background: `linear-gradient(90deg, ${COLORS.deepBlue} 0%, ${COLORS.red} 100%)`,
+            boxShadow: "0 6px 18px rgba(28,40,82,0.06)",
+            borderRadius: 8,
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.boxShadow = "0 10px 26px rgba(28,40,82,0.12)";
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget as HTMLButtonElement;
+            el.style.boxShadow = "0 6px 18px rgba(28,40,82,0.06)";
+          }}
           onClick={() => {
-            userCompanyAnalytics(stock.code, user?.id);
+            if (isFreemium) {
+              setShowPricingModal(true);
+            } else {
+              userCompanyAnalytics(stock.code, user?.id);
+              navigate(`/user/app/view-research/${stock.code}`);
+            }
           }}
         >
-          <Button
-            variant="outline"
-            className="w-full text-sm py-2 font-semibold relative overflow-hidden"
-            style={{
-              borderColor: COLORS.lightGray,
-              color: COLORS.white,
-              background: `linear-gradient(90deg, ${COLORS.deepBlue} 0%, ${COLORS.red} 100%)`,
-              boxShadow: "0 6px 18px rgba(28,40,82,0.06)",
-              borderRadius: 8,
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.boxShadow = "0 10px 26px rgba(28,40,82,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.boxShadow = "0 6px 18px rgba(28,40,82,0.06)";
-            }}
-          >
-            <Eye className="h-4 w-4 mr-2 inline-block" />
-            View Research
-          </Button>
-        </Link>
+          <Eye className="h-4 w-4 mr-2 inline-block" />
+          View Research
+        </Button>
+        <PricingDialogModal
+          showPricing={showPricingModal}
+          setShowPricing={setShowPricingModal}
+        />
       </div>
     </div>
   );

@@ -68,9 +68,11 @@ import { useEditorStore } from "@/stores/editor-store";
 const CustomParagraph = Paragraph.extend({
   renderHTML({ node, HTMLAttributes }) {
     if (node.content.size === 0) {
+      // "Empty" paragraph: show <p><br></p>
       return ["p", HTMLAttributes, ["br"]];
     }
-
+    // Non-empty: preserve content and marks
+    // 0 is replaced with children (text, marks, inline nodes, etc)
     return ["p", HTMLAttributes, 0];
   },
 });
@@ -196,8 +198,8 @@ export function SimpleEditor({
   const toolbarRef = React.useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
-    immediatelyRender: true,
-    shouldRerenderOnTransaction: true,
+    // Remove immediatelyRender: true and shouldRerenderOnTransaction: true as these can interfere with editing,
+    // unless you have a strong reason to keep them.
     editorProps: {
       attributes: {
         autocomplete: "off",
@@ -211,10 +213,6 @@ export function SimpleEditor({
       StarterKit.configure({
         horizontalRule: false,
         paragraph: false,
-        // link: {
-        //   openOnClick: false,
-        //   enableClickSelection: true,
-        // },
       }),
       CustomParagraph,
       Link.configure({
@@ -224,45 +222,31 @@ export function SimpleEditor({
         protocols: ["http", "https"],
         isAllowedUri: (url, ctx) => {
           try {
-            // construct URL
             const parsedUrl = url.includes(":")
               ? new URL(url)
               : new URL(`${ctx.defaultProtocol}://${url}`);
-
-            // use default validation
             if (!ctx.defaultValidate(parsedUrl.href)) {
               return false;
             }
-
-            // disallowed protocols
             const disallowedProtocols = ["ftp", "file", "mailto"];
             const protocol = parsedUrl.protocol.replace(":", "");
-
             if (disallowedProtocols.includes(protocol)) {
               return false;
             }
-
-            // only allow protocols specified in ctx.protocols
             const allowedProtocols = ctx.protocols.map((p) =>
               typeof p === "string" ? p : p.scheme
             );
-
             if (!allowedProtocols.includes(protocol)) {
               return false;
             }
-
-            // disallowed domains
             const disallowedDomains = [
               "example-phishing.com",
               "malicious-site.net",
             ];
             const domain = parsedUrl.hostname;
-
             if (disallowedDomains.includes(domain)) {
               return false;
             }
-
-            // all checks have passed
             return true;
           } catch {
             return false;
@@ -270,18 +254,14 @@ export function SimpleEditor({
         },
         shouldAutoLink: (url) => {
           try {
-            // construct URL
             const parsedUrl = url.includes(":")
               ? new URL(url)
               : new URL(`https://${url}`);
-
-            // only auto-link if the domain is not in the disallowed list
             const disallowedDomains = [
               "example-no-autolink.com",
               "another-no-autolink.com",
             ];
             const domain = parsedUrl.hostname;
-
             return !disallowedDomains.includes(domain);
           } catch {
             return false;
@@ -320,9 +300,14 @@ export function SimpleEditor({
     editorStore.setEditor(editor);
   }, [editor]);
 
+  // Prevent .setContent from running before the editor is ready,
+  // and avoid unnecessary resets of the content.
   React.useEffect(() => {
-    editor.commands.setContent(contents);
-  }, [contents]);
+    if (editor && contents !== undefined && contents !== null) {
+      editor.commands.setContent(contents);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contents, editor]);
 
   const rect = useCursorVisibility({
     editor,

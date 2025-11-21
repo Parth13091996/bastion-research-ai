@@ -168,7 +168,14 @@ const ScratchPadView: React.FC = () => {
 
           <Card>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none p-8">
-              <div dangerouslySetInnerHTML={{ __html: newsletter.content }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: (newsletter.content || "").replace(
+                    /<p>\s*<\/p>/g,
+                    "<br/>"
+                  ),
+                }}
+              />
             </CardContent>
           </Card>
 

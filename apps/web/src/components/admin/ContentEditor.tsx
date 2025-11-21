@@ -433,7 +433,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
           <Button
             variant="outline"
             onClick={() => {
-              const editorContent = editorStore.editor.getHTML();
+              let editorContent = editorStore.editor.getHTML();
+              // Replace all empty <p> tags (with any whitespace inside) with <br/>
+              editorContent = editorContent.replace(/<p>\s*<\/p>/g, "<br/>");
               setFormData((prev) => ({
                 ...prev,
                 html_content: editorContent,
