@@ -33,7 +33,9 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       nextStep && nextStep();
     } catch (err: any) {
       const errorMessage =
-        err?.response?.data?.message || err?.message || "An unexpected error occurred.";
+        err?.response?.data?.message ||
+        err?.message ||
+        "An unexpected error occurred.";
       setError && setError(errorMessage);
       console.error(err);
     } finally {
@@ -56,7 +58,9 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       setOtpTimer(600); // Reset timer to 10 minutes
     } catch (err: any) {
       const errorMessage =
-        err?.response?.data?.message || err?.message || "An unexpected error occurred.";
+        err?.response?.data?.message ||
+        err?.message ||
+        "An unexpected error occurred.";
       setError && setError(errorMessage);
       console.error(err);
     } finally {
@@ -107,7 +111,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
         <p className="text-gray-600 text-sm">
           We have sent you a message with a 6-digit verification code on
           <br />
-          {email ?? "your email"} & {phone ?? "your phone"}
+          {phone ?? "your phone"}
         </p>
       </div>
 

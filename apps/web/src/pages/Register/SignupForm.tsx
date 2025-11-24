@@ -384,7 +384,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
           <div className="p-4 sm:p-8">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <p className="text-xs sm:text-sm text-gray-600">
-                Subscribe to invest in <strong>Bastion Core</strong>
+                Subscribe to invest in <strong>Bastion CORE</strong>
               </p>
               <button
                 onClick={onClose}

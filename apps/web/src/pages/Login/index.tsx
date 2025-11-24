@@ -15,6 +15,7 @@ import { AppRoutes } from "@/routes/app-routes";
 import ActionableAccountableBastion from "@/components/ActionableAccountableBastion";
 import { signIn } from "@/api/auth-api";
 import { sendEmailOtp } from "@/api/onboarding-apis";
+import SignUpForm from "../Register/SignupForm";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -30,6 +31,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [useOtp, setUseOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
   const {
     register,
@@ -48,7 +50,7 @@ const Login = () => {
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
         setTimeout(() => {
-          navigate(AppRoutes.register, { replace: true });
+          setIsSignUpOpen(true);
         }, 100);
       } else {
         toast.success("Login successful! Redirecting to dashboard...");
@@ -272,13 +274,13 @@ const Login = () => {
                     {" "}
                     Don't have an account?{" "}
                   </span>{" "}
-                  <Link
-                    to={AppRoutes.register}
-                    className="text-sm text-red-600 hover:underline font-medium"
+                  <span
+                    onClick={() => setIsSignUpOpen(true)}
+                    className="text-sm text-red-600 hover:underline font-medium cursor-pointer"
                   >
                     {" "}
                     Create One Now (FREE){" "}
-                  </Link>{" "}
+                  </span>{" "}
                   <span className="text-sm text-gray-600">
                     {" "}
                     and View Our Research{" "}
@@ -340,6 +342,10 @@ const Login = () => {
           </motion.div>
         </div>
       </section>
+      <SignUpForm
+        isOpen={isSignUpOpen}
+        onClose={() => setIsSignUpOpen(false)}
+      />
     </div>
   );
 };

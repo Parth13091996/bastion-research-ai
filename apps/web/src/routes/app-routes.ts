@@ -1,7 +1,6 @@
 export const AppRoutes = {
   home: "/",
   login: "/login",
-  register: "/register",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
   dashboard: "/dashboard",
@@ -79,7 +78,6 @@ export const AppRoutes = {
 
 export const AuthRoutes = [
   AppRoutes.login,
-  AppRoutes.register,
   AppRoutes.forgotPassword,
   AppRoutes.resetPassword,
 ];

@@ -103,7 +103,7 @@ const DesktopNav = ({ setOpenSubmenu }) => {
               </span>
             </div>
           )}
-          My Account
+          Research Dashboard
         </Link>
       ) : (
         <Link

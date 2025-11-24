@@ -13,7 +13,6 @@ const UserAdminRoute = lazy(() => import("../components/UserAdminRoute"));
 // Pages
 const Home = lazy(() => import("../pages/Home"));
 const Login = lazy(() => import("../pages/Login"));
-const Register = lazy(() => import("../pages/Register"));
 const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/ResetPassword"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
@@ -152,7 +151,6 @@ export const routes: RouteObject[] = [
     children: [
       { path: AppRoutes.home, element: <Home /> },
       { path: AppRoutes.login, element: <Login /> },
-      { path: AppRoutes.register, element: <Register /> },
       { path: AppRoutes.forgotPassword, element: <ForgotPassword /> },
       { path: AppRoutes.resetPassword, element: <ResetPassword /> },
       { path: AppRoutes.contact, element: <Contact /> },

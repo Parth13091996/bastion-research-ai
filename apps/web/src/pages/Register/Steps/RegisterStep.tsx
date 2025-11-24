@@ -44,7 +44,9 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
       nextStep();
     } catch (err: any) {
       const errorMessage =
-        err?.response?.data?.message || err?.message || "An unexpected error occurred.";
+        err?.response?.data?.message ||
+        err?.message ||
+        "An unexpected error occurred.";
       setError(errorMessage);
       console.error(err);
     } finally {
@@ -55,11 +57,8 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Create Your Account
+          Start with Creating Your Free Account
         </h2>
-        <p className="text-gray-600 text-sm">
-          Join TripleEdge to start your investment journey
-        </p>
       </div>
 
       <div className="space-y-4">
@@ -81,9 +80,9 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
             Phone*
           </label>
           <div className="flex">
-            <select className="px-3 py-2 border border-gray-300 rounded-l-lg bg-gray-50">
-              <option>🇮🇳 +91</option>
-            </select>
+            <span className="px-3 py-2 border border-gray-300 rounded-l-lg bg-gray-50">
+              +91
+            </span>
             <input
               type="tel"
               value={formData.phone}
