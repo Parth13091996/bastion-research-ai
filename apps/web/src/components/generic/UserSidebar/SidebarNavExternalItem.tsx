@@ -1,9 +1,7 @@
 const SidebarNavExternalItem = ({
   item,
   isCollapsed,
-  user,
-  subscription,
-  isAdmin,
+  profile,
   setShowPricing,
   setIsMobileOpen,
 }) => {
@@ -11,12 +9,9 @@ const SidebarNavExternalItem = ({
     <div
       onClick={() => {
         if (
-          !user ||
-          !subscription ||
-          (!subscription.is_premium &&
-            !isAdmin &&
-            (item.name === "Premium Webinars" ||
-              item.name === "Scratch Pad Newsletter"))
+          profile?.currentPlan === "freemium" &&
+          (item.name === "Premium Webinars" ||
+            item.name === "Scratch Pad Newsletter")
         ) {
           setShowPricing(true);
           return;

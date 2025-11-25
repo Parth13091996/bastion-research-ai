@@ -2,36 +2,20 @@ const SidebarNavItem = ({
   item,
   isCollapsed,
   isActive,
-  user,
-  subscription,
-  isAdmin,
   setShowPricing,
   profile,
-  toast,
   setIsMobileOpen,
   navigate,
-  location,
 }) => {
   return (
     <div
       onClick={() => {
         if (
-          !user ||
-          !subscription ||
-          (!subscription.is_premium &&
-            !isAdmin &&
-            (item.name === "Premium Webinars" ||
-              item.name === "Scratch Pad Newsletter"))
+          profile?.currentPlan === "freemium" &&
+          (item.name === "Premium Webinars" ||
+            item.name === "Scratch Pad Newsletter")
         ) {
           setShowPricing(true);
-          return;
-        }
-        if (
-          !profile.is_premium &&
-          (item.name.toLowerCase().includes("scratch pad") ||
-            item.path.includes("/scratch-pad"))
-        ) {
-          toast.info("Upgrade to access Scratch Pad");
           return;
         }
         setIsMobileOpen(false);

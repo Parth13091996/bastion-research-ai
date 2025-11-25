@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -116,53 +117,84 @@ const LatestUpdates: React.FC = () => {
               u.tag &&
               currentTier.includes(u.tag);
 
-            return (
-              <div key={`${u.company}-${u.title}-${idx}`} className="relative">
-                <a
-                  href={hasAccess && u.pdf_url ? u.pdf_url : "#"}
-                  target={hasAccess && u.pdf_url ? "_blank" : undefined}
-                  rel={
-                    hasAccess && u.pdf_url ? "noopener noreferrer" : undefined
-                  }
-                  className="block border-l-4 border-gray-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
-                  onClick={(e) => {
-                    if (!hasAccess) {
-                      e.preventDefault();
-                      setShowPricing(true);
-                    }
-                  }}
+            // If they have access and pdf_url exists, make the Link.
+            // If not, clicking should show pricing dialog.
+            if (hasAccess && u.pdf_url) {
+              return (
+                <div
+                  key={`${u.company}-${u.title}-${idx}`}
+                  className="relative"
                 >
-                  <div className="flex items-center flex-wrap gap-2 mb-1.5">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    <span className="font-medium text-gray-900 text-sm sm:text-base">
-                      {u.title}
-                    </span>
-                  </div>
+                  <Link
+                    to="/user/app/pdf-viewer"
+                    state={{ url: u.pdf_url }}
+                    className="block border-l-4 border-gray-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg"
+                  >
+                    <div className="flex items-center flex-wrap gap-2 mb-1.5">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">
+                        {u.title}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center gap-2 text-xs mb-2">
-                    <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
-                      {u.type}
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
-                      {u.company}
-                    </span>
-                    <span className="text-gray-500">{u.date}</span>
-                  </div>
+                    <div className="flex items-center gap-2 text-xs mb-2">
+                      <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                        {u.type}
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                        {u.company}
+                      </span>
+                      <span className="text-gray-500">{u.date}</span>
+                    </div>
 
-                  {u.description && (
-                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
-                      {u.description}
-                    </p>
-                  )}
+                    {u.description && (
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+                        {u.description}
+                      </p>
+                    )}
+                  </Link>
+                </div>
+              );
+            } else {
+              return (
+                <div
+                  key={`${u.company}-${u.title}-${idx}`}
+                  className="relative"
+                >
+                  <div
+                    className="block border-l-4 border-gray-200 pl-3 sm:pl-4 hover:bg-gray-50 transition rounded-lg cursor-pointer"
+                    onClick={() => setShowPricing(true)}
+                  >
+                    <div className="flex items-center flex-wrap gap-2 mb-1.5">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">
+                        {u.title}
+                      </span>
+                    </div>
 
-                  {!hasAccess && (
+                    <div className="flex items-center gap-2 text-xs mb-2">
+                      <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                        {u.type}
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                        {u.company}
+                      </span>
+                      <span className="text-gray-500">{u.date}</span>
+                    </div>
+
+                    {u.description && (
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
+                        {u.description}
+                      </p>
+                    )}
+
                     <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center text-xs sm:text-sm font-medium text-gray-700 z-10">
                       Upgrade your plan to view this update
                     </div>
-                  )}
-                </a>
-              </div>
-            );
+                  </div>
+                </div>
+              );
+            }
           })}
         </div>
       )}

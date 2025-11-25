@@ -9,13 +9,10 @@ const SidebarNav = ({
   openMenus,
   setShowPricing,
   isAdmin,
-  user,
-  subscription,
   profile,
   navigate,
   setIsMobileOpen,
   toggleSubMenu,
-  toast,
 }) => {
   const location = useLocation();
 
@@ -64,9 +61,7 @@ const SidebarNav = ({
                 <SidebarNavExternalItem
                   item={item}
                   isCollapsed={isCollapsed}
-                  user={user}
-                  subscription={subscription}
-                  isAdmin={isAdmin}
+                  profile={profile}
                   setShowPricing={setShowPricing}
                   setIsMobileOpen={setIsMobileOpen}
                 />
@@ -75,15 +70,10 @@ const SidebarNav = ({
                   item={item}
                   isCollapsed={isCollapsed}
                   isActive={isActive}
-                  user={user}
-                  subscription={subscription}
-                  isAdmin={isAdmin}
                   setShowPricing={setShowPricing}
                   profile={profile}
-                  toast={toast}
                   setIsMobileOpen={setIsMobileOpen}
                   navigate={navigate}
-                  location={location}
                 />
               )}
             </div>

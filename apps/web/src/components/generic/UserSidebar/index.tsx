@@ -56,7 +56,7 @@ const UserSidebar = () => {
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null,
-    is_premium: user?.is_premium || false,
+    is_premium: user?.plan_id !== 1 || false,
     currentPlan: subscription?.currentPlan || null,
   };
 
@@ -123,29 +123,26 @@ const UserSidebar = () => {
       <SidebarHeader isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
       <SidebarHeaderButtons
         isCollapsed={isCollapsed}
-        onExploreWebsite={handleExploreWebsite}
         onLogout={handleLogout}
+        onExploreWebsite={handleExploreWebsite}
       />
       <SidebarNav
-        navItems={navItems}
-        isCollapsed={isCollapsed}
-        openMenus={openMenus}
-        setShowPricing={setShowPricing}
         isAdmin={isAdmin}
-        user={user}
-        subscription={subscription}
         profile={profile}
+        navItems={navItems}
+        openMenus={openMenus}
+        isCollapsed={isCollapsed}
         navigate={navigate}
-        setIsMobileOpen={setIsMobileOpen}
         toggleSubMenu={toggleSubMenu}
-        toast={toast}
+        setShowPricing={setShowPricing}
+        setIsMobileOpen={setIsMobileOpen}
       />
       <SidebarFloatingSubMenu
-        isCollapsed={isCollapsed}
-        openMenus={openMenus}
         navItems={navItems}
-        submenuPosition={submenuPosition}
+        openMenus={openMenus}
         submenuRef={submenuRef}
+        isCollapsed={isCollapsed}
+        submenuPosition={submenuPosition}
         setIsMobileOpen={setIsMobileOpen}
       />
       <SidebarProfile isCollapsed={isCollapsed} profile={profile} />
