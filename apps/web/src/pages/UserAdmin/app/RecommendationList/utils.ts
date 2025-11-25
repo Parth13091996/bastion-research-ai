@@ -10,8 +10,8 @@ export const COLORS = {
   green: "#d1f1d9",
   darkGreen: "#059669",
   gold: "#fef2c3",
-  exited: "#9ca3af",
-  grayDark: "#41444e",
+  exited: "#C00000",
+  lightRed: "#ffc8c8",
 };
 
 // Helper functions for colors (shared across components)
@@ -21,8 +21,8 @@ export const getBandColor = (band: string) => {
       return COLORS.green;
     case "HOLD":
       return COLORS.gold;
-    case "EXITED":
-      return COLORS.exited;
+    case "EXIT":
+      return COLORS.lightRed;
     default:
       return COLORS.lightGray;
   }
@@ -34,8 +34,8 @@ export const getTextColor = (band: string) => {
       return "#059669"; // Dark Green
     case "HOLD":
       return "#b8860b"; // Dark Gold
-    case "EXITED":
-      return "#494949"; // Dark Gray
+    case "EXIT":
+      return "#C00000"; // Dark red
     default:
       return "#FFFFFF";
   }

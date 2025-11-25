@@ -17,19 +17,19 @@ const PricingDialogModal = ({ showPricing, setShowPricing }) => {
           Access all recommendations and premium research by subscribing to
           Bastion Research Core.
         </p>
-        <div className="rounded-xl border p-4 bg-gray-50">
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-blue-600">₹ 18,750</span>
-            <span className="text-gray-500">/ Annually (incl. GST)</span>
-          </div>
+        {/* <div className="rounded-xl border p-4 bg-gray-50"> */}
+          {/* <div className="flex items-baseline gap-2"> */}
+            {/* <span className="text-3xl font-bold text-blue-600">₹ 18,750</span>
+            <span className="text-gray-500">/ Annually (incl. GST)</span> */}
+          {/* </div> */}
           <Link
             to="/user/app/account/subscription"
-            className="mt-3 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 w-full"
+            className="mt-3 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#c00000] text-white hover:bg-white border border-blue-900 hover:text-[#c00000] w-full"
           >
             View Plans / Subscribe
           </Link>
         </div>
-      </div>
+      {/* </div> */}
     </Modal>
   );
 };
