@@ -27,7 +27,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [useOtp, setUseOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -46,7 +46,7 @@ const Login = () => {
     mutationFn: (data) => signIn(data),
     onSuccess: (data) => {
       login(data.user);
-      const shouldResumeOnboarding = data?.user?.status === "onboarding";
+      const shouldResumeOnboarding = data?.user?.status !== "active";
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
         setTimeout(() => {
@@ -95,7 +95,9 @@ const Login = () => {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate(AppRoutes.dashboard, { replace: true });
+      navigate(AppRoutes.dashboard, {
+        replace: true,
+      });
     }
   }, [isAuthenticated, isLoading, navigate]);
 

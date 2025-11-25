@@ -13,6 +13,7 @@ import favicon from "../../../../server/public/favicon.webp";
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+  const isAgreementSignedUser = user?.status === "agreement_signed";
 
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -50,16 +51,29 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     { id: 7, name: "Payment", icon: "??" },
   ];
 
+  // For users who have already completed Agreement (status === "agreement_signed"),
+  // we show a lean flow with only Plans and Payment.
+  const agreementSignedStepsValues = [
+    { id: 1, name: "Plans", icon: "??" },
+    { id: 2, name: "Payment", icon: "??" },
+  ];
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [steps, setSteps] = useState(stepsValues);
-  const maxStep = stepsValues.length;
+  const [steps, setSteps] = useState(
+    isAgreementSignedUser ? agreementSignedStepsValues : stepsValues
+  );
+  const maxStep = isAgreementSignedUser
+    ? agreementSignedStepsValues.length
+    : stepsValues.length;
 
   useEffect(() => {
     const shouldResumeOnboarding = user?.status === "onboarded";
     const agreementSigned = user?.status === "agreement_signed";
-    if (shouldResumeOnboarding) {
+
+    // Prefill common user details when resuming.
+    if (shouldResumeOnboarding || agreementSigned) {
       setFormData((prev) => ({
         ...prev,
         firstName: user?.first_name || "",
@@ -74,15 +88,18 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         dateOfBirth: user?.date_of_birth || "",
         company: user?.company || "",
         panCard: user?.pan_card_number || "",
-        panVerification: user?.pan_card_number ? { valid: true } : {},
+        panVerification: user?.pan_card_number
+          ? { valid: true }
+          : prev.panVerification,
       }));
+    }
+
+    if (shouldResumeOnboarding) {
       // KYC is already completed in this state; resume from Agreement step.
       setCurrentStep(6);
     }
-    if (agreementSigned) {
-      // Agreement is signed, so resume from plan selection.
-      setCurrentStep(7);
-    }
+    // For agreement_signed users we intentionally start from step 1
+    // of the lean (Plans + Payment) flow, so no currentStep jump here.
   }, [user]);
 
   const updateFormData = (field: string, value: any) => {
@@ -118,13 +135,16 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   };
 
   useEffect(() => {
-    setSteps(stepsValues);
-  }, [plans.length]);
+    setSteps(
+      isAgreementSignedUser ? agreementSignedStepsValues : stepsValues
+    );
+  }, [plans.length, isAgreementSignedUser]);
 
   useEffect(() => {
     const loadPlans = async () => {
       // Plans are needed from the Plans step onwards.
-      if (currentStep >= 4) {
+      const plansStepIndex = isAgreementSignedUser ? 1 : 4;
+      if (currentStep >= plansStepIndex) {
         setIsLoading(true);
         try {
           const apiPlans: Plan[] = await fetchPlans();
@@ -141,7 +161,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       }
     };
     loadPlans();
-  }, [currentStep]);
+  }, [currentStep, isAgreementSignedUser]);
 
   // ? Auto-scroll mobile step bar when step changes
   useEffect(() => {
@@ -179,6 +199,53 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       pinCode: formData.pinCode,
       company: formData.company,
     };
+
+    // Lean flow for users who already signed the agreement:
+    // only Plans (no free plan) and Payment.
+    if (isAgreementSignedUser) {
+      const paidPlans = plans.filter((plan) => {
+        const planCode = (plan as any)?.plan_code as string | undefined;
+        const isFree =
+          String(plan.amount) === "0" ||
+          (planCode && planCode.toLowerCase() === "freemium");
+        return !isFree;
+      });
+
+      switch (currentStep) {
+        case 1:
+          return (
+            <PlansStep
+              plans={paidPlans}
+              error={error}
+              isLoading={isLoading}
+              formData={formData}
+              // For this lean flow, going "Back" from the first step
+              // simply closes the signup dialog.
+              onBack={onClose}
+              onNext={nextStep}
+              updateFormData={updateFormData}
+            />
+          );
+        case 2:
+          return (
+            <PaymentStep
+              error={error}
+              plans={paidPlans}
+              formData={formData}
+              isLoading={isLoading}
+              selectedPlan={formData.selectedPlan}
+              onBack={prevStep}
+              onClose={onClose}
+              setError={setError}
+              setIsLoading={setIsLoading}
+            />
+          );
+        default:
+          return null;
+      }
+    }
+
+    // Default full onboarding flow.
     switch (currentStep) {
       case 1:
         return (

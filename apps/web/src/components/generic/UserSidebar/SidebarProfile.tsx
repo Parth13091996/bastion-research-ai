@@ -25,13 +25,15 @@ const SidebarProfile = ({ isCollapsed, profile }) => {
             )}
             <div className="ml-3 text-white">
               <p className="text-sm font-medium">{profile.name}</p>
-              <p className="text-xs text-gray-300 capitalize">{profile.role}</p>
+              <p className="text-xs text-gray-300 capitalize">
+                {profile.role.split("_").join(" ")}
+              </p>
             </div>
           </div>
           {/* Premium Status & User Type */}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              {profile.is_premium ? (
+              {profile.currentPlan !== "freemium" ? (
                 <>
                   <Crown className="h-3 w-3 text-yellow-400" />
                   <span className="text-xs text-yellow-400 font-medium">

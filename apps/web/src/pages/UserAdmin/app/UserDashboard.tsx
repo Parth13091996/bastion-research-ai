@@ -129,7 +129,7 @@ const UserDashboard = () => {
                   {user?.email}
                 </p>
                 <p className="text-xs sm:text-sm text-gray-500 capitalize">
-                  {user?.role || "User"}
+                  {user?.role.split("_").join(" ") || "User"}
                 </p>
               </div>
             </div>

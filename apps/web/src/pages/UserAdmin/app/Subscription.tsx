@@ -57,6 +57,7 @@ const Subscription = () => {
     useState<PanVerificationSummary | null>(null);
 
   const userPan = (user?.pan_card_number || "").toUpperCase();
+  const hasSignedAgreement = user?.status === "agreement_signed";
   const [upgradeForm, setUpgradeForm] = useState<UpgradeFormState>({
     panCard: userPan,
     agreeToTerms: false,
@@ -249,13 +250,15 @@ const Subscription = () => {
 
     const upgradingFromFreeToPaid = onFreePlan && isPaidPlan;
 
-    // When upgrading from free to a paid plan, always go through
-    // KYC + Agreement steps. Also enforce KYC for any paid plan
-    // if PAN is not yet available.
-    if (
+    // When upgrading from free to a paid plan, normally go through
+    // KYC + Agreement steps, unless the user has already signed
+    // the agreement in a previous onboarding flow.
+    const shouldRunKycAndAgreementFlow =
       (upgradingFromFreeToPaid || (isPaidPlan && !hasKyc)) &&
-      !opts?.bypassKyc
-    ) {
+      !opts?.bypassKyc &&
+      !hasSignedAgreement;
+
+    if (shouldRunKycAndAgreementFlow) {
       startUpgradeFlow(selectedPlan);
       return;
     }
@@ -319,11 +322,6 @@ const Subscription = () => {
               Choose the plan that fits you best
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link to="/dashboard">Back to Dashboard</Link>
-            </Button>
-          </div>
         </div>
 
         {/* Current Plan */}
@@ -356,7 +354,7 @@ const Subscription = () => {
                             currentPlanCode === "freemium"
                               ? "Freemium"
                               : String(currentPlanCode)
-                                  .replaceAll("_", " ")
+                                  .replace("_", " ")
                                   .toUpperCase()
                           } Plan`
                         : "No Active Plan"}

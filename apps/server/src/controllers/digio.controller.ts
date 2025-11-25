@@ -131,6 +131,8 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
 
       const user_id = anyReq?.user && anyReq.user.id ? anyReq.user.id : null;
 
+      console.log({ document_id, identifier });
+
       if (document_id && identifier) {
         await supabase
           .from("digio_documents")

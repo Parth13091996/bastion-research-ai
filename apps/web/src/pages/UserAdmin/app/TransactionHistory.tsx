@@ -29,7 +29,9 @@ const StatusBadge = ({ value }: { value?: string }) => {
         ? "bg-red-100 text-red-800"
         : "bg-blue-100 text-blue-800";
   return (
-    <span className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium ${classes}`}>
+    <span
+      className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium ${classes}`}
+    >
       {value || "-"}
     </span>
   );
@@ -99,32 +101,32 @@ const TransactionHistory: React.FC = () => {
       minWidth: 100,
       maxWidth: 120,
     },
-    { 
-      headerName: "Invoice", 
+    {
+      headerName: "Invoice",
       field: "invoice_id",
       minWidth: 100,
       maxWidth: 150,
     },
-    { 
-      headerName: "Transaction", 
+    {
+      headerName: "Transaction",
       field: "transaction_id",
       minWidth: 120,
       maxWidth: 180,
     },
-    { 
-      headerName: "Membership", 
+    {
+      headerName: "Membership",
       field: "membership",
       minWidth: 100,
       maxWidth: 150,
     },
-    { 
-      headerName: "Gateway", 
+    {
+      headerName: "Gateway",
       field: "payment_gateway",
       minWidth: 100,
       maxWidth: 120,
     },
-    { 
-      headerName: "Type", 
+    {
+      headerName: "Type",
       field: "payment_type",
       minWidth: 80,
       maxWidth: 120,
@@ -173,10 +175,6 @@ const TransactionHistory: React.FC = () => {
             {currency(totalAmount)}
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
-          <p className="text-xs text-gray-500">Status Overview</p>
-          <p className="text-xs sm:text-sm text-gray-700">Filtered by your account</p>
-        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -189,7 +187,10 @@ const TransactionHistory: React.FC = () => {
             className="w-full sm:w-80 lg:w-96 p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="ag-theme-alpine overflow-hidden" style={{ height: 400, width: "100%" }}>
+        <div
+          className="ag-theme-alpine overflow-hidden"
+          style={{ height: 400, width: "100%" }}
+        >
           <AgGridReact
             theme="legacy"
             rowData={filtered}
@@ -205,7 +206,9 @@ const TransactionHistory: React.FC = () => {
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[10, 25, 50, 100]}
-            overlayLoadingTemplate={'<span class="ag-overlay-loading-center"><span class="inline-block w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span></span>'}
+            overlayLoadingTemplate={
+              '<span class="ag-overlay-loading-center"><span class="inline-block w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span></span>'
+            }
             loadingOverlayComponentParams={{}}
             suppressCellFocus={true}
             domLayout="normal"

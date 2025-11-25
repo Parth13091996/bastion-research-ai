@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = user?.status === "active";
   const isAdmin = user?.role === Config.roles.admin;
 
   return (

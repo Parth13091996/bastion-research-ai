@@ -24,8 +24,9 @@ export interface User {
   date_of_birth: string; // Or Date, but string is safer for serialization
   company?: string | null;
   password?: string | null; // Null for OAuth users
-  role?: "user" | "admin"; // Assuming possible roles
+  role?: "core_subscriber" | "free_subscriber"; // Assuming possible roles
   cameFromOAuth?: boolean;
+  status?: "active" | "agreement_signed" | "onboarded";
   created_at?: string;
 }
 

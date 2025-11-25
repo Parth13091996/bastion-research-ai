@@ -4,10 +4,12 @@ import {
   zeroAmountPayment,
 } from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
+import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
 import { load } from "@cashfreepayments/cashfree-js";
 import { ArrowLeft, Check, Tag, X } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const PaymentStep: React.FC<PaymentStepProps> = ({
   plans,
@@ -20,7 +22,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   setIsLoading,
 }) => {
   const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
-  const { user } = useAuth();
+  const { user, refetchUser } = useAuth();
+  const navigate = useNavigate();
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -97,27 +100,28 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   const handlePayment = async () => {
     setError(null);
 
-    if (!formData?.panVerification?.valid) {
-      setError(
-        "Please complete PAN verification before proceeding to payment."
-      );
-      return;
-    }
-
     setIsLoading(true);
     try {
       const finalAmount = getFinalAmount();
       if (isFreeOrZero) {
-        console.log({ selectedPlanDetails });
-        const response = await zeroAmountPayment({
+        const result = await zeroAmountPayment({
           plan_id: Number(selectedPlanDetails?.code),
           payer_email: formData.email,
           coupon_code: couponCode,
           user_id: user?.id,
           role: formData?.role,
         });
-        console.log(response, "zero payment log");
+        if (result?.user?.status === "active") {
+          await refetchUser();
+          navigate("/user/app/dashboard");
+        }
       } else {
+        if (!formData?.panVerification?.valid) {
+          setError(
+            "Please complete PAN verification before proceeding to payment."
+          );
+          return;
+        }
         const orderResponse = await createCashfreeOrder({
           plan: formData.selectedPlan,
           customer_id: user?.id || formData.firstName + "_" + formData.lastName,

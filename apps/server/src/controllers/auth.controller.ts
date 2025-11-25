@@ -276,7 +276,6 @@ export const onboardUser = async (req: Request, res: Response) => {
         .json({ message: "Missing required fields to start onboarding." });
     }
 
-    console.log({ panVerification, status });
     if (
       (!panVerification || panVerification.valid !== true) &&
       status !== "free"
@@ -369,46 +368,103 @@ export const zeroAmountAccountCreation = async (
   req: Request,
   res: Response
 ) => {
-  const { plan_id, coupon_code, user_id, payer_email } = req.body;
-  const { data, error } = await supabase
-    .from("coupons")
-    .select("*")
-    .eq("coupon_code", coupon_code)
-    .eq("active", true)
-    .single();
-  console.log(data, "coupon data");
-
-  supabase
-    .from("payment_history")
-    .insert({
-      transaction_status: "SUCCESS",
-      plan_id: plan_id,
-      user_id,
-      payer_email,
-      transaction_id: crypto.randomUUID(),
-      coupon_applied: data?.coupon_id,
-    })
-    .maybeSingle();
-
   try {
-    const { data, error } = await supabase
-      .from("users")
-      .update({
-        plan_id,
-        status: "active",
-      })
-      .eq("id", user_id)
-      .select();
+    const { plan_id, coupon_code, user_id, payer_email } = req.body;
+    // Fetch coupon
+    let coupon;
+    try {
+      const { data: couponData, error: couponError } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("coupon_code", coupon_code)
+        .eq("active", true)
+        .single();
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
+      if (couponError) {
+        return res.status(400).json({ error: couponError.message });
+      }
+      coupon = couponData;
+    } catch (e: any) {
+      return res
+        .status(500)
+        .json({ error: e?.message || "Error fetching coupon" });
     }
 
-    return res.status(200).json(data);
+    try {
+      const { error: paymentError } = await supabase
+        .from("payment_history")
+        .insert({
+          transaction_status: "SUCCESS",
+          plan_id: plan_id,
+          user_id,
+          payer_email,
+          transaction_id: crypto.randomUUID(),
+          coupon_applied: coupon?.coupon_id,
+        })
+        .maybeSingle();
+
+      if (paymentError) {
+        return res.status(500).json({
+          error: paymentError.message || "Error saving payment history",
+        });
+      }
+    } catch (e: any) {
+      return res
+        .status(500)
+        .json({ error: e?.message || "Failed to insert payment history" });
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .update({
+          plan_id,
+          status: "active",
+        })
+        .eq("id", user_id)
+        .select(
+          `
+          id,
+          username,
+          first_name,
+          last_name,
+          phone,
+          email,
+          address_1,
+          pan_card_number,
+          address_2,
+          state,
+          city,
+          pin_code,
+          date_of_birth,
+          company,
+          plan_id,
+          created_at,
+          updated_at,
+          status,
+          role,
+          membership_plans (
+            plan_code,
+            plan_id
+          )
+        `
+        )
+        .single();
+
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
+
+      return res.status(200).json({ user: data });
+    } catch (e: any) {
+      return res
+        .status(500)
+        .json({ error: e?.message || "Failed to update user" });
+    }
   } catch (e: any) {
     return res
       .status(500)
-      .json({ error: e?.message || "Failed to update user" });
+      .json({ error: e?.message || "An unexpected server error occurred" });
   }
 };
 
