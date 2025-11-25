@@ -153,8 +153,6 @@ const PlansStep: React.FC<PlansStepProps> = ({
                       </div>
                     </div>
 
-
-
                   </div>
 
                   {features.length > 0 && (
