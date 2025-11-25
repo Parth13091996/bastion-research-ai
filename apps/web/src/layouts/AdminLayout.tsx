@@ -17,7 +17,7 @@ const AdminLayout = () => {
         <div className="absolute left-[42%] top-[42%]">
           <main className="animate-pulse p-4">
             <img
-              src="/media/header-logo.webp"
+              src="/media/Bastion-Logo.png"
               alt="Bastion Research"
               className="h-22 md:h-14"
             />

@@ -383,6 +383,7 @@ export default function LandingPage() {
 
 
                   {active === "non_diy" && (
+                    <div className="blur-sm pointer-events-none">
                     <motion.div
                       className="p-5 text-center border-t flex justify-center gap-4 flex-wrap"
                       style={{ borderColor: "rgba(28,40,82,0.12)" }}
@@ -423,6 +424,7 @@ export default function LandingPage() {
                         Subscribe Portfolio
                       </motion.button>
                     </motion.div>
+                    </div>
                   )}
                 </div>
               </motion.section>

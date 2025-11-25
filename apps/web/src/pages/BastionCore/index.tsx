@@ -143,16 +143,16 @@ export default function BastionCoreProductPage() {
       desc: "Gain free access to our exclusive webinars, where we bring sharp perspectives and practical insights to the investing community.",
       img: "/media/premium-webinars.png",
     },
-    {
-      title: "Subscriber-Only Model Portfolio Discounts",
-      desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
-      img: "/media/modelPortfolio-compressed.png",
-    },
-    {
-      title: "Premium IPO Coverage",
-      desc: "Get free access to our in-depth IPO notes, covering the positives, risks, and our perspective on businesses going public.",
-      img: "/public/media/premium-ipo-coverage.png",
-    },
+    // {
+    //   title: "Subscriber-Only Model Portfolio Discounts",
+    //   desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
+    //   img: "/media/modelPortfolio-compressed.png",
+    // },
+    // {
+    //   title: "Premium IPO Coverage",
+    //   desc: "Get free access to our in-depth IPO notes, covering the positives, risks, and our perspective on businesses going public.",
+    //   img: "/public/media/premium-ipo-coverage.png",
+    // },
   ];
 
   // 👇 State for which item is active
@@ -242,27 +242,29 @@ export default function BastionCoreProductPage() {
                   textShadow: "2px 2px 8px rgba(0,0,0,0.2)",
                 }}
               >
-                Research You Can Act With Conviction
+                Research You Can Act On With Conviction
               </h1>
             </div>
 
             {/* Right Card: Buttons */}
-            <div className="p-8 flex flex-col gap-4 justify-center items-center md:items-start">
+            <div className="p-8 flex flex-col md:flex-row gap-4 justify-center md:justify-start items-center">
               <button
                 onClick={() => setIsSignUpOpen(true)}
-                className="w-full md:w-auto px-6 py-3 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors text-center font-semibold"
+                className="px-6 py-3 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors font-semibold w-full md:w-auto"
               >
                 {startingPrice
                   ? `Subscribe starting at ${startingPrice}`
                   : "Subscribe Now"}
               </button>
+
               <a
-                href="/register"
-                className="w-full md:w-auto px-6 py-3 border border-[#C00000] text-[#C00000] rounded-xl hover:bg-[#C00000] hover:text-white transition-colors text-center font-semibold"
+                onClick={() => setIsSignUpOpen(true)}
+                className="px-6 py-3 border border-[#C00000] text-[#C00000] rounded-xl hover:bg-[#C00000] hover:text-white transition-colors font-semibold w-full md:w-auto text-center cursor-pointer"
               >
                 View Research
               </a>
             </div>
+
           </div>
         </section>
 
@@ -275,9 +277,9 @@ export default function BastionCoreProductPage() {
             {(sortedPaid.slice(0, 2).length
               ? sortedPaid.slice(0, 2)
               : [
-                  { name: "Quarterly Plan", amount: 5000, _fallback: true },
-                  { name: "Yearly Plan", amount: 18750, _fallback: true },
-                ]
+                { name: "Quarterly Plan", amount: 5000, _fallback: true },
+                { name: "Yearly Plan", amount: 18750, _fallback: true },
+              ]
             ).map((plan: any, idx: number) => (
               <div
                 key={String(plan.code || plan.name || idx)}
@@ -321,87 +323,86 @@ export default function BastionCoreProductPage() {
         </section>
 
         {/* Section 3: Content */}
-        <section className="max-w-7xl px-4 mx-auto pb-16">
-          <div className="rounded-3xl border border-[#E6E6E6] overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-5 items-stretch">
-              {/* Left: Tabs */}
-              <div className="md:col-span-2 bg-white">
-                <div className="divide-y divide-[#E6E6E6]">
-                  {items.map((it, idx) => (
-                    <div key={it.title}>
-                      <button
-                        onClick={() => setActive(idx)}
-                        onMouseEnter={() => setActive(idx)}
-                        className={`group w-full text-left p-5 focus:outline-none transition-colors ${
-                          active === idx
-                            ? "bg-[#E6E6E6]/40"
-                            : "bg-white hover:bg-[#E6E6E6]/30"
-                        }`}
-                        aria-current={active === idx ? "page" : undefined}
-                        type="button"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`h-2.5 w-2.5 rounded-full transition-colors ${
-                              active === idx
-                                ? "bg-[#C00000]"
-                                : "bg-[#C4B696] group-hover:bg-[#C00000]"
-                            }`}
-                          />
-                          <h4 className="text-base md:text-lg font-semibold">
-                            {it.title}
-                          </h4>
-                        </div>
-                        <p className="mt-1 ml-5 text-sm text-slate-600">
-                          {it.desc}
-                        </p>
-                      </button>
+        <section className="max-w-7xl px-4 mx-auto pb-16 min-h-screen flex items-center">
+  <div className="rounded-3xl border border-[#E6E6E6] overflow-hidden h-full w-full">
+    <div className="grid grid-cols-1 md:grid-cols-5 items-stretch h-full">
 
-                      {/* Mobile Image */}
-                      <div
-                        className={`md:hidden overflow-hidden transition-all duration-300 ${
-                          active === idx ? "max-h-[700px] mt-2" : "max-h-0"
-                        }`}
-                      >
-                        <div className="relative bg-[#E6E6E6]">
-                          <img
-                            src={it.img}
-                            alt={it.title}
-                            className="h-48 w-full object-cover rounded-b-xl"
-                          />
-                          <div className="absolute bottom-2 left-2 right-2 bg-white/85 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
-                            <p className="text-sm font-medium text-[#1C2852]">
-                              {it.title}
-                            </p>
-                            <p className="text-xs text-slate-600">{it.desc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right: Image */}
-              <div className="hidden md:block md:col-span-3 relative bg-[#E6E6E6] h-full">
-                <div className="absolute inset-0">
-                  <img
-                    key={items[active].img}
-                    src={items[active].img}
-                    alt={items[active].title}
-                    className="h-full w-full object-cover object-center"
+      {/* Left: Tabs */}
+      <div className="md:col-span-2 bg-white overflow-y-auto">
+        <div className="divide-y divide-[#E6E6E6]">
+          {items.map((it, idx) => (
+            <div key={it.title}>
+              <button
+                onClick={() => setActive(idx)}
+                onMouseEnter={() => setActive(idx)}
+                className={`group w-full text-left p-5 transition-colors ${
+                  active === idx
+                    ? "bg-[#E6E6E6]/40"
+                    : "bg-white hover:bg-[#E6E6E6]/30"
+                }`}
+                type="button"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`h-2.5 w-2.5 rounded-full ${
+                      active === idx
+                        ? "bg-[#C00000]"
+                        : "bg-[#C4B696] group-hover:bg-[#C00000]"
+                    }`}
                   />
+                  <h4 className="text-base md:text-lg font-semibold">
+                    {it.title}
+                  </h4>
                 </div>
-                <div className="absolute bottom-4 left-4 right-4 bg-white/85 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
-                  <p className="text-sm font-medium text-[#1C2852]">
-                    {items[active].title}
-                  </p>
-                  <p className="text-xs text-slate-600">{items[active].desc}</p>
+                <p className="mt-1 ml-5 text-sm text-slate-600">{it.desc}</p>
+              </button>
+
+              {/* Mobile Image */}
+              <div
+                className={`md:hidden overflow-hidden transition-all duration-300 ${
+                  active === idx ? "max-h-[700px] mt-2" : "max-h-0"
+                }`}
+              >
+                <div className="relative bg-[#E6E6E6] flex items-center justify-center">
+                  <img
+                    src={it.img}
+                    alt={it.title}
+                    className="w-full max-h-64 object-contain"
+                  />
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </div>
+
+      {/* Right: Image */}
+      <div className="hidden md:flex md:col-span-3 relative bg-[#ffffff] items-center justify-center">
+
+        {/* FIX: Fixed height container to prevent left side movement */}
+        <div className="w-full h-[700px] flex items-center justify-center">
+          <img
+            key={items[active].img}
+            src={items[active].img}
+            alt={items[active].title}
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+
+        <div className="absolute bottom-4 left-4 right-4 bg-white/85 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
+          <p className="text-sm font-medium text-[#1C2852]">
+            {items[active].title}
+          </p>
+          <p className="text-xs text-slate-600">{items[active].desc}</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
 
         {/* Section 4: Testimonials */}
         <section
@@ -540,16 +541,14 @@ export default function BastionCoreProductPage() {
                 >
                   {faq.q}
                   <ChevronDown
-                    className={`w-6 h-6 transform transition-transform duration-500 ${
-                      openIndex === index ? "rotate-180" : "rotate-0"
-                    }`}
+                    className={`w-6 h-6 transform transition-transform duration-500 ${openIndex === index ? "rotate-180" : "rotate-0"
+                      }`}
                   />
                 </button>
                 <div
                   id={`faq-content-${index}`}
-                  className={`transition-[max-height] duration-300 ease-in-out overflow-hidden px-6 ${
-                    openIndex === index ? "max-h-96" : "max-h-0"
-                  }`}
+                  className={`transition-[max-height] duration-300 ease-in-out overflow-hidden px-6 ${openIndex === index ? "max-h-96" : "max-h-0"
+                    }`}
                   aria-hidden={openIndex !== index}
                 >
                   <div className="overflow-auto no-scrollbar max-h-96 pb-4">
