@@ -1,5 +1,5 @@
 import { Config } from "@/utils/config";
-import { SvgInstagram, SvgLinkedIn, SvgSpotify, SvgTwitter, SvgYoutube } from "@/utils/icons";
+import { SvgInstagram, SvgLinkedIn, SvgSpotify, SvgTwitter, SvgYoutube, SvgSubstack } from "@/utils/icons";
 
 import { Link } from "react-router-dom"; // Make sure Link is imported
 
@@ -9,7 +9,7 @@ const SocialSvgMap = {
   linkedin: SvgLinkedIn,
   instagram: SvgInstagram,
   youtube: SvgYoutube,
-  spotify: SvgSpotify,
+  substack: SvgSubstack,
 };
 
 // Condensed Social Icons Component
