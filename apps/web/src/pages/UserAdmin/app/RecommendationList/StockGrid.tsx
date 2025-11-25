@@ -3,13 +3,20 @@ import StockCard from "./StockCard";
 import { COLORS } from "./utils";
 
 const StockGrid = ({
+  error,
   stocks,
+  loading,
   visibleCount,
   onLoadMore,
-  loading,
-  error,
 }: StockGridProps) => {
   const sortedStocks = [...stocks].sort((a, b) => {
+    const aFreemium = a.tags === "freemium";
+    const bFreemium = b.tags === "freemium";
+
+    if (aFreemium !== bFreemium) {
+      return aFreemium ? -1 : 1;
+    }
+
     return (
       Number(b.marketCap.replace(/[^0-9.]/g, "")) -
       Number(a.marketCap.replace(/[^0-9.]/g, ""))

@@ -36,14 +36,6 @@ const RecommendationList = () => {
   const { stocks: sheetStocks, loading, error } = useSheetStocks();
   const { user } = useAuth();
   const [showPricing, setShowPricing] = useState(false);
-  const tiers = {
-    freemium: ["freemium"],
-    core: ["freemium", "core"],
-    core_annual: ["freemium", "core", "core_annual"],
-    research_hub: ["freemium", "core", "core_annual", "research_hub"],
-  };
-
-  // Ensuring null checks on sheetStocks
   const filteredStocks = (sheetStocks || []).filter((stock) => {
     const matchesFilter = filterBy === "All" || stock.band === filterBy;
     const matchesSearch =
@@ -88,16 +80,9 @@ const RecommendationList = () => {
     }
   });
 
-  const userPlanCode = user?.membership_plans?.plan_code || "freemium";
-  const tierFilteredStocks = sortedStocks.filter((r) => {
-    // Null checks for tags
-    const tags = r.tags ?? "";
-    const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
-    if (Array.isArray(currentTier) && currentTier.includes(tags)) return r;
-    return false;
-  });
   const handleLoadMore = () => {
-    if (!user?.is_premium) {
+    //@ts-ignore
+    if (!user?.plan_id === 1) {
       setShowPricing(true);
       return;
     }
@@ -117,27 +102,27 @@ const RecommendationList = () => {
         </div>
 
         <RecommendationsControls
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
           sortBy={sortBy}
-          onSortChange={setSortBy}
           filterBy={filterBy}
+          searchTerm={searchTerm}
+          onSortChange={setSortBy}
           onFilterChange={setFilterBy}
+          onSearchChange={setSearchTerm}
         />
 
         <StockGrid
-          stocks={tierFilteredStocks ?? []}
+          error={error}
+          loading={loading}
+          stocks={sortedStocks ?? []}
           visibleCount={visibleCount}
           onLoadMore={handleLoadMore}
-          loading={loading}
-          error={error}
         />
 
         <Modal
           open={showPricing}
-          onOpenChange={setShowPricing}
-          title={"Premium Access"}
           className="max-w-md"
+          title={"Premium Access"}
+          onOpenChange={setShowPricing}
         >
           <PricingDialogContent />
         </Modal>

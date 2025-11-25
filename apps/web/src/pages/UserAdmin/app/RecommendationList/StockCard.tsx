@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, EyeClosed } from "lucide-react";
 import { useState } from "react";
 import { COLORS, getBandColor, getTextColor } from "./utils";
 import { userCompanyAnalytics } from "@/api/recommendations-apis";
@@ -10,7 +10,8 @@ import { formatIndianNumber } from "@/utils";
 
 const StockCard = ({ stock }: { stock: StockData }) => {
   const { user } = useAuth();
-  const isFreemium = user?.membership_plans?.plan_code === "freemium";
+  const isPaid =
+    stock?.tags !== "freemium" && (!user?.plan_id || user?.plan_id === 1);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const navigate = useNavigate();
 
@@ -27,7 +28,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
   );
 
   // Blur utility style
-  const blurStyle = isFreemium
+  const blurStyle = isPaid
     ? ({
         filter: "blur(7px)",
         userSelect: "none",
@@ -52,6 +53,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
         {stock.logo ? (
           <img
             src={stock.logo}
+            style={isPaid ? blurStyle : {}}
             alt={stock.name}
             className="w-16 h-16 object-contain rounded-md"
           />
@@ -248,7 +250,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
             el.style.boxShadow = "0 6px 18px rgba(28,40,82,0.06)";
           }}
           onClick={() => {
-            if (isFreemium) {
+            if (isPaid) {
               setShowPricingModal(true);
             } else {
               userCompanyAnalytics(stock.code, user?.id);
@@ -256,8 +258,12 @@ const StockCard = ({ stock }: { stock: StockData }) => {
             }
           }}
         >
-          <Eye className="h-4 w-4 mr-2 inline-block" />
-          View Research
+          {isPaid ? (
+            <EyeClosed className="h-4 w-4 mr-2 inline-block" />
+          ) : (
+            <Eye className="h-4 w-4 mr-2 inline-block" />
+          )}
+          {isPaid ? `Locked` : `View Research`}
         </Button>
         <PricingDialogModal
           showPricing={showPricingModal}

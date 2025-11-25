@@ -2,11 +2,11 @@ import { Input } from "@/components/ui/input";
 import { Filter, Search } from "lucide-react";
 
 const RecommendationsControls = ({
-  searchTerm,
-  onSearchChange,
   sortBy,
-  onSortChange,
   filterBy,
+  searchTerm,
+  onSortChange,
+  onSearchChange,
   onFilterChange,
 }: RecommendationsControlsProps) => {
   return (
