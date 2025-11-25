@@ -361,7 +361,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
           <div className="mb-8">
             <div className="flex items-center mb-2">
               <img src={favicon} alt="BASTION" className="w-8 h-8 mr-3" />
-              <span className="font-bold text-lg">BASTION</span>
+              <span className="font-bold text-lg">Bastion CORE</span>
             </div>
             {/* <h1 className="text-2xl font-bold text-gray-900 mb-1">
               Bastion Core
@@ -405,7 +405,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             <div className="mb-4">
               <div className="flex items-center mb-1 sm:flex">
                 <img src={favicon} alt="BASTION" className="w-8 h-8 mr-2" />
-                <span className="font-bold text-lg">BASTION</span>
+                <span className="font-bold text-lg">Bastion CORE</span>
               </div>
               {/* <h1 className="text-xl font-bold text-gray-900">Bastion Core</h1> */}
             </div>
@@ -450,7 +450,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
           <div className="p-4 sm:p-8">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <p className="text-xs sm:text-sm text-gray-600">
-                Subscribe to invest in <strong>Bastion CORE</strong>
+                Subscribe to <strong>Bastion CORE</strong>
               </p>
               <button
                 onClick={onClose}

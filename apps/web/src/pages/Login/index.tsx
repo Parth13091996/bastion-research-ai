@@ -67,7 +67,7 @@ const Login = () => {
   const sendOtpMutation = useMutation({
     mutationFn: (email: string) => sendEmailOtp(email),
     onSuccess: () => {
-      toast.success("OTP sent to your email!");
+      toast.success("");
       setOtpSent(true);
     },
     onError: (error: any) => {

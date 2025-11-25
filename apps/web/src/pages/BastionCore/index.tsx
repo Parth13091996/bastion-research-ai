@@ -1,8 +1,8 @@
 import BackgroundShapes from "@/components/generic/framer-motion";
 import Testimonial from "@/pages/Testimonials/Index";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import axiosInstance from "@/api/axios";
 import SignUpForm from "../Register/SignupForm.tsx";
 
@@ -16,14 +16,14 @@ const COLORS = {
   black: "#000000",
 };
 
-// Type definitions for FlipCard
+// ... (Keep FlipCard, Item, FAQItem types and components exactly as before) ...
+
 type FlipCardProps = {
   front: { letter: string; caption: string };
   back: { title: string; text: string };
   color?: string;
 };
 
-// Flip Card for SMART boxes
 function FlipCard({ front, back, color = COLORS.blue }: FlipCardProps) {
   return (
     <div className="group [perspective:1000px]">
@@ -63,14 +63,12 @@ function FlipCard({ front, back, color = COLORS.blue }: FlipCardProps) {
   );
 }
 
-// Types for items array
 type Item = {
   title: string;
   desc: string;
   img: string;
 };
 
-// FAQ type
 type FAQItem = {
   q: string;
   a: React.ReactNode;
@@ -82,6 +80,12 @@ export default function BastionCoreProductPage() {
   const [plansLoading, setPlansLoading] = useState<boolean>(false);
   const [plansError, setPlansError] = useState<string | null>(null);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+
+  // 👇 State for Floating Button
+  const [showFloatingBtn, setShowFloatingBtn] = useState(false);
+
+  // 👇 Ref is now for the Pricing/Plans Section
+  const pricingSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -95,6 +99,28 @@ export default function BastionCoreProductPage() {
         setPlansLoading(false);
       }
     })();
+  }, []);
+
+  // 👇 Updated Scroll logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (pricingSectionRef.current) {
+        const rect = pricingSectionRef.current.getBoundingClientRect();
+
+        // Logic: 
+        // rect.bottom is the distance from the top of the viewport to the bottom of the element.
+        // We use '100' as a buffer (approx height of a header).
+        // If rect.bottom < 100, it means the bottom of the pricing section has scrolled UP past the header.
+        if (rect.bottom < 100) {
+          setShowFloatingBtn(true);
+        } else {
+          setShowFloatingBtn(false);
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const paidPlans = useMemo(
@@ -143,19 +169,8 @@ export default function BastionCoreProductPage() {
       desc: "Gain free access to our exclusive webinars, where we bring sharp perspectives and practical insights to the investing community.",
       img: "/media/premium-webinars.png",
     },
-    // {
-    //   title: "Subscriber-Only Model Portfolio Discounts",
-    //   desc: "Want research plus execution? As a CORE subscriber, you get special discounts on our ready-to-use model portfolios.",
-    //   img: "/media/modelPortfolio-compressed.png",
-    // },
-    // {
-    //   title: "Premium IPO Coverage",
-    //   desc: "Get free access to our in-depth IPO notes, covering the positives, risks, and our perspective on businesses going public.",
-    //   img: "/public/media/premium-ipo-coverage.png",
-    // },
   ];
 
-  // 👇 State for which item is active
   const [active, setActive] = useState<number>(0);
 
   const toggleFAQ = (index: number) => {
@@ -227,11 +242,10 @@ export default function BastionCoreProductPage() {
   return (
     <div>
       <BackgroundShapes />
-      <div className="min-h-screen w-full">
-        {/* Section 1: Hero / Intro with two cards */}
+      <div className="min-h-screen w-full relative">
+        {/* Section 1: Hero */}
         <section className="mx-auto max-w-7xl px-4 pt-10 md:pt-14">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Card: Text */}
             <div className="flex flex-col justify-center items-center md:items-start">
               <h1
                 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-center md:text-left"
@@ -245,8 +259,6 @@ export default function BastionCoreProductPage() {
                 Research You Can Act On With Conviction
               </h1>
             </div>
-
-            {/* Right Card: Buttons */}
             <div className="p-8 flex flex-col md:flex-row gap-4 justify-center md:justify-start items-center">
               <button
                 onClick={() => setIsSignUpOpen(true)}
@@ -256,20 +268,21 @@ export default function BastionCoreProductPage() {
                   ? `Subscribe starting at ${startingPrice}`
                   : "Subscribe Now"}
               </button>
-
               <a
                 onClick={() => setIsSignUpOpen(true)}
-                className="px-6 py-3 border border-[#C00000] text-[#C00000] rounded-xl hover:bg-[#C00000] hover:text-white transition-colors font-semibold w-full md:w-auto text-center cursor-pointer"
+                className="px-6 py-3 border border-[#C00000] text-[#C00000] rounded-xl hover:bg-[#C00000] hover:text-white transition-colors font-semibold w-full md:w-auto text-center cursor-pointer md:ml-20"
               >
                 View Research
               </a>
             </div>
-
           </div>
         </section>
 
-        {/* Section 2: Pricing */}
-        <section className="max-w-7xl px-4 mx-auto  py-10">
+        {/* Section 2: Pricing (The Plan Section) */}
+        <section
+          ref={pricingSectionRef} /* 👈 Ref Attached Here */
+          className="max-w-7xl px-4 mx-auto py-10"
+        >
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
             Choose your plan
           </h2>
@@ -322,87 +335,84 @@ export default function BastionCoreProductPage() {
           </div>
         </section>
 
+        {/* ... (Rest of Sections 3, 4, 5, 6, 7 and Footer remain unchanged) ... */}
+
         {/* Section 3: Content */}
         <section className="max-w-7xl px-4 mx-auto pb-16 min-h-screen flex items-center">
-  <div className="rounded-3xl border border-[#E6E6E6] overflow-hidden h-full w-full">
-    <div className="grid grid-cols-1 md:grid-cols-5 items-stretch h-full">
+          {/* ... Content code ... */}
+          <div className="rounded-3xl border border-[#E6E6E6] overflow-hidden h-full w-full">
+            <div className="grid grid-cols-1 md:grid-cols-5 items-stretch h-full">
 
-      {/* Left: Tabs */}
-      <div className="md:col-span-2 bg-white overflow-y-auto">
-        <div className="divide-y divide-[#E6E6E6]">
-          {items.map((it, idx) => (
-            <div key={it.title}>
-              <button
-                onClick={() => setActive(idx)}
-                onMouseEnter={() => setActive(idx)}
-                className={`group w-full text-left p-5 transition-colors ${
-                  active === idx
-                    ? "bg-[#E6E6E6]/40"
-                    : "bg-white hover:bg-[#E6E6E6]/30"
-                }`}
-                type="button"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`h-2.5 w-2.5 rounded-full ${
-                      active === idx
-                        ? "bg-[#C00000]"
-                        : "bg-[#C4B696] group-hover:bg-[#C00000]"
-                    }`}
-                  />
-                  <h4 className="text-base md:text-lg font-semibold">
-                    {it.title}
-                  </h4>
-                </div>
-                <p className="mt-1 ml-5 text-sm text-slate-600">{it.desc}</p>
-              </button>
+              {/* Left: Tabs */}
+              <div className="md:col-span-2 bg-white overflow-y-auto">
+                <div className="divide-y divide-[#E6E6E6]">
+                  {items.map((it, idx) => (
+                    <div key={it.title}>
+                      <button
+                        onClick={() => setActive(idx)}
+                        onMouseEnter={() => setActive(idx)}
+                        className={`group w-full text-left p-5 transition-colors ${active === idx
+                          ? "bg-[#E6E6E6]/40"
+                          : "bg-white hover:bg-[#E6E6E6]/30"
+                          }`}
+                        type="button"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`h-2.5 w-2.5 rounded-full ${active === idx
+                              ? "bg-[#C00000]"
+                              : "bg-[#C4B696] group-hover:bg-[#C00000]"
+                              }`}
+                          />
+                          <h4 className="text-base md:text-lg font-semibold">
+                            {it.title}
+                          </h4>
+                        </div>
+                        <p className="mt-1 ml-5 text-sm text-slate-600">{it.desc}</p>
+                      </button>
 
-              {/* Mobile Image */}
-              <div
-                className={`md:hidden overflow-hidden transition-all duration-300 ${
-                  active === idx ? "max-h-[700px] mt-2" : "max-h-0"
-                }`}
-              >
-                <div className="relative bg-[#E6E6E6] flex items-center justify-center">
-                  <img
-                    src={it.img}
-                    alt={it.title}
-                    className="w-full max-h-64 object-contain"
-                  />
+                      {/* Mobile Image */}
+                      <div
+                        className={`md:hidden overflow-hidden transition-all duration-300 ${active === idx ? "max-h-[700px] mt-2" : "max-h-0"
+                          }`}
+                      >
+                        <div className="relative bg-[#E6E6E6] flex items-center justify-center">
+                          <img
+                            src={it.img}
+                            alt={it.title}
+                            className="w-full max-h-64 object-contain"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+
+              {/* Right: Image */}
+              <div className="hidden md:flex md:col-span-3 relative bg-[#ffffff] items-center justify-center">
+
+                {/* FIX: Fixed height container to prevent left side movement */}
+                <div className="w-full h-[700px] flex items-center justify-center">
+                  <img
+                    key={items[active].img}
+                    src={items[active].img}
+                    alt={items[active].title}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+
+                <div className="absolute bottom-4 left-4 right-4 bg-white/85 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
+                  <p className="text-sm font-medium text-[#1C2852]">
+                    {items[active].title}
+                  </p>
+                  <p className="text-xs text-slate-600">{items[active].desc}</p>
+                </div>
+              </div>
+
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right: Image */}
-      <div className="hidden md:flex md:col-span-3 relative bg-[#ffffff] items-center justify-center">
-
-        {/* FIX: Fixed height container to prevent left side movement */}
-        <div className="w-full h-[700px] flex items-center justify-center">
-          <img
-            key={items[active].img}
-            src={items[active].img}
-            alt={items[active].title}
-            className="max-h-full max-w-full object-contain"
-          />
-        </div>
-
-        <div className="absolute bottom-4 left-4 right-4 bg-white/85 backdrop-blur-sm rounded-xl px-4 py-3 shadow-sm">
-          <p className="text-sm font-medium text-[#1C2852]">
-            {items[active].title}
-          </p>
-          <p className="text-xs text-slate-600">{items[active].desc}</p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-
+          </div>
+        </section>
 
         {/* Section 4: Testimonials */}
         <section
@@ -580,6 +590,29 @@ export default function BastionCoreProductPage() {
         isOpen={isSignUpOpen}
         onClose={() => setIsSignUpOpen(false)}
       />
+
+      {/* 👇 Floating Subscribe Button */}
+      <AnimatePresence>
+        {showFloatingBtn && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none"
+          >
+            <div className="pointer-events-auto shadow-2xl rounded-full">
+              <button
+                onClick={() => setIsSignUpOpen(true)}
+                className="px-8 py-3 bg-[#C00000] text-white rounded-xl hover:bg-[#a00000] transition-colors shadow-lg flex items-center gap-2"
+              >
+                Subscribe Now
+                {startingPrice && <span className="font-normal text-sm opacity-90"></span>}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
