@@ -1,4 +1,3 @@
-import axiosInstance from "@/api/axios";
 import Modal from "@/components/core/Modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,13 +14,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLoader } from "@/hooks/use-loader";
 import { load } from "@cashfreepayments/cashfree-js";
 import { Check, Loader2, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AgreementStep from "../../Register/Steps/AgreementStep";
 import { Config } from "@/utils/config";
 import { formatINR, getFeatureKey, PAN_REGEX, planFeatures } from "@/utils";
 import { useSubscription } from "@/hooks/use-subscription";
+import {
+  createCashfreeOrder,
+  fetchPlans,
+  updateUser,
+  verifyPan,
+} from "@/api/onboarding-apis";
 
 const Subscription = () => {
   const { user, refetchUser, isAuthenticated, isLoading } = useAuth();
@@ -45,14 +50,14 @@ const Subscription = () => {
 
   const [isPlansLoading, setIsPlansLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [plans, setPlans] = useState<ApiPlan[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
 
   const [kycModalOpen, setKycModalOpen] = useState(false);
   const [kycStep, setKycStep] = useState<"kyc" | "agreement">("kyc");
   const [kycError, setKycError] = useState<string | null>(null);
   const [kycSubmitting, setKycSubmitting] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState<ApiPlan | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [kycVerification, setKycVerification] =
     useState<PanVerificationSummary | null>(null);
 
@@ -69,20 +74,19 @@ const Subscription = () => {
   const currentPlanCode =
     subscription?.currentPlan || user?.membership_plans?.plan_code || null;
   useEffect(() => {
-    const fetchPlans = async () => {
+    const loadPlans = async () => {
       setIsPlansLoading(true);
       setError(null);
       try {
-        const res = await axiosInstance.get("/api/cashfree/plans");
-        const apiPlans: ApiPlan[] = res.data?.plans || [];
-        setPlans(apiPlans);
+        const apiPlans = await fetchPlans();
+        setPlans(apiPlans || []);
       } catch (e: any) {
         setError(e?.response?.data?.message || "Failed to load plans");
       } finally {
         setIsPlansLoading(false);
       }
     };
-    fetchPlans();
+    loadPlans();
   }, []);
 
   useEffect(() => {
@@ -93,7 +97,18 @@ const Subscription = () => {
     return plan === currentPlanCode;
   };
 
-  const startUpgradeFlow = (plan: ApiPlan) => {
+  const availablePlans = useMemo(() => {
+    if (!plans.length) return [];
+    if (!hasSignedAgreement) return plans;
+
+    return plans.filter((plan) => {
+      const planCode = (plan.plan_code || "").toLowerCase();
+      const isFree = String(plan.amount) === "0" || planCode === "freemium";
+      return !isFree;
+    });
+  }, [plans, hasSignedAgreement]);
+
+  const startUpgradeFlow = (plan: Plan) => {
     setPendingPlan(plan);
     setUpgradeForm((prev) => ({
       ...prev,
@@ -148,15 +163,11 @@ const Subscription = () => {
     setKycSubmitting(true);
     setKycError(null);
     try {
-      const verificationResponse = await axiosInstance.post(
-        "/api/cashfree/verification/pan",
-        {
-          pan,
-          name: fullName,
-        }
-      );
+      const data = await verifyPan({
+        pan,
+        name: fullName,
+      });
 
-      const data = verificationResponse?.data || {};
       const verification: PanVerificationSummary = {
         referenceId: data.referenceId,
         valid: Boolean(data.valid),
@@ -178,7 +189,7 @@ const Subscription = () => {
 
       toast.success("PAN verified successfully");
 
-      await axiosInstance.put(`/api/users/${user.id}`, {
+      await updateUser(String(user.id), {
         pan_card_number: pan,
       });
       setUpgradeForm((prev) => ({ ...prev, panCard: pan }));
@@ -241,7 +252,7 @@ const Subscription = () => {
     }
   ) => {
     if (!user) return;
-    const selectedPlan = plans.find((p) => p.code === code);
+    const selectedPlan = availablePlans.find((p) => p.code === code);
     if (!selectedPlan) return;
 
     const hasKyc = PAN_REGEX.test(userPan);
@@ -265,10 +276,10 @@ const Subscription = () => {
 
     try {
       setCheckingOut(selectedPlan.code);
-      const resp = await loader.withLoader(
-        axiosInstance.post("/api/cashfree/orders", {
+      const orderResponse = await loader.withLoader(
+        createCashfreeOrder({
           plan: selectedPlan.code,
-          customer_id: user.id,
+          customer_id: String(user.id),
           customer_email: user.email,
           customer_phone: user.phone,
           // Let the server compose return_url with order_id for reconciliation
@@ -284,7 +295,8 @@ const Subscription = () => {
       );
 
       const cashfree = await load({ mode: Config.cashfree_environment });
-      const paymentSessionId = resp?.data?.order?.payment_session_id;
+      const paymentSessionId = (orderResponse as any)?.order
+        ?.payment_session_id;
       if (!paymentSessionId) throw new Error("Payment session not created");
       await cashfree.checkout({
         paymentSessionId,
@@ -423,9 +435,14 @@ const Subscription = () => {
           {error && (
             <div className="col-span-full text-sm text-red-600">{error}</div>
           )}
+          {!isPlansLoading && !error && availablePlans.length === 0 && (
+            <div className="col-span-full text-sm text-muted-foreground">
+              No plans available at the moment. Please check back later.
+            </div>
+          )}
           {!isPlansLoading &&
             !error &&
-            plans.map((plan) => {
+            availablePlans.map((plan) => {
               const normalizedName = plan.name.toLowerCase();
               const popular =
                 plan.plan_code === "core_annual" ||

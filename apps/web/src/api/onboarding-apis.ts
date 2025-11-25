@@ -1,6 +1,51 @@
 import axiosInstance from "./axios";
 import { endpoints } from "./endpoints";
 
+export interface CashfreeOrderPayload {
+  plan: string;
+  customer_id: string;
+  customer_email: string;
+  customer_phone: string;
+  source: "register" | "subscription" | string;
+  is_free?: boolean;
+  coupon_code?: string | null;
+  discount_amount?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface ZeroAmountPaymentPayload extends Record<string, any> {
+  plan_id: number;
+  payer_email: string;
+  role?: string;
+  coupon_code?: string;
+  user_id?: string;
+}
+
+export interface VerifyPanPayload {
+  pan: string;
+  name: string;
+}
+
+export interface OnboardingPayload {
+  email: string;
+  phone: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  address1?: string;
+  address2?: string;
+  state?: string;
+  city?: string;
+  pinCode?: string;
+  company?: string;
+  panCard: string;
+  panVerification: any;
+  status?: string;
+  role?: string;
+  plan_id?: string;
+}
+
 // Types are kept broad where the components currently don't enforce strict shapes.
 // You can tighten these later as needed.
 
@@ -35,22 +80,12 @@ export async function fetchPlans(): Promise<Plan[]> {
   return data.plans || [];
 }
 
-export async function createCashfreeOrder(payload: {
-  plan: string;
-  customer_id: string;
-  customer_email: string;
-  customer_phone: string;
-  source: string;
-  is_free?: boolean;
-  coupon_code?: string | null;
-  discount_amount?: number;
-  metadata?: Record<string, any>;
-}) {
+export async function createCashfreeOrder(payload: CashfreeOrderPayload) {
   const { data } = await axiosInstance.post(endpoints.cashfree.orders, payload);
   return data;
 }
 
-export async function zeroAmountPayment(payload: Record<string, any>) {
+export async function zeroAmountPayment(payload: ZeroAmountPaymentPayload) {
   const { data } = await axiosInstance.post(
     endpoints.auth.zeroAmountPayment,
     payload
@@ -60,7 +95,7 @@ export async function zeroAmountPayment(payload: Record<string, any>) {
 
 // ---------- Cashfree Verification (PAN) ----------
 
-export async function verifyPan(payload: { pan: string; name: string }) {
+export async function verifyPan(payload: VerifyPanPayload) {
   const { data } = await axiosInstance.post(
     endpoints.cashfreeVerification.verifyPan,
     payload
@@ -98,25 +133,7 @@ export async function createFreeAccount(payload: {
   return data;
 }
 
-export async function startOnboarding(payload: {
-  email: string;
-  phone: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  address1?: string;
-  address2?: string;
-  state?: string;
-  city?: string;
-  pinCode?: string;
-  company?: string;
-  panCard: string;
-  panVerification: any;
-  status?: string;
-  role?: string;
-  plan_id?: string;
-}) {
+export async function startOnboarding(payload: OnboardingPayload) {
   const { data } = await axiosInstance.post(endpoints.auth.onboard, payload);
   return data;
 }
