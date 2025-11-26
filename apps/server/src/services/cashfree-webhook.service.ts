@@ -86,6 +86,7 @@ export const handlePaymentSuccess = async (payload: any) => {
     .eq("transaction_id", transactionId)
     .maybeSingle();
 
+  console.log({ existingPayment });
   const paymentHistoryPromise = existingPayment
     ? supabase
         .from("payment_history")

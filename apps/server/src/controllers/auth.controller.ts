@@ -305,7 +305,8 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     let userId: string | null = null;
     const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
-    const username = firstName.toLowerCase() + "_" + lastName.toLowerCase();
+    const username =
+      email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
     const { data: inserted, error: insError } = await supabase
       .from("users")
       .insert({

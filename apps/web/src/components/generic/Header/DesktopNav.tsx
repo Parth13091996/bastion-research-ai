@@ -3,8 +3,7 @@ import { AppRoutes } from "@/routes/app-routes";
 import { Link } from "react-router-dom";
 
 const DesktopNav = ({ setOpenSubmenu }) => {
-  const { user, isLoading } = useAuth();
-  const isActive = user?.status === "active";
+  const { user, isLoading, isAuthenticated } = useAuth();
 
   return (
     <nav className="hidden md:flex items-center space-x-8">
@@ -81,7 +80,7 @@ const DesktopNav = ({ setOpenSubmenu }) => {
             ></path>
           </svg>
         </div>
-      ) : isActive ? (
+      ) : isAuthenticated ? (
         <Link
           to={AppRoutes.dashboard || "/user/app/dashboard"}
           className="text-gray-700 hover:text-red-600 flex items-center transition-colors"

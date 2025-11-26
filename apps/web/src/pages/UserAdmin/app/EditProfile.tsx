@@ -99,10 +99,7 @@ const EditProfile = () => {
     mutationFn: async (payload: ProfileFormValues) => {
       if (!user?.id) throw new Error("User not loaded");
       // Send only provided fields; backend already whitelists
-      const res = await axiosInstance.put(
-        `/api/users/${user.id}`,
-        payload
-      );
+      const res = await axiosInstance.put(`/api/users/${user.id}`, payload);
       return res.data;
     },
     onSuccess: async () => {

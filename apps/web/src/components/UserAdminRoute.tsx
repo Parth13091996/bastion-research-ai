@@ -4,7 +4,6 @@ import { Navigate, Outlet } from "react-router-dom";
 const UserAdminRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Show loading state while checking authentication (spinner only)
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">

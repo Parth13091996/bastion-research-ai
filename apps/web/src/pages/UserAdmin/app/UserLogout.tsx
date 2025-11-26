@@ -2,7 +2,13 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { LogOut, User, Shield, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,7 +56,7 @@ const UserLogout: React.FC = () => {
             Are you sure you want to sign out of your account?
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {/* User Info */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -65,7 +71,7 @@ const UserLogout: React.FC = () => {
                 <p className="text-sm text-gray-600">{user?.email}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Shield className="h-4 w-4" />
               <span>Role: {user?.role || "User"}</span>
@@ -87,11 +93,7 @@ const UserLogout: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={handleCancel} className="flex-1">
               Cancel
             </Button>
             <Button

@@ -112,6 +112,7 @@ interface PlansStepProps {
   onNext: () => void;
   isLoading: boolean;
   error: string | null;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface AgreementStepProps {

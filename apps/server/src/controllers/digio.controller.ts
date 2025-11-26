@@ -131,8 +131,6 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
 
       const user_id = anyReq?.user && anyReq.user.id ? anyReq.user.id : null;
 
-      console.log({ document_id, identifier });
-
       if (document_id && identifier) {
         await supabase
           .from("digio_documents")
@@ -307,8 +305,6 @@ export const digioWebhook = async (req: Request, res: Response) => {
           "esign.v3.sign.pending": "pending",
         };
         const normalized = statusMap[eventType] || String(eventType || "");
-
-        console.log({ eventType });
 
         // Attempt to update existing row by document_id
         await supabase

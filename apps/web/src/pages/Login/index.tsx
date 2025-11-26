@@ -46,7 +46,8 @@ const Login = () => {
     mutationFn: (data) => signIn(data),
     onSuccess: (data) => {
       login(data.user);
-      const shouldResumeOnboarding = data?.user?.status !== "active";
+      const shouldResumeOnboarding =
+        data?.user?.status !== "active" && data?.user?.status !== "free";
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
         setTimeout(() => {

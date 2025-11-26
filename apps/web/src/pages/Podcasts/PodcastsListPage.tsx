@@ -159,7 +159,7 @@ const PublicPodcastsPage = () => {
                             className="transition-transform group-hover/play:text-[#C00000]"
                           />
                           <span className="transition-colors group-hover/play:text-[#C00000]">
-                            {podcast.views || "Play Now"}
+                            {"Play Now"}
                           </span>
                         </div>
 

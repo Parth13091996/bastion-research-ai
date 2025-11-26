@@ -27,7 +27,6 @@ const BastionCore = lazy(() => import("../pages/BastionCore"));
 const SpotLights = lazy(() => import("../pages/SpotLights"));
 const About = lazy(() => import("../pages/AboutUs"));
 const NotFound = lazy(() => import("../pages/NotFound"));
-const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
 
 // User Admin Pages
 const UserAdminDashboard = lazy(
@@ -175,7 +174,6 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.podcastView, element: <SinglePodcastPage /> },
       { path: AppRoutes.scratchPadView, element: <ScratchPadView /> },
       { path: AppRoutes.dashboard, element: <Dashboard /> },
-      { path: AppRoutes.paymentSuccess, element: <PaymentSuccess /> },
     ],
   },
   {

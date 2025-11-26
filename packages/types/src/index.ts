@@ -26,7 +26,7 @@ export interface User {
   password?: string | null; // Null for OAuth users
   role?: "core_subscriber" | "free_subscriber"; // Assuming possible roles
   cameFromOAuth?: boolean;
-  status?: "active" | "agreement_signed" | "onboarded";
+  status?: "active" | "agreement_signed" | "onboarded" | "free";
   created_at?: string;
 }
 

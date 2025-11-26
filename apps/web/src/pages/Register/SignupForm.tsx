@@ -135,9 +135,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   };
 
   useEffect(() => {
-    setSteps(
-      isAgreementSignedUser ? agreementSignedStepsValues : stepsValues
-    );
+    setSteps(isAgreementSignedUser ? agreementSignedStepsValues : stepsValues);
   }, [plans.length, isAgreementSignedUser]);
 
   useEffect(() => {
@@ -224,6 +222,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
               onBack={onClose}
               onNext={nextStep}
               updateFormData={updateFormData}
+              setIsLoading={setIsLoading}
             />
           );
         case 2:
@@ -296,6 +295,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             onBack={prevStep}
             onNext={nextStep}
             updateFormData={updateFormData}
+            setIsLoading={setIsLoading}
           />
         );
       case 5:

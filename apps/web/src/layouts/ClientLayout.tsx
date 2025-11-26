@@ -6,11 +6,14 @@ import { AppRoutes, AuthRoutes } from "@/routes/app-routes";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 const ClientLayout = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
-  const isActive = user?.status === "active";
 
-  if (user && isActive && AuthRoutes.includes(location.pathname as any)) {
+  if (
+    user &&
+    isAuthenticated &&
+    AuthRoutes.includes(location.pathname as any)
+  ) {
     return <Navigate to={AppRoutes.home} replace />;
   }
 

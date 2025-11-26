@@ -1,7 +1,10 @@
 import { createFreeAccount } from "@/api/onboarding-apis";
-import { formatINR } from "@/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatINR, sleep } from "@/utils";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const PlansStep: React.FC<PlansStepProps> = ({
   plans,
@@ -11,25 +14,41 @@ const PlansStep: React.FC<PlansStepProps> = ({
   onNext,
   isLoading,
   error,
+  setIsLoading,
 }) => {
+  const navigate = useNavigate();
+  const { refetchUser } = useAuth();
   const plansStepNextHandler = async () => {
-    const selectedPlanDetails = plans.find(
-      (p) => p.code === formData.selectedPlan
-    );
-    const isFree = selectedPlanDetails?.plan_code === "freemium";
-    if (isFree) {
-      const response = await createFreeAccount({
-        ...formData,
-        status: "free",
-        role: "free_subscriber",
-        plan_id: 1,
-      });
-      console.log(response, "response");
-      window.location.href = location.origin + "/login";
-      return;
+    try {
+      setIsLoading(true);
+      const selectedPlanDetails = plans.find(
+        (p) => p.code === formData.selectedPlan
+      );
+      const isFree = selectedPlanDetails?.plan_code === "freemium";
+      if (isFree) {
+        const response = await createFreeAccount({
+          ...formData,
+          status: "free",
+          role: "free_subscriber",
+          plan_id: 1,
+        });
+        setIsLoading(false);
+        await refetchUser();
+        await sleep(500);
+        navigate("/user/app/dashboard");
+        return;
+      }
+      updateFormData("role", "core_subscriber");
+      onNext();
+    } catch (error) {
+      setIsLoading(false);
+      if (error?.response?.data?.message?.includes("users_email_key")) {
+        toast.error(
+          "Duplicate email address, can't create account with an existing email."
+        );
+      }
+      console.error("Error in plansStepNextHandler:", error);
     }
-    updateFormData("role", "core_subscriber");
-    onNext();
   };
 
   useEffect(() => {
