@@ -62,7 +62,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
             className="w-16 h-16 flex items-center justify-center rounded-md text-xs font-semibold"
             style={{
               background: "#f3f4f6",
-              color: COLORS.grayDark,
+              // color: COLORS.grayDark,
               border: `1px solid ${COLORS.lightGray}`,
             }}
           >

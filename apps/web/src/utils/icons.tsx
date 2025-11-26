@@ -67,34 +67,3 @@ export const SvgInstagram = () => (
       />
     </svg>
   );
-
-  export function SvgSubstack(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Background (transparent) */}
-      <rect x="2" y="2" width="20" height="20" rx="5" fill="none" />
-
-      {/* Top bars */}
-      <rect x="6" y="6.5" width="12" height="2" stroke="currentColor" strokeWidth="1.6" />
-      <rect x="6" y="9" width="12" height="2" stroke="currentColor" strokeWidth="1.6" />
-
-      {/* Middle bar */}
-      <rect x="6" y="11.5" width="12" height="2" stroke="currentColor" strokeWidth="1.6" />
-
-      {/* Bookmark outline */}
-      <path
-        d="M6 13.5 H18 V18.5 L12 16 L6 18.5 V13.5 Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        fill="none"
-      />
-    </svg>
-  );
-}

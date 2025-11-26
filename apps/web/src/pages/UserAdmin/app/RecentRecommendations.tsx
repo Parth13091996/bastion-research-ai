@@ -66,7 +66,7 @@ const RecentRecommendations: React.FC = () => {
     );
 
   return (
-    <div className="lg:col-span-2 bg-white rounded-lg p-3 sm:p-4 lg:p-6 shadow-sm">
+    <div className="lg:col-span-3 bg-white rounded-lg p-3 sm:p-4 lg:p-6 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
         <div>
           <h2 className="text-base sm:text-lg font-semibold text-gray-900">

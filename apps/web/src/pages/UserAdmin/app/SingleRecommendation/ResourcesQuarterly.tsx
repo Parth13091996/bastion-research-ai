@@ -108,7 +108,7 @@ const ResourcesQuarterly = ({ stock, setSelectedUpdate }) => {
               className="p-4 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer border border-gray-200 shadow-sm transition-all"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">
+                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
                   {u.date}
                 </span>
                 {u.hasPdf && <FileText size={14} className="text-gray-400" />}

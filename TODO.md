@@ -1,3 +1,4 @@
-- [ ] Modify the header div to stack title/subtitle above buttons on mobile using responsive flex classes
-- [ ] Replace ResponsiveContainer with fixed width LineChart wrapped in overflow-x-auto for horizontal scroll on mobile
-- [ ] Test the mobile layout to ensure proper stacking and chart scrolling
+# TODO: Add Subscribe to Substack Button to UserSidebar
+
+- [x] Import SiSubstack icon from react-icons/si in use-constants.ts
+- [x] Add new navItem for "Subscribe to Substack" to the navItems array in use-constants.ts

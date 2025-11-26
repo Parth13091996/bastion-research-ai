@@ -1,7 +1,7 @@
 import { createFreeAccount } from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatINR, sleep } from "@/utils";
-import { ArrowLeft, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Info, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -114,7 +114,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
               return (
                 <div
                   key={index}
-                  className={`relative rounded-xl border p-4 transition-colors cursor-pointer bg-white ${
+                  className={`relative rounded-xl border p-4 flex flex-col h-full transition-colors cursor-pointer bg-white ${
                     isSelected
                       ? "border-red-500 ring-2 ring-red-500/20"
                       : "border-gray-200 hover:border-red-300"
@@ -126,12 +126,17 @@ const PlansStep: React.FC<PlansStepProps> = ({
                       <Sparkles className="h-3 w-3" /> Most popular
                     </div>
                   )}
+                  {pc === "core" && (
+                    <div className="absolute -top-2 left-3 inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-xs font-medium">
+                      <Sparkles className="h-3 w-3" /> Once in a lifetime access
+                    </div>
+                  )}
                   <div className="mb-3 flex items-start justify-between">
                     <div>
                       <h3 className="font-semibold text-base text-gray-900">
                         {plan.name}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 whitespace-nowrap">
                         {isFree
                           ? "Free forever"
                           : pc === "core_annual"
@@ -139,17 +144,33 @@ const PlansStep: React.FC<PlansStepProps> = ({
                             : "Billed quarterly"}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <div
-                        className={`text-xl font-bold ${isFree ? "text-gray-700" : "text-red-600"}`}
-                      >
-                        {formatINR(isFree ? 0 : Number(plan.amount || 0))}
-                      </div>
-                      {!isFree && (
-                        <div className="text-[11px] text-gray-400">
-                          Incl. GST
+                    <div className="text-right flex items-start gap-1 relative -ml-3">
+                      {/* Info icon only for CORE plan */}
+                      {pc === "core" && (
+                        <div className="relative group">
+                          <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer" />
+
+                          {/* Tooltip ABOVE the icon */}
+                          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-60 hidden group-hover:block bg-gray-800 text-white text-xs rounded-md px-3 py-2 shadow-lg z-20 text-center">
+                            This plan is once in a lifetime access. It is
+                            available only for 3 months. After that, you will
+                            not be able to purchase it again in your lifetime.
+                          </div>
                         </div>
                       )}
+
+                      <div className="text-right">
+                        <div
+                          className={`text-xl font-bold ${isFree ? "text-gray-700" : "text-red-600"}`}
+                        >
+                          {formatINR(isFree ? 0 : Number(plan.amount || 0))}
+                        </div>
+                        {!isFree && (
+                          <div className="text-[11px] text-gray-400">
+                            Incl. GST
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -167,7 +188,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
                     </ul>
                   )}
 
-                  <div className="mt-4">
+                  <div className="mt-auto pt-4">
                     <button
                       type="button"
                       className={`w-full rounded-lg py-2 text-sm font-medium transition-colors ${

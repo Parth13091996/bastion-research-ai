@@ -24,7 +24,7 @@ const AnnouncementsUpdates = ({ announcements, setSelectedUpdate }) => {
             className="p-5 bg-gray-50 hover:bg-white border border-gray-200 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow-md"
           >
             <div className="flex justify-between items-center mb-3">
-              <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">
+              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
                 {u.date}
               </span>
               {u.hasPdf && <FileText size={16} className="text-blue-600" />}

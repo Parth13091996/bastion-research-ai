@@ -18,6 +18,7 @@ export const Config = {
     youtube: "https://www.youtube.com/@BastionResearch",
     spotify:
       "https://open.spotify.com/show/4tBUa0orTDn3C76Yr16o5s?si=iiEnjhIWTv-pvG-xdqFB6w&nd=1&dlsi=06ffb913e9ce43f8",
+    substack: "https://substack.com/@bastionresearch?utm_campaign=profile&utm_medium=profile-page",
   },
   logo: "https://dev.bastionresearch.in/media/header-logo.webp",
   roles: {

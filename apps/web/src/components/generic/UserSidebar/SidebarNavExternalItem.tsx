@@ -5,6 +5,8 @@ const SidebarNavExternalItem = ({
   setShowPricing,
   setIsMobileOpen,
 }) => {
+  const isFreeItem = item.name === "Join WhatsApp Group" || item.name === "Subscribe to Substack";
+
   return (
     <div
       onClick={() => {
@@ -27,7 +29,16 @@ const SidebarNavExternalItem = ({
       tabIndex={0}
     >
       <item.icon className="h-5 w-5" />
-      {!isCollapsed && <span className="ml-3">{item.name}</span>}
+      {!isCollapsed && (
+        <div className="ml-3 flex items-center">
+          <span>{item.name}</span>
+          {isFreeItem && (
+            <span className="ml-2 px-2 py-1 text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full shadow-lg animate-pulse">
+              FREE
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 };
