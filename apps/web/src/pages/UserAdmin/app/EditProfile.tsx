@@ -245,7 +245,7 @@ const EditProfile = () => {
                 <Input id="pan_card_number" {...register("pan_card_number")} />
               </div>
 
-              <div>
+              <div className="flex items-center h-full">
                 <Button
                   type="button"
                   variant="outline"
@@ -261,6 +261,7 @@ const EditProfile = () => {
                 </Button>
               </div>
             </div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
