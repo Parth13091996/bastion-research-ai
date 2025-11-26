@@ -285,7 +285,6 @@ export function SimpleEditor({
   const editorStore = useEditorStore();
 
   React.useEffect(() => {
-    // console.log(editor.getJSON(), editor.getHTML());
     editorStore.setEditor(editor);
   }, [editor]);
 

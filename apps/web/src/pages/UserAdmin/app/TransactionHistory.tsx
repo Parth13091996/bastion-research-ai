@@ -1,60 +1,17 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react";
-import type { ColDef } from "ag-grid-community";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { getMyPaymentHistory } from "@/api/membership-api";
 import { useAuth } from "@/contexts/AuthContext";
-
-type PaymentRow = {
-  transaction_id: string;
-  invoice_id?: string;
-  payment_gateway?: string;
-  payment_type?: string;
-  payer_email?: string;
-  transaction_status?: string;
-  user_id?: string;
-  plan_id?: number;
-  payment_date?: string | null;
-  amount?: number | string | null;
-  membership?: string | null;
-};
-
-const StatusBadge = ({ value }: { value?: string }) => {
-  const v = (value || "").toLowerCase();
-  const classes =
-    v === "success" || v === "completed"
-      ? "bg-green-100 text-green-800"
-      : v === "failed" || v === "cancelled"
-        ? "bg-red-100 text-red-800"
-        : "bg-blue-100 text-blue-800";
-  return (
-    <span
-      className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium ${classes}`}
-    >
-      {value || "-"}
-    </span>
-  );
-};
-
-const currency = (v?: number | string | null) => {
-  if (v == null || v === "") return "-";
-  const n = typeof v === "string" ? Number(v) : v;
-  if (isNaN(n as number)) return String(v);
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-  }).format(n as number);
-};
-
-const formatDate = (v?: string | null) => {
-  if (!v) return "-";
-  const d = new Date(v);
-  if (isNaN(d.getTime())) return v;
-  return d.toLocaleDateString();
-};
+import useConstants from "@/hooks/use-constants";
 
 const TransactionHistory: React.FC = () => {
+  const {
+    TransactionHistoryConstants,
+    TransactionHistoryColDefs,
+    TransactionHistoryCurrency,
+  } = useConstants();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -93,60 +50,6 @@ const TransactionHistory: React.FC = () => {
     }, 0);
   }, [filtered]);
 
-  const colDefs: ColDef<PaymentRow>[] = [
-    {
-      headerName: "Date",
-      field: "payment_date",
-      valueFormatter: (p) => formatDate(p.value as string),
-      minWidth: 100,
-      maxWidth: 120,
-    },
-    {
-      headerName: "Invoice",
-      field: "invoice_id",
-      minWidth: 100,
-      maxWidth: 150,
-    },
-    {
-      headerName: "Transaction",
-      field: "transaction_id",
-      minWidth: 120,
-      maxWidth: 180,
-    },
-    {
-      headerName: "Membership",
-      field: "membership",
-      minWidth: 100,
-      maxWidth: 150,
-    },
-    {
-      headerName: "Gateway",
-      field: "payment_gateway",
-      minWidth: 100,
-      maxWidth: 120,
-    },
-    {
-      headerName: "Type",
-      field: "payment_type",
-      minWidth: 80,
-      maxWidth: 120,
-    },
-    {
-      headerName: "Status",
-      field: "transaction_status",
-      cellRenderer: StatusBadge,
-      minWidth: 100,
-      maxWidth: 120,
-    },
-    {
-      headerName: "Amount",
-      field: "amount",
-      valueFormatter: (p) => currency(p.value as any),
-      minWidth: 100,
-      maxWidth: 120,
-    },
-  ];
-
   if (!isAuthenticated) {
     return null; // Will redirect in useEffect
   }
@@ -155,24 +58,31 @@ const TransactionHistory: React.FC = () => {
     <div className="min-h-screen mx-auto max-w-[80rem] bg-gray-50 p-3 sm:p-4 lg:p-6">
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-          Transaction History
+          {TransactionHistoryConstants.pageTitle}
         </h1>
         <p className="text-xs sm:text-sm text-gray-600 mt-1">
-          View your payments and subscription transactions.
+          {TransactionHistoryConstants.pageDescription}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-          <p className="text-xs text-gray-500">Total Records</p>
+          <p className="text-xs text-gray-500">
+            {TransactionHistoryConstants.labels.totalRecords}
+          </p>
           <p className="text-lg sm:text-2xl font-semibold text-gray-900">
             {filtered?.length || 0}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-          <p className="text-xs text-gray-500">Total Amount</p>
+          <p className="text-xs text-gray-500">
+            {TransactionHistoryConstants.labels.totalAmount}
+          </p>
           <p className="text-lg sm:text-2xl font-semibold text-gray-900">
-            {currency(totalAmount)}
+            {TransactionHistoryCurrency(
+              totalAmount,
+              TransactionHistoryConstants.currency
+            )}
           </p>
         </div>
       </div>
@@ -181,7 +91,7 @@ const TransactionHistory: React.FC = () => {
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
           <input
             type="text"
-            placeholder="Search transactions, invoice, gateway..."
+            placeholder={TransactionHistoryConstants.search.placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full sm:w-80 lg:w-96 p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -189,12 +99,15 @@ const TransactionHistory: React.FC = () => {
         </div>
         <div
           className="ag-theme-alpine overflow-hidden"
-          style={{ height: 400, width: "100%" }}
+          style={{
+            height: TransactionHistoryConstants.grid.height,
+            width: "100%",
+          }}
         >
           <AgGridReact
             theme="legacy"
             rowData={filtered}
-            columnDefs={colDefs}
+            columnDefs={TransactionHistoryColDefs}
             defaultColDef={{
               sortable: true,
               filter: true,
@@ -204,8 +117,12 @@ const TransactionHistory: React.FC = () => {
               maxWidth: 200,
             }}
             pagination={true}
-            paginationPageSize={10}
-            paginationPageSizeSelector={[10, 25, 50, 100]}
+            paginationPageSize={
+              TransactionHistoryConstants.grid.pagination.defaultPageSize
+            }
+            paginationPageSizeSelector={
+              TransactionHistoryConstants.grid.pagination.pageSizeOptions
+            }
             overlayLoadingTemplate={
               '<span class="ag-overlay-loading-center"><span class="inline-block w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span></span>'
             }
@@ -215,8 +132,8 @@ const TransactionHistory: React.FC = () => {
             suppressHorizontalScroll={false}
             suppressColumnVirtualisation={false}
             suppressRowVirtualisation={false}
-            rowHeight={40}
-            headerHeight={40}
+            rowHeight={TransactionHistoryConstants.grid.rowHeight}
+            headerHeight={TransactionHistoryConstants.grid.headerHeight}
           />
         </div>
         {isLoading && (
@@ -226,7 +143,7 @@ const TransactionHistory: React.FC = () => {
         )}
         {isError && (
           <div className="p-3 text-xs sm:text-sm text-red-600">
-            Failed to load transactions.
+            {TransactionHistoryConstants.messages.loadError}
           </div>
         )}
       </div>

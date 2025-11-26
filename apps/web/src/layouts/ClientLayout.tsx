@@ -9,7 +9,6 @@ const ClientLayout = () => {
   const { user } = useAuth();
   const location = useLocation();
   const isActive = user?.status === "active";
-  console.log({ user, isActive, location }, "status");
 
   if (user && isActive && AuthRoutes.includes(location.pathname as any)) {
     return <Navigate to={AppRoutes.home} replace />;

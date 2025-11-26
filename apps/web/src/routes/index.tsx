@@ -43,7 +43,7 @@ const UserAdminEditProfile = lazy(
   () => import("@/pages/UserAdmin/app/EditProfile")
 );
 const UserAdminSubscription = lazy(
-  () => import("@/pages/UserAdmin/app/Subscription")
+  () => import("@/pages/UserAdmin/app/UserSubscription")
 );
 const UserAdminTransactionHistory = lazy(
   () => import("@/pages/UserAdmin/app/TransactionHistory")

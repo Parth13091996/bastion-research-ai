@@ -434,15 +434,10 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             variant="outline"
             onClick={() => {
               let editorContent = editorStore.editor.getHTML();
-              console.log(editorContent, "content list");
-              // Replace all empty <p> tags (with any whitespace inside) with <br/>
               editorContent = editorContent.replace(/<p[^>]*><\/p>/g, "<br>");
-              console.log(editorContent, "content list after");
-
               setFormData((prev) => ({
                 ...prev,
                 html_content: editorContent,
-                // Update the appropriate content field based on type
                 ...(type === "scratch-pad"
                   ? { content: editorContent }
                   : { contents: editorContent }),
