@@ -19,9 +19,9 @@ function App() {
           <div className="relative flex h-screen bg-gray-100 overflow-hidden items-center justify-center">
             <main className="animate-pulse p-4">
               <img
-                src="/media/header-logo.webp"
+                src="/media/Bastion-Logo.png"
                 alt="Bastion Research"
-                className="h-16 sm:h-18 md:h-20 lg:h-20 xl:h-20 max-w-full object-contain"
+                className="h-24 sm:h-26 md:h-30 lg:h-30 xl:h-30 max-w-full object-contain"
               />
             </main>
           </div>
