@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { supabase } from "../supabase";
+import { createZohoInvoiceForPayment } from "./zoho-books.service";
 
 export const verifyWebhookSignature = (
   signature: string | undefined,
@@ -111,6 +112,14 @@ export const handlePaymentSuccess = async (payload: any) => {
         .maybeSingle();
 
   await Promise.all([updateUserPromise, paymentHistoryPromise]);
+
+  try {
+    if (payment?.payment_status === "SUCCESS") {
+      await createZohoInvoiceForPayment(transactionId);
+    }
+  } catch (err) {
+    console.error("Failed to create Zoho invoice for payment:", err);
+  }
 };
 
 export const handlePaymentUserDropped = async (payload: any) => {
