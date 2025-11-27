@@ -194,7 +194,9 @@ export const upsertRecommendationByCompany = async (
       return undefined;
     };
 
-    const dirBase = `recommendations/${encodeURIComponent(company_symbol)}`;
+    // Replace all non-word characters with underscore for safe directory name
+    const safeCompanySymbol = String(company_symbol).replace(/[^\w]/g, "_");
+    const dirBase = `recommendations/${safeCompanySymbol}`;
 
     let logoUrl: string | undefined = body.logo;
     const logoFile = pickFirstFile("logo");
