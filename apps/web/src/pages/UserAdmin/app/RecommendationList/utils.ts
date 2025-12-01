@@ -40,3 +40,44 @@ export const getTextColor = (band: string) => {
       return "#FFFFFF";
   }
 };
+
+// Utility functions
+export function getBlurStyle(isPaid: boolean) {
+  return isPaid
+    ? ({
+        filter: "blur(7px)",
+        userSelect: "none",
+        pointerEvents: "none",
+      } as React.CSSProperties)
+    : undefined;
+}
+
+export function getGainPercent(
+  cmp: number,
+  entryPrice: number,
+  target1: number
+) {
+  let rawGainPercent = ((cmp - entryPrice) / (target1 - entryPrice)) * 100;
+  if (rawGainPercent < 0) rawGainPercent = 1;
+  return Math.abs(Math.min(rawGainPercent, 100));
+}
+
+export function getLossPercent(cmp: number, entryPrice: number) {
+  let rawLossPercent = ((entryPrice - cmp) / entryPrice) * 100;
+  if (rawLossPercent < 0) rawLossPercent = 1;
+  return Math.min(rawLossPercent, 100);
+}
+
+// Helper to determine if a stock is EXited
+export function isExited(stock: StockData) {
+  return (stock.band || "").toUpperCase() === "EXIT";
+}
+
+export function getProfitOrLossPercent(stock: StockData) {
+  // (cmp - entry)/entry * 100
+  const cmp = Number(stock.cmp ?? 0);
+  const entry = Number(stock.entryPrice ?? 0);
+  if (!entry) return 0;
+  const pnl = ((cmp - entry) / entry) * 100;
+  return Math.round(pnl * 100) / 100; // round to 2 decimal places
+}

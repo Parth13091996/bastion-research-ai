@@ -12,9 +12,8 @@ import {
   fetchSingleRecommendationGraphSheetData,
   formatMonthYear,
   getFilteredData,
-  type PBRow
+  type PBRow,
 } from "./utils";
-
 
 const SingleRecommendation = () => {
   const { symbol } = useParams<{ symbol: string }>();
@@ -22,7 +21,7 @@ const SingleRecommendation = () => {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [timeRange, setTimeRange] = useState("ALL");
-  const { sheetStocks: stocks, loading } = useSheetStocks(true);
+  const { stocks, loading } = useSheetStocks(true);
   const [externalRows, setExternalRows] = useState<PBRow[] | null>(null);
   const isMobile = useIsMobile();
 
@@ -67,7 +66,6 @@ const SingleRecommendation = () => {
       cancelled = true;
     };
   }, [stock?.nseSymbol, stock?.name, stock?.stock_performance_url]);
-
 
   const announcements = Array.isArray(stock?.announcements_and_update)
     ? stock.announcements_and_update.map((item: any, idx: number) => ({
@@ -116,7 +114,10 @@ const SingleRecommendation = () => {
             />
           </main>
 
-          <UpdateModal selectedUpdate={selectedUpdate} setSelectedUpdate={setSelectedUpdate} />
+          <UpdateModal
+            selectedUpdate={selectedUpdate}
+            setSelectedUpdate={setSelectedUpdate}
+          />
         </>
       )}
     </div>

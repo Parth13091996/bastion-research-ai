@@ -40,7 +40,6 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             target1: Math.round(sheetRow.targetPrice || 0),
             sector: (sheetRow as any).sector || "",
             band: (sheetRow.action?.toUpperCase() as any) || "BUY",
-            lastUpdated: (sheetRow.dateRecommended || "").toString(),
             dateRecommended: (sheetRow.dateRecommended || "").toString(),
             percentReturn: Math.round((sheetRow.percentReturn || 0) * 100),
           })
@@ -81,8 +80,7 @@ const useSheetStocks = (onlySheet: boolean = false) => {
             target1: Math.round(sheetRow.targetPrice || 0),
             sector: dbRow?.sector ?? "",
             band: (sheetRow.action?.toUpperCase() as any) || "BUY",
-            lastUpdated: sheetRow.dateRecommended || null,
-            dateRecommended: sheetRow.dateRecommended || null,
+            lastUpdated: dbRow?.updated_at || null,
             logo: dbRow?.logo,
             business_note: dbRow?.business_note,
             stock_performance_url: dbRow?.stock_performance_url || "",

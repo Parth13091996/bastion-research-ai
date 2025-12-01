@@ -55,10 +55,11 @@ const RecommendationList = () => {
   const [sortBy, setSortBy] = useState("MCAP Wise");
   const [filterBy, setFilterBy] = useState("All");
   const [visibleCount, setVisibleCount] = useState(9);
-  const { stocks: sheetStocks, loading, error } = useSheetStocks();
+  const { stocks, loading, error } = useSheetStocks();
   const { user } = useAuth();
+  console.log(stocks, 'list')
   const [showPricing, setShowPricing] = useState(false);
-  const filteredStocks = (sheetStocks || []).filter((stock) => {
+  const filteredStocks = (stocks|| []).filter((stock) => {
     const matchesFilter =
       filterBy === "All" ||
       normalizeText(stock.band) === normalizeText(filterBy);

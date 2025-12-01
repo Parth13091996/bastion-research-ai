@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { getBandColor, getTextColor } from "../RecommendationList/utils";
-// import { Building2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { formatIndianNumber } from "@/utils";
 
@@ -42,60 +41,89 @@ const Header = ({ stock }) => {
   const totalReturnColor =
     totalReturnNum >= 0 ? "text-green-600" : "text-red-600";
 
-  // For metrics display
-  const stockMetrics = [
-    {
-      label: "Recommendation Date",
-      value:
-        stock?.dateRecommended && typeof stock.dateRecommended === "string"
-          ? formatDate(stock.dateRecommended)
-          : stock?.created_at && typeof stock.created_at === "string"
-            ? formatDate(stock.created_at)
-            : stock?.lastUpdated && typeof stock.lastUpdated === "string"
+  const isExit =
+    (typeof stock.status === "string" && stock.status.trim().toUpperCase() === "EXIT") ||
+    (typeof stock.band === "string" && stock.band.trim().toUpperCase() === "EXIT") ||
+    (typeof stock.action === "string" && stock.action.trim().toUpperCase() === "EXIT");
+
+  // Recommendation metrics for EXIT and NON-EXIT
+  const stockMetrics = isExit
+    ? [
+        {
+          label: "Recommendation Date",
+          value:
+            stock?.dateRecommended && typeof stock.dateRecommended === "string"
+              ? formatDate(stock.dateRecommended)
+              : stock?.created_at && typeof stock.created_at === "string"
+              ? formatDate(stock.created_at)
+              : stock?.lastUpdated && typeof stock.lastUpdated === "string"
               ? formatDate(stock.lastUpdated)
               : "N/A",
-    },
-    {
-      label: "Recommendation Price",
-      value:
-        typeof entryPrice !== "undefined" &&
-        entryPrice !== null &&
-        !isNaN(Number(entryPrice))
-          ? `₹${formatIndianNumber(Number(entryPrice))}`
-          : "₹0",
-    },
-    {
-      label: "Target Price",
-      value:
-        typeof target1 !== "undefined" &&
-        target1 !== null &&
-        !isNaN(Number(target1))
-          ? `₹${formatIndianNumber(Number(target1))}`
-          : "₹0",
-    },
-    {
-      label: "CMP",
-      value:
-        typeof cmp !== "undefined" &&
-        cmp !== null &&
-        !isNaN(Number(cmp))
-          ? `₹${formatIndianNumber(Number(cmp))}`
-          : "₹0",
-    },
-    {
-      label: "Total Return",
-      value: `${!isNaN(totalReturnNum) && totalReturnNum >= 0 ? "+" : ""}${!isNaN(totalReturnNum) ? totalReturnNum : 0}%`,
-      color: totalReturnColor,
-    },
-    {
-      label: "Upside Left",
-      value:
-        typeof upsideNum !== "undefined" && upsideNum !== null && !isNaN(upsideNum)
-          ? `${upsideNum}%`
-          : "0%",
-      color: "text-blue-600",
-    },
-  ];
+        },
+        {
+          label: "Recommendation Price",
+          value:
+            typeof entryPrice !== "undefined" &&
+            entryPrice !== null &&
+            !isNaN(Number(entryPrice))
+              ? `₹${formatIndianNumber(Number(entryPrice))}`
+              : "₹0",
+        },
+        {
+          label: "Total Return",
+          value: `${!isNaN(totalReturnNum) && totalReturnNum >= 0 ? "+" : ""}${!isNaN(totalReturnNum) ? totalReturnNum : 0}%`,
+          color: totalReturnColor,
+        },
+      ]
+    : [
+        {
+          label: "Recommendation Date",
+          value:
+            stock?.dateRecommended && typeof stock.dateRecommended === "string"
+              ? formatDate(stock.dateRecommended)
+              : stock?.created_at && typeof stock.created_at === "string"
+              ? formatDate(stock.created_at)
+              : stock?.lastUpdated && typeof stock.lastUpdated === "string"
+              ? formatDate(stock.lastUpdated)
+              : "N/A",
+        },
+        {
+          label: "Recommendation Price",
+          value:
+            typeof entryPrice !== "undefined" &&
+            entryPrice !== null &&
+            !isNaN(Number(entryPrice))
+              ? `₹${formatIndianNumber(Number(entryPrice))}`
+              : "₹0",
+        },
+        {
+          label: "Target Price",
+          value:
+            typeof target1 !== "undefined" && target1 !== null && !isNaN(Number(target1))
+              ? `₹${formatIndianNumber(Number(target1))}`
+              : "₹0",
+        },
+        {
+          label: "CMP",
+          value:
+            typeof cmp !== "undefined" && cmp !== null && !isNaN(Number(cmp))
+              ? `₹${formatIndianNumber(Number(cmp))}`
+              : "₹0",
+        },
+        {
+          label: "Total Return",
+          value: `${!isNaN(totalReturnNum) && totalReturnNum >= 0 ? "+" : ""}${!isNaN(totalReturnNum) ? totalReturnNum : 0}%`,
+          color: totalReturnColor,
+        },
+        {
+          label: "Upside Left",
+          value:
+            typeof upsideNum !== "undefined" && upsideNum !== null && !isNaN(upsideNum)
+              ? `${upsideNum}%`
+              : "0%",
+          color: "text-blue-600",
+        },
+      ];
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm md:sticky md:top-0 md:z-10">
@@ -163,7 +191,13 @@ const Header = ({ stock }) => {
       </div>
 
       {/* METRICS */}
-      <div className="max-w-7xl mx-auto px-6 pb-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+      <div
+        className={`max-w-7xl mx-auto px-6 pb-6 grid ${
+          isExit
+            ? "grid-cols-2 sm:grid-cols-2 md:grid-cols-3"
+            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-6"
+        } gap-4`}
+      >
         {Array.isArray(stockMetrics) &&
           stockMetrics.map((m, i) => (
             <div

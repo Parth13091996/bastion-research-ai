@@ -344,7 +344,7 @@ export function getGraphData(externalRows: PBRow[]): Array<{
   ];
 }
 
-const parseAnyDate = (d: string) => {
+export const parseAnyDate = (d: string) => {
   if (!d) return new Date(0);
   if (/^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$/.test(d)) {
     const dt = new Date(d);
