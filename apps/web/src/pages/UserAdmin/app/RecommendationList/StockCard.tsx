@@ -15,17 +15,15 @@ const StockCard = ({ stock }: { stock: StockData }) => {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const navigate = useNavigate();
 
-  // Percent when CMP > Entry
-  const gainPercent = Math.min(
-    ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100,
-    100
-  );
+  let rawGainPercent =
+    ((stock.cmp - stock.entryPrice) / (stock.target1 - stock.entryPrice)) * 100;
+  if (rawGainPercent < 0) rawGainPercent = 1;
+  const gainPercent = Math.abs(Math.min(rawGainPercent, 100));
 
-  // Percent when CMP < Entry
-  const lossPercent = Math.min(
-    ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100,
-    100
-  );
+  let rawLossPercent =
+    ((stock.entryPrice - stock.cmp) / stock.entryPrice) * 100;
+  if (rawLossPercent < 0) rawLossPercent = 1;
+  const lossPercent = Math.min(rawLossPercent, 100);
 
   // Blur utility style
   const blurStyle = isPaid
@@ -123,7 +121,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
               <>
                 {/* Green filled bar */}
                 <div
-                  className="h-4 rounded-full transition-all duration-500 absolute"
+                  className="h-4 rounded-full rounded-r-lg transition-all duration-500 absolute"
                   style={{
                     width: `${gainPercent}%`,
                     backgroundColor: COLORS.darkGreen,
