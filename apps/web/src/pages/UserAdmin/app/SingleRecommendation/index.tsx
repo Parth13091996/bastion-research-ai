@@ -70,7 +70,7 @@ const SingleRecommendation = () => {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [timeRange, setTimeRange] = useState("ALL");
-  const { stocks, loading } = useSheetStocks(true);
+  const { sheetStocks:stocks, loading } = useSheetStocks(true);
   const [externalRows, setExternalRows] = useState<PBRow[] | null>(null);
   const isMobile = useIsMobile();
 
