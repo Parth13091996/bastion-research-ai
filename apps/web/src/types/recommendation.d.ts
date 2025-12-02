@@ -36,6 +36,9 @@ interface StockData {
   lastUpdated?: string;
   percentReturn?: number | string;
   tags?: string;
+  dateRecommended?: string;
+  holdingPeriod?: string;
+  dateExit?: string;
 }
 /**
  * Controls for search, sort, and filter.

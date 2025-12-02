@@ -41,7 +41,7 @@ const SingleRecommendation = () => {
             : null;
         setStock({ ...(response || {}), ...(foundStock || {}) });
       })
-      .catch((error) => {
+      .catch(() => {
         setFetchError("Failed to fetch recommendation.");
         setStock(null);
       });

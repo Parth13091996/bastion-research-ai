@@ -80,3 +80,5 @@ Run the script from the project root on the server. It will start or restart the
   - `pnpm format`
 - Type checks: `pnpm check-types`
 - See `apps/web/README.md` and `apps/server/README.md` for app-specific details (analytics, payments, file uploads).
+
+pg_dump postgresql://postgres.ftuuyfhfrhvlllfwfbjx:<password>@aws-0-ap-south-1.pooler.supabase.com:5432/postgres > db.sql

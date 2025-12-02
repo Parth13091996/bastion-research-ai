@@ -57,9 +57,8 @@ const RecommendationList = () => {
   const [visibleCount, setVisibleCount] = useState(9);
   const { stocks, loading, error } = useSheetStocks();
   const { user } = useAuth();
-  console.log(stocks, 'list')
   const [showPricing, setShowPricing] = useState(false);
-  const filteredStocks = (stocks|| []).filter((stock) => {
+  const filteredStocks = (stocks || []).filter((stock) => {
     const matchesFilter =
       filterBy === "All" ||
       normalizeText(stock.band) === normalizeText(filterBy);
@@ -73,25 +72,20 @@ const RecommendationList = () => {
   const sortedStocks = [...filteredStocks].sort((a, b) => {
     switch (sortBy) {
       case "MCAP Wise":
-        return (
-          Number((b.marketCap ?? "0").replace(/[^0-9.]/g, "")) -
-          Number((a.marketCap ?? "0").replace(/[^0-9.]/g, ""))
-        );
+        return Number(b.marketCap ?? "0") - Number(a.marketCap ?? "0");
       case "Newest":
         return (
-          new Date(b.lastUpdated ?? 0).getTime() -
-          new Date(a.lastUpdated ?? 0).getTime()
+          new Date(b.dateRecommended ?? 0).getTime() -
+          new Date(a.dateRecommended ?? 0).getTime()
         );
       case "Oldest":
         return (
-          new Date(a.lastUpdated ?? 0).getTime() -
-          new Date(b.lastUpdated ?? 0).getTime()
+          new Date(a.dateRecommended ?? 0).getTime() -
+          new Date(b.dateRecommended ?? 0).getTime()
         );
       case "Upside Wise":
         return Number(b.upside ?? 0) - Number(a.upside ?? 0);
       case "Return Wise": {
-        // Sort by percentReturn if available, fallback to 0 if not
-        // Handle both number and string values for percentReturn
         const getNumericPercentReturn = (val: any) => {
           if (val === undefined || val === null) return 0;
           if (typeof val === "string") {

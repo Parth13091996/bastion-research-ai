@@ -68,8 +68,6 @@ export const handlePaymentSuccess = async (payload: any) => {
     );
   }
 
-  console.log({ currentPlan }, "cashfree webhook");
-
   const updateUserPromise = supabase
     .from("users")
     .update({

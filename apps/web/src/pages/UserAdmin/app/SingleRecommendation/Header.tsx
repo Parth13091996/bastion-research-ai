@@ -26,7 +26,8 @@ const Header = ({ stock }) => {
   const cmp =
     typeof stock?.cmp !== "undefined" && stock.cmp !== null
       ? stock.cmp
-      : typeof stock?.cmpOrExitPrice !== "undefined" && stock.cmpOrExitPrice !== null
+      : typeof stock?.cmpOrExitPrice !== "undefined" &&
+          stock.cmpOrExitPrice !== null
         ? stock.cmpOrExitPrice
         : 0;
   const target1 =
@@ -35,16 +36,37 @@ const Header = ({ stock }) => {
       : typeof stock?.targetPrice !== "undefined" && stock.targetPrice !== null
         ? stock.targetPrice
         : 0;
-  const upsideNum = cmp > 0 && target1 !== null && typeof target1 !== "undefined"
-    ? Math.round(((target1 - cmp) / cmp) * 100)
-    : 0;
+  const exitPrice =
+    typeof stock?.cmpOrExitPrice !== "undefined" &&
+    stock.cmpOrExitPrice !== null
+      ? stock.cmpOrExitPrice
+      : typeof stock?.cmp !== "undefined" && stock.cmp !== null
+        ? stock.cmp
+        : 0;
+  const exitDate =
+    stock?.dateExit && typeof stock.dateExit === "string"
+      ? formatDate(stock.dateExit)
+      : "N/A";
+  const holdingPeriod =
+    typeof stock?.holdingPeriod === "string"
+      ? stock.holdingPeriod
+      : typeof stock?.holdingPeriod === "number"
+        ? `${stock.holdingPeriod} days`
+        : "";
+  const upsideNum =
+    cmp > 0 && target1 !== null && typeof target1 !== "undefined"
+      ? Math.round(((target1 - cmp) / cmp) * 100)
+      : 0;
   const totalReturnColor =
     totalReturnNum >= 0 ? "text-green-600" : "text-red-600";
 
   const isExit =
-    (typeof stock.status === "string" && stock.status.trim().toUpperCase() === "EXIT") ||
-    (typeof stock.band === "string" && stock.band.trim().toUpperCase() === "EXIT") ||
-    (typeof stock.action === "string" && stock.action.trim().toUpperCase() === "EXIT");
+    (typeof stock.status === "string" &&
+      stock.status.trim().toUpperCase() === "EXIT") ||
+    (typeof stock.band === "string" &&
+      stock.band.trim().toUpperCase() === "EXIT") ||
+    (typeof stock.action === "string" &&
+      stock.action.trim().toUpperCase() === "EXIT");
 
   // Recommendation metrics for EXIT and NON-EXIT
   const stockMetrics = isExit
@@ -55,10 +77,10 @@ const Header = ({ stock }) => {
             stock?.dateRecommended && typeof stock.dateRecommended === "string"
               ? formatDate(stock.dateRecommended)
               : stock?.created_at && typeof stock.created_at === "string"
-              ? formatDate(stock.created_at)
-              : stock?.lastUpdated && typeof stock.lastUpdated === "string"
-              ? formatDate(stock.lastUpdated)
-              : "N/A",
+                ? formatDate(stock.created_at)
+                : stock?.lastUpdated && typeof stock.lastUpdated === "string"
+                  ? formatDate(stock.lastUpdated)
+                  : "N/A",
         },
         {
           label: "Recommendation Price",
@@ -68,6 +90,23 @@ const Header = ({ stock }) => {
             !isNaN(Number(entryPrice))
               ? `₹${formatIndianNumber(Number(entryPrice))}`
               : "₹0",
+        },
+        {
+          label: "Exit Price",
+          value:
+            typeof exitPrice !== "undefined" &&
+            exitPrice !== null &&
+            !isNaN(Number(exitPrice))
+              ? `₹${formatIndianNumber(Number(exitPrice))}`
+              : "₹0",
+        },
+        {
+          label: "Exit Date",
+          value: exitDate,
+        },
+        {
+          label: "Holding Period",
+          value: holdingPeriod ? holdingPeriod : "N/A",
         },
         {
           label: "Total Return",
@@ -82,10 +121,10 @@ const Header = ({ stock }) => {
             stock?.dateRecommended && typeof stock.dateRecommended === "string"
               ? formatDate(stock.dateRecommended)
               : stock?.created_at && typeof stock.created_at === "string"
-              ? formatDate(stock.created_at)
-              : stock?.lastUpdated && typeof stock.lastUpdated === "string"
-              ? formatDate(stock.lastUpdated)
-              : "N/A",
+                ? formatDate(stock.created_at)
+                : stock?.lastUpdated && typeof stock.lastUpdated === "string"
+                  ? formatDate(stock.lastUpdated)
+                  : "N/A",
         },
         {
           label: "Recommendation Price",
@@ -99,7 +138,9 @@ const Header = ({ stock }) => {
         {
           label: "Target Price",
           value:
-            typeof target1 !== "undefined" && target1 !== null && !isNaN(Number(target1))
+            typeof target1 !== "undefined" &&
+            target1 !== null &&
+            !isNaN(Number(target1))
               ? `₹${formatIndianNumber(Number(target1))}`
               : "₹0",
         },
@@ -118,7 +159,9 @@ const Header = ({ stock }) => {
         {
           label: "Upside Left",
           value:
-            typeof upsideNum !== "undefined" && upsideNum !== null && !isNaN(upsideNum)
+            typeof upsideNum !== "undefined" &&
+            upsideNum !== null &&
+            !isNaN(upsideNum)
               ? `${upsideNum}%`
               : "0%",
           color: "text-blue-600",
@@ -194,7 +237,7 @@ const Header = ({ stock }) => {
       <div
         className={`max-w-7xl mx-auto px-6 pb-6 grid ${
           isExit
-            ? "grid-cols-2 sm:grid-cols-2 md:grid-cols-3"
+            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-6"
             : "grid-cols-2 sm:grid-cols-3 md:grid-cols-6"
         } gap-4`}
       >

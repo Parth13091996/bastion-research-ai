@@ -136,7 +136,11 @@ const RecentRecommendations: React.FC = () => {
                         {stock.code || stock.name}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        MCAP: {stock.marketCap}
+                        MCAP: ₹
+                        {Number(stock.marketCap).toLocaleString("en-IN", {
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        Cr
                       </div>
                     </div>
                   </div>
