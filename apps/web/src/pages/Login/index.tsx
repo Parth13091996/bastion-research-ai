@@ -334,11 +334,11 @@ const Login = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <span
-  onClick={() => setIsSignUpOpen(true)}
-  className="inline-flex cursor-pointer items-center px-8 py-4 bg-[#1C2852] text-white font-semibold rounded-2xl hover:bg-[#162044] transition-colors duration-300 shadow-lg hover:shadow-xl"
->
-  View Research <ArrowRight className="ml-2 w-5 h-5" />
-</span>
+                    onClick={() => setIsSignUpOpen(true)}
+                    className="inline-flex cursor-pointer items-center px-8 py-4 bg-[#1C2852] text-white font-semibold rounded-2xl hover:bg-[#162044] transition-colors duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    View Research <ArrowRight className="ml-2 w-5 h-5" />
+                  </span>
 
                 </motion.div>
               </div>

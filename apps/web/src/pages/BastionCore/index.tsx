@@ -321,6 +321,51 @@ export default function BastionCoreProductPage() {
                     Including GST
                   </p>
                 </div>
+
+                {/* FEATURES */}
+                <ul className="mt-4 space-y-2 text-sm">
+                  {idx === 0 && (
+                    <>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Access to
+                        Bastion CORE research
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Full
+                        Dashboard access (CORE)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Company Flash
+                        Cards (All)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Upside % &
+                        Past performance
+                      </li>
+                    </>
+                  )}
+
+                  {idx === 1 && (
+                    <>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Everything
+                        in Bastion CORE
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Best value
+                        yearly pricing
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Priority
+                        updates
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Company Flash
+                        Cards (All)
+                      </li>
+                    </>
+                  )}
+                </ul>
                 <div className="mt-6 flex justify-end">
                   <a href="/register">
                     <button
