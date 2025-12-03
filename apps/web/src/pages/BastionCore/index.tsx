@@ -355,17 +355,20 @@ export default function BastionCoreProductPage() {
                 <ul className="mt-4 space-y-2 text-sm">
                   {idx === 0 && (
                     <>
-                      <li className="flex items-center gap-2">
-                        <span className="text-green-600 text-lg">✓</span> Access to Bastion CORE research
+                    <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Access to Bastion CORE (Existing + Past Research)
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-600 text-lg">✓</span> Full Dashboard access (CORE)
+                        <span className="text-green-600 text-lg">✓</span> ⁠Access to Scratchpad
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-600 text-lg">✓</span> Company Flash Cards (All)
+                        <span className="text-green-600 text-lg">✓</span> ⁠Access to Premium Webinars
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-600 text-lg">✓</span> Upside % & Past performance
+                        <span className="text-green-600 text-lg">✓</span> Priority Updates
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Validity 3 months (can only subscribe once in a lifetime)
                       </li>
                     </>
                   )}
@@ -373,16 +376,19 @@ export default function BastionCoreProductPage() {
                   {idx === 1 && (
                     <>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-300 text-lg">✓</span> Everything in Bastion CORE
+                        <span className="text-green-300 text-lg">✓</span> Access to Bastion CORE (Existing + Past Research)
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-300 text-lg">✓</span> Best value yearly pricing
+                        <span className="text-green-300 text-lg">✓</span> Access to Scratchpad
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-300 text-lg">✓</span> Priority updates
+                        <span className="text-green-300 text-lg">✓</span> Access to Premium Webinars
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-300 text-lg">✓</span> Company Flash Cards (All)
+                        <span className="text-green-300 text-lg">✓</span> Priority Updates
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Validity 12 months
                       </li>
                     </>
                   )}
