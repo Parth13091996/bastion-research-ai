@@ -1,10 +1,11 @@
 import BackgroundShapes from "@/components/generic/framer-motion";
 import Testimonial from "@/pages/Testimonials/Index";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Info, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState, useRef } from "react";
 import axiosInstance from "@/api/axios";
 import SignUpForm from "../Register/SignupForm.tsx";
+// import { ArrowLeft, Check, Info, Sparkles } from "lucide-react";
 
 // Brand Colors
 const COLORS = {
@@ -280,12 +281,13 @@ export default function BastionCoreProductPage() {
 
         {/* Section 2: Pricing (The Plan Section) */}
         <section
-          ref={pricingSectionRef} /* 👈 Ref Attached Here */
+          ref={pricingSectionRef}
           className="max-w-7xl px-4 mx-auto py-10"
         >
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
             Choose your plan
           </h2>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {(sortedPaid.slice(0, 2).length
               ? sortedPaid.slice(0, 2)
@@ -298,33 +300,107 @@ export default function BastionCoreProductPage() {
                 key={String(plan.code || plan.name || idx)}
                 className={`${idx === 1 ? "border-[#C4B696]/40 bg-[#1C2852] text-white" : "border-[#E6E6E6] bg-white"} relative rounded-2xl border p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between`}
               >
+
+
+                {/* ============================
+            ADDED PILL TAGS
+        ============================ */}
+                {idx === 0 && (
+                  <div className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-3 py-2 text-xs font-medium">
+                    <Sparkles className="h-4 w-4" /> Once in a lifetime access
+                  </div>
+                )}
+
+                {idx === 1 && (
+                  <div className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-3 py-2 text-xs font-medium">
+                    <Sparkles className="h-4 w-4" /> Best value
+                  </div>
+                )}
+                {/* ============================ */}
+
                 <div>
                   <div className="flex items-start justify-between">
-                    <h3 className="text-xl font-semibold">
-                      {plan.name ||
-                        (idx === 0 ? "Quarterly Plan" : "Yearly Plan")}
-                    </h3>
-                    {idx === 1 && (
-                      <span className="ml-3 inline-flex items-center rounded-full px-3 whitespace-nowrap py-1 text-xs font-medium bg-[#C4B696] text-[#1C2852]">
-                        Best value
-                      </span>
-                    )}
+                    {/* LEFT: Name + Icon */}
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-semibold">
+                        {plan.name || (idx === 0 ? "Quarterly Plan" : "Yearly Plan")}
+                      </h3>
+
+                      {idx === 0 && (
+                        <div className="relative group">
+                          <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer" />
+
+                          {/* Tooltip ABOVE the icon */}
+                          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-60 hidden group-hover:block bg-gray-800 text-white text-xs rounded-md px-3 py-2 shadow-lg z-20 text-center">
+                            This plan is once in a lifetime access. It is available only for
+                            3 months. After that, you will not be able to purchase it again
+                            in your lifetime.
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p
-                    className={`mt-3 text-3xl font-bold ${idx === 0 ? "text-[#C00000]" : ""}`}
-                  >
+
+                  <p className={`mt-3 text-3xl font-bold ${idx === 0 ? "text-[#C00000]" : ""}`}>
                     {`₹${Number(plan.amount || 0).toLocaleString("en-IN")}/-`}
                   </p>
-                  <p
-                    className={`text-sm ${idx === 1 ? "text-gray-200" : "text-slate-500"}`}
-                  >
+
+                  <p className={`text-sm ${idx === 1 ? "text-gray-200" : "text-slate-500"}`}>
                     Including GST
                   </p>
                 </div>
+
+
+                {/* FEATURES */}
+                <ul className="mt-4 space-y-2 text-sm">
+                  {idx === 0 && (
+                    <>
+                    <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Access to Bastion CORE (Existing + Past Research)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> ⁠Access to Scratchpad
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> ⁠Access to Premium Webinars
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Priority Updates
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-600 text-lg">✓</span> Validity <strong className="text-lg">3 months</strong> (can only subscribe once in a lifetime)
+                      </li>
+                    </>
+                  )}
+
+                  {idx === 1 && (
+                    <>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Access to Bastion CORE (Existing + Past Research)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Access to Scratchpad
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Access to Premium Webinars
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-lg">✓</span> Priority Updates
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-green-300 text-xl font-bold">✓</span> Validity <strong className="text-lg">12 months</strong>
+                      </li>
+                    </>
+                  )}
+                </ul>
+
                 <div className="mt-6 flex justify-end">
                   <a href="/register">
                     <button
-                      className={`px-4 py-2 rounded-xl transition-colors ${idx === 1 ? "bg-[#C4B696] text-[#1C2852] hover:bg-[#b3a67d]" : "bg-[#C00000] text-white hover:bg-[#a00000]"}`}
+                      className={`px-4 py-2 rounded-xl transition-colors ${idx === 1
+                        ? "bg-[#C4B696] text-[#1C2852] hover:bg-[#b3a67d]"
+                        : "bg-[#C00000] text-white hover:bg-[#a00000]"
+                        }`}
                     >
                       Subscribe Now
                     </button>
@@ -334,6 +410,7 @@ export default function BastionCoreProductPage() {
             ))}
           </div>
         </section>
+
 
         {/* ... (Rest of Sections 3, 4, 5, 6, 7 and Footer remain unchanged) ... */}
 
