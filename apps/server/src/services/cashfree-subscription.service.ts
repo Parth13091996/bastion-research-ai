@@ -10,6 +10,8 @@ export const getUserSubscriptionService = async (userId: string) => {
         plan_id,
         plan_code,
         status,
+        subscription_start_date,
+        subscription_end_date,
         membership_plans!users_plan_id_fkey (
           plan_id,
           plan_name,
@@ -67,25 +69,46 @@ export const getUserSubscriptionService = async (userId: string) => {
         : null);
 
   let subscription: any = null;
-  if (effectivePlan && lastPayment) {
-    const startDate = new Date(lastPayment.created_at);
+  if (effectivePlan && (user?.subscription_start_date || lastPayment)) {
+    // Prefer explicit subscription dates stored on the user record
+    let startDate: Date | null = null;
     let expireNextRenewal: string | null = null;
-    const durationMonths = effectivePlan.duration_months;
-    if (typeof durationMonths === "number" && durationMonths > 0) {
-      const exp = new Date(startDate);
-      exp.setMonth(exp.getMonth() + durationMonths);
-      expireNextRenewal = exp.toISOString();
+
+    if (user?.subscription_start_date) {
+      startDate = new Date(user.subscription_start_date);
+      if (user.subscription_end_date) {
+        expireNextRenewal = new Date(
+          user.subscription_end_date
+        ).toISOString();
+      } else {
+        const durationMonths = effectivePlan.duration_months;
+        if (typeof durationMonths === "number" && durationMonths > 0) {
+          const exp = new Date(startDate);
+          exp.setMonth(exp.getMonth() + durationMonths);
+          expireNextRenewal = exp.toISOString();
+        }
+      }
+    } else if (lastPayment?.created_at) {
+      startDate = new Date(lastPayment.created_at);
+      const durationMonths = effectivePlan.duration_months;
+      if (typeof durationMonths === "number" && durationMonths > 0) {
+        const exp = new Date(startDate);
+        exp.setMonth(exp.getMonth() + durationMonths);
+        expireNextRenewal = exp.toISOString();
+      }
     }
 
-    subscription = {
-      name: effectivePlan.plan_name,
-      startDate: startDate.toISOString(),
-      expireNextRenewal,
-      amount: effectivePlan.price_amount ?? null,
-      transactionId: lastPayment.transaction_id,
-      plan_code: effectivePlan.plan_code || null,
-      tier: effectivePlan.tier ?? null,
-    };
+    if (startDate) {
+      subscription = {
+        name: effectivePlan.plan_name,
+        startDate: startDate.toISOString(),
+        expireNextRenewal,
+        amount: effectivePlan.price_amount ?? null,
+        transactionId: lastPayment?.transaction_id ?? null,
+        plan_code: effectivePlan.plan_code || null,
+        tier: effectivePlan.tier ?? null,
+      };
+    }
   }
 
   const response = {

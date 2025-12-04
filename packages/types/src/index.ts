@@ -28,6 +28,8 @@ export interface User {
   cameFromOAuth?: boolean;
   status?: "active" | "agreement_signed" | "onboarded" | "free";
   created_at?: string;
+  subscription_start_date?: string | null;
+  subscription_end_date?: string | null;
 }
 
 // KRA (KYC Registration Agency) Types - Digio API Format

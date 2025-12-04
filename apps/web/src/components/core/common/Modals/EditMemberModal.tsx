@@ -3,12 +3,13 @@ import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { useEffect } from "react";
 import { useEditMemberStore } from "@/stores/edit-member-store";
 import { updateUserById } from "@/api/users-api";
+import { getMembershipPlans } from "@/api/membership-api";
 
 const editMemberSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -26,13 +27,35 @@ const editMemberSchema = z.object({
   company_name: z.string().optional().nullable(),
   role: z.string().optional(),
   status: z.string().optional(),
+  plan_id: z.string().optional().nullable(),
+  subscription_start_date: z.string().optional().nullable(),
+  subscription_end_date: z.string().optional().nullable(),
 });
 
 type EditMemberValues = z.infer<typeof editMemberSchema>;
 
+const formatDateForInput = (value?: string | null) => {
+  if (!value) return "";
+  // Accept both plain dates and ISO strings with time
+  return value.split("T")[0];
+};
+
 const EditMemberModal = () => {
   const queryClient = useQueryClient();
   const { isOpen, member, close } = useEditMemberStore((s) => s);
+
+  const { data: plans } = useQuery({
+    queryKey: ["membership-plans"],
+    queryFn: () => getMembershipPlans(),
+  });
+
+  const subscriptionPlans =
+    plans?.filter(
+      (p: any) =>
+        p?.plan_code === "freemium" ||
+        p?.plan_code === "core" ||
+        p?.plan_code === "core_annual"
+    ) || [];
 
   const {
     register,
@@ -57,6 +80,16 @@ const EditMemberModal = () => {
       company_name: member?.company_name ?? "",
       role: member?.role ?? "employee",
       status: member?.status ?? "active",
+      plan_id:
+        member?.plan_id !== undefined && member?.plan_id !== null
+          ? String(member.plan_id)
+          : "",
+      subscription_start_date: formatDateForInput(
+        member?.subscription_start_date ?? null
+      ),
+      subscription_end_date: formatDateForInput(
+        member?.subscription_end_date ?? null
+      ),
     },
   });
 
@@ -78,6 +111,16 @@ const EditMemberModal = () => {
         company_name: member.company_name ?? "",
         role: member.role ?? "employee",
         status: member.status ?? "active",
+        plan_id:
+          member.plan_id !== undefined && member.plan_id !== null
+            ? String(member.plan_id)
+            : "",
+        subscription_start_date: formatDateForInput(
+          member.subscription_start_date ?? null
+        ),
+        subscription_end_date: formatDateForInput(
+          member.subscription_end_date ?? null
+        ),
       });
     }
   }, [member, reset]);
@@ -85,7 +128,22 @@ const EditMemberModal = () => {
   const mutation = useMutation({
     mutationFn: (values: EditMemberValues) => {
       if (!member?.id) return Promise.reject(new Error("Missing member id"));
-      return updateUserById(member.id, values);
+      const payload: any = {
+        ...values,
+      };
+      if (!payload.plan_id) {
+        delete payload.plan_id;
+      } else {
+        payload.plan_id = String(payload.plan_id);
+      }
+      // Normalize empty strings to null for optional dates
+      if (!payload.subscription_start_date) {
+        payload.subscription_start_date = null;
+      }
+      if (!payload.subscription_end_date) {
+        payload.subscription_end_date = null;
+      }
+      return updateUserById(member.id, payload);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -245,6 +303,29 @@ const EditMemberModal = () => {
                 <option value="pending">Pending</option>
                 <option value="inactive">Inactive</option>
               </select>
+            </div>
+
+            <div>
+              <label>Subscription Plan</label>
+              <select
+                {...register("plan_id")}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">No Plan</option>
+                {subscriptionPlans.map((plan: any) => (
+                  <option key={plan.plan_id} value={String(plan.plan_id)}>
+                    {plan.plan_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label>Subscription Start Date</label>
+              <Input type="date" {...register("subscription_start_date")} />
+            </div>
+            <div>
+              <label>Subscription Expiry Date</label>
+              <Input type="date" {...register("subscription_end_date")} />
             </div>
 
             <div className="md:col-span-2 flex justify-end space-x-2 mt-4">

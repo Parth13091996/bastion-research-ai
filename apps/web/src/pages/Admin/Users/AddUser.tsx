@@ -1,10 +1,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createUser } from "@/api/users-api";
+import { getMembershipPlans } from "@/api/membership-api";
 
 const RoleEnum = z.enum([
   "admin",
@@ -31,6 +32,9 @@ const addUserSchema = z.object({
   date_of_birth: z.string().min(4, "Date of birth is required"),
   company: z.string().optional().nullable(),
   status: z.string().optional(),
+  plan_id: z.string().optional().nullable(),
+  subscription_start_date: z.string().optional().nullable(),
+  subscription_end_date: z.string().optional().nullable(),
 });
 
 type AddUserFormValues = z.infer<typeof addUserSchema>;
@@ -47,8 +51,38 @@ const AddUser = () => {
     defaultValues: { role: "employee" },
   });
 
+  const { data: plans } = useQuery({
+    queryKey: ["membership-plans"],
+    queryFn: () => getMembershipPlans(),
+  });
+
+  const subscriptionPlans =
+    plans?.filter(
+      (p: any) =>
+        p?.plan_code === "freemium" ||
+        p?.plan_code === "core" ||
+        p?.plan_code === "core_annual"
+    ) || [];
+
   const mutation = useMutation<unknown, Error, AddUserFormValues>({
-    mutationFn: (data) => createUser(data),
+    mutationFn: (data) => {
+      const payload: any = { ...data };
+
+      // Normalize optional subscription fields
+      if (!payload.plan_id) {
+        delete payload.plan_id;
+      } else {
+        payload.plan_id = String(payload.plan_id);
+      }
+      if (!payload.subscription_start_date) {
+        delete payload.subscription_start_date;
+      }
+      if (!payload.subscription_end_date) {
+        delete payload.subscription_end_date;
+      }
+
+      return createUser(payload);
+    },
     onSuccess: () => {
       reset();
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -191,6 +225,40 @@ const AddUser = () => {
             <option value="pending">Pending</option>
             <option value="suspended">Suspended</option>
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="plan_id">Subscription Plan</label>
+          <select
+            id="plan_id"
+            {...register("plan_id")}
+            className="w-full p-2 border rounded"
+          >
+            <option value="">No Plan</option>
+            {subscriptionPlans.map((plan: any) => (
+              <option key={plan.plan_id} value={String(plan.plan_id)}>
+                {plan.plan_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="subscription_start_date">Subscription Start Date</label>
+          <Input
+            id="subscription_start_date"
+            type="date"
+            {...register("subscription_start_date")}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="subscription_end_date">Subscription End Date</label>
+          <Input
+            id="subscription_end_date"
+            type="date"
+            {...register("subscription_end_date")}
+          />
         </div>
 
         <div className="md:col-span-2 mt-2">

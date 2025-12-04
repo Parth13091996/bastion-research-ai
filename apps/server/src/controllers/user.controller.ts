@@ -43,6 +43,9 @@ export const createUser = async (req: Request, res: Response) => {
     date_of_birth,
     company,
     status,
+    plan_id,
+    subscription_start_date,
+    subscription_end_date,
   } = req.body;
 
   // Validate and parse the date of birth
@@ -53,31 +56,61 @@ export const createUser = async (req: Request, res: Response) => {
   }
   const dob = new Date(date_of_birth);
 
+  // Normalize optional subscription dates (expecting YYYY-MM-DD or ISO)
+  const normalizeDate = (value: any) =>
+    typeof value === "string" ? value.split("T")[0] : value;
+
+  const normalizedSubscriptionStart = subscription_start_date
+    ? normalizeDate(subscription_start_date)
+    : undefined;
+  const normalizedSubscriptionEnd = subscription_end_date
+    ? normalizeDate(subscription_end_date)
+    : undefined;
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const { data, error } = await supabase
     .from("users")
     .insert([
-      {
-        username,
-        email,
-        first_name,
-        last_name,
-        password: hashedPassword,
-        // user_role enum in DB, default to 'employee' if not provided
-        role: role || "employee",
-        phone,
-        pan_card_number,
-        address_1,
-        address_2,
-        state,
-        city,
-        pin_code,
-        date_of_birth: dob,
-        company,
-        status: status || "active",
-      },
+      (() => {
+        const payload: any = {
+          username,
+          email,
+          first_name,
+          last_name,
+          password: hashedPassword,
+          // user_role enum in DB, default to 'employee' if not provided
+          role: role || "employee",
+          phone,
+          pan_card_number,
+          address_1,
+          address_2,
+          state,
+          city,
+          pin_code,
+          date_of_birth: dob,
+          company,
+          status: status || "active",
+        };
+
+        // Optional subscription metadata for admin-created users
+        if (plan_id !== undefined && plan_id !== null && plan_id !== "") {
+          const numericPlanId =
+            typeof plan_id === "string" ? parseInt(plan_id, 10) : plan_id;
+          if (!Number.isNaN(numericPlanId)) {
+            payload.plan_id = numericPlanId;
+          }
+        }
+        if (normalizedSubscriptionStart) {
+          payload.subscription_start_date = normalizedSubscriptionStart;
+        }
+        if (normalizedSubscriptionEnd) {
+          payload.subscription_end_date = normalizedSubscriptionEnd;
+        }
+
+        return payload;
+      })(),
     ])
     .select();
 
@@ -159,6 +192,8 @@ export const updateUser = async (req: Request, res: Response) => {
     "pan_card_number",
     "status",
     "plan_id",
+    "subscription_start_date",
+    "subscription_end_date",
   ] as const;
 
   const body = req.body ?? {};
@@ -176,6 +211,22 @@ export const updateUser = async (req: Request, res: Response) => {
     // If it contains a time portion, trim to date only
     const dob = updatePayload.date_of_birth.split("T")[0];
     updatePayload.date_of_birth = dob;
+  }
+
+  // Normalize subscription dates (expecting YYYY-MM-DD)
+  const normalizeDate = (value: any) =>
+    typeof value === "string" ? value.split("T")[0] : value;
+
+  if (updatePayload.subscription_start_date) {
+    updatePayload.subscription_start_date = normalizeDate(
+      updatePayload.subscription_start_date
+    );
+  }
+
+  if (updatePayload.subscription_end_date) {
+    updatePayload.subscription_end_date = normalizeDate(
+      updatePayload.subscription_end_date
+    );
   }
 
   try {

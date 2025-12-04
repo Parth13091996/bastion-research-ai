@@ -285,6 +285,7 @@ export const onboardUser = async (req: Request, res: Response) => {
         .json({ message: "PAN verification is required and must be valid." });
     }
 
+    // Prepare base user fields
     const baseUpdate: any = {
       phone,
       first_name: firstName,
@@ -302,6 +303,36 @@ export const onboardUser = async (req: Request, res: Response) => {
       role: role,
       plan_id,
     };
+
+    // If a plan is attached at onboarding (e.g. free tier),
+    // pre-compute subscription start and expiry dates based on plan duration.
+    if (plan_id) {
+      try {
+        const { data: planRow, error: planError } = await supabase
+          .from("membership_plans")
+          .select("duration_months")
+          .eq("plan_id", plan_id as any)
+          .maybeSingle();
+
+        if (!planError && planRow) {
+          const start = new Date();
+          const startDateStr = start.toISOString().split("T")[0];
+          let endDateStr: string | null = null;
+
+          const durationMonths = (planRow as any).duration_months;
+          if (typeof durationMonths === "number" && durationMonths > 0) {
+            const end = new Date(start);
+            end.setMonth(end.getMonth() + durationMonths);
+            endDateStr = end.toISOString().split("T")[0];
+          }
+
+          baseUpdate.subscription_start_date = startDateStr;
+          baseUpdate.subscription_end_date = endDateStr;
+        }
+      } catch {
+        // If membership_plans lookup fails, continue without subscription dates.
+      }
+    }
 
     let userId: string | null = null;
     const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
@@ -371,6 +402,7 @@ export const zeroAmountAccountCreation = async (
 ) => {
   try {
     const { plan_id, coupon_code, user_id, payer_email } = req.body;
+
     // Fetch coupon
     let coupon;
     try {
@@ -391,6 +423,9 @@ export const zeroAmountAccountCreation = async (
         .json({ error: e?.message || "Error fetching coupon" });
     }
 
+    // Record a zero-amount payment in history so subscription tables stay consistent
+    const startDate = new Date();
+
     try {
       const { error: paymentError } = await supabase
         .from("payment_history")
@@ -401,6 +436,7 @@ export const zeroAmountAccountCreation = async (
           payer_email,
           transaction_id: crypto.randomUUID(),
           coupon_applied: coupon?.coupon_id,
+          created_at: startDate.toISOString(),
         })
         .maybeSingle();
 
@@ -415,13 +451,44 @@ export const zeroAmountAccountCreation = async (
         .json({ error: e?.message || "Failed to insert payment history" });
     }
 
+    // Compute subscription window based on plan duration
+    let subscriptionStartDate: string | null = null;
+    let subscriptionEndDate: string | null = null;
     try {
+      const { data: planRow, error: planError } = await supabase
+        .from("membership_plans")
+        .select("duration_months")
+        .eq("plan_id", plan_id as any)
+        .maybeSingle();
+
+      if (!planError && planRow) {
+        subscriptionStartDate = startDate.toISOString().split("T")[0];
+        const durationMonths = (planRow as any).duration_months;
+        if (typeof durationMonths === "number" && durationMonths > 0) {
+          const end = new Date(startDate);
+          end.setMonth(end.getMonth() + durationMonths);
+          subscriptionEndDate = end.toISOString().split("T")[0];
+        }
+      }
+    } catch (e: any) {
+      // If we cannot compute duration, keep dates null; user still gets the plan.
+      console.error("Failed to compute subscription dates for zero-amount flow", e);
+    }
+
+    try {
+      const userUpdate: any = {
+        plan_id,
+        status: "active",
+      };
+
+      if (subscriptionStartDate) {
+        userUpdate.subscription_start_date = subscriptionStartDate;
+        userUpdate.subscription_end_date = subscriptionEndDate;
+      }
+
       const { data, error } = await supabase
         .from("users")
-        .update({
-          plan_id,
-          status: "active",
-        })
+        .update(userUpdate)
         .eq("id", user_id)
         .select(
           `
@@ -501,6 +568,8 @@ export const getUserSession = async (req: Request, res: Response) => {
           date_of_birth,
           company,
           plan_id,
+          subscription_start_date,
+          subscription_end_date,
           membership_plans (
             plan_code,
             plan_id

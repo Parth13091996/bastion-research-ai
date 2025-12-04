@@ -233,52 +233,6 @@ export const deleteMembershipPlan = async (req: Request, res: Response) => {
   res.status(200).json(data);
 };
 
-export const createSubscription = async (_req: Request, res: Response) => {
-  return res
-    .status(410)
-    .json({ error: "Manual subscription creation is no longer supported." });
-};
-
-export const updateSubscription = async (_req: Request, res: Response) => {
-  return res
-    .status(410)
-    .json({ error: "Manual subscription updates are no longer supported." });
-};
-
-export const deleteSubscription = async (_req: Request, res: Response) => {
-  return res.status(410).json({
-    error: "Manual subscription deletion is no longer supported.",
-  });
-};
-
-export const createPaymentHistory = async (req: Request, res: Response) => {
-  const {
-    transaction_id,
-    user_id,
-    plan_id,
-    payer_email,
-    transaction_status,
-    // payment_date,
-    // amount,
-  } = req.body;
-  const { data, error } = await supabase
-    .from("payment_history")
-    .insert([
-      {
-        transaction_id,
-        user_id,
-        plan_id,
-        payer_email,
-        transaction_status,
-        // payment_date,
-        // amount,
-      },
-    ])
-    .select();
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data);
-};
-
 export const deletePaymentHistory = async (req: Request, res: Response) => {
   const { id } = req.params; // transaction_id as identifier
   const { data, error } = await supabase

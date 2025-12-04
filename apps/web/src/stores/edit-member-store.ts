@@ -17,6 +17,9 @@ export type Member = {
   company_name?: string | null;
   role?: string;
   status?: string;
+   plan_id?: number | null;
+   subscription_start_date?: string | null;
+   subscription_end_date?: string | null;
 };
 
 type EditMemberState = {

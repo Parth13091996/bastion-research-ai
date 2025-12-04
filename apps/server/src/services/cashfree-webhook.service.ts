@@ -68,12 +68,33 @@ export const handlePaymentSuccess = async (payload: any) => {
     );
   }
 
+  const paymentTime = payment?.payment_time
+    ? new Date(payment.payment_time)
+    : new Date();
+  const startDateStr = paymentTime.toISOString().split("T")[0];
+  let endDateStr: string | null = null;
+
+  const durationMonths = currentPlan?.duration_months;
+  if (typeof durationMonths === "number" && durationMonths > 0) {
+    const end = new Date(paymentTime);
+    end.setMonth(end.getMonth() + durationMonths);
+    endDateStr = end.toISOString().split("T")[0];
+  }
+
+  const updateUserPayload: any = {
+    status: "active",
+    plan_id: currentPlan?.plan_id || null,
+    subscription_start_date: startDateStr,
+    subscription_end_date: endDateStr,
+  };
+
+  if (currentPlan?.plan_code) {
+    updateUserPayload.plan_code = currentPlan.plan_code;
+  }
+
   const updateUserPromise = supabase
     .from("users")
-    .update({
-      status: "active",
-      plan_id: currentPlan?.plan_id || null,
-    })
+    .update(updateUserPayload)
     .eq("id", customer_details?.customer_id);
 
   const transactionId = taggedTransactionId || crypto.randomUUID();
