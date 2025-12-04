@@ -368,7 +368,7 @@ export default function BastionCoreProductPage() {
                         <span className="text-green-600 text-lg">✓</span> Priority Updates
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-600 text-lg">✓</span> Validity 3 months (can only subscribe once in a lifetime)
+                        <span className="text-green-600 text-lg">✓</span> Validity <strong className="text-lg">3 months</strong> (can only subscribe once in a lifetime)
                       </li>
                     </>
                   )}
@@ -388,7 +388,7 @@ export default function BastionCoreProductPage() {
                         <span className="text-green-300 text-lg">✓</span> Priority Updates
                       </li>
                       <li className="flex items-center gap-2">
-                        <span className="text-green-300 text-lg">✓</span> Validity 12 months
+                        <span className="text-green-300 text-xl font-bold">✓</span> Validity <strong className="text-lg">12 months</strong>
                       </li>
                     </>
                   )}

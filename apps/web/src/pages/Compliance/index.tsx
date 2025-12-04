@@ -1,14 +1,28 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, ArrowUp, User } from "lucide-react";
+import MonthEndingTitle from "../../components/MonthEndingTitle";
 
 // 🧩 Helper: Generate FY months up to previous month
 function getFinancialYearMonths() {
   const today = new Date();
   const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() - 2; // JS months are 0–11
+  const currentDay = today.getDate();
+
+  let currentMonth = today.getMonth() + 1; // 1–12 format
+
+  // Adjust month based on day
+  if (currentDay <= 9) {
+    currentMonth -= 5;
+  } else {
+    currentMonth -= 4;
+  }
+
+  // Wrap negative months
+  while (currentMonth <= 0) currentMonth += 12;
+
+  // FY start year
   const fyStartYear = currentMonth >= 4 ? currentYear : currentYear - 1;
 
-  // Define FY months (Apr → Mar)
   const months = [
     { name: "Apr", year: fyStartYear },
     { name: "May", year: fyStartYear },
@@ -24,21 +38,20 @@ function getFinancialYearMonths() {
     { name: "Mar", year: fyStartYear + 1 },
   ];
 
-  // Determine previous month
-  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  // Previous month (after adjustment)
+  const prevMonthIndex = currentMonth - 1; // 0-based for array
 
-  // Filter FY months up to the previous month only
-  const filtered = months.filter((m, i) => {
-    if (currentMonth >= 4) {
-      // FY starts this April
-      return i + 4 <= prevMonth + 3;
-    } else {
-      // FY started last year
-      return i < prevMonth + 9;
-    }
-  });
+  // Slice months from FY start up to prevMonthIndex
+  let startIndex = 0;
+  let endIndex = prevMonthIndex + 1; // slice is non-inclusive at end
 
-  // Reverse order for latest month first
+  // Handle wrap-around (for Jan–Mar case)
+  if (prevMonthIndex < 3) { // months Jan(10), Feb(11), Mar(12)
+    endIndex = prevMonthIndex + 9 + 1; // shift to correct FY slice
+  }
+
+  const filtered = months.slice(0, endIndex);
+
   return filtered
     .map((m, index) => ({
       num: index + 1,
@@ -46,6 +59,9 @@ function getFinancialYearMonths() {
     }))
     .reverse();
 }
+
+// Example
+console.log(getFinancialYearMonths());
 
 export default function Complaince() {
   const currentYear = new Date().getFullYear();
@@ -586,8 +602,9 @@ export default function Complaince() {
             on their website/mobile application:
           </p>
 
-          <p className="text-gray-700 mb-6 font-semibold">
-            Data for the month ending Aug 2025
+          <p className="text-lg font-semibold text-gray-800 mb-4">
+            Data for the Month Ending <span><MonthEndingTitle format="MMM yyyy" />
+</span>
           </p>
 
           {/* Monthly Data Table */}
@@ -825,7 +842,7 @@ export default function Complaince() {
 
           {/* Yearly Trend Table */}
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Trend of monthly disposal of complaints
+            Trend of Yearly disposal of complaints
           </h3>
 
           <div className="overflow-x-auto mb-8">
