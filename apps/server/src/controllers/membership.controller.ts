@@ -81,6 +81,7 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
     .select(
       `
       transaction_id,
+      zoho_invoice_id,
       payer_email,
       transaction_status,
       user_id,
@@ -100,7 +101,7 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
     const plan = r?.membership_plans || {};
     return {
       transaction_id: r.transaction_id,
-      invoice_id: r.transaction_id, // using txn id as invoice placeholder
+      invoice_id: r.zoho_invoice_id || r.transaction_id,
       user_id: r.user_id,
       user_email: user.email || null,
       membership:
@@ -131,6 +132,7 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
       .select(
         `
         transaction_id,
+        zoho_invoice_id,
         payer_email,
         transaction_status,
         user_id,
@@ -151,7 +153,7 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
       const plan = r?.membership_plans || {};
       return {
         transaction_id: r.transaction_id,
-        invoice_id: r.transaction_id,
+        invoice_id: r.zoho_invoice_id || r.transaction_id,
         payment_gateway: "Cashfree",
         payment_type: "Subscription",
         payer_email: r.payer_email || null,
