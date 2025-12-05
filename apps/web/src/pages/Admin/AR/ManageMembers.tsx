@@ -10,6 +10,7 @@ import { ColDef } from "ag-grid-community";
 import { Mail, Shield, Trash2, User, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import axiosInstance from "@/api/axios";
 
 // Reuse UI patterns from All Users table
 const RoleRenderer = (params: any) => {
@@ -246,9 +247,7 @@ const MemberManagementDashboard = () => {
       onConfirm: async () => {
         try {
           await Promise.all(
-            selected.map((member) =>
-              deleteUserById(member.id)
-            )
+            selected.map((member) => deleteUserById(member.id))
           );
           queryClient.invalidateQueries({ queryKey: ["users"] });
           toast.success(`${selected.length} members deleted successfully`);

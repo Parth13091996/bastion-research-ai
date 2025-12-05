@@ -17,10 +17,37 @@ const isNullOrEmpty = (val: any) =>
   val === null ||
   (typeof val === "string" && val.trim() === "");
 
-// #region GET All Users
+// #region GET All Users with Membership Plan
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase.from("users").select("*");
+    // Select all user fields (except password) + joined membership_plan
+    const { data, error } = await supabase.from("users").select(`
+      id,
+      username,
+      email,
+      first_name,
+      last_name,
+      role,
+      phone,
+      pan_card_number,
+      address_1,
+      address_2,
+      state,
+      city,
+      pin_code,
+      date_of_birth,
+      company,
+      status,
+      plan_id,
+      subscription_start_date,
+      subscription_end_date,
+      created_at,
+      updated_at,
+      membership_plans (
+        plan_code,
+        plan_id
+      )
+    `);
     if (error) {
       return res.status(500).json({ error: error.message });
     }
@@ -32,16 +59,45 @@ export const getUsers = async (req: Request, res: Response) => {
 };
 // #endregion
 
-// #region GET User by ID
+// #region GET User by ID with Membership Plan
 export const getUserById = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (isNullOrEmpty(id)) {
     return res.status(400).json({ error: "User id is required." });
   }
   try {
+    // Select all user fields (except password) + joined membership_plan
     const { data, error } = await supabase
       .from("users")
-      .select("*")
+      .select(
+        `
+        id,
+        username,
+        email,
+        first_name,
+        last_name,
+        role,
+        phone,
+        pan_card_number,
+        address_1,
+        address_2,
+        state,
+        city,
+        pin_code,
+        date_of_birth,
+        company,
+        status,
+        plan_id,
+        subscription_start_date,
+        subscription_end_date,
+        created_at,
+        updated_at,
+        membership_plans (
+        plan_code,
+        plan_id
+      )
+      `
+      )
       .eq("id", id)
       .single();
     if (error) {
@@ -156,10 +212,35 @@ export const createUser = async (req: Request, res: Response) => {
       userPayload.subscription_end_date = normalizeDate(subscription_end_date);
     }
 
-    const { data, error } = await supabase
-      .from("users")
-      .insert([userPayload])
-      .select();
+    // Insert and retrieve inserted row(s) without password field, joined membership_plan
+    const { data, error } = await supabase.from("users").insert([userPayload])
+      .select(`
+        id,
+        username,
+        email,
+        first_name,
+        last_name,
+        role,
+        phone,
+        pan_card_number,
+        address_1,
+        address_2,
+        state,
+        city,
+        pin_code,
+        date_of_birth,
+        company,
+        status,
+        plan_id,
+        subscription_start_date,
+        subscription_end_date,
+        created_at,
+        updated_at,
+        membership_plans (
+        plan_code,
+        plan_id
+      )
+      `);
 
     if (error) {
       return res.status(500).json({ error: error.message });
@@ -228,7 +309,7 @@ export const createUser = async (req: Request, res: Response) => {
 };
 // #endregion
 
-// #region UPDATE User
+// #region UPDATE User with Membership Plan returned
 export const updateUser = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (isNullOrEmpty(id)) {
@@ -322,11 +403,37 @@ export const updateUser = async (req: Request, res: Response) => {
       updatePayload.company = null;
     }
 
+    // Update and select all fields except password, joined membership_plan
     const { data, error } = await supabase
       .from("users")
       .update(updatePayload)
-      .eq("id", id)
-      .select();
+      .eq("id", id).select(`
+        id,
+        username,
+        email,
+        first_name,
+        last_name,
+        role,
+        phone,
+        pan_card_number,
+        address_1,
+        address_2,
+        state,
+        city,
+        pin_code,
+        date_of_birth,
+        company,
+        status,
+        plan_id,
+        subscription_start_date,
+        subscription_end_date,
+        created_at,
+        updated_at,
+        membership_plans (
+        plan_code,
+        plan_id
+      )
+      `);
 
     if (error) {
       return res.status(500).json({ error: error.message });
@@ -352,11 +459,35 @@ export const deleteUser = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "User id is required." });
   }
   try {
-    const { data, error } = await supabase
-      .from("users")
-      .delete()
-      .eq("id", id)
-      .select();
+    // Return deleted user row(s) but exclude password, joined membership_plan
+    const { data, error } = await supabase.from("users").delete().eq("id", id)
+      .select(`
+        id,
+        username,
+        email,
+        first_name,
+        last_name,
+        role,
+        phone,
+        pan_card_number,
+        address_1,
+        address_2,
+        state,
+        city,
+        pin_code,
+        date_of_birth,
+        company,
+        status,
+        plan_id,
+        subscription_start_date,
+        subscription_end_date,
+        created_at,
+        updated_at,
+        membership_plans (
+        plan_code,
+        plan_id
+      )
+      `);
 
     if (error) {
       return res.status(500).json({ error: error.message });
