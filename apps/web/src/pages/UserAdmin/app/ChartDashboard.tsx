@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Modal from "@/components/core/Modal";
+import { useSubscription } from "@/hooks/use-subscription";
 
 // Reusable Horizontal Bar Component
 const HorizontalBar = ({ label, value, percentage, color }) => {
@@ -231,8 +232,9 @@ const ChartDashboard = () => {
     worstExitSub: "",
   });
   const { user } = useAuth();
+  const { data: subscription } = useSubscription();
   const [showPricing, setShowPricing] = useState(false);
-  const isPremiumUser = !!user?.is_premium;
+  const isPremiumUser = !!subscription?.is_premium;
 
   useEffect(() => {
     (async () => {

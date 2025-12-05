@@ -1,9 +1,10 @@
 import PricingDialogModal from "@/components/core/common/Modals/PricingDialogModal";
-import { useAuth } from "@/contexts/AuthContext";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatIndianNumber } from "@/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const getBandColor = (band: string) => {
   switch (band) {
@@ -29,11 +30,13 @@ const RecentRecommendations: React.FC = () => {
   const { dbData: stocks, loading, error } = useSheetStocks();
   const { user } = useAuth();
   const [showPricing, setShowPricing] = useState(false);
+  const { data: subscription } = useSubscription();
 
   // Get user's tier
-  const userPlanCode = user?.membership_plans?.plan_code || "freemium";
+  const userPlanCode =
+    subscription?.currentPlan || user?.membership_plans?.plan_code || "freemium";
   const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
-  const isPremiumUser = !!user?.is_premium;
+  const isPremiumUser = !!subscription?.is_premium;
 
   // Only include stocks this user's tier is allowed to access
   const accessibleStocks =

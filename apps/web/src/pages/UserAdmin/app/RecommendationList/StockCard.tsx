@@ -7,13 +7,14 @@ import StockCardHeader from "./StockCardHeader";
 import BandUpsidePills from "./BandsUpsidePills";
 import ProgressBar from "./ProgressBar";
 import ViewResearchButton from "./ViewResearchButton";
+import { useSubscription } from "@/hooks/use-subscription";
 
 
 const StockCard = ({ stock }: { stock: StockData }) => {
   const { user } = useAuth();
-  // "Paid" logic: locked if not on free plan and not tagged "freemium"
-  const isPaid =
-    stock?.tags !== "freemium" && (!user?.plan_id || user?.plan_id === 1);
+  const { data: subscription } = useSubscription();
+  // "Paid" logic: lock non-freemium stocks for users without an active premium subscription
+  const isPaid = stock?.tags !== "freemium" && !subscription?.is_premium;
   const [showPricingModal, setShowPricingModal] = useState(false);
   const navigate = useNavigate();
 

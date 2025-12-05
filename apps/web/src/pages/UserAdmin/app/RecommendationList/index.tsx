@@ -6,6 +6,7 @@ import RecommendationsControls from "./Controls";
 import StockGrid from "./StockGrid";
 import { COLORS } from "./utils";
 import { User } from "@repo/types";
+import { useSubscription } from "@/hooks/use-subscription";
 
 // Dialog informing about upgrade
 const PricingDialogContent = () => (
@@ -59,6 +60,7 @@ const RecommendationList = () => {
   const { stocks, loading, error } = useSheetStocks();
   const { user } = useAuth();
   const [showPricing, setShowPricing] = useState(false);
+  const { data: subscription } = useSubscription();
 
   // Filter according to filter & search term
   const filteredStocks = (stocks || []).filter((stock) => {
@@ -126,9 +128,8 @@ const RecommendationList = () => {
   const prioritizedStocks = prioritizeFreemium(sortedStocks, user);
 
   const handleLoadMore = () => {
-    // Only allow access to more rows if user has plan_id === 1 (Core plan)
-    //@ts-ignore
-    if (!user?.plan_id === 1) {
+    // Only allow access to more rows if user has an active premium subscription
+    if (!subscription?.is_premium) {
       setShowPricing(true);
       return;
     }
