@@ -3,33 +3,46 @@ import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { useModalStore } from "@/stores/modal-store";
 import { createUser } from "@/api/users-api";
+import { getMembershipPlans } from "@/api/membership-api";
+import React from "react";
 
-// Zod schema updated based on DB schema
+const RoleEnum = z.enum([
+  "admin",
+  "employee",
+  "core_subscriber",
+  "ipo_subscriber",
+  "research_ally_subscriber",
+]);
+
+// SCHEMA - matched to AddUser.tsx (with confirmPassword and sendSignupEmail if desired)
 const memberSchema = z
   .object({
-    username: z.string().min(1, "Username is required"),
-    first_name: z.string().min(1, "First Name is required"),
-    last_name: z.string().min(1, "Last Name is required"),
-    phone: z.string().min(1, "Phone is required"),
-    email: z.string().email("Invalid email address"),
-    address_1: z.string().min(1, "Address is required"),
-    address_2: z.string().optional(),
-    pan_card_number: z.string().min(1, "PAN Card Number is required"),
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    email: z.string().email("Enter a valid email"),
+    first_name: z.string().min(1, "First name is required"),
+    last_name: z.string().min(1, "Last name is required"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(6, "Passwords must match"),
+    role: RoleEnum.default("employee"),
+    phone: z.string().min(8, "Phone is required"),
+    pan_card_number: z.string().min(5, "PAN is required"),
+    address_1: z.string().min(1, "Address Line 1 is required"),
+    address_2: z.string().optional().nullable(),
     state: z.string().min(1, "State is required"),
     city: z.string().min(1, "City is required"),
-    pin_code: z.string().min(1, "Pincode is required"),
-    date_of_birth: z.string().min(1, "Date of Birth is required"),
-    company_name: z.string().optional(),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string(),
-    role: z.string().optional(),
+    pin_code: z.string().min(4, "Pin code is required"),
+    date_of_birth: z.string().min(4, "Date of birth is required"),
+    company: z.string().optional().nullable(),
     status: z.string().optional(),
-    sendSignupEmail: z.boolean().default(false),
+    plan_id: z.string().optional().nullable(),
+    subscription_start_date: z.string().optional().nullable(),
+    subscription_end_date: z.string().optional().nullable(),
+    sendSignupEmail: z.boolean().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -42,6 +55,7 @@ const AddMemberModal = () => {
   const queryClient = useQueryClient();
   const isOpen = useModalStore((s) => s.modals.addMember);
   const setOpen = useModalStore((s) => s.set);
+
   const {
     register,
     handleSubmit,
@@ -49,18 +63,55 @@ const AddMemberModal = () => {
     formState: { errors },
   } = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
+    defaultValues: { role: "employee" },
   });
+
+  // Fetch membership plans (from AddUser)
+  const { data: plans } = useQuery({
+    queryKey: ["membership-plans"],
+    queryFn: () => getMembershipPlans(),
+  });
+
+  const subscriptionPlans =
+    plans?.filter(
+      (p: any) =>
+        p?.plan_code === "freemium" ||
+        p?.plan_code === "core" ||
+        p?.plan_code === "core_annual"
+    ) || [];
 
   const onClose = () => setOpen("addMember", false);
 
-  const mutation = useMutation({
-    mutationFn: (newMember: MemberFormValues) => {
-      return createUser(newMember);
+  const mutation = useMutation<unknown, Error, MemberFormValues>({
+    mutationFn: (data) => {
+      // Prepare form data for API
+      const payload: any = { ...data };
+
+      if (!payload.plan_id) {
+        delete payload.plan_id;
+      } else {
+        payload.plan_id = String(payload.plan_id);
+      }
+      if (!payload.subscription_start_date) {
+        delete payload.subscription_start_date;
+      }
+      if (!payload.subscription_end_date) {
+        delete payload.subscription_end_date;
+      }
+
+      // Remove confirmPassword before sending to API
+      delete payload.confirmPassword;
+      // Optionally, remove sendSignupEmail if API does not need it:
+      if (typeof payload.sendSignupEmail === "undefined")
+        delete payload.sendSignupEmail;
+
+      return createUser(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       onClose();
       reset();
+      // Show a success message (optional)
     },
   });
 
@@ -82,123 +133,52 @@ const AddMemberModal = () => {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"
+            className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl"
           >
-            <div>
-              <label>Username *</label>
-              <Input {...register("username")} />
+            <div className="col-span-1">
+              <label htmlFor="username">Username *</label>
+              <Input id="username" {...register("username")} />
               {errors.username && (
-                <p className="text-red-500 text-sm">
-                  {errors.username.message}
-                </p>
+                <p className="text-red-600">{errors.username.message}</p>
               )}
             </div>
-            <div>
-              <label>Email *</label>
-              <Input type="email" {...register("email")} />
+            <div className="col-span-1">
+              <label htmlFor="email">Email *</label>
+              <Input id="email" type="email" {...register("email")} />
               {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
+                <p className="text-red-600">{errors.email.message}</p>
               )}
             </div>
             <div>
-              <label>First Name *</label>
-              <Input {...register("first_name")} />
+              <label htmlFor="first_name">First Name *</label>
+              <Input id="first_name" {...register("first_name")} />
               {errors.first_name && (
-                <p className="text-red-500 text-sm">
-                  {errors.first_name.message}
-                </p>
+                <p className="text-red-600">{errors.first_name.message}</p>
               )}
             </div>
             <div>
-              <label>Last Name *</label>
-              <Input {...register("last_name")} />
+              <label htmlFor="last_name">Last Name *</label>
+              <Input id="last_name" {...register("last_name")} />
               {errors.last_name && (
-                <p className="text-red-500 text-sm">
-                  {errors.last_name.message}
-                </p>
+                <p className="text-red-600">{errors.last_name.message}</p>
               )}
             </div>
             <div>
-              <label>Phone *</label>
-              <Input {...register("phone")} />
-              {errors.phone && (
-                <p className="text-red-500 text-sm">{errors.phone.message}</p>
-              )}
-            </div>
-            <div>
-              <label>PAN Card Number *</label>
-              <Input {...register("pan_card_number")} />
-              {errors.pan_card_number && (
-                <p className="text-red-500 text-sm">
-                  {errors.pan_card_number.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>Address Line 1 *</label>
-              <Input {...register("address_1")} />
-              {errors.address_1 && (
-                <p className="text-red-500 text-sm">
-                  {errors.address_1.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>Address Line 2</label>
-              <Input {...register("address_2")} />
-            </div>
-            <div>
-              <label>State *</label>
-              <Input {...register("state")} />
-              {errors.state && (
-                <p className="text-red-500 text-sm">{errors.state.message}</p>
-              )}
-            </div>
-            <div>
-              <label>City *</label>
-              <Input {...register("city")} />
-              {errors.city && (
-                <p className="text-red-500 text-sm">{errors.city.message}</p>
-              )}
-            </div>
-            <div>
-              <label>Pincode *</label>
-              <Input {...register("pin_code")} />
-              {errors.pin_code && (
-                <p className="text-red-500 text-sm">
-                  {errors.pin_code.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>Date of Birth *</label>
-              <Input type="date" {...register("date_of_birth")} />
-              {errors.date_of_birth && (
-                <p className="text-red-500 text-sm">
-                  {errors.date_of_birth.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label>Company Name</label>
-              <Input {...register("company_name")} />
-            </div>
-            <div>
-              <label>Password *</label>
-              <Input type="password" {...register("password")} />
+              <label htmlFor="password">Password *</label>
+              <Input id="password" type="password" {...register("password")} />
               {errors.password && (
-                <p className="text-red-500 text-sm">
-                  {errors.password.message}
-                </p>
+                <p className="text-red-600">{errors.password.message}</p>
               )}
             </div>
             <div>
-              <label>Confirm Password *</label>
-              <Input type="password" {...register("confirmPassword")} />
+              <label htmlFor="confirmPassword">Confirm Password *</label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                {...register("confirmPassword")}
+              />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">
-                  {errors.confirmPassword.message}
-                </p>
+                <p className="text-red-600">{errors.confirmPassword.message}</p>
               )}
             </div>
             <div>
@@ -220,27 +200,113 @@ const AddMemberModal = () => {
                 <p className="text-red-600">{errors.role.message}</p>
               )}
             </div>
-            <div className="md:col-span-1">
-              <label>Member Status</label>
+            <div>
+              <label htmlFor="phone">Phone *</label>
+              <Input id="phone" {...register("phone")} />
+              {errors.phone && (
+                <p className="text-red-600">{errors.phone.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="pan_card_number">PAN Card Number *</label>
+              <Input id="pan_card_number" {...register("pan_card_number")} />
+              {errors.pan_card_number && (
+                <p className="text-red-600">{errors.pan_card_number.message}</p>
+              )}
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="address_1">Address Line 1 *</label>
+              <Input id="address_1" {...register("address_1")} />
+              {errors.address_1 && (
+                <p className="text-red-600">{errors.address_1.message}</p>
+              )}
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="address_2">Address Line 2</label>
+              <Input id="address_2" {...register("address_2")} />
+            </div>
+            <div>
+              <label htmlFor="state">State *</label>
+              <Input id="state" {...register("state")} />
+              {errors.state && (
+                <p className="text-red-600">{errors.state.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="city">City *</label>
+              <Input id="city" {...register("city")} />
+              {errors.city && (
+                <p className="text-red-600">{errors.city.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="pin_code">Pin Code *</label>
+              <Input id="pin_code" {...register("pin_code")} />
+              {errors.pin_code && (
+                <p className="text-red-600">{errors.pin_code.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="date_of_birth">Date of Birth *</label>
+              <Input
+                id="date_of_birth"
+                type="date"
+                {...register("date_of_birth")}
+              />
+              {errors.date_of_birth && (
+                <p className="text-red-600">{errors.date_of_birth.message}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="company">Company</label>
+              <Input id="company" {...register("company")} />
+            </div>
+            <div>
+              <label htmlFor="status">Status</label>
               <select
+                id="status"
                 {...register("status")}
                 className="w-full p-2 border rounded"
               >
                 <option value="active">Active</option>
                 <option value="pending">Pending</option>
-                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
               </select>
             </div>
-
-            <div className="md:col-span-2 flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="sendEmail"
-                {...register("sendSignupEmail")}
-              />
-              <label htmlFor="sendEmail">
-                Send Signup Email Notification to User
+            <div>
+              <label htmlFor="plan_id">Subscription Plan</label>
+              <select
+                id="plan_id"
+                {...register("plan_id")}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">No Plan</option>
+                {subscriptionPlans.map((plan: any) => (
+                  <option key={plan.plan_id} value={String(plan.plan_id)}>
+                    {plan.plan_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="subscription_start_date">
+                Subscription Start Date
               </label>
+              <Input
+                id="subscription_start_date"
+                type="date"
+                {...register("subscription_start_date")}
+              />
+            </div>
+            <div>
+              <label htmlFor="subscription_end_date">
+                Subscription End Date
+              </label>
+              <Input
+                id="subscription_end_date"
+                type="date"
+                {...register("subscription_end_date")}
+              />
             </div>
 
             <div className="md:col-span-2 flex justify-end space-x-2 mt-4">
@@ -252,12 +318,11 @@ const AddMemberModal = () => {
               </Button>
             </div>
             {mutation.isError && (
-              <p className="text-red-500 text-sm md:col-span-2">
+              <p className="text-red-600 mt-2 md:col-span-2">
                 {mutation.error.message}
               </p>
             )}
           </form>
-
           <Dialog.Close asChild>
             <button
               className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"

@@ -1,27 +1,26 @@
-import { useState, useRef } from "react";
-import { NavLink } from "react-router-dom";
 import {
-  ChevronLeft,
-  LayoutDashboard,
-  Users,
-  Settings,
+  BookOpen,
   Briefcase,
-  Menu,
-  X,
   ChevronDown,
+  ChevronLeft,
+  ClipboardList,
+  Contact,
   CreditCard,
-  UserPlus,
   FileText,
   Gift,
-  Contact,
-  Calendar,
-  ClipboardList,
+  LayoutDashboard,
   Mail,
+  Menu,
   Mic,
-  Video,
+  Settings,
   Star,
-  BookOpen,
+  UserPlus,
+  Users,
+  Video,
+  X,
 } from "lucide-react";
+import { useRef, useState } from "react";
+import { NavLink } from "react-router-dom";
 import { AppRoutes } from "../routes/app-routes";
 
 const navItems = [
@@ -40,11 +39,6 @@ const navItems = [
         path: AppRoutes.adminManageMembers,
       },
       {
-        name: "Add User",
-        icon: UserPlus,
-        path: AppRoutes.adminAddUser,
-      },
-      {
         name: "Profile",
         icon: Contact,
         path: AppRoutes.adminProfile,
@@ -54,11 +48,6 @@ const navItems = [
         icon: FileText,
         path: AppRoutes.adminManagePlans,
       },
-      // {
-      //   name: "Manage Subscriptions",
-      //   icon: Calendar,
-      //   path: AppRoutes.adminManageSubscriptions,
-      // },
       {
         name: "Payment History",
         icon: CreditCard,

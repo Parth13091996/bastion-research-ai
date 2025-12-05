@@ -78,7 +78,6 @@ const AddNewJob = lazy(() => import("../pages/Admin/Jobs/AddNewJob"));
 const Applications = lazy(() => import("../pages/Admin/Jobs/Applications"));
 const LeadsPage = lazy(() => import("../pages/Admin/Leads"));
 const AllUsers = lazy(() => import("../pages/Admin/Users/AllUsers"));
-const AddUser = lazy(() => import("../pages/Admin/Users/AddUser"));
 const Profile = lazy(() => import("../pages/Admin/Users/Profile"));
 const AdminSettings = lazy(() => import("../pages/Admin/Settings"));
 
@@ -235,10 +234,6 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminAllUsers,
         element: <AllUsers />,
-      },
-      {
-        path: AppRoutes.adminAddUser,
-        element: <AddUser />,
       },
       {
         path: AppRoutes.adminProfile,
