@@ -401,26 +401,62 @@ export const zeroAmountAccountCreation = async (
   res: Response
 ) => {
   try {
-    const { plan_id, coupon_code, user_id, payer_email } = req.body;
+    const { plan_id, coupon_code, user_id, payer_email } = req.body as {
+      plan_id: number;
+      coupon_code?: string;
+      user_id: string;
+      payer_email: string;
+    };
 
-    // Fetch coupon
-    let coupon;
-    try {
-      const { data: couponData, error: couponError } = await supabase
-        .from("coupons")
-        .select("*")
-        .eq("coupon_code", coupon_code)
-        .eq("active", true)
-        .single();
+    // Fetch coupon (if provided)
+    let coupon: any = null;
+    if (coupon_code && typeof coupon_code === "string" && coupon_code.trim()) {
+      try {
+        const { data: couponData, error: couponError } = await supabase
+          .from("coupons")
+          .select("*")
+          .eq("coupon_code", coupon_code.trim().toUpperCase())
+          .eq("active", true)
+          .maybeSingle();
 
-      if (couponError) {
-        return res.status(400).json({ error: couponError.message });
+        if (couponError) {
+          return res.status(400).json({ error: couponError.message });
+        }
+
+        if (!couponData) {
+          return res.status(400).json({ error: "Invalid or inactive coupon" });
+        }
+
+        // Check expiry
+        if (
+          couponData.expiry_date &&
+          new Date(couponData.expiry_date) < new Date()
+        ) {
+          return res.status(400).json({ error: "Coupon has expired" });
+        }
+
+        // Respect max_uses / used_count if set
+        const maxUses =
+          typeof couponData.max_uses === "number"
+            ? couponData.max_uses
+            : null;
+        const usedCount =
+          typeof couponData.used_count === "number"
+            ? couponData.used_count
+            : 0;
+
+        if (maxUses !== null && usedCount >= maxUses) {
+          return res
+            .status(400)
+            .json({ error: "Coupon usage limit reached" });
+        }
+
+        coupon = couponData;
+      } catch (e: any) {
+        return res
+          .status(500)
+          .json({ error: e?.message || "Error fetching coupon" });
       }
-      coupon = couponData;
-    } catch (e: any) {
-      return res
-        .status(500)
-        .json({ error: e?.message || "Error fetching coupon" });
     }
 
     // Record a zero-amount payment in history so subscription tables stay consistent
@@ -432,8 +468,8 @@ export const zeroAmountAccountCreation = async (
         .insert({
           transaction_status: "SUCCESS",
           plan_id: plan_id,
-          user_id,
-          payer_email,
+          user_id: user_id,
+          payer_email: payer_email,
           transaction_id: crypto.randomUUID(),
           coupon_applied: coupon?.coupon_id,
           created_at: startDate.toISOString(),
@@ -521,6 +557,25 @@ export const zeroAmountAccountCreation = async (
 
       if (error) {
         return res.status(500).json({ error: error.message });
+      }
+
+      // Mark coupon as used / expired (best-effort; do not block user activation)
+      if (coupon?.coupon_id) {
+        try {
+          const nextUsedCount =
+            typeof coupon.used_count === "number" ? coupon.used_count + 1 : 1;
+
+          await supabase
+            .from("coupons")
+            .update({
+              used_count: nextUsedCount,
+              active: false,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("coupon_id", coupon.coupon_id);
+        } catch (e) {
+          console.error("Failed to mark coupon as used/expired", e);
+        }
       }
 
       return res.status(200).json({ user: data });

@@ -6,6 +6,10 @@ export async function getCoupons() {
   return data;
 }
 
+export async function createCouponsBulk(codes: string[]) {
+  return axiosInstance.post(`${endpoints.coupons.base}/bulk`, { codes });
+}
+
 export async function createCoupon(payload: any) {
   return axiosInstance.post(endpoints.coupons.base, payload);
 }
@@ -17,4 +21,3 @@ export async function updateCoupon(id: number | string, payload: any) {
 export async function deleteCoupon(id: number | string) {
   return axiosInstance.delete(`${endpoints.coupons.base}/${id}`);
 }
-

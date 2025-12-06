@@ -4,6 +4,7 @@ import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import {
   createCoupon,
+  createCouponsBulk,
   deleteCoupon,
   getCoupons,
   updateCoupon,
@@ -56,6 +57,8 @@ const CouponsManagement = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
   const [editing, setEditing] = useState<ApiCoupon | null>(null);
   const [form, setForm] = useState<Partial<ApiCoupon>>({
     coupon_code: "",
@@ -280,17 +283,52 @@ const CouponsManagement = () => {
     await load();
   };
 
+  const onBulkAdd = () => {
+    setBulkText("");
+    setBulkModalOpen(true);
+  };
+
+  const handleBulkCreateCoupons = async () => {
+    const codes = Array.from(
+      new Set(
+        bulkText
+          .split(/\r?\n/)
+          .map((line) => line.trim().toUpperCase())
+          .filter((line) => line.length > 0)
+      )
+    );
+
+    if (codes.length === 0) {
+      alert("Please enter at least one PAN / coupon code.");
+      return;
+    }
+
+    await createCouponsBulk(codes);
+    setBulkModalOpen(false);
+    setBulkText("");
+    await load();
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Coupon Management</h1>
-        <button
-          onClick={onAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
-        >
-          <Plus size={20} className="mr-2" />
-          Add Coupon
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={onBulkAdd}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+          >
+            <Plus size={20} className="mr-2" />
+            Bulk PAN Coupons
+          </button>
+          <button
+            onClick={onAdd}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+          >
+            <Plus size={20} className="mr-2" />
+            Add Coupon
+          </button>
+        </div>
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
@@ -375,6 +413,40 @@ const CouponsManagement = () => {
           />
         </div>
       </div>
+
+      <Modal
+        open={bulkModalOpen}
+        onOpenChange={setBulkModalOpen}
+        title="Bulk Create PAN Coupons"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Paste one PAN (or unique coupon code) per line. Each entry will
+            create a 100% discount, single-use coupon that expires after it is
+            used.
+          </p>
+          <textarea
+            className="w-full border rounded p-2 h-48 font-mono text-sm"
+            placeholder={"ABCDE1234F\nABCDE1234G\n..."}
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              className="px-4 py-2 border rounded"
+              onClick={() => setBulkModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={handleBulkCreateCoupons}
+            >
+              Create Coupons
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         open={modalOpen}

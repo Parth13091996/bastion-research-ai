@@ -37,6 +37,51 @@ export const updateCoupon = async (req: Request, res: Response) => {
   res.status(200).json(data);
 };
 
+export const createBulkCoupons = async (req: Request, res: Response) => {
+  const { codes } = req.body as { codes?: string[] };
+
+  if (!Array.isArray(codes) || codes.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "codes must be a non-empty array of strings" });
+  }
+
+  // Normalize: trim, uppercase (for PAN), remove blanks and duplicates
+  const normalized = Array.from(
+    new Set(
+      codes
+        .map((c) => (typeof c === "string" ? c.trim().toUpperCase() : ""))
+        .filter((c) => c.length > 0)
+    )
+  );
+
+  if (normalized.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "No valid coupon codes provided" });
+  }
+
+  const payload = normalized.map((coupon_code) => ({
+    coupon_code,
+    discount_type: "percentage",
+    discount_value: 100,
+    expiry_date: null,
+    active: true,
+    max_uses: 1,
+  }));
+
+  const { data, error } = await supabase
+    .from("coupons")
+    .insert(payload)
+    .select();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.status(201).json(data);
+};
+
 export const deleteCoupon = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { data, error } = await supabase

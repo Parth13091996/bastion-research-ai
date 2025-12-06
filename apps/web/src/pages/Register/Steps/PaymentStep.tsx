@@ -103,11 +103,12 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     setIsLoading(true);
     try {
       const finalAmount = getFinalAmount();
+      const couponToUse = appliedCoupon?.coupon_code;
       if (isFreeOrZero) {
         const result = await zeroAmountPayment({
           plan_id: Number(selectedPlanDetails?.code),
           payer_email: formData.email,
-          coupon_code: couponCode,
+          coupon_code: couponToUse,
           user_id: user?.id,
           role: formData?.role,
         });
