@@ -47,9 +47,10 @@ const RecentRecommendations: React.FC = () => {
 
   // Sorted by newest
   const sorted = [...accessibleStocks].sort(
-    (a, b) =>
-      new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
-  );
+  (a, b) =>
+    new Date(b.dateRecommended ?? 0).getTime() -
+    new Date(a.dateRecommended ?? 0).getTime()
+);
 
   // Show only up to 3 latest accessible recommendations
   const latestAccessibleStocks = sorted.slice(0, 3);
