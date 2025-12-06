@@ -6,6 +6,7 @@ import { supabase } from "../supabase";
 import crypto from "crypto";
 import sendEmail from "../utils/email";
 import { validateEmailOtp } from "./otp.controller";
+import { incrementCouponUsage } from "./coupon.controller";
 type OnboardingUserData = {
   email: string;
   phone: string;
@@ -576,6 +577,13 @@ export const zeroAmountAccountCreation = async (
         } catch (e) {
           console.error("Failed to mark coupon as used/expired", e);
         }
+      }
+      // Increment coupon usage after successful application
+      try {
+        await incrementCouponUsage(coupon_code!);
+      } catch (e: any) {
+        console.error("Failed to increment coupon usage:", e);
+        // Do not fail the request if coupon increment fails
       }
 
       return res.status(200).json({ user: data });

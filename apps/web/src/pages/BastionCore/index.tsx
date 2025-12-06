@@ -302,9 +302,7 @@ export default function BastionCoreProductPage() {
               >
 
 
-                {/* ============================
-            ADDED PILL TAGS
-        ============================ */}
+        
                 {idx === 0 && (
                   <div className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-3 py-2 text-xs font-medium">
                     <Sparkles className="h-4 w-4" /> Once in a lifetime access
@@ -395,7 +393,9 @@ export default function BastionCoreProductPage() {
                 </ul>
 
                 <div className="mt-6 flex justify-end">
-                  <a href="/register">
+                  <a
+                  onClick={() => setIsSignUpOpen(true)}
+                  >
                     <button
                       className={`px-4 py-2 rounded-xl transition-colors ${idx === 1
                         ? "bg-[#C4B696] text-[#1C2852] hover:bg-[#b3a67d]"

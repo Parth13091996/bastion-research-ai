@@ -87,7 +87,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
         const pdf = pdfDocRef.current;
         const isMobile = window.innerWidth < 768;
-        const baseScale = isMobile ? 0.9 : 1.5;
+        const baseScale = isMobile ? 1 : 1.5;
         
         // Multiply base scale by zoom level for crisp rendering
         const scale = baseScale * zoomLevel * 2.5;

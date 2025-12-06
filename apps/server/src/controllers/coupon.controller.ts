@@ -124,3 +124,32 @@ export const validateCoupon = async (req: Request, res: Response) => {
 
   res.status(200).json(data);
 };
+
+export const incrementCouponUsage = async (couponCode: string) => {
+  // Fetch current coupon data
+  const { data: coupon, error: fetchError } = await supabase
+    .from("coupons")
+    .select("used_count, max_uses, active")
+    .eq("coupon_code", couponCode)
+    .single();
+
+  if (fetchError || !coupon) {
+    throw new Error(`Coupon ${couponCode} not found`);
+  }
+
+  const newUsedCount = (coupon.used_count || 0) + 1;
+  const shouldDeactivate = coupon.max_uses && newUsedCount >= coupon.max_uses;
+
+  // Update used_count and active status if needed
+  const { error: updateError } = await supabase
+    .from("coupons")
+    .update({
+      used_count: newUsedCount,
+      active: shouldDeactivate ? false : coupon.active,
+    })
+    .eq("coupon_code", couponCode);
+
+  if (updateError) {
+    throw new Error(`Failed to update coupon usage: ${updateError.message}`);
+  }
+};

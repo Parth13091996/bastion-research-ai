@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { supabase } from "../supabase";
 import { pgCreateOrder } from "./cashfree-pg.service";
 import { getFrontendBaseUrl } from "./cashfree-config";
-
+import { incrementCouponUsage } from "../controllers/coupon.controller";
 export type PublicPlan = {
   code: string;
   name: string;
@@ -119,6 +119,16 @@ export const createOrderForPlanService = async (params: {
       transaction_id: transactionId,
       created_at: startDate.toISOString(),
     });
+
+    // Increment coupon usage if coupon was used
+    if (params.coupon_code) {
+      try {
+        await incrementCouponUsage(params.coupon_code);
+      } catch (e: any) {
+        console.error("Failed to increment coupon usage:", e);
+        // Do not fail the request if coupon increment fails
+      }
+    }
 
     return {
       selected,
