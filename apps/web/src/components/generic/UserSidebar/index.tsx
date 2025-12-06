@@ -56,8 +56,11 @@ const UserSidebar = () => {
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null,
-    is_premium: user?.plan_id !== 1 || false,
-    currentPlan: subscription?.currentPlan || null,
+    is_premium: !!subscription?.is_premium,
+    currentPlan:
+      subscription?.currentPlan ||
+      user?.membership_plans?.plan_code ||
+      "freemium",
   };
 
   const sidebarRef = useRef(null);

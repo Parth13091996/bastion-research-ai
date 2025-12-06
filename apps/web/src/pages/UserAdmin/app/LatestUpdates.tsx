@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
-import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import PricingDialogModal from "@/components/core/common/Modals/PricingDialogModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/use-subscription";
 
 // Copied from RecentRecommendations.tsx
 const tiers: Record<string, string[]> = {
@@ -42,7 +43,10 @@ const LatestUpdates: React.FC = () => {
   const { user } = useAuth();
   const [showPricing, setShowPricing] = useState(false);
 
-  const userPlanCode = user?.membership_plans?.plan_code || "freemium";
+  const { data: subscription } = useSubscription();
+
+  const userPlanCode =
+    subscription?.currentPlan || user?.membership_plans?.plan_code || "freemium";
   const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
 
   const updates = useMemo<LatestUpdateItem[]>(() => {
