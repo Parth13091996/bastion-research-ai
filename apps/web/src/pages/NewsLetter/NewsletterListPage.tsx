@@ -12,6 +12,7 @@ import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { toast } from "sonner";
 import { Newsletter } from "@repo/types";
 import mailchimpNewsletterApi from "@/api/mailchimp-api.ts";
+import { newsletterApi } from "@/api/content";
 
 const COLORS = {
   red: "#C00000",
@@ -39,8 +40,31 @@ const NewsletterArchive = () => {
   const loadNewsletters = async () => {
     try {
       setIsLoading(true);
-      const data = await mailchimpNewsletterApi.getAll();
-      const sorted = [...data].sort(
+      const [mailchimpData, manualData] = await Promise.all([
+        mailchimpNewsletterApi.getAll(),
+        newsletterApi.getAll().catch(() => []),
+      ]);
+
+      const merged: Newsletter[] = [
+        // Manual CMS newsletters
+        ...(manualData as any[]).map((item) => ({
+          id: item.id,
+          title: item.title,
+          sub_title: item.sub_title,
+          headline_image_url: item.headline_image_url,
+          created_at: item.created_at,
+          category: item.category,
+          hidden: item.hidden,
+          link: item.link,
+          author: item.author,
+          plain_text: item.plain_text,
+          source: item.source ?? "cms",
+        })),
+        // Mailchimp newsletters
+        ...(mailchimpData as Newsletter[]),
+      ];
+
+      const sorted = merged.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -100,14 +124,23 @@ const NewsletterArchive = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleShare = (id: string) => {
-    const link = `${window.location.origin}/newsletters/${id}`;
+  const handleShare = (item: Newsletter) => {
+    if (item.source === "cms" && item.link) {
+      navigator.clipboard.writeText(item.link);
+      toast.success("Newsletter link copied to clipboard!");
+      return;
+    }
+    const link = `${window.location.origin}/newsletters/${item.id}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copied to clipboard!");
   };
 
-  const handleViewNewsletter = (id: string) => {
-    navigate(`/newsletters/${id}`);
+  const handleViewNewsletter = (item: Newsletter) => {
+    if (item.source === "cms" && item.link) {
+      navigate("/user/app/pdf-viewer", { state: { url: item.link } });
+      return;
+    }
+    navigate(`/newsletters/${item.id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -262,7 +295,7 @@ const NewsletterArchive = () => {
 
                       <div className="flex items-center justify-between text-gray-600 text-sm mt-auto mb-2">
                         <button
-                          onClick={() => handleViewNewsletter(newsletter.id)}
+                          onClick={() => handleViewNewsletter(newsletter)}
                           className="flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors"
                         >
                           <Play className="w-4 h-4 flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors" />
@@ -270,7 +303,7 @@ const NewsletterArchive = () => {
                         </button>
 
                         <button
-                          onClick={() => handleShare(newsletter.id)}
+                          onClick={() => handleShare(newsletter)}
                           className="flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors"
                         >
                           <Share2 className="w-4 h-4 flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors" />

@@ -6,6 +6,10 @@ export interface Newsletter {
   created_at: string;
   category?: string;
   hidden?: boolean; // admin flag to hide from public listing
+   link?: string;
+   author?: string;
+   plain_text?: string;
+   source?: "mailchimp" | "cms";
 }
 
 export interface User {
@@ -24,7 +28,7 @@ export interface User {
   date_of_birth: string; // Or Date, but string is safer for serialization
   company?: string | null;
   password?: string | null; // Null for OAuth users
-  role?: "core_subscriber" | "free_subscriber"; // Assuming possible roles
+  role?: "core_subscriber" | "free_subscriber" | "employee"; // Assuming possible roles
   cameFromOAuth?: boolean;
   status?: "active" | "agreement_signed" | "onboarded" | "free";
   created_at?: string;

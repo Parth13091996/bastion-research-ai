@@ -1,18 +1,23 @@
 import { Router } from "express";
 import { getAnalyticsSummary } from "../controllers/analytics.controller";
 import {
+  createNewsletter,
   createPodcast,
   createTestimonial,
   createWebinar,
+  deleteNewsletter,
   deletePodcast,
   deleteTestimonial,
   deleteWebinar,
+  getNewsletter,
   getPodcast,
   getTestimonial,
   getWebinar,
+  listNewsletters,
   listPodcasts,
   listTestimonials,
   listWebinars,
+  updateNewsletter,
   updatePodcast,
   updateTestimonial,
   updateWebinar,
@@ -72,6 +77,13 @@ router.put(
   admin,
   setMailchimpNewsletterHidden
 );
+
+// Content management - Manual Newsletters (CMS)
+router.get("/content/newsletters", protect, admin, listNewsletters);
+router.get("/content/newsletters/:id", protect, admin, getNewsletter);
+router.post("/content/newsletters", protect, admin, createNewsletter);
+router.put("/content/newsletters/:id", protect, admin, updateNewsletter);
+router.delete("/content/newsletters/:id", protect, admin, deleteNewsletter);
 
 // Content management - Webinars
 router.get("/content/webinars", protect, admin, listWebinars);

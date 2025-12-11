@@ -1,7 +1,9 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -10,164 +12,163 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format } from "date-fns";
-import { ArrowUpRight, Eye, Mail, Search, EyeOff } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Plus, RefreshCw, Edit, Trash2, Eye, Calendar } from "lucide-react";
+import { newsletterApi } from "@/api/content";
 import { toast } from "sonner";
-import { Switch } from "@/components/ui/switch";
-import mailchimpApi from "@/api/mailchimp-api";
-import mailchimpNewsletterApi from "@/api/mailchimp-api";
-
-const MAILCHIMP_DASHBOARD_URL = import.meta.env.VITE_MAILCHIMP_MANAGE_URL as
-  | string
-  | undefined;
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const NewsletterManagement: React.FC = () => {
   const navigate = useNavigate();
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-
-  const loadNewsletters = useCallback(async (options?: { force?: boolean }) => {
-    try {
-      if (!options?.force) setIsLoading(true);
-      const data = options?.force
-        ? await mailchimpNewsletterApi.admin.refresh()
-        : await mailchimpNewsletterApi.admin.getAll();
-      const sorted = [...data].sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-      setNewsletters(sorted);
-      if (options?.force) {
-        toast.success("Mailchimp feed synced successfully");
-      }
-    } catch (error: any) {
-      console.error("Failed to load Mailchimp newsletters", error);
-      toast.error("Unable to load Mailchimp newsletters");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadNewsletters();
-  }, [loadNewsletters]);
+  }, []);
 
-  const filteredNewsletters = useMemo(() => {
-    if (!searchQuery.trim()) return newsletters;
-    const term = searchQuery.toLowerCase();
-    return newsletters.filter((item) => {
-      const matchesTitle = item.title?.toLowerCase().includes(term);
-      const matchesSubtitle = item.sub_title?.toLowerCase().includes(term);
-      const matchesBody = item.plain_text?.toLowerCase().includes(term);
-      return Boolean(matchesTitle || matchesSubtitle || matchesBody);
-    });
-  }, [newsletters, searchQuery]);
+  const loadNewsletters = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await newsletterApi.admin.getAll();
+      setNewsletters(data);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load newsletters");
+      toast.error("Failed to load newsletters");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      await newsletterApi.admin.delete(deleteId);
+      toast.success("Newsletter deleted successfully");
+      setDeleteId(null);
+      loadNewsletters();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "Failed to delete newsletter");
+    }
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/admin/content/newsletters/${id}/edit`);
+  };
 
   const handleView = (id: string) => {
     navigate(`/newsletters/${id}`);
   };
 
   const handleCreate = () => {
-    if (MAILCHIMP_DASHBOARD_URL) {
-      window.open(MAILCHIMP_DASHBOARD_URL, "_blank", "noopener,noreferrer");
-    } else {
-      toast.info("Create newsletters directly from your Mailchimp dashboard.");
-    }
+    navigate("/admin/content/newsletters/create");
   };
 
-  const formatDate = (value: string) => {
-    const date = new Date(value);
+  const filtered = newsletters.filter((n) =>
+    [n.title, n.sub_title, n.category, n.author, n.link]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) return "";
-    return format(date, "MMM dd, yyyy");
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="flex items-start gap-3">
-          <div className="rounded-full bg-blue-100 p-3">
-            <Mail className="h-6 w-6 text-blue-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-secondary">
-              Mailchimp Newsletter Feed
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-              Campaigns created or edited in Mailchimp sync into the Bastion
-              newsletters section. Use the refresh button to pull the latest
-              campaigns via the Mailchimp API whenever you make changes.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              <Badge variant="secondary">{newsletters.length} items</Badge>
-              <Badge variant="outline">Source: Mailchimp API</Badge>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Newsletters</h1>
+          <p className="text-muted-foreground">
+            Manage newsletters stored in Supabase
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant={"outline"} onClick={handleCreate}>
-            <ArrowUpRight className="h-4 w-4 mr-2" />
-            Open Mailchimp
+          <Button
+            variant="secondary"
+            onClick={loadNewsletters}
+            disabled={loading}
+            className="text-white"
+          >
+            <RefreshCw className="mr-2 h-4 w-4 text-white" /> Refresh
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" /> Create Newsletter
           </Button>
         </div>
       </div>
 
       <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search campaigns..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
         <CardHeader>
-          <CardTitle>Mailchimp Campaigns</CardTitle>
+          <CardTitle>All Newsletters</CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredNewsletters.length === 0 ? (
-            <div className="text-center py-10">
-              <div className="text-5xl mb-3">📭</div>
-              <p className="text-lg font-medium mb-1">No campaigns found</p>
-              <p className="text-muted-foreground">
-                {searchQuery
-                  ? "Try a different search term."
-                  : "Create or update a campaign in Mailchimp, then sync again."}
+          <div className="mb-4">
+            <Input
+              placeholder="Search by title, category, or author..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">{error}</div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-8">
+              <h3 className="text-lg font-medium mb-2">No newsletters found</h3>
+              <p className="text-gray-600 mb-4">
+                {search
+                  ? "Try adjusting your search"
+                  : "Get started by creating your first newsletter"}
               </p>
+              {!search && (
+                <Button onClick={handleCreate}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Newsletter
+                </Button>
+              )}
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>Summary</TableHead>
-                  <TableHead>Published</TableHead>
-                  <TableHead>Hidden</TableHead>
-                  <TableHead className="w-[260px] text-center">
+                  <TableHead>Category</TableHead>
+                  <TableHead>Author</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="w-[220px] text-center">
                     Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredNewsletters.map((newsletter) => (
+                {filtered.map((newsletter) => (
                   <TableRow key={newsletter.id}>
                     <TableCell className="font-medium">
                       <div
@@ -178,57 +179,49 @@ const NewsletterManagement: React.FC = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div
-                        className="max-w-lg truncate text-sm text-muted-foreground"
-                        title={newsletter.sub_title || newsletter.plain_text}
+                      <Badge variant="outline">
+                        {newsletter.category || "Uncategorized"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-gray-600">
+                        {newsletter.author || "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {formatDate(newsletter.created_at)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="flex justify-center space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="View"
+                        className="hover:bg-blue-100 hover:text-blue-600"
+                        onClick={() => handleView(newsletter.id)}
                       >
-                        {newsletter.sub_title || newsletter.plain_text || "—"}
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(newsletter.created_at)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={Boolean((newsletter as any).hidden)}
-                          onCheckedChange={async (val) => {
-                            try {
-                              await mailchimpApi.admin.setHidden(
-                                newsletter.id,
-                                !!val
-                              );
-                              setNewsletters((prev) =>
-                                prev.map((n) =>
-                                  n.id === newsletter.id
-                                    ? { ...n, hidden: !!val }
-                                    : n
-                                )
-                              );
-                            } catch (e) {
-                              toast.error("Failed to update visibility");
-                            }
-                          }}
-                          aria-label="Hide from website"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleView(newsletter.id)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" /> View
-                        </Button>
-                        {(newsletter as any).hidden && (
-                          <Badge
-                            variant="outline"
-                            className="flex items-center gap-1"
-                          >
-                            <EyeOff className="h-3 w-3" /> Hidden
-                          </Badge>
-                        )}
-                      </div>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="Edit"
+                        className="hover:bg-yellow-100 hover:text-yellow-600"
+                        onClick={() => handleEdit(newsletter.id)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        title="Delete"
+                        className="hover:bg-red-600 hover:text-white"
+                        onClick={() => setDeleteId(newsletter.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -237,8 +230,25 @@ const NewsletterManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              newsletter.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
 export default NewsletterManagement;
+

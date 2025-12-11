@@ -13,23 +13,37 @@ export const newsletterApi = {
       .get(endpoints.content.newsletters.byId(id))
       .then((res) => res.data),
 
-  create: (data: Omit<Newsletter, "id" | "created_at">): Promise<Newsletter> =>
-    axiosInstance
-      .post(endpoints.content.newsletters.admin.base, data)
-      .then((res) => res.data),
+  admin: {
+    getAll: (): Promise<Newsletter[]> =>
+      axiosInstance
+        .get(endpoints.content.newsletters.admin.base)
+        .then((res) => res.data),
 
-  update: (
-    id: string,
-    data: Partial<Omit<Newsletter, "id" | "created_at">>
-  ): Promise<Newsletter> =>
-    axiosInstance
-      .put(endpoints.content.newsletters.admin.byId(id), data)
-      .then((res) => res.data),
+    getById: (id: string): Promise<Newsletter> =>
+      axiosInstance
+        .get(endpoints.content.newsletters.admin.byId(id))
+        .then((res) => res.data),
 
-  delete: (id: string): Promise<{ message: string }> =>
-    axiosInstance
-      .delete(endpoints.content.newsletters.admin.byId(id))
-      .then((res) => res.data),
+    create: (
+      data: Omit<Newsletter, "id" | "created_at">
+    ): Promise<Newsletter> =>
+      axiosInstance
+        .post(endpoints.content.newsletters.admin.base, data)
+        .then((res) => res.data),
+
+    update: (
+      id: string,
+      data: Partial<Omit<Newsletter, "id" | "created_at">>
+    ): Promise<Newsletter> =>
+      axiosInstance
+        .put(endpoints.content.newsletters.admin.byId(id), data)
+        .then((res) => res.data),
+
+    delete: (id: string): Promise<{ message: string }> =>
+      axiosInstance
+        .delete(endpoints.content.newsletters.admin.byId(id))
+        .then((res) => res.data),
+  },
 };
 
 export const webinarApi = {

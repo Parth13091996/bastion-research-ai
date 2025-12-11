@@ -9,7 +9,6 @@ import { Input } from "../../../ui/input";
 import { useModalStore } from "@/stores/modal-store";
 import { createUser } from "@/api/users-api";
 import { getMembershipPlans } from "@/api/membership-api";
-import React from "react";
 
 const RoleEnum = z.enum([
   "admin",

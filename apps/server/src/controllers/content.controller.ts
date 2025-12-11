@@ -1,11 +1,5 @@
 import { Request, Response } from "express";
 import { supabase } from "../supabase";
-import {
-  fetchMailchimpNewsletters,
-  getMailchimpNewsletterById,
-} from "../services/mailchimp.service";
-
-
 
 // Webinars
 export async function createWebinar(req: Request, res: Response) {
@@ -199,6 +193,177 @@ export async function deletePodcast(req: Request, res: Response) {
 
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json({ message: "Podcast deleted successfully" });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Manual Newsletters (CMS-managed, separate from Mailchimp campaigns)
+// ---------------------------------------------------------------------------
+
+// Helpers
+function mapManualNewsletter(row: any) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    sub_title: row.sub_title ?? undefined,
+    headline_image_url: row.headline_image_url ?? undefined,
+    created_at: row.created_at,
+    category: row.category ?? undefined,
+    link: row.link,
+    author: row.author ?? undefined,
+    plain_text: row.plain_text ?? undefined,
+    hidden: Boolean(row.hidden),
+    source: "cms" as const,
+  };
+}
+
+// Public: list visible manual newsletters
+export async function listNewsletters(req: Request, res: Response) {
+  try {
+    const isAdmin = (req.originalUrl || "").includes("/api/admin/");
+
+    let query = supabase
+      .from("manual_newsletters")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!isAdmin) {
+      query = query.eq("hidden", false);
+    }
+
+    const { data, error } = await query;
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    const mapped = (data || []).map(mapManualNewsletter);
+    return res.status(200).json(mapped);
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+// Get single manual newsletter (public/admin)
+export async function getNewsletter(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const isAdmin = (req.originalUrl || "").includes("/api/admin/");
+
+    let query = supabase
+      .from("manual_newsletters")
+      .select("*")
+      .eq("id", id);
+
+    if (!isAdmin) {
+      query = query.eq("hidden", false);
+    }
+
+    const { data, error } = await query.single();
+
+    if (error && error.code !== "PGRST116") {
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (!data) return res.status(404).json({ error: "Newsletter not found" });
+
+    return res.status(200).json(mapManualNewsletter(data));
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+// Admin: create manual newsletter
+export async function createNewsletter(req: Request, res: Response) {
+  try {
+    const { title, category, link, sub_title, headline_image_url, author } =
+      req.body;
+
+    if (!title || !link) {
+      return res
+        .status(400)
+        .json({ error: "title and link are required fields" });
+    }
+
+    const { data, error } = await supabase
+      .from("manual_newsletters")
+      .insert({
+        title,
+        category: category ?? null,
+        link,
+        sub_title: sub_title ?? null,
+        headline_image_url: headline_image_url ?? null,
+        author: author ?? null,
+      })
+      .select("*")
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    return res.status(201).json(mapManualNewsletter(data));
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+// Admin: update manual newsletter
+export async function updateNewsletter(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const {
+      title,
+      category,
+      link,
+      sub_title,
+      headline_image_url,
+      author,
+      hidden,
+    } = req.body;
+
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (category !== undefined) updateData.category = category;
+    if (link !== undefined) updateData.link = link;
+    if (sub_title !== undefined) updateData.sub_title = sub_title;
+    if (headline_image_url !== undefined)
+      updateData.headline_image_url = headline_image_url;
+    if (author !== undefined) updateData.author = author;
+    if (hidden !== undefined) updateData.hidden = !!hidden;
+
+    const { data, error } = await supabase
+      .from("manual_newsletters")
+      .update(updateData)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    return res.status(200).json(mapManualNewsletter(data));
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+// Admin: delete manual newsletter
+export async function deleteNewsletter(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "ID is required" });
+
+    const { error } = await supabase
+      .from("manual_newsletters")
+      .delete()
+      .eq("id", id);
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    return res.status(200).json({ message: "Newsletter deleted successfully" });
   } catch (e: any) {
     return res.status(500).json({ error: e.message });
   }
