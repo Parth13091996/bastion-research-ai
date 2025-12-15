@@ -67,7 +67,7 @@ const ScratchPadList: React.FC = () => {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Scratch Pad</h1>
         <p className="text-muted-foreground text-lg">
-          Market insights, analysis, and updates from our research team
+          Where every decision counts - Honest notes on the ideas that we did not recommend.
         </p>
       </div>
 
