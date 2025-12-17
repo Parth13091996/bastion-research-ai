@@ -8,6 +8,8 @@ type Settings = {
   allow_user_registrations?: boolean;
   recommendation_sheet_url?: string; // Admin recommendations list
   live_recommendation_sheet_url?: string; // Dashboard live recommendations
+   tactical_ideas_sheet_url?: string; // Admin Tactical Ideas list
+   live_tactical_ideas_sheet_url?: string; // Dashboard Tactical Ideas
   agreement_file_url?: string;
 };
 

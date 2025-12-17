@@ -75,6 +75,11 @@ const navItems = [
         path: AppRoutes.adminRecommendationManagement,
       },
       {
+        name: "Tactical Ideas",
+        icon: FileText,
+        path: AppRoutes.adminTacticalIdeasManagement,
+      },
+      {
         name: "Podcasts",
         icon: Mic,
         path: AppRoutes.adminPodcastManagement,

@@ -115,9 +115,9 @@ export const mapRow = (row: RowObject): RecommendationRecord => {
   const holdingPeriod = (dict["holdingperiod"] ?? "").toString();
   const cmpOrExitPrice = toNumber(
     dict["cmpexitprice"] ??
-    dict["cmp/exitprice"] ??
-    dict["cmp"] ??
-    dict["exitprice"]
+      dict["cmp/exitprice"] ??
+      dict["cmp"] ??
+      dict["exitprice"]
   );
   const percentReturn = toPercent(
     dict["return"] ?? dict["percentreturn"] ?? dict["percentreturns"]
@@ -126,12 +126,13 @@ export const mapRow = (row: RowObject): RecommendationRecord => {
   const targetPrice = toNumber(dict["targetprice"] ?? dict["target"]);
   const upsidePotential = toPercent(
     dict["upsidepotential"] ??
-    dict["upsidepotentialpercent"] ??
-    dict["expectedupside"]
+      dict["upsidepotentialpercent"] ??
+      dict["expectedupside"]
   );
   const latestMcapCr = toNumber(
     dict["latestmcaprscr"] ?? dict["latestmcap"] ?? dict["mcap"]
   );
+  const stopLoss = dict["stoploss"] ?? "";
 
   return {
     companyName,
@@ -146,6 +147,7 @@ export const mapRow = (row: RowObject): RecommendationRecord => {
     targetPrice,
     upsidePotential,
     latestMcapCr,
+    stopLoss,
   } as RecommendationRecord;
 };
 
@@ -170,4 +172,3 @@ export const liveRecMapRow = (row: RowObject) => {
     extra: row["3"] || "",
   };
 };
-

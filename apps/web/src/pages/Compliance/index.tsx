@@ -46,7 +46,8 @@ function getFinancialYearMonths() {
   let endIndex = prevMonthIndex + 1; // slice is non-inclusive at end
 
   // Handle wrap-around (for Jan–Mar case)
-  if (prevMonthIndex < 3) { // months Jan(10), Feb(11), Mar(12)
+  if (prevMonthIndex < 3) {
+    // months Jan(10), Feb(11), Mar(12)
     endIndex = prevMonthIndex + 9 + 1; // shift to correct FY slice
   }
 
@@ -59,9 +60,6 @@ function getFinancialYearMonths() {
     }))
     .reverse();
 }
-
-// Example
-console.log(getFinancialYearMonths());
 
 export default function Complaince() {
   const currentYear = new Date().getFullYear();
@@ -603,8 +601,10 @@ export default function Complaince() {
           </p>
 
           <p className="text-lg font-semibold text-gray-800 mb-4">
-            Data for the Month Ending <span><MonthEndingTitle format="MMM yyyy" />
-</span>
+            Data for the Month Ending{" "}
+            <span>
+              <MonthEndingTitle format="MMM yyyy" />
+            </span>
           </p>
 
           {/* Monthly Data Table */}

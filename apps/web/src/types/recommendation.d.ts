@@ -36,6 +36,7 @@ interface StockData {
   upside?: string;
   cmp?: number;
   entryPrice?: number;
+  stopLoss?: number;
   target1?: number;
   sector?: string;
   band?: "BUY" | "HOLD" | "EXITED";

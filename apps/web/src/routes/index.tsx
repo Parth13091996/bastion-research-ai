@@ -35,6 +35,9 @@ const UserAdminDashboard = lazy(
 const UserAdminRecommendation = lazy(
   () => import("@/pages/UserAdmin/app/RecommendationList")
 );
+const TacticalIdeasList = lazy(
+  () => import("@/pages/UserAdmin/app/TacticalIdeasList")
+);
 const UserAdminResearchHub = lazy(
   () => import("@/pages/UserAdmin/app/ResearchHub")
 );
@@ -101,6 +104,9 @@ const PodcastEditor = lazy(
 );
 const RecommendationManagement = lazy(
   () => import("../pages/Admin/Content/RecommendationManagement")
+);
+const TacticalIdeasManagement = lazy(
+  () => import("../pages/Admin/Content/TacticalIdeasManagement")
 );
 const TestimonialManagement = lazy(
   () => import("../pages/Admin/Content/TestimonialManagement")
@@ -260,6 +266,10 @@ export const routes: RouteObject[] = [
         element: <RecommendationManagement />,
       },
       {
+        path: AppRoutes.adminTacticalIdeasManagement,
+        element: <TacticalIdeasManagement />,
+      },
+      {
         path: AppRoutes.adminNewsletterCreate,
         element: <NewsletterEditor />,
       },
@@ -332,6 +342,7 @@ export const routes: RouteObject[] = [
           { path: "app/", element: <UserAdminDashboard /> },
           { path: "app/dashboard", element: <UserAdminDashboard /> },
           { path: "app/recommendation", element: <UserAdminRecommendation /> },
+          { path: "app/tactical-ideas", element: <TacticalIdeasList /> },
           {
             path: "app/view-research/:symbol",
             element: <ViewResearch />,

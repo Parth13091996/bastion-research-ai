@@ -150,6 +150,12 @@ export const endpoints = {
     bySymbolAnalytics: (symbol: string, userId: string) =>
       `/api/recommendations/company/analytics/${symbol}?id=${userId}`,
   },
+  tacticalIdeas: {
+    base: "/api/tactical-ideas/",
+    sheet: "/api/tactical-ideas/sheet",
+    liveDashboard: "/api/tactical-ideas/live-dashboard",
+    bySymbol: (symbol: string) => `/api/tactical-ideas/company/${symbol}`,
+  },
 } as const;
 
 export type Endpoints = typeof endpoints;

@@ -75,6 +75,12 @@ const useConstants = () => {
       path: "/user/app/recommendation",
     },
     {
+      key: "tactical_ideas",
+      name: "Tactical Ideas",
+      icon: TrendingUp,
+      path: "/user/app/tactical-ideas",
+    },
+    {
       key: "premium_webinars",
       name: "Premium Webinars",
       icon: Play,

@@ -22,7 +22,6 @@ import PlansGrid from "./PlansGrid";
 
 const Subscription = () => {
   const { user, refetchUser, isAuthenticated, isLoading } = useAuth();
-  console.log(user, "user");
   const {
     data: subscription,
     isLoading: isSubscriptionLoading,
