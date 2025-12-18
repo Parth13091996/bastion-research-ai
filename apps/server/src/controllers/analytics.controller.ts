@@ -69,48 +69,45 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
     // Aggregate in-memory
     const byDay: Record<
       string,
-      { total: number; uniqueIPs: Set<string>; uniqueUsers: Set<string> }
+      { total: number; uniqueUsers: Set<string | null> }
     > = {};
     const topPaths: Record<
       string,
-      { views: number; ips: Set<string>; users: Set<string> }
+      { views: number; users: Set<string | null> }
     > = {};
-    const allIps = new Set<string>();
-    const allUsers = new Set<string>();
+    const allUsers = new Set<string | null>();
 
     const now = Date.now();
-    let activeIps = new Set<string>();
-    let activeUsers = new Set<string>();
+    let activeUsers = new Set<string | null>();
 
     for (const r of rows || []) {
       const d = new Date(r.occurred_at);
       const dayKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
       byDay[dayKey] ||= {
         total: 0,
-        uniqueIPs: new Set(),
         uniqueUsers: new Set(),
       };
       byDay[dayKey].total += 1;
-      if (r.ip) {
-        byDay[dayKey].uniqueIPs.add(r.ip);
-        allIps.add(r.ip);
-      }
-      if (r.user_id) {
-        byDay[dayKey].uniqueUsers.add(r.user_id);
-        allUsers.add(r.user_id);
-      }
+      byDay[dayKey].uniqueUsers.add(r.user_id ?? null);
+      allUsers.add(r.user_id ?? null);
 
       const pathKey = r.path || "";
-      topPaths[pathKey] ||= { views: 0, ips: new Set(), users: new Set() };
+      topPaths[pathKey] ||= { views: 0, users: new Set() };
       topPaths[pathKey].views += 1;
-      if (r.ip) topPaths[pathKey].ips.add(r.ip);
-      if (r.user_id) topPaths[pathKey].users.add(r.user_id);
+      topPaths[pathKey].users.add(r.user_id ?? null);
 
       // Active in last 5 minutes
       if (now - d.getTime() <= 5 * 60 * 1000) {
-        if (r.ip) activeIps.add(r.ip);
-        if (r.user_id) activeUsers.add(r.user_id);
+        activeUsers.add(r.user_id ?? null);
       }
+    }
+
+    // Remove null from uniqueUsers sets for stats where user_id does not exist
+    function countUniqueWithoutNull(set: Set<string | null>): number {
+      const filtered = Array.from(set).filter(
+        (u) => u !== null && u !== undefined
+      );
+      return filtered.length;
     }
 
     const visitsByDay = Object.keys(byDay)
@@ -118,8 +115,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
       .map((k) => ({
         date: k,
         totalViews: byDay[k].total,
-        uniqueIPs: byDay[k].uniqueIPs.size,
-        uniqueUsers: byDay[k].uniqueUsers.size,
+        uniqueUsers: countUniqueWithoutNull(byDay[k].uniqueUsers),
       }));
 
     const usersByDay = visitsByDay.map((v) => ({
@@ -131,8 +127,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
       .map(([path, v]) => ({
         path,
         views: v.views,
-        uniqueIPs: v.ips.size,
-        uniqueUsers: v.users.size,
+        uniqueUsers: countUniqueWithoutNull(v.users),
       }))
       .sort((a, b) => b.views - a.views)
       .slice(0, 10);
@@ -357,8 +352,8 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
       visitsByDay,
       usersByDay,
       topPaths: topPathsArr,
-      activeNow: { ips: activeIps.size, users: activeUsers.size },
-      totals: { uniqueIPs: allIps.size, uniqueUsers: allUsers.size },
+      activeNow: { users: countUniqueWithoutNull(activeUsers) },
+      totals: { uniqueUsers: countUniqueWithoutNull(allUsers) },
       // Business metrics
       subscribers: {
         totalActive: totalActiveSubscribers,
