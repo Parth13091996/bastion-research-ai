@@ -17,7 +17,7 @@ const SingleCareer = () => {
     phone: "",
     coverLetter: "",
     resume: null as File | null,
-    agreeToTerms: false,
+    // agreeToTerms: false, // Removed agreeToTerms from state
   });
 
   // Fetch dynamic job by ID from backend
@@ -46,12 +46,8 @@ const SingleCareer = () => {
   ) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
     const { name, value, type } = target;
-    if (type === "checkbox") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: (target as HTMLInputElement).checked,
-      }));
-    } else if (type === "file") {
+    // We don't have checkbox or agreeToTerms anymore
+    if (type === "file") {
       const files = (target as HTMLInputElement).files;
       setFormData((prev) => ({
         ...prev,
@@ -67,10 +63,7 @@ const SingleCareer = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.agreeToTerms) {
-      toast.error("You must agree to the terms.");
-      return;
-    }
+    // Removed agreeToTerms check and associated toast
     if (!formData.resume) {
       toast.error("Please upload your resume.");
       return;
@@ -95,7 +88,7 @@ const SingleCareer = () => {
         phone: "",
         coverLetter: "",
         resume: null,
-        agreeToTerms: false,
+        // agreeToTerms: false,
       });
     } catch (err) {
       // Optionally log error
@@ -438,28 +431,7 @@ const SingleCareer = () => {
                 </p>
               </div>
 
-              <div className="pt-2">
-                <p className="text-xs text-gray-600 mb-3">
-                  📋 By using this form you agree with the storage and handling
-                  of your data by this website. *
-                </p>
-                <div className="flex items-start">
-                  <input
-                    type="checkbox"
-                    id="agreeToTerms"
-                    name="agreeToTerms"
-                    required
-                    checked={formData.agreeToTerms}
-                    onChange={handleInputChange}
-                    className="mt-1 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                  />
-                  <div className="ml-2 text-xs">
-                    <div className="bg-gray-100 p-2 rounded text-gray-600">
-                      I'm not a robot
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Removed agree to terms and I am not a robot fields */}
 
               <button
                 type="submit"

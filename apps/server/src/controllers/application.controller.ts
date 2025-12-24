@@ -44,11 +44,11 @@ export const createApplication = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "resume file is required" });
     }
 
-    // Unified uploader handles validation and storage
     const { url: resume_url } = await uploadToSupabase({
       file,
-      category: "resume",
+      category: "pdf",
       dir: "resumes",
+      upsert: true,
     });
 
     const { data, error } = await supabase

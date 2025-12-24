@@ -40,12 +40,14 @@ export interface AnalyticsSummary {
   generatedAt?: string;
 }
 
-export async function fetchAnalyticsSummary(days = 7) {
-  const { data } = await axios.get<AnalyticsSummary>(
-    `/api/admin/analytics/summary`,
+export const fetchAnalyticsSummary = async (
+  days: number = 7
+): Promise<AnalyticsSummary> => {
+  const response = await axios.get<AnalyticsSummary>(
+    "/api/admin/analytics/summary",
     {
       params: { days },
     }
   );
-  return data;
-}
+  return response.data;
+};
