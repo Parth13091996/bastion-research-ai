@@ -89,10 +89,6 @@ export const handlePaymentSuccess = async (payload: any) => {
     subscription_end_date: endDateStr,
   };
 
-  if (currentPlan?.plan_code) {
-    updateUserPayload.plan_code = currentPlan.plan_code;
-  }
-
   const updateUserPromise = supabase
     .from("users")
     .update(updateUserPayload)

@@ -104,7 +104,6 @@ export const createOrderForPlanService = async (params: {
       .update({
         status: "active",
         plan_id: planRow.plan_id,
-        plan_code: planRow.plan_code || null,
         subscription_start_date: startDateStr,
         subscription_end_date: endDateStr,
       })

@@ -83,33 +83,31 @@ const AddMemberModal = () => {
 
   const mutation = useMutation<unknown, Error, MemberFormValues>({
     mutationFn: (data) => {
-      // Prepare form data for API
-      const payload: any = { ...data };
+      // Create a new payload excluding fields that should not be sent
+      const {
+        confirmPassword,
+        sendSignupEmail,
+        plan_id,
+        subscription_start_date,
+        subscription_end_date,
+        ...rest
+      } = data;
 
-      if (!payload.plan_id) {
-        delete payload.plan_id;
-      } else {
-        payload.plan_id = String(payload.plan_id);
-      }
-      if (!payload.subscription_start_date) {
-        delete payload.subscription_start_date;
-      }
-      if (!payload.subscription_end_date) {
-        delete payload.subscription_end_date;
-      }
+      // Only include optional fields if they are defined/valid
+      const cleanedPayload: any = {
+        ...rest,
+        ...(typeof sendSignupEmail !== "undefined" && { sendSignupEmail }),
+        ...(plan_id ? { plan_id: String(plan_id) } : {}),
+        ...(subscription_start_date ? { subscription_start_date } : {}),
+        ...(subscription_end_date ? { subscription_end_date } : {}),
+      };
 
-      // Remove confirmPassword before sending to API
-      delete payload.confirmPassword;
-      // Optionally, remove sendSignupEmail if API does not need it:
-      if (typeof payload.sendSignupEmail === "undefined")
-        delete payload.sendSignupEmail;
-
-      return createUser(payload);
+      return createUser(cleanedPayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      onClose();
       reset();
+      onClose();
       // Show a success message (optional)
     },
   });
