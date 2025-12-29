@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteJob, getJobs } from "@/api/jobs-api";
+import { deleteJob, getJobs, updateJob } from "@/api/jobs-api";
 import { Briefcase, Users, MapPin, Home, Trash2 } from "lucide-react";
 import { useModalStore } from "@/stores/modal-store";
 import { toast } from "sonner";
 import { DataTable } from "@/components/ui/data-table";
+import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 
 const JobOpenings = () => {
   const queryClient = useQueryClient();
@@ -13,11 +15,26 @@ const JobOpenings = () => {
     queryFn: () => getJobs(),
   });
 
+  const [editOpen, setEditOpen] = useState(false);
+  const [editRow, setEditRow] = useState<any | null>(null);
+
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) => deleteJob(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job deleted successfully");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (payload: { id: number | string; body: any }) =>
+      updateJob(payload.id, payload.body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Failed to update job");
     },
   });
 
@@ -120,7 +137,9 @@ const JobOpenings = () => {
   ];
 
   const handleEdit = (row: any) => {
-    // Navigate to edit job page or open edit modal
+    if (!row) return;
+    setEditRow(row);
+    setEditOpen(true);
   };
 
   const handleDelete = (row: any) => {
@@ -178,6 +197,23 @@ const JobOpenings = () => {
     setModalOpen("confirm", true);
   };
 
+  const saveEdit = (values: any) => {
+    if (!editRow) return;
+
+    const body: any = {
+      job_title: values.job_title,
+      author: values.author,
+      team: values.team,
+      experience: values.experience,
+      job_type: values.job_type,
+      location: values.location,
+      expiry: values.expiry,
+    };
+
+    updateMutation.mutate({ id: editRow.job_id, body });
+    setEditOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -201,6 +237,24 @@ const JobOpenings = () => {
         searchPlaceholder="Search jobs by title, team, or location..."
         title="Job Openings"
         description={`${rowData?.length || 0} active job openings`}
+      />
+
+      <EditRowModal
+        open={editOpen}
+        title="Edit Job Opening"
+        fields={[
+          { name: "job_title", label: "Job Title" },
+          { name: "author", label: "Author" },
+          { name: "team", label: "Team" },
+          { name: "experience", label: "Experience" },
+          { name: "job_type", label: "Job Type" },
+          { name: "location", label: "Location" },
+          { name: "expiry", label: "Expiry Date", type: "date" },
+        ]}
+        initialValues={editRow}
+        onClose={() => setEditOpen(false)}
+        onSave={saveEdit}
+        saving={updateMutation.isPending}
       />
     </div>
   );

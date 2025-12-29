@@ -3,7 +3,7 @@ import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createApplication,
-  deleteApplication,
+  deleteApplication as deleteApplicationApi,
   getApplications,
   updateApplication,
 } from "@/api/applications-api";
@@ -52,7 +52,7 @@ const Applications = () => {
         status: form.status,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.applications] });
       setForm({
         job_id: "",
         job_title: "",
@@ -70,13 +70,13 @@ const Applications = () => {
     mutationFn: (payload: any) =>
       updateApplication(payload.id, payload.body),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["applications"] }),
+      queryClient.invalidateQueries({ queryKey: [queryKeys.applications] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number | string) => deleteApplication(id),
+    mutationFn: (id: number | string) => deleteApplicationApi(id),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["applications"] }),
+      queryClient.invalidateQueries({ queryKey: [queryKeys.applications] }),
   });
 
   const [editOpen, setEditOpen] = useState(false);
@@ -155,6 +155,14 @@ const Applications = () => {
         );
       },
       minWidth: 110,
+    },
+    {
+      headerName: "Cover Letter",
+      field: "cover_letter",
+      flex: 2,
+      minWidth: 240,
+      valueFormatter: (p) =>
+        p.value ? String(p.value).slice(0, 120) : "",
     },
     { headerName: "Comments", field: "comments", editable: true },
     { headerName: "Date Applied", field: "date_applied" },

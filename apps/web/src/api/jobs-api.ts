@@ -16,7 +16,11 @@ export async function createJob(payload: any) {
   return data;
 }
 
+export async function updateJob(id: string | number, payload: any) {
+  const { data } = await axiosInstance.put(endpoints.jobs.byId(id), payload);
+  return data;
+}
+
 export async function deleteJob(id: string | number) {
   return axiosInstance.delete(endpoints.jobs.byId(id));
 }
-
