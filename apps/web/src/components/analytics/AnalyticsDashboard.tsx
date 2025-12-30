@@ -206,12 +206,6 @@ export function AnalyticsDashboard() {
           description="Logged in users"
           icon={Users}
         />
-        <AnalyticsCard
-          title="Active Now"
-          value={`${activeNow.ips} / ${activeNow.users}`}
-          description="Visitors / Users online"
-          icon={Activity}
-        />
       </div>
 
       {/* Charts */}

@@ -138,7 +138,25 @@ const JobOpenings = () => {
 
   const handleEdit = (row: any) => {
     if (!row) return;
-    setEditRow(row);
+
+    const transformed = {
+      ...row,
+      description: row.description || "",
+      responsibilities: Array.isArray(row.responsibilities)
+        ? row.responsibilities.join("\n")
+        : row.responsibilities || "",
+      requirements: Array.isArray(row.requirements)
+        ? row.requirements.join("\n")
+        : row.requirements || "",
+      good_to_have: Array.isArray(row.good_to_have)
+        ? row.good_to_have.join("\n")
+        : row.good_to_have || "",
+      benefits: Array.isArray(row.benefits)
+        ? row.benefits.join("\n")
+        : row.benefits || "",
+    };
+
+    setEditRow(transformed);
     setEditOpen(true);
   };
 
@@ -203,11 +221,17 @@ const JobOpenings = () => {
     const body: any = {
       job_title: values.job_title,
       author: values.author,
+      expiry: values.expiry,
       team: values.team,
       experience: values.experience,
+      commitment: values.commitment,
       job_type: values.job_type,
       location: values.location,
-      expiry: values.expiry,
+      description: values.description,
+      responsibilities: values.responsibilities,
+      requirements: values.requirements,
+      good_to_have: values.good_to_have,
+      benefits: values.benefits,
     };
 
     updateMutation.mutate({ id: editRow.job_id, body });
@@ -247,9 +271,40 @@ const JobOpenings = () => {
           { name: "author", label: "Author" },
           { name: "team", label: "Team" },
           { name: "experience", label: "Experience" },
+          { name: "commitment", label: "Commitment" },
           { name: "job_type", label: "Job Type" },
           { name: "location", label: "Location" },
           { name: "expiry", label: "Expiry Date", type: "date" },
+          {
+            name: "description",
+            label: "Description",
+            multiline: true,
+            rows: 4,
+          },
+          {
+            name: "responsibilities",
+            label: "What You'll Do (one per line)",
+            multiline: true,
+            rows: 4,
+          },
+          {
+            name: "requirements",
+            label: "What We're Looking For (one per line)",
+            multiline: true,
+            rows: 4,
+          },
+          {
+            name: "good_to_have",
+            label: "Good To Have (one per line)",
+            multiline: true,
+            rows: 4,
+          },
+          {
+            name: "benefits",
+            label: "What You'll Get (one per line)",
+            multiline: true,
+            rows: 4,
+          },
         ]}
         initialValues={editRow}
         onClose={() => setEditOpen(false)}

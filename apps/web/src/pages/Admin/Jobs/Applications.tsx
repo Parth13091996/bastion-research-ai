@@ -161,8 +161,12 @@ const Applications = () => {
       field: "cover_letter",
       flex: 2,
       minWidth: 240,
-      valueFormatter: (p) =>
-        p.value ? String(p.value).slice(0, 120) : "",
+      tooltipField: "cover_letter",
+      valueFormatter: (p) => {
+        if (!p.value) return "";
+        const str = String(p.value);
+        return str.length > 120 ? `${str.slice(0, 120)}…` : str;
+      },
     },
     { headerName: "Comments", field: "comments", editable: true },
     { headerName: "Date Applied", field: "date_applied" },
@@ -306,8 +310,18 @@ const Applications = () => {
           { name: "applicant_name", label: "Applicant Name" },
           { name: "email", label: "Email", type: "email" },
           { name: "phone", label: "Phone", type: "tel" },
-          { name: "cover_letter", label: "Cover Letter" },
-          { name: "comments", label: "Comments" },
+          {
+            name: "cover_letter",
+            label: "Cover Letter",
+            multiline: true,
+            rows: 6,
+          },
+          {
+            name: "comments",
+            label: "Comments",
+            multiline: true,
+            rows: 4,
+          },
           { name: "status", label: "Status" },
         ]}
         initialValues={editRow}

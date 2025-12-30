@@ -10,6 +10,8 @@ type Field = {
   type?: "text" | "number" | "email" | "tel" | "date" | "select";
   options?: string[];
   placeholder?: string;
+  multiline?: boolean;
+  rows?: number;
 };
 
 interface EditRowModalProps {
@@ -51,39 +53,55 @@ const EditRowModal = ({
           <Dialog.Title className="text-lg font-semibold text-gray-900">
             {title}
           </Dialog.Title>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {fields.map((f) => (
-              <div key={f.name} className="space-y-1">
-                <label className="text-sm text-gray-700">{f.label}</label>
-                {f.type === "select" ? (
-                  <select
-                    value={values[f.name] ?? ""}
-                    onChange={(e) => handleChange(f.name, e.target.value)}
-                    className="w-full p-2 border rounded"
-                  >
-                    {f.options?.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    type={f.type || "text"}
-                    placeholder={f.placeholder}
-                    value={values[f.name] ?? ""}
-                    onChange={(e) =>
-                      handleChange(
-                        f.name,
-                        f.type === "number"
-                          ? Number(e.target.value)
-                          : e.target.value
-                      )
-                    }
-                  />
-                )}
-              </div>
-            ))}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-1 gap-4">
+            {fields.map((f) => {
+              const rawValue = values[f.name];
+              const value =
+                f.multiline && Array.isArray(rawValue)
+                  ? rawValue.join("\n")
+                  : (rawValue ?? "");
+
+              return (
+                <div key={f.name} className="space-y-1">
+                  <label className="text-sm text-gray-700">{f.label}</label>
+                  {f.type === "select" ? (
+                    <select
+                      value={value}
+                      onChange={(e) => handleChange(f.name, e.target.value)}
+                      className="w-full p-2 border rounded"
+                    >
+                      {f.options?.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  ) : f.multiline ? (
+                    <textarea
+                      className="w-full p-2 border rounded"
+                      rows={f.rows || 4}
+                      placeholder={f.placeholder}
+                      value={value}
+                      onChange={(e) => handleChange(f.name, e.target.value)}
+                    />
+                  ) : (
+                    <Input
+                      type={f.type || "text"}
+                      placeholder={f.placeholder}
+                      value={value}
+                      onChange={(e) =>
+                        handleChange(
+                          f.name,
+                          f.type === "number"
+                            ? Number(e.target.value)
+                            : e.target.value
+                        )
+                      }
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
           <div className="mt-6 flex justify-end gap-2">
             <Button variant="ghost" onClick={onClose}>
