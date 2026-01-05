@@ -1,4 +1,5 @@
 import { getRecommendationByCompanySymbol } from "@/api/recommendations-apis";
+import dayjs from "dayjs"
 import { useIsMobile } from "@/hooks/use-mobile";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
 import { useEffect, useState } from "react";
@@ -152,7 +153,7 @@ const SingleRecommendation = () => {
                             {stock.stock_performance_url.map(
                               (item: any, index: number) => (
                                 <SelectItem key={index} value={String(index)}>
-                                  {item.date || "Unknown date"}{" "}
+                                  {dayjs(item.date).format("DD MMM YYYY") || "Unknown date"}{" "}
                                   {item.title ? `- ${item.title}` : ""}
                                 </SelectItem>
                               )
