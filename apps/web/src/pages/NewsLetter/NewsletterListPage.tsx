@@ -137,7 +137,8 @@ const NewsletterArchive = () => {
 
   const handleViewNewsletter = (item: Newsletter) => {
     if (item.source === "cms" && item.link) {
-      navigate("/user/app/pdf-viewer", { state: { url: item.link } });
+      // Open external/manual newsletter link directly from the list
+      window.location.href = item.link;
       return;
     }
     navigate(`/newsletters/${item.id}`);

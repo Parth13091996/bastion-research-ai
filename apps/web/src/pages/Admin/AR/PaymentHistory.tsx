@@ -49,19 +49,13 @@ const RowActions = ({
           planCode === "freemium" ||
           (data?.amount != null && Number(data.amount) === 0 && !planCode);
         if (!transactionId || isFree) return;
-        const url = `/api/payment-history/${encodeURIComponent(
+        const url = `${import.meta.env.VITE_API_BASE_URL}/api/payment-history/${encodeURIComponent(
           transactionId
         )}/invoice-pdf`;
         window.open(url, "_blank", "noopener,noreferrer");
       }}
     >
       <FileText size={16} />
-    </button>
-    <button
-      className="text-blue-600 hover:text-blue-800 p-1"
-      title="View Details"
-    >
-      <Eye size={16} />
     </button>
     <button
       className="text-red-600 hover:text-red-800 p-1"

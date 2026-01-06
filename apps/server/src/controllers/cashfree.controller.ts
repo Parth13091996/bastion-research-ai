@@ -16,6 +16,7 @@ import {
   handlePaymentUserDropped,
   verifyWebhookSignature,
 } from "../services/cashfree-webhook.service";
+import { supabase } from "../supabase";
 
 export const verifyPan = async (req: Request, res: Response) => {
   try {
@@ -26,7 +27,32 @@ export const verifyPan = async (req: Request, res: Response) => {
         .json({ message: "pan and name are required for verification" });
     }
 
-    const data = await verifyPanRequest(pan, name);
+    const normalizedPan = pan.trim().toUpperCase();
+
+    // Check PAN uniqueness in the system (ignore current user, if any)
+    try {
+      const currentUserId = (req as any).user?.id as string | undefined;
+      const { data: existing, error: existingError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("pan_card_number", normalizedPan)
+        .maybeSingle();
+
+      if (existingError) {
+        // Log but don't block PAN verification just because of a lookup issue
+        console.error("Error checking PAN uniqueness:", existingError);
+      }
+
+      if (existing && (!currentUserId || existing.id !== currentUserId)) {
+        return res.status(400).json({
+          message: "This PAN is already registered with another account.",
+        });
+      }
+    } catch (e) {
+      console.error("PAN uniqueness check failed:", e);
+    }
+
+    const data = await verifyPanRequest(normalizedPan, name);
     return res.status(200).json({ ...data });
   } catch (error: any) {
     const status = error?.response?.status || 500;

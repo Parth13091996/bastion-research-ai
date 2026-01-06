@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { SiSubstack } from "react-icons/si";
+import axiosInstance from "@/api/axios";
 
 const useConstants = () => {
   const formatDate = (v?: string | null) => {
@@ -205,7 +206,7 @@ const useConstants = () => {
         if (!transactionId || isFree) {
           return params.value || "";
         }
-        const href = `/api/payment-history/${encodeURIComponent(
+        const href = `${import.meta.env.VITE_API_BASE_URL}/api/payment-history/${encodeURIComponent(
           transactionId
         )}/invoice-pdf`;
         const label = params.value || "Download";

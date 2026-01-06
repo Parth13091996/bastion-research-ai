@@ -351,6 +351,15 @@ export const onboardUser = async (req: Request, res: Response) => {
       .select("id, email")
       .single();
     if (insError) {
+      if (
+        (insError as any)?.code === "23505" &&
+        typeof insError.message === "string" &&
+        insError.message.includes("users_pan_card_number_key")
+      ) {
+        return res.status(400).json({
+          message: "This PAN is already registered with another account.",
+        });
+      }
       return res.status(500).json({ message: insError.message });
     }
     userId = inserted?.id || null;

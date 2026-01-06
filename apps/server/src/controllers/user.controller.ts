@@ -246,6 +246,15 @@ export const createUser = async (req: Request, res: Response) => {
       `);
 
     if (error) {
+      if (
+        (error as any)?.code === "23505" &&
+        typeof error.message === "string" &&
+        error.message.includes("users_pan_card_number_key")
+      ) {
+        return res.status(400).json({
+          error: "This PAN is already registered with another account.",
+        });
+      }
       return res.status(500).json({ error: error.message });
     }
 
@@ -439,6 +448,15 @@ export const updateUser = async (req: Request, res: Response) => {
       `);
 
     if (error) {
+      if (
+        (error as any)?.code === "23505" &&
+        typeof error.message === "string" &&
+        error.message.includes("users_pan_card_number_key")
+      ) {
+        return res.status(400).json({
+          error: "This PAN is already registered with another account.",
+        });
+      }
       return res.status(500).json({ error: error.message });
     }
     if (!data || data.length === 0) {

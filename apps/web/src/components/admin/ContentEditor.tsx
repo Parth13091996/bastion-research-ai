@@ -37,6 +37,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     title: "",
     sub_title: "",
     headline_image_url: "",
+    link: "",
     contents: "",
     footer_content: "",
     video_url: "",
@@ -85,6 +86,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         title: initialData.title || "",
         sub_title: initialData.sub_title || "",
         headline_image_url: initialData.headline_image_url || "",
+        link: initialData.link || "",
         contents: initialData.contents || "",
         footer_content: initialData.footer_content || "",
         video_url: initialData.video_url || "",
@@ -210,6 +212,21 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
               handleInputChange("headline_image_url", e.target.value)
             }
             placeholder="Enter image URL"
+          />
+        </div>
+      );
+    }
+
+    // External URL link (newsletter only)
+    if (type === "newsletters") {
+      fields.push(
+        <div key="link" className="space-y-2">
+          <Label htmlFor="link">URL Link</Label>
+          <Input
+            id="link"
+            value={formData.link}
+            onChange={(e) => handleInputChange("link", e.target.value)}
+            placeholder="Enter external newsletter URL (Substack/Mailchimp)"
           />
         </div>
       );
