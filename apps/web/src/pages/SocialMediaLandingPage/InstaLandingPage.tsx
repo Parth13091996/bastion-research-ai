@@ -63,8 +63,8 @@ export default function InstaLandingPage() {
         </section>
 
         {/* Free Banner */}
-        <section className="bg-secondary text-center py-10 my-16 border-y-4 border-primary">
-          <div className="inline-block bg-primary text-white px-12 py-3 text-2xl font-bold tracking-widest mb-5">
+        <section className="bg-secondary text-center py-10 my-10 border-y-4 border-primary">
+          <div className="inline-block bg-primary/20 border-2 border-primary text-white px-12 py-3 text-2xl font-bold tracking-widest mb-5 rounded-full">
             FREE
           </div>
           <p className="text-white text-lg font-light tracking-wide">
