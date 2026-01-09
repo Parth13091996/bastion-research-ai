@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { toast } from "sonner";
 import { Newsletter } from "@repo/types";
-import mailchimpNewsletterApi from "@/api/mailchimp-api.ts";
 import { newsletterApi } from "@/api/content";
 
 const COLORS = {
@@ -40,31 +39,8 @@ const NewsletterArchive = () => {
   const loadNewsletters = async () => {
     try {
       setIsLoading(true);
-      const [mailchimpData, manualData] = await Promise.all([
-        mailchimpNewsletterApi.getAll(),
-        newsletterApi.getAll().catch(() => []),
-      ]);
-
-      const merged: Newsletter[] = [
-        // Manual CMS newsletters
-        ...(manualData as any[]).map((item) => ({
-          id: item.id,
-          title: item.title,
-          sub_title: item.sub_title,
-          headline_image_url: item.headline_image_url,
-          created_at: item.created_at,
-          category: item.category,
-          hidden: item.hidden,
-          link: item.link,
-          author: item.author,
-          plain_text: item.plain_text,
-          source: item.source ?? "cms",
-        })),
-        // Mailchimp newsletters
-        ...(mailchimpData as Newsletter[]),
-      ];
-
-      const sorted = merged.sort(
+      const mailchimpData = await newsletterApi.getAll().catch(() => [])
+      const sorted = mailchimpData.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -154,6 +130,7 @@ const NewsletterArchive = () => {
     });
   };
 
+  // UPDATED FILTERS: Add "Scratch Pad"
   const filters = useMemo(() => {
     const categoryCounts = newsletters.reduce(
       (acc, newsletter) => {
@@ -170,6 +147,11 @@ const NewsletterArchive = () => {
         id: "learning-of-the-week",
         label: "Learning of the Week",
         count: categoryCounts["learning-of-the-week"] || 0,
+      },
+      {
+        id: "scratch-pad",
+        label: "Scratch Pad",
+        count: categoryCounts["scratch-pad"] || 0,
       },
       {
         id: "topical-update",
