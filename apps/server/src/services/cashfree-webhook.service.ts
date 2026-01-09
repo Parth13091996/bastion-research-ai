@@ -37,6 +37,7 @@ export const handlePaymentSuccess = async (payload: any) => {
   const { payment, customer_details } = payload?.data || {};
   const tagPlanId = payment?.order_tags?.plan_id;
   const tagPlanCode = payment?.order_tags?.plan_code;
+  const tagCouponCode = payment?.order_tags?.coupon_code;
   const taggedTransactionId = payment?.order_tags?.transaction_id as
     | string
     | undefined;
@@ -95,6 +96,23 @@ export const handlePaymentSuccess = async (payload: any) => {
     .eq("id", customer_details?.customer_id);
 
   const transactionId = taggedTransactionId || crypto.randomUUID();
+  const normalizedCouponCode =
+    typeof tagCouponCode === "string" && tagCouponCode.trim()
+      ? tagCouponCode.trim().toUpperCase()
+      : null;
+
+  const resolveCouponId = async (): Promise<number | null> => {
+    if (!normalizedCouponCode) return null;
+    const { data, error } = await supabase
+      .from("coupons")
+      .select("coupon_id")
+      .eq("coupon_code", normalizedCouponCode)
+      .maybeSingle();
+    if (error) return null;
+    return typeof (data as any)?.coupon_id === "number"
+      ? (data as any).coupon_id
+      : null;
+  };
 
   const { data: existingPayment } = await supabase
     .from("payment_history")
@@ -103,30 +121,58 @@ export const handlePaymentSuccess = async (payload: any) => {
     .maybeSingle();
 
   console.log({ existingPayment });
-  const paymentHistoryPromise = existingPayment
-    ? supabase
-        .from("payment_history")
-        .update({
-          transaction_status: payment?.payment_status,
-          plan_id: currentPlan?.plan_id,
-          user_id: customer_details?.customer_id,
-          payer_email: customer_details?.customer_email,
-          created_at: payment?.payment_time,
-        })
-        .eq("transaction_id", transactionId)
-    : supabase
-        .from("payment_history")
-        .insert({
-          transaction_status: payment?.payment_status,
-          plan_id: currentPlan?.plan_id,
-          user_id: customer_details?.customer_id,
-          payer_email: customer_details?.customer_email,
-          transaction_id: transactionId,
-          created_at: payment?.payment_time,
-        })
-        .maybeSingle();
+  const paymentUpdateBase: any = {
+    transaction_status: payment?.payment_status,
+    plan_id: currentPlan?.plan_id,
+    user_id: customer_details?.customer_id,
+    payer_email: customer_details?.customer_email,
+    created_at: payment?.payment_time,
+    discounted_amount:
+      typeof payment?.payment_amount === "number" ? payment.payment_amount : null,
+    coupon_code: normalizedCouponCode,
+    coupon_applied: await resolveCouponId(),
+  };
 
-  await Promise.all([updateUserPromise, paymentHistoryPromise]);
+  const persistPaymentHistory = async () => {
+    const op = existingPayment
+      ? supabase
+          .from("payment_history")
+          .update(paymentUpdateBase)
+          .eq("transaction_id", transactionId)
+      : supabase
+          .from("payment_history")
+          .insert({ ...paymentUpdateBase, transaction_id: transactionId })
+          .maybeSingle();
+
+    const { error } = await op;
+    if (!error) return;
+
+    if (error?.message?.toLowerCase?.().includes("column")) {
+      const fallbackBase: any = {
+        transaction_status: payment?.payment_status,
+        plan_id: currentPlan?.plan_id,
+        user_id: customer_details?.customer_id,
+        payer_email: customer_details?.customer_email,
+        created_at: payment?.payment_time,
+      };
+      if (existingPayment) {
+        await supabase
+          .from("payment_history")
+          .update(fallbackBase)
+          .eq("transaction_id", transactionId);
+      } else {
+        await supabase
+          .from("payment_history")
+          .insert({ ...fallbackBase, transaction_id: transactionId })
+          .maybeSingle();
+      }
+      return;
+    }
+
+    throw error;
+  };
+
+  await Promise.all([updateUserPromise, persistPaymentHistory()]);
 
   try {
     if (payment?.payment_status === "SUCCESS") {

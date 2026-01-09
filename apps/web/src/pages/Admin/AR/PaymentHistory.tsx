@@ -120,6 +120,7 @@ const PaymentHistory = () => {
     { headerName: "Gateway", field: "payment_gateway" },
     { headerName: "Type", field: "payment_type" },
     { headerName: "Payer Email", field: "payer_email" },
+    { headerName: "Coupon", field: "coupon_code" },
     {
       headerName: "Status",
       field: "transaction_status",

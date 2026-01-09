@@ -48,4 +48,5 @@ interface PaymentRow {
   amount?: number | string | null;
   membership?: string | null;
   plan_code?: string | null;
+  coupon_code?: string | null;
 }

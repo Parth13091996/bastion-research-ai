@@ -228,7 +228,19 @@ export async function createZohoInvoiceForPayment(transactionId: string) {
     throw new Error("Zoho contact ID missing from response");
   }
 
-  const amount = plan?.price_amount || 0;
+  let amount = plan?.price_amount || 0;
+  try {
+    const { data: paymentExtras, error: extrasError } = await supabase
+      .from("payment_history")
+      .select("discounted_amount")
+      .eq("transaction_id", transactionId)
+      .maybeSingle();
+    if (!extrasError && typeof (paymentExtras as any)?.discounted_amount === "number") {
+      amount = (paymentExtras as any).discounted_amount;
+    }
+  } catch {
+    // ignore (backward compatibility if the column isn't present yet)
+  }
   const lineItemName = plan?.plan_name || "Membership Plan";
 
   const invoicePayload: ZohoInvoicePayload = {

@@ -35,6 +35,41 @@ const SingleRecommendation = () => {
     useState<number>(0);
   const isMobile = useIsMobile();
 
+  const performanceArray =
+    Array.isArray(stock?.stock_performance_url) && stock.stock_performance_url
+      ? stock.stock_performance_url
+      : stock?.stock_performance_url
+        ? [
+            {
+              date: stock.dateRecommended || "",
+              title: "Initial recommendation",
+              stock_recommendation_url: stock.stock_performance_url,
+            },
+          ]
+        : [];
+
+  const selectedPerformanceItem =
+    performanceArray.length > 0
+      ? performanceArray[
+          Math.min(selectedPerformanceIndex, performanceArray.length - 1)
+        ]
+      : null;
+
+  const effectiveStock =
+    stock && typeof stock === "object"
+      ? {
+          ...stock,
+          business_note:
+            selectedPerformanceItem?.business_note ?? stock.business_note,
+          quick_bite: selectedPerformanceItem?.quick_bite ?? stock.quick_bite,
+          video: selectedPerformanceItem?.video ?? stock.video,
+          exit_rationale:
+            selectedPerformanceItem?.exit_rationale ?? stock.exit_rationale,
+          quarterly_update:
+            selectedPerformanceItem?.quarterly_update ?? stock.quarterly_update,
+        }
+      : stock;
+
   useEffect(() => {
     if (!symbol) {
       setFetchError("Invalid recommendation symbol.");
@@ -61,18 +96,6 @@ const SingleRecommendation = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const performanceArray = Array.isArray(stock?.stock_performance_url)
-      ? stock.stock_performance_url
-      : stock?.stock_performance_url
-        ? [
-            {
-              date: stock.dateRecommended || "",
-              title: "Initial recommendation",
-              stock_recommendation_url: stock.stock_performance_url,
-            },
-          ]
-        : [];
-
     const currentItem =
       performanceArray.length > 0
         ? performanceArray[
@@ -133,8 +156,8 @@ const SingleRecommendation = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-4">
                 {/* Performance URL selector */}
-                {Array.isArray(stock?.stock_performance_url) &&
-                  stock.stock_performance_url.length > 0 && (
+                {Array.isArray(performanceArray) &&
+                  performanceArray.length > 0 && (
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-medium">
                         Select Performance Date
@@ -150,7 +173,7 @@ const SingleRecommendation = () => {
                             <SelectValue placeholder="Select date" />
                           </SelectTrigger>
                           <SelectContent>
-                            {stock.stock_performance_url.map(
+                            {performanceArray.map(
                               (item: any, index: number) => (
                                 <SelectItem key={index} value={String(index)}>
                                   {dayjs(item.date).format("DD MMM YYYY") || "Unknown date"}{" "}
@@ -173,7 +196,7 @@ const SingleRecommendation = () => {
                 />
               </div>
               <ResourcesQuarterly
-                stock={stock}
+                stock={effectiveStock}
                 setSelectedUpdate={setSelectedUpdate}
               />
             </div>

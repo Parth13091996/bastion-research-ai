@@ -2,6 +2,76 @@ import { Request, Response } from "express";
 import { supabase } from "../supabase";
 import { generateInvoicePdf } from "../services/invoice-pdf.service";
 
+type PaymentExtras = {
+  discountedAmountByTransactionId: Map<string, number>;
+  couponCodeByTransactionId: Map<string, string>;
+};
+
+async function fetchPaymentExtras(
+  transactionIds: string[]
+): Promise<PaymentExtras> {
+  const discountedAmountByTransactionId = new Map<string, number>();
+  const couponCodeByTransactionId = new Map<string, string>();
+
+  const ids = (transactionIds || []).filter(Boolean);
+  if (!ids.length) return { discountedAmountByTransactionId, couponCodeByTransactionId };
+
+  try {
+    const { data, error } = await supabase
+      .from("payment_history")
+      .select("transaction_id, discounted_amount, coupon_code, coupon_applied")
+      .in("transaction_id", ids);
+
+    if (error) throw error;
+
+    const rows = (data as any[]) || [];
+    const couponIds = Array.from(
+      new Set(
+        rows
+          .map((r) => r?.coupon_applied)
+          .filter((x) => typeof x === "number")
+      )
+    ) as number[];
+
+    const couponCodeById = new Map<number, string>();
+    if (couponIds.length) {
+      const { data: couponRows, error: couponErr } = await supabase
+        .from("coupons")
+        .select("coupon_id, coupon_code")
+        .in("coupon_id", couponIds);
+      if (!couponErr) {
+        ((couponRows as any[]) || []).forEach((c) => {
+          if (typeof c?.coupon_id === "number" && typeof c?.coupon_code === "string") {
+            couponCodeById.set(c.coupon_id, c.coupon_code);
+          }
+        });
+      }
+    }
+
+    rows.forEach((r) => {
+      const tx = r?.transaction_id ? String(r.transaction_id) : null;
+      if (!tx) return;
+      if (typeof r?.discounted_amount === "number") {
+        discountedAmountByTransactionId.set(tx, r.discounted_amount);
+      }
+      const directCode =
+        typeof r?.coupon_code === "string" && r.coupon_code.trim()
+          ? r.coupon_code.trim()
+          : null;
+      const fkCode =
+        typeof r?.coupon_applied === "number"
+          ? couponCodeById.get(r.coupon_applied) || null
+          : null;
+      const code = directCode || fkCode;
+      if (code) couponCodeByTransactionId.set(tx, code);
+    });
+  } catch {
+    // Backward compatibility if new columns are not present yet.
+  }
+
+  return { discountedAmountByTransactionId, couponCodeByTransactionId };
+}
+
 export const getMembershipPlans = async (req: Request, res: Response) => {
   const { data, error } = await supabase
     .from("membership_plans")
@@ -35,6 +105,9 @@ export const getSubscriptions = async (req: Request, res: Response) => {
   }
 
   const rows = (data as any[]) || [];
+  const extras = await fetchPaymentExtras(
+    rows.map((r: any) => String(r?.transaction_id || "")).filter(Boolean)
+  );
   // Map to include commonly used UI fields
   const mapped = rows.map((r: any) => {
     const user = r?.users || {};
@@ -58,7 +131,10 @@ export const getSubscriptions = async (req: Request, res: Response) => {
       membership_id: r.plan_id,
       start_date: startDate ? startDate.toISOString() : null,
       expire_next_renewal: expireNextRenewal,
-      amount: plan.price_amount ?? null,
+      amount:
+        extras.discountedAmountByTransactionId.get(String(r.transaction_id)) ??
+        plan.price_amount ??
+        null,
       created_at: r.created_at,
       user_id: r.user_id,
       transaction_id: r.transaction_id,
@@ -97,9 +173,17 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
     return res.status(500).json({ error: error.message });
   }
   const rows = (data as any[]) || [];
+  const extras = await fetchPaymentExtras(
+    rows.map((r: any) => String(r?.transaction_id || "")).filter(Boolean)
+  );
   const mapped = rows.map((r: any) => {
     const user = r?.users || {};
     const plan = r?.membership_plans || {};
+    const transactionId = String(r.transaction_id);
+    const discountedAmount =
+      extras.discountedAmountByTransactionId.get(transactionId) ??
+      plan?.price_amount ??
+      null;
     return {
       transaction_id: r.transaction_id,
       invoice_id: r.zoho_invoice_id || r.transaction_id,
@@ -112,11 +196,12 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
       payer_email: r.payer_email || user.email || null,
       transaction_status: r.transaction_status || null,
       payment_date: r.created_at,
-      amount: plan?.price_amount ?? null,
+      amount: discountedAmount,
       currency: plan?.currency || "INR",
       plan_id: r.plan_id,
       plan_code: plan?.plan_code || null,
       created_at: r.created_at,
+      coupon_code: extras.couponCodeByTransactionId.get(transactionId) || null,
     };
   });
   return res.status(200).json(mapped);
@@ -151,8 +236,16 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
     }
 
     const rows = (data as any[]) || [];
+    const extras = await fetchPaymentExtras(
+      rows.map((r: any) => String(r?.transaction_id || "")).filter(Boolean)
+    );
     const mapped = rows.map((r: any) => {
       const plan = r?.membership_plans || {};
+      const transactionId = String(r.transaction_id);
+      const discountedAmount =
+        extras.discountedAmountByTransactionId.get(transactionId) ??
+        plan?.price_amount ??
+        null;
       return {
         transaction_id: r.transaction_id,
         invoice_id: r.zoho_invoice_id || r.transaction_id,
@@ -163,10 +256,11 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
         user_id: r.user_id,
         plan_id: r.plan_id,
         payment_date: r.created_at,
-        amount: plan?.price_amount ?? null,
+        amount: discountedAmount,
         membership: plan?.plan_name || null,
         currency: plan?.currency || "INR",
         plan_code: plan?.plan_code || null,
+        coupon_code: extras.couponCodeByTransactionId.get(transactionId) || null,
       };
     });
     return res.status(200).json(mapped);
@@ -264,8 +358,15 @@ export const getInvoicePdfForPayment = async (req: Request, res: Response) => {
 
     const itemDescription =
       plan.plan_name || `Subscription Plan ${plan.plan_code || ""}`.trim();
-    const amountNumber =
-      typeof plan.price_amount === "number" ? plan.price_amount : 0;
+    let amountNumber = typeof plan.price_amount === "number" ? plan.price_amount : 0;
+    try {
+      const extras = await fetchPaymentExtras([String(data.transaction_id)]);
+      const discounted =
+        extras.discountedAmountByTransactionId.get(String(data.transaction_id));
+      if (typeof discounted === "number") amountNumber = discounted;
+    } catch {
+      // ignore
+    }
 
     const pdfBytes = await generateInvoicePdf(settingsData.invoice_file_url, {
       invoiceNumber,

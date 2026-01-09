@@ -165,6 +165,7 @@ const useConstants = () => {
       type: "Type",
       status: "Status",
       amount: "Amount",
+      coupon: "Coupon",
     },
     currency: {
       locale: "en-IN",
@@ -263,6 +264,12 @@ const useConstants = () => {
         ),
       minWidth: 100,
       maxWidth: 120,
+    },
+    {
+      headerName: TransactionHistoryConstants.columns.coupon,
+      field: "coupon_code",
+      minWidth: 100,
+      maxWidth: 140,
     },
   ];
 

@@ -75,12 +75,19 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   const [quarterlyUpdates, setQuarterlyUpdates] = useState<UpdateItem[]>([]);
   const [announcements, setAnnouncements] = useState<UpdateItem[]>([]);
   const [stockPerformanceItems, setStockPerformanceItems] = useState<
-    { date: string; title: string; stock_recommendation_url: string }[]
+    StockPerformanceItem[]
   >([]);
   const [editingQuarterly, setEditingQuarterly] = useState<number | null>(null);
   const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(
     null
   );
+  const [selectedIterationIndex, setSelectedIterationIndex] =
+    useState<number>(0);
+  const [iterationResourceUploading, setIterationResourceUploading] = useState<
+    Record<string, boolean>
+  >({});
+  const [iterationQuarterlyUploading, setIterationQuarterlyUploading] =
+    useState<Record<string, boolean>>({});
 
   // Track uploading states for each quarterly update and announcement PDF
   const [quarterlyUploading, setQuarterlyUploading] = useState<
@@ -95,14 +102,21 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   const businessNoteInputRef = useRef<HTMLInputElement | null>(null);
   const quickBiteInputRef = useRef<HTMLInputElement | null>(null);
   const exitRationaleInputRef = useRef<HTMLInputElement | null>(null);
+  const iterationBusinessNoteInputRef = useRef<HTMLInputElement | null>(null);
+  const iterationQuickBiteInputRef = useRef<HTMLInputElement | null>(null);
+  const iterationExitRationaleInputRef = useRef<HTMLInputElement | null>(null);
 
   // --- refs for file input fields for dynamically generated items (quarterly/announcements) ---
   const quarterlyPdfInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const announcementPdfInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const iterationQuarterlyPdfInputRefs = useRef<Array<HTMLInputElement | null>>(
+    []
+  );
 
   // Clear multilist refs before rendering to align length
   quarterlyPdfInputRefs.current = [];
   announcementPdfInputRefs.current = [];
+  iterationQuarterlyPdfInputRefs.current = [];
 
   const {
     register,
@@ -151,6 +165,16 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
             title: item?.title || "",
             stock_recommendation_url:
               item?.stock_recommendation_url || item?.url || "",
+            business_note: item?.business_note || "",
+            quick_bite: item?.quick_bite || "",
+            video: item?.video || "",
+            exit_rationale: item?.exit_rationale || "",
+            quarterly_update: Array.isArray(item?.quarterly_update)
+              ? item.quarterly_update
+              : [],
+            announcements_and_update: Array.isArray(item?.announcements_and_update)
+              ? item.announcements_and_update
+              : [],
           }))
         );
       } else if (typeof sp === "string" && sp.trim() !== "") {
@@ -159,11 +183,20 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
             date: record.dateRecommended || "",
             title: "Initial recommendation",
             stock_recommendation_url: sp,
+            quarterly_update: Array.isArray(record.quarterly_update)
+              ? record.quarterly_update
+              : [],
+            announcements_and_update: Array.isArray(record.announcements_and_update)
+              ? record.announcements_and_update
+              : [],
           },
         ]);
       } else {
         setStockPerformanceItems([]);
       }
+      setSelectedIterationIndex(0);
+      setIterationResourceUploading({});
+      setIterationQuarterlyUploading({});
       setLocalError({});
     } else if (!open) {
       reset();
@@ -171,8 +204,18 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       setAnnouncements([]);
       setStockPerformanceItems([]);
       setLocalError({});
+      setSelectedIterationIndex(0);
+      setIterationResourceUploading({});
+      setIterationQuarterlyUploading({});
     }
   }, [open, record, reset]);
+
+  useEffect(() => {
+    setSelectedIterationIndex((prev) => {
+      if (stockPerformanceItems.length === 0) return 0;
+      return Math.min(prev, stockPerformanceItems.length - 1);
+    });
+  }, [stockPerformanceItems.length]);
 
   // Collect file locally; send with main FormData on submit
   const handleFileSelect = (fieldName: string, file: File) => {
@@ -183,6 +226,113 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       shouldDirty: true,
     });
     setLocalError((prev) => ({ ...prev, [fieldName]: "" }));
+  };
+
+  const handleIterationResourceUpload = async (
+    field: "business_note" | "quick_bite" | "exit_rationale",
+    file: File
+  ) => {
+    const companySymbol = record?.nseSymbol || "unknown";
+    const iterationIndex = selectedIterationIndex;
+    try {
+      setIterationResourceUploading((prev) => ({
+        ...prev,
+        [`${field}:${iterationIndex}`]: true,
+      }));
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", `${field}_iter_${iterationIndex}`);
+      formData.append("category", "pdf");
+      formData.append(
+        "dir",
+        `recommendations/${companySymbol}/iterations/${iterationIndex}`
+      );
+      const response = await uploadFile(formData);
+      setStockPerformanceItems((prev) => {
+        const next = [...prev];
+        if (!next[iterationIndex]) return prev;
+        next[iterationIndex] = { ...next[iterationIndex], [field]: response.data.url };
+        return next;
+      });
+      toast.success("PDF uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to upload PDF");
+    } finally {
+      setIterationResourceUploading((prev) => ({
+        ...prev,
+        [`${field}:${iterationIndex}`]: false,
+      }));
+      if (field === "business_note" && iterationBusinessNoteInputRef.current)
+        iterationBusinessNoteInputRef.current.value = "";
+      if (field === "quick_bite" && iterationQuickBiteInputRef.current)
+        iterationQuickBiteInputRef.current.value = "";
+      if (field === "exit_rationale" && iterationExitRationaleInputRef.current)
+        iterationExitRationaleInputRef.current.value = "";
+    }
+  };
+
+  const updateIterationField = (
+    field: keyof StockPerformanceItem,
+    value: string
+  ) => {
+    const iterationIndex = selectedIterationIndex;
+    setStockPerformanceItems((prev) => {
+      const next = [...prev];
+      if (!next[iterationIndex]) return prev;
+      next[iterationIndex] = { ...next[iterationIndex], [field]: value };
+      return next;
+    });
+  };
+
+  const getIterationQuarterlyUpdates = (iterationIndex: number) =>
+    Array.isArray(stockPerformanceItems?.[iterationIndex]?.quarterly_update)
+      ? (stockPerformanceItems[iterationIndex].quarterly_update as UpdateItem[])
+      : [];
+
+  const setIterationQuarterlyUpdates = (
+    iterationIndex: number,
+    nextUpdates: UpdateItem[]
+  ) => {
+    setStockPerformanceItems((prev) => {
+      const next = [...prev];
+      if (!next[iterationIndex]) return prev;
+      next[iterationIndex] = { ...next[iterationIndex], quarterly_update: nextUpdates };
+      return next;
+    });
+  };
+
+  const handleIterationQuarterlyPdfUpload = async (
+    iterationIndex: number,
+    index: number,
+    file: File
+  ) => {
+    try {
+      const uploadKey = `${iterationIndex}:${index}`;
+      setIterationQuarterlyUploading((prev) => ({ ...prev, [uploadKey]: true }));
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", `quarterly_update_pdf_${iterationIndex}_${index}`);
+      formData.append("category", "pdf");
+      const companySymbol = record?.nseSymbol || "unknown";
+      formData.append(
+        "dir",
+        `recommendations/${companySymbol}/iterations/${iterationIndex}/quarterly_updates`
+      );
+      const response = await uploadFile(formData);
+      const updates = getIterationQuarterlyUpdates(iterationIndex);
+      const nextUpdates = [...updates];
+      nextUpdates[index] = { ...nextUpdates[index], pdf_url: response.data.url };
+      setIterationQuarterlyUpdates(iterationIndex, nextUpdates);
+      toast.success("PDF uploaded successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to upload PDF");
+    } finally {
+      const uploadKey = `${iterationIndex}:${index}`;
+      setIterationQuarterlyUploading((prev) => ({ ...prev, [uploadKey]: false }));
+      if (iterationQuarterlyPdfInputRefs.current[index]) {
+        iterationQuarterlyPdfInputRefs.current[index]!.value = "";
+      }
+    }
   };
 
   // Updated: Pass fileName parameter as field name for backend recognition
@@ -360,10 +510,27 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       const formData = new FormData();
       formData.append("company_symbol", record.nseSymbol || "");
       formData.append("video", data.video || "");
-      formData.append(
-        "stock_performance_url",
-        JSON.stringify(stockPerformanceItems)
+      const stockPerformancePayload = stockPerformanceItems.map((item, index) =>
+        index === 0
+          ? {
+              ...item,
+              business_note:
+                (data.business_note || item.business_note || record.business_note) ??
+                "",
+              quick_bite:
+                (data.quick_bite || item.quick_bite || record.quick_bite) ?? "",
+              video: (data.video || item.video || record.video) ?? "",
+              exit_rationale:
+                (data.exit_rationale ||
+                  item.exit_rationale ||
+                  record.exit_rationale) ??
+                "",
+              quarterly_update: quarterlyUpdates,
+              announcements_and_update: announcements,
+            }
+          : item
       );
+      formData.append("stock_performance_url", JSON.stringify(stockPerformancePayload));
       formData.append("quarterly_update", JSON.stringify(quarterlyUpdates));
       formData.append(
         "announcements_and_update",
@@ -643,6 +810,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                             date: "",
                             title: "",
                             stock_recommendation_url: "",
+                            quarterly_update: [],
+                            announcements_and_update: [],
                           },
                         ])
                       }
@@ -784,6 +953,442 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {stockPerformanceItems.length > 1 && (
+              <div className="bg-white border border-gray-200 p-4 rounded-lg space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div>
+                    <h3 className="font-medium text-lg">Iteration Details</h3>
+                    <p className="text-sm text-gray-600">
+                      Optional overrides per performance URL (useful for re-recommendations).
+                    </p>
+                  </div>
+                  <div className="w-full md:w-80">
+                    <label className="block text-sm font-medium mb-2">
+                      Select Iteration
+                    </label>
+                    <Select
+                      value={String(selectedIterationIndex)}
+                      onValueChange={(v) =>
+                        setSelectedIterationIndex(parseInt(v, 10))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select iteration" />
+                      </SelectTrigger>
+                      <SelectContent style={{ zIndex: 1000001 }}>
+                        {stockPerformanceItems.map((item, idx) => (
+                          <SelectItem key={idx} value={String(idx)}>
+                            {item.date || "No date"}{" "}
+                            {item.title ? `- ${item.title}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {selectedIterationIndex === 0 ? (
+                  <p className="text-sm text-gray-600">
+                    Primary iteration (0) uses the main resource fields and updates below.
+                  </p>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Business Note (PDF)
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={
+                              stockPerformanceItems[selectedIterationIndex]
+                                ?.business_note || ""
+                            }
+                            readOnly
+                            placeholder="Upload to set PDF URL"
+                          />
+                          <label className="cursor-pointer">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={
+                                !!iterationResourceUploading[
+                                  `business_note:${selectedIterationIndex}`
+                                ]
+                              }
+                              asChild
+                            >
+                              <span>
+                                <Upload className="h-4 w-4 mr-1" />
+                                {iterationResourceUploading[
+                                  `business_note:${selectedIterationIndex}`
+                                ]
+                                  ? "Uploading..."
+                                  : "Upload"}
+                              </span>
+                            </Button>
+                            <input
+                              ref={iterationBusinessNoteInputRef}
+                              type="file"
+                              accept="application/pdf"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  handleIterationResourceUpload(
+                                    "business_note",
+                                    file
+                                  );
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Quick Bite (PDF)
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={
+                              stockPerformanceItems[selectedIterationIndex]
+                                ?.quick_bite || ""
+                            }
+                            readOnly
+                            placeholder="Upload to set PDF URL"
+                          />
+                          <label className="cursor-pointer">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={
+                                !!iterationResourceUploading[
+                                  `quick_bite:${selectedIterationIndex}`
+                                ]
+                              }
+                              asChild
+                            >
+                              <span>
+                                <Upload className="h-4 w-4 mr-1" />
+                                {iterationResourceUploading[
+                                  `quick_bite:${selectedIterationIndex}`
+                                ]
+                                  ? "Uploading..."
+                                  : "Upload"}
+                              </span>
+                            </Button>
+                            <input
+                              ref={iterationQuickBiteInputRef}
+                              type="file"
+                              accept="application/pdf"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  handleIterationResourceUpload(
+                                    "quick_bite",
+                                    file
+                                  );
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Exit Rationale (PDF)
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={
+                              stockPerformanceItems[selectedIterationIndex]
+                                ?.exit_rationale || ""
+                            }
+                            readOnly
+                            placeholder="Upload to set PDF URL"
+                          />
+                          <label className="cursor-pointer">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={
+                                !!iterationResourceUploading[
+                                  `exit_rationale:${selectedIterationIndex}`
+                                ]
+                              }
+                              asChild
+                            >
+                              <span>
+                                <Upload className="h-4 w-4 mr-1" />
+                                {iterationResourceUploading[
+                                  `exit_rationale:${selectedIterationIndex}`
+                                ]
+                                  ? "Uploading..."
+                                  : "Upload"}
+                              </span>
+                            </Button>
+                            <input
+                              ref={iterationExitRationaleInputRef}
+                              type="file"
+                              accept="application/pdf"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  handleIterationResourceUpload(
+                                    "exit_rationale",
+                                    file
+                                  );
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Video URL
+                        </label>
+                        <Input
+                          value={
+                            stockPerformanceItems[selectedIterationIndex]
+                              ?.video || ""
+                          }
+                          onChange={(e) =>
+                            updateIterationField("video", e.target.value)
+                          }
+                          placeholder="Video URL"
+                        />
+                      </div>
+                    </div>
+
+                    <details className="rounded-md border border-gray-200 bg-gray-50">
+                      <summary className="cursor-pointer select-none px-4 py-3 font-medium text-sm text-gray-900">
+                        Iteration Quarterly Updates
+                      </summary>
+                      <div className="p-4 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-gray-600">
+                            Updates saved only for this iteration.
+                          </p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setIterationQuarterlyUpdates(
+                                selectedIterationIndex,
+                                [
+                                  ...getIterationQuarterlyUpdates(
+                                    selectedIterationIndex
+                                  ),
+                                  {
+                                    date: "",
+                                    title: "",
+                                    description: "",
+                                    pdf_url: "",
+                                  },
+                                ]
+                              )
+                            }
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add
+                          </Button>
+                        </div>
+                        {getIterationQuarterlyUpdates(selectedIterationIndex)
+                          .length === 0 ? (
+                          <div className="text-sm text-gray-500">
+                            No quarterly updates for this iteration.
+                          </div>
+                        ) : (
+                          <div className="border rounded-md bg-white overflow-x-auto">
+                            <div className="max-h-72 overflow-y-auto">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead className="w-[140px]">
+                                      Date
+                                    </TableHead>
+                                    <TableHead className="w-[220px]">
+                                      Title
+                                    </TableHead>
+                                    <TableHead className="min-w-[280px]">
+                                      Description
+                                    </TableHead>
+                                    <TableHead className="min-w-[240px]">
+                                      PDF
+                                    </TableHead>
+                                    <TableHead className="w-[120px] text-center">
+                                      Actions
+                                    </TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {getIterationQuarterlyUpdates(
+                                    selectedIterationIndex
+                                  ).map((update, index) => (
+                                    <TableRow key={index}>
+                                      <TableCell>
+                                        <Input
+                                          type="date"
+                                          value={update.date}
+                                          onChange={(e) => {
+                                            const next = [
+                                              ...getIterationQuarterlyUpdates(
+                                                selectedIterationIndex
+                                              ),
+                                            ];
+                                            next[index] = {
+                                              ...next[index],
+                                              date: e.target.value,
+                                            };
+                                            setIterationQuarterlyUpdates(
+                                              selectedIterationIndex,
+                                              next
+                                            );
+                                          }}
+                                          className="text-sm"
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <Input
+                                          value={update.title}
+                                          onChange={(e) => {
+                                            const next = [
+                                              ...getIterationQuarterlyUpdates(
+                                                selectedIterationIndex
+                                              ),
+                                            ];
+                                            next[index] = {
+                                              ...next[index],
+                                              title: e.target.value,
+                                            };
+                                            setIterationQuarterlyUpdates(
+                                              selectedIterationIndex,
+                                              next
+                                            );
+                                          }}
+                                          placeholder="Title"
+                                          className="text-sm"
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <Textarea
+                                          value={update.description}
+                                          onChange={(e) => {
+                                            const next = [
+                                              ...getIterationQuarterlyUpdates(
+                                                selectedIterationIndex
+                                              ),
+                                            ];
+                                            next[index] = {
+                                              ...next[index],
+                                              description: e.target.value,
+                                            };
+                                            setIterationQuarterlyUpdates(
+                                              selectedIterationIndex,
+                                              next
+                                            );
+                                          }}
+                                          placeholder="Description"
+                                          rows={2}
+                                          className="text-sm min-w-[260px]"
+                                        />
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex gap-2 items-center">
+                                          <label className="cursor-pointer">
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              disabled={
+                                                iterationQuarterlyUploading[
+                                                  `${selectedIterationIndex}:${index}`
+                                                ]
+                                              }
+                                              asChild
+                                            >
+                                              <span>
+                                                <Upload className="h-4 w-4 mr-1" />
+                                                {iterationQuarterlyUploading[
+                                                  `${selectedIterationIndex}:${index}`
+                                                ]
+                                                  ? "Uploading..."
+                                                  : "Upload"}
+                                              </span>
+                                            </Button>
+                                            <input
+                                              ref={(el) => {
+                                                iterationQuarterlyPdfInputRefs.current[
+                                                  index
+                                                ] = el;
+                                              }}
+                                              type="file"
+                                              accept="application/pdf"
+                                              className="hidden"
+                                              onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file)
+                                                  handleIterationQuarterlyPdfUpload(
+                                                    selectedIterationIndex,
+                                                    index,
+                                                    file
+                                                  );
+                                              }}
+                                            />
+                                          </label>
+                                          {update.pdf_url && (
+                                            <a
+                                              href={update.pdf_url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-blue-600 underline"
+                                            >
+                                              View
+                                            </a>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            const next = getIterationQuarterlyUpdates(
+                                              selectedIterationIndex
+                                            ).filter((_, i) => i !== index);
+                                            setIterationQuarterlyUpdates(
+                                              selectedIterationIndex,
+                                              next
+                                            );
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4 text-red-600" />
+                                        </Button>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  </>
+                )}
+              </div>
+            )}
+
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between items-center mb-3">

@@ -473,23 +473,48 @@ export const zeroAmountAccountCreation = async (
     const startDate = new Date();
 
     try {
+      const transactionId = crypto.randomUUID();
+      const paymentInsertBase: any = {
+        transaction_status: "SUCCESS",
+        plan_id: plan_id,
+        user_id: user_id,
+        payer_email: payer_email,
+        transaction_id: transactionId,
+        coupon_applied: coupon?.coupon_id,
+        coupon_code: coupon?.coupon_code || coupon_code || null,
+        discounted_amount: 0,
+        created_at: startDate.toISOString(),
+      };
+
       const { error: paymentError } = await supabase
         .from("payment_history")
-        .insert({
-          transaction_status: "SUCCESS",
-          plan_id: plan_id,
-          user_id: user_id,
-          payer_email: payer_email,
-          transaction_id: crypto.randomUUID(),
-          coupon_applied: coupon?.coupon_id,
-          created_at: startDate.toISOString(),
-        })
+        .insert(paymentInsertBase)
         .maybeSingle();
 
       if (paymentError) {
-        return res.status(500).json({
-          error: paymentError.message || "Error saving payment history",
-        });
+        if (paymentError?.message?.toLowerCase?.().includes("column")) {
+          const { error: fallbackError } = await supabase
+            .from("payment_history")
+            .insert({
+              transaction_status: "SUCCESS",
+              plan_id: plan_id,
+              user_id: user_id,
+              payer_email: payer_email,
+              transaction_id: transactionId,
+              coupon_applied: coupon?.coupon_id,
+              created_at: startDate.toISOString(),
+            })
+            .maybeSingle();
+          if (fallbackError) {
+            return res.status(500).json({
+              error: fallbackError.message || "Error saving payment history",
+            });
+          }
+        } else {
+          return res.status(500).json({
+            error: paymentError.message || "Error saving payment history",
+          });
+        }
       }
     } catch (e: any) {
       return res

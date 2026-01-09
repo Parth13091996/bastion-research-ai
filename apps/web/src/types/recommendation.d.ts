@@ -16,6 +16,12 @@ interface StockPerformanceItem {
   date: string;
   title: string;
   stock_recommendation_url: string;
+  business_note?: string;
+  quick_bite?: string;
+  video?: string;
+  exit_rationale?: string;
+  quarterly_update?: UpdateItem[];
+  announcements_and_update?: UpdateItem[];
 }
 
 interface StockData {

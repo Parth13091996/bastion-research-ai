@@ -187,12 +187,41 @@ export const upsertRecommendationByCompany = async (
       ];
     }
 
+    const normalizeUpdateItemsArray = (val: any) => {
+      const parsed = parseMaybeJson(val, []);
+      return Array.isArray(parsed) ? parsed : [];
+    };
+
+    const normalizePerformanceItemsArray = (val: any) => {
+      const parsed = parseMaybeJson(val, []);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter(Boolean)
+        .map((item: any) => {
+          if (!item || typeof item !== "object") return item;
+          return {
+            ...item,
+            quarterly_update: normalizeUpdateItemsArray(item.quarterly_update),
+            announcements_and_update: normalizeUpdateItemsArray(
+              item.announcements_and_update
+            ),
+          };
+        })
+        .filter((item: any) => item && typeof item === "object");
+    };
+
+    stock_performance_url = normalizePerformanceItemsArray(stock_performance_url);
+    const primaryIteration = stock_performance_url?.[0] || {};
+
     // Arrays can arrive as JSON-strings in multipart
     let quarterly_update: any = parseMaybeJson(body.quarterly_update, []);
     let announcements_and_update: any = parseMaybeJson(
       body.announcements_and_update,
       []
     );
+
+    if (!Array.isArray(quarterly_update)) quarterly_update = [];
+    if (!Array.isArray(announcements_and_update)) announcements_and_update = [];
 
     // Tags may arrive as array, comma string, or JSON string
     let tagsRaw: any = parseMaybeJson(body.tags, []);
@@ -271,6 +300,46 @@ export const upsertRecommendationByCompany = async (
         upsert: true,
       });
       exit_rationaleUrl = uploaded.url;
+    }
+
+    // Backward compatibility:
+    // - Top-level fields (business_note, quick_bite, video, exit_rationale, quarterly_update,
+    //   announcements_and_update) represent the "primary" iteration.
+    // - Newer clients may store these inside stock_performance_url[0].
+    video = video || primaryIteration?.video;
+    business_noteUrl = business_noteUrl || primaryIteration?.business_note;
+    quick_biteUrl = quick_biteUrl || primaryIteration?.quick_bite;
+    exit_rationaleUrl = exit_rationaleUrl || primaryIteration?.exit_rationale;
+    if (!quarterly_update.length && Array.isArray(primaryIteration?.quarterly_update)) {
+      quarterly_update = primaryIteration.quarterly_update;
+    }
+    if (
+      !announcements_and_update.length &&
+      Array.isArray(primaryIteration?.announcements_and_update)
+    ) {
+      announcements_and_update = primaryIteration.announcements_and_update;
+    }
+
+    // Ensure the primary iteration carries the latest top-level values too.
+    if (Array.isArray(stock_performance_url) && stock_performance_url[0]) {
+      stock_performance_url[0] = {
+        ...stock_performance_url[0],
+        business_note: stock_performance_url[0].business_note || business_noteUrl,
+        quick_bite: stock_performance_url[0].quick_bite || quick_biteUrl,
+        video: stock_performance_url[0].video || video,
+        exit_rationale:
+          stock_performance_url[0].exit_rationale || exit_rationaleUrl,
+        quarterly_update:
+          Array.isArray(stock_performance_url[0].quarterly_update) &&
+          stock_performance_url[0].quarterly_update.length
+            ? stock_performance_url[0].quarterly_update
+            : quarterly_update,
+        announcements_and_update:
+          Array.isArray(stock_performance_url[0].announcements_and_update) &&
+          stock_performance_url[0].announcements_and_update.length
+            ? stock_performance_url[0].announcements_and_update
+            : announcements_and_update,
+      };
     }
 
     const upsertPayload: any = {
