@@ -30,7 +30,7 @@ export async function generateInvoicePdf(
   const firstPage = pages[0];
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontSize = 10;
+  const fontSize = 9;
 
   const drawText = (
     text: string,
@@ -86,35 +86,33 @@ export async function generateInvoicePdf(
 
   const pageHeight = firstPage.getHeight();
 
-  const headerY = pageHeight - 120;
-  const datesY = pageHeight - 160;
-  const billToY = pageHeight - 230;
-  const shipToY = pageHeight - 230;
-  const itemsRowY = pageHeight - 360;
-  const totalsBoxY = pageHeight - 430;
+  const headerY = pageHeight - 185;
+  const datesY = pageHeight - 198;
+  const billToY = pageHeight - 255;
+  const shipToY = pageHeight - 255;
+  const itemsRowY = pageHeight - 368;
+  const totalsBoxY = pageHeight - 390;
 
-  drawText(data.invoiceNumber, 120, headerY);
-  drawText(data.invoiceDate, 120, datesY);
-  drawText(data.dueDate, 120, datesY - 18);
+  drawText(data.invoiceNumber, 180, headerY);
+  drawText(data.invoiceDate, 180, datesY);
 
   const billToBlock = [data.billToName, data.billToAddress]
     .filter(Boolean)
     .join("\n");
-  drawMultiline(billToBlock, 40, billToY, 220, 12);
+  drawMultiline(billToBlock, 50, billToY, 220, 12);
 
   const shipToBlock = [data.shipToName, data.shipToAddress]
     .filter(Boolean)
     .join("\n");
-  drawMultiline(shipToBlock, 320, shipToY, 220, 12);
+  drawMultiline(shipToBlock, 310, shipToY, 220, 12);
 
-  drawText("1", 40, itemsRowY);
   drawMultiline(data.itemDescription, 70, itemsRowY, 260, 12);
-  drawText(String(data.quantity || 1), 360, itemsRowY);
-  drawText(data.amount.toFixed(2), 410, itemsRowY);
+  drawText(String(data.quantity || 1), 390, itemsRowY);
+  drawText(data.amount.toFixed(2), 470, itemsRowY);
   drawText(data.amount.toFixed(2), 520, itemsRowY);
 
   drawText(data.total.toFixed(2), 520, totalsBoxY);
-  drawText(data.balanceDue.toFixed(2), 520, totalsBoxY - 30);
+  drawText(data.balanceDue.toFixed(2), 520, totalsBoxY - 50);
 
   const pdfBytes = await pdfDoc.save();
   return pdfBytes;

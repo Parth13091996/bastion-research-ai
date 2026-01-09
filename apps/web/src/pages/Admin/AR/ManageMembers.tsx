@@ -51,6 +51,23 @@ const EmailRenderer = (params: any) => (
   </a>
 );
 
+const PhoneRenderer = (params: any) => {
+  const phone = params.value;
+  if (!phone) return null;
+  // Try E.164, otherwise just pass phone as is
+  const telHref = `tel:${phone.replace(/[^+\d]/g, "")}`;
+  return (
+    <a
+      href={telHref}
+      className="text-blue-600 hover:underline flex items-center"
+      title={phone}
+    >
+      <UserPlus className="mr-1 h-3 w-3" />
+      {phone}
+    </a>
+  );
+};
+
 const ActivityRenderer = (params: any, activityMap: any) => {
   const userId = params.data.id;
   const activity = activityMap[userId] || {
@@ -173,6 +190,45 @@ const MemberManagementDashboard = () => {
       minWidth: 150,
     },
     {
+      headerName: "Name",
+      field: "full_name",
+      valueGetter: (params) =>
+        `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      headerName: "Role",
+      field: "role",
+      cellRenderer: RoleRenderer,
+      flex: 1,
+      minWidth: 180,
+    },
+    {
+      headerName: "Email",
+      field: "email",
+      cellRenderer: EmailRenderer,
+      flex: 2,
+      minWidth: 200,
+    },
+    {
+      headerName: "Phone Number",
+      field: "phone",
+      cellRenderer: PhoneRenderer,
+      flex: 2,
+      minWidth: 200,
+    },
+    {
+      headerName: "Created",
+      field: "created_at",
+      valueFormatter: (params) => {
+        if (!params.value) return "";
+        return new Date(params.value).toLocaleDateString();
+      },
+      flex: 1,
+      minWidth: 120,
+    },
+    {
       headerName: "Logins",
       field: "id",
       width: 100,
@@ -191,38 +247,6 @@ const MemberManagementDashboard = () => {
       width: 140,
       cellRenderer: (params: any) => ActivityRenderer(params, activityMap),
       sortable: false,
-    },
-    {
-      headerName: "Email",
-      field: "email",
-      cellRenderer: EmailRenderer,
-      flex: 2,
-      minWidth: 200,
-    },
-    {
-      headerName: "Name",
-      field: "full_name",
-      valueGetter: (params) =>
-        `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
-      flex: 1,
-      minWidth: 150,
-    },
-    {
-      headerName: "Role",
-      field: "role",
-      cellRenderer: RoleRenderer,
-      flex: 1,
-      minWidth: 180,
-    },
-    {
-      headerName: "Created",
-      field: "created_at",
-      valueFormatter: (params) => {
-        if (!params.value) return "";
-        return new Date(params.value).toLocaleDateString();
-      },
-      flex: 1,
-      minWidth: 120,
     },
     {
       headerName: "Agreement",

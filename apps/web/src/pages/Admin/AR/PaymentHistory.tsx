@@ -112,8 +112,6 @@ const PaymentHistory = () => {
   }, [searchQuery, filters, data]);
 
   const colDefs: ColDef[] = [
-    { headerName: "Transaction ID", field: "transaction_id" },
-    { headerName: "Invoice ID", field: "invoice_id" },
     { headerName: "User", field: "user_id" },
     { headerName: "Email", field: "user_email" },
     { headerName: "Membership", field: "membership" },
