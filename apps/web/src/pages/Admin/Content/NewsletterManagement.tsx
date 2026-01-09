@@ -69,8 +69,8 @@ const NewsletterManagement: React.FC = () => {
     navigate(`/admin/content/newsletters/${id}/edit`);
   };
 
-  const handleView = (id: string) => {
-    navigate(`/newsletters/${id}`);
+  const handleView = (url: string) => {
+    window.open(url, "_self");
   };
 
   const handleCreate = () => {
@@ -200,7 +200,7 @@ const NewsletterManagement: React.FC = () => {
                         variant="outline"
                         title="View"
                         className="hover:bg-blue-100 hover:text-blue-600"
-                        onClick={() => handleView(newsletter.id)}
+                        onClick={() => handleView(newsletter.link)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
