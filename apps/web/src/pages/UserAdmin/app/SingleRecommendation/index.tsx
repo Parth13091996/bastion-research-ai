@@ -67,6 +67,29 @@ const SingleRecommendation = () => {
             selectedPerformanceItem?.exit_rationale ?? stock.exit_rationale,
           quarterly_update:
             selectedPerformanceItem?.quarterly_update ?? stock.quarterly_update,
+          announcements_and_update:
+            selectedPerformanceItem?.announcements_and_update ??
+            stock.announcements_and_update,
+          dateRecommended:
+            selectedPerformanceItem?.dateRecommended ?? stock.dateRecommended,
+          priceAtRecommendation:
+            selectedPerformanceItem?.priceAtRecommendation ??
+            stock.priceAtRecommendation,
+          dateExit:
+            selectedPerformanceItem?.dateExit ?? stock.dateExit ?? "",
+          holdingPeriod:
+            selectedPerformanceItem?.holdingPeriod ?? stock.holdingPeriod,
+          cmpOrExitPrice:
+            selectedPerformanceItem?.cmpOrExitPrice ?? stock.cmpOrExitPrice,
+          percentReturn:
+            selectedPerformanceItem?.percentReturn ?? stock.percentReturn,
+          action: selectedPerformanceItem?.action ?? stock.action,
+          targetPrice:
+            selectedPerformanceItem?.targetPrice ?? stock.targetPrice,
+          upsidePotential:
+            selectedPerformanceItem?.upsidePotential ?? stock.upsidePotential,
+          latestMcapCr:
+            selectedPerformanceItem?.latestMcapCr ?? stock.latestMcapCr,
         }
       : stock;
 
@@ -126,8 +149,10 @@ const SingleRecommendation = () => {
     selectedPerformanceIndex,
   ]);
 
-  const announcements = Array.isArray(stock?.announcements_and_update)
-    ? stock.announcements_and_update.map((item: any, idx: number) => ({
+  const announcements = Array.isArray(
+    effectiveStock?.announcements_and_update
+  )
+    ? effectiveStock.announcements_and_update.map((item: any, idx: number) => ({
         id: idx,
         date: formatMonthYear(item?.date ?? ""),
         heading: item?.title ?? "",

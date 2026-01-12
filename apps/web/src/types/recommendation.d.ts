@@ -22,6 +22,16 @@ interface StockPerformanceItem {
   exit_rationale?: string;
   quarterly_update?: UpdateItem[];
   announcements_and_update?: UpdateItem[];
+  dateRecommended?: string;
+  priceAtRecommendation?: string | number;
+  dateExit?: string;
+  holdingPeriod?: string;
+  cmpOrExitPrice?: string | number;
+  percentReturn?: string | number;
+  action?: string;
+  targetPrice?: string | number;
+  upsidePotential?: string | number;
+  latestMcapCr?: string | number;
 }
 
 interface StockData {

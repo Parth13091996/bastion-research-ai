@@ -53,6 +53,18 @@ const recommendationSchema = z.object({
   tags: z.string().min(1, "Tags is required"),
 });
 
+const parseNumericField = (value?: string | number | null) => {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  const cleaned = typeof value === "number" ? value : String(value).replace(/,/g, "");
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const toInputValue = (value?: string | number | null) =>
+  value !== undefined && value !== null ? String(value) : "";
+
 type RecommendationFormValues = z.infer<typeof recommendationSchema>;
 
 interface EditRecommendationModalProps {
@@ -159,39 +171,54 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       // Normalize stock_performance_url into an array of objects
       const sp = (record as any).stock_performance_url;
       if (Array.isArray(sp)) {
-        setStockPerformanceItems(
-          sp.map((item: any) => ({
-            date: item?.date || "",
-            title: item?.title || "",
-            stock_recommendation_url:
-              item?.stock_recommendation_url || item?.url || "",
-            business_note: item?.business_note || "",
-            quick_bite: item?.quick_bite || "",
-            video: item?.video || "",
-            exit_rationale: item?.exit_rationale || "",
-            quarterly_update: Array.isArray(item?.quarterly_update)
-              ? item.quarterly_update
-              : [],
-            announcements_and_update: Array.isArray(item?.announcements_and_update)
-              ? item.announcements_and_update
-              : [],
-          }))
-        );
-      } else if (typeof sp === "string" && sp.trim() !== "") {
-        setStockPerformanceItems([
-          {
-            date: record.dateRecommended || "",
-            title: "Initial recommendation",
-            stock_recommendation_url: sp,
-            quarterly_update: Array.isArray(record.quarterly_update)
-              ? record.quarterly_update
-              : [],
-            announcements_and_update: Array.isArray(record.announcements_and_update)
-              ? record.announcements_and_update
-              : [],
-          },
-        ]);
-      } else {
+      setStockPerformanceItems(
+        sp.map((item: any) => ({
+          date: item?.date || "",
+          title: item?.title || "",
+          stock_recommendation_url:
+            item?.stock_recommendation_url || item?.url || "",
+          business_note: item?.business_note || "",
+          quick_bite: item?.quick_bite || "",
+          video: item?.video || "",
+          exit_rationale: item?.exit_rationale || "",
+          quarterly_update: Array.isArray(item?.quarterly_update)
+            ? item.quarterly_update
+            : [],
+          announcements_and_update: Array.isArray(item?.announcements_and_update)
+            ? item.announcements_and_update
+            : [],
+          dateRecommended:
+            item?.dateRecommended || record?.dateRecommended || "",
+          priceAtRecommendation:
+            item?.priceAtRecommendation ?? record?.priceAtRecommendation ?? "",
+          dateExit: item?.dateExit || record?.dateExit || "",
+          holdingPeriod: item?.holdingPeriod || record?.holdingPeriod || "",
+          cmpOrExitPrice:
+            item?.cmpOrExitPrice ?? record?.cmpOrExitPrice ?? "",
+          percentReturn: item?.percentReturn ?? record?.percentReturn ?? "",
+        }))
+      );
+    } else if (typeof sp === "string" && sp.trim() !== "") {
+      setStockPerformanceItems([
+        {
+          date: record.dateRecommended || "",
+          title: "Initial recommendation",
+          stock_recommendation_url: sp,
+          quarterly_update: Array.isArray(record.quarterly_update)
+            ? record.quarterly_update
+            : [],
+          announcements_and_update: Array.isArray(record.announcements_and_update)
+            ? record.announcements_and_update
+            : [],
+          dateRecommended: record.dateRecommended || "",
+          priceAtRecommendation: record.priceAtRecommendation || "",
+          dateExit: record.dateExit || "",
+          holdingPeriod: record.holdingPeriod || "",
+          cmpOrExitPrice: record.cmpOrExitPrice || "",
+          percentReturn: record.percentReturn || "",
+        },
+      ]);
+    } else {
         setStockPerformanceItems([]);
       }
       setSelectedIterationIndex(0);
@@ -280,6 +307,18 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       const next = [...prev];
       if (!next[iterationIndex]) return prev;
       next[iterationIndex] = { ...next[iterationIndex], [field]: value };
+      return next;
+    });
+  };
+
+  const updatePrimaryIterationField = (
+    field: keyof StockPerformanceItem,
+    value: string
+  ) => {
+    setStockPerformanceItems((prev) => {
+      if (!prev.length) return prev;
+      const next = [...prev];
+      next[0] = { ...next[0], [field]: value };
       return next;
     });
   };
@@ -510,26 +549,55 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       const formData = new FormData();
       formData.append("company_symbol", record.nseSymbol || "");
       formData.append("video", data.video || "");
-      const stockPerformancePayload = stockPerformanceItems.map((item, index) =>
-        index === 0
-          ? {
-              ...item,
-              business_note:
-                (data.business_note || item.business_note || record.business_note) ??
-                "",
-              quick_bite:
-                (data.quick_bite || item.quick_bite || record.quick_bite) ?? "",
-              video: (data.video || item.video || record.video) ?? "",
-              exit_rationale:
-                (data.exit_rationale ||
-                  item.exit_rationale ||
-                  record.exit_rationale) ??
-                "",
-              quarterly_update: quarterlyUpdates,
-              announcements_and_update: announcements,
-            }
-          : item
-      );
+      const stockPerformancePayload = stockPerformanceItems.map((item, index) => {
+        if (index !== 0) {
+          return item;
+        }
+        return {
+          ...item,
+          dateRecommended:
+            data.dateRecommended ||
+            item.dateRecommended ||
+            record.dateRecommended ||
+            "",
+          priceAtRecommendation:
+            parseNumericField(
+              data.priceAtRecommendation ??
+                item.priceAtRecommendation ??
+                record.priceAtRecommendation
+            ) ?? undefined,
+          dateExit:
+            data.dateExit || item.dateExit || record.dateExit || "",
+          holdingPeriod:
+            data.holdingPeriod ||
+            item.holdingPeriod ||
+            record.holdingPeriod ||
+            "",
+          cmpOrExitPrice:
+            parseNumericField(
+              data.cmpOrExitPrice ??
+                item.cmpOrExitPrice ??
+                record.cmpOrExitPrice
+            ) ?? undefined,
+          percentReturn:
+            parseNumericField(
+              data.percentReturn ?? item.percentReturn ?? record.percentReturn
+            ) ?? undefined,
+          business_note:
+            (data.business_note || item.business_note || record.business_note) ??
+            "",
+          quick_bite:
+            (data.quick_bite || item.quick_bite || record.quick_bite) ?? "",
+          video: (data.video || item.video || record.video) ?? "",
+          exit_rationale:
+            (data.exit_rationale ||
+              item.exit_rationale ||
+              record.exit_rationale) ??
+            "",
+          quarterly_update: quarterlyUpdates,
+          announcements_and_update: announcements,
+        };
+      });
       formData.append("stock_performance_url", JSON.stringify(stockPerformancePayload));
       formData.append("quarterly_update", JSON.stringify(quarterlyUpdates));
       formData.append(
@@ -572,6 +640,12 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     setLocalError((prev) => ({ ...prev, tags: "" }));
   };
 
+  const primaryIteration = stockPerformanceItems[0] || {};
+  const isExitRecommendation =
+    !!record &&
+    !!record.action &&
+    ["exit", "exited"].includes(record.action.trim().toLowerCase());
+
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -610,6 +684,146 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {isExitRecommendation && (
+              <div className="bg-white border border-gray-200 p-4 rounded-md space-y-4">
+                <div>
+                  <h3 className="text-base font-medium">Persist Exit Details</h3>
+                  <p className="text-xs text-gray-500">
+                    Store the recommendation & exit snapshot inside the primary performance iteration for future reference.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Recommendation Date
+                    </label>
+                    <Input
+                      type="date"
+                      value={
+                        // Use ISO yyyy-MM-dd for <input type="date" />
+                        primaryIteration.dateRecommended
+                          ? (() => {
+                              // If already in yyyy-MM-dd return as is, else try to parse
+                              const val = primaryIteration.dateRecommended;
+                              // If it's already ISO 8601 date string:
+                              if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+                              // Try parsing "Thursday, 15 May, 2025" or similar
+                              const parsed = new Date(val);
+                              if (!isNaN(parsed.getTime()))
+                                return parsed.toISOString().slice(0, 10);
+                              return "";
+                            })()
+                          : record.dateRecommended
+                          ? (() => {
+                              const val = record.dateRecommended;
+                              if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+                              const parsed = new Date(val);
+                              if (!isNaN(parsed.getTime()))
+                                return parsed.toISOString().slice(0, 10);
+                              return "";
+                            })()
+                          : ""
+                      }
+                      onChange={e =>
+                        updatePrimaryIterationField(
+                          "dateRecommended",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Recommendation Price
+                    </label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      value={toInputValue(
+                        primaryIteration.priceAtRecommendation ??
+                          record.priceAtRecommendation
+                      )}
+                      onChange={(e) =>
+                        updatePrimaryIterationField(
+                          "priceAtRecommendation",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Exit Date
+                    </label>
+                    <Input
+                      type="date"
+                      value={
+                        primaryIteration.dateExit || record.dateExit || ""
+                      }
+                      onChange={(e) =>
+                        updatePrimaryIterationField("dateExit", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Exit Price
+                    </label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      value={toInputValue(
+                        primaryIteration.cmpOrExitPrice ?? record.cmpOrExitPrice
+                      )}
+                      onChange={(e) =>
+                        updatePrimaryIterationField(
+                          "cmpOrExitPrice",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Holding Period
+                    </label>
+                    <Input
+                      value={
+                        primaryIteration.holdingPeriod ||
+                        record.holdingPeriod ||
+                        ""
+                      }
+                      onChange={(e) =>
+                        updatePrimaryIterationField(
+                          "holdingPeriod",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Total Return (%)
+                    </label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={toInputValue(
+                        primaryIteration.percentReturn ?? record.percentReturn
+                      )}
+                      onChange={(e) =>
+                        updatePrimaryIterationField(
+                          "percentReturn",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <h3 className="font-medium text-lg">Logo & Documents</h3>
