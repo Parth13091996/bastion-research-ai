@@ -60,11 +60,28 @@ const isExitAction = (row: any) => {
 };
 
 const isExitDetailsFilled = (row: any) => {
+  // Only trigger for rows that have at least 1 stock_performance_url entry
+  if (Array.isArray(row.stock_performance_url) && row.stock_performance_url.length > 0) {
+    // For the check, treat first (or only) item as primary exit info
+    const perf = row.stock_performance_url[0];
+    return Boolean(
+      perf &&
+      perf.dateRecommended &&
+      perf.priceAtRecommendation !== undefined && perf.priceAtRecommendation !== "" &&
+      perf.cmpOrExitPrice !== undefined && perf.cmpOrExitPrice !== "" &&
+      perf.dateExit &&
+      perf.holdingPeriod !== undefined && perf.holdingPeriod !== "" &&
+      typeof perf.percentReturn !== "undefined" && perf.percentReturn !== ""
+    );
+  }
+  // Fallback for legacy/flat rows
   return Boolean(
+    row.dateRecommended &&
+    row.priceAtRecommendation !== undefined && row.priceAtRecommendation !== "" &&
+    row.cmpOrExitPrice !== undefined && row.cmpOrExitPrice !== "" &&
     row.dateExit &&
-      row.cmpOrExitPrice &&
-      row.holdingPeriod &&
-      (typeof row.percentReturn !== "undefined" && row.percentReturn !== "")
+    row.holdingPeriod !== undefined && row.holdingPeriod !== "" &&
+    typeof row.percentReturn !== "undefined" && row.percentReturn !== ""
   );
 };
 
@@ -212,6 +229,7 @@ type RecommendationRowProps = {
   recommendation: ExtendedRecommendation;
   onEdit: (r: ExtendedRecommendation) => void;
 };
+// Only show exit warning popup+icon if it's exit AND incomplete (based on all fields)
 const RecommendationRow: React.FC<RecommendationRowProps> = ({ recommendation, onEdit }) => {
   const isExit = isExitAction(recommendation);
   const exitComplete = isExitDetailsFilled(recommendation);
@@ -226,6 +244,7 @@ const RecommendationRow: React.FC<RecommendationRowProps> = ({ recommendation, o
       : "");
 
   const percentReturnValue = percentReturn?.toString();
+
 
   return (
     <Tooltip>
@@ -309,13 +328,15 @@ const RecommendationRow: React.FC<RecommendationRowProps> = ({ recommendation, o
         </TableRow>
       </TooltipTrigger>
       {isExit && !exitComplete && (
-        <TooltipContent side="left" className="max-w-xs">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" />
+        <TooltipContent side="left" className="max-w-xs p-0 bg-yellow-50 border border-yellow-400 rounded-lg shadow-lg">
+          <div className="flex items-start gap-3 px-4 py-3">
+            <span className="flex items-center justify-center bg-yellow-200 rounded-full p-1">
+              <AlertTriangle className="text-yellow-700" />
+            </span>
             <div>
-              <span className="font-semibold text-yellow-800">Exit details are incomplete.</span>
+              <span className="font-semibold text-yellow-900">Incomplete Exit Details</span>
               <br />
-              <span className="text-yellow-700">
+              <span className="text-yellow-800 text-sm">
                 {EXIT_WARNING}
               </span>
             </div>
@@ -352,9 +373,9 @@ const RecommendationManagement: React.FC = () => {
         latestMcapCr: row.latestMcapCr || row.marketCap,
         cmpOrExitPrice: row.cmpOrExitPrice || row.cmp,
         percentReturn: (
-          ((row.cmp - row.entryPrice) / row.entryPrice) *
-          100
-        ).toFixed(1),
+                ((row.cmp - row.entryPrice) / row.entryPrice) *
+                100
+              ).toFixed(1),
       })),
     [stocks]
   );
@@ -378,6 +399,7 @@ const RecommendationManagement: React.FC = () => {
     setEditingRecommendation(recommendation);
     setIsEditModalOpen(true);
   };
+
 
   const handleSave = async (updatedData: any) => {
     try {
