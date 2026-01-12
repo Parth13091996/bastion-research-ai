@@ -142,6 +142,9 @@ const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
 const InstaLandingPage = lazy(
   () => import("../pages/SocialMediaLandingPage/InstaLandingPage")
 );
+const InstaLandingPage2 = lazy(
+  () => import("../pages/SocialMediaLandingPage/InstaLandingPage2")
+);
 const IpoUserDashboardPage = lazy(
   () => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard")
 );
@@ -189,6 +192,10 @@ export const routes: RouteObject[] = [
   {
     path: AppRoutes.instaLanding,
     element: <InstaLandingPage />,
+  },
+  {
+    path: AppRoutes.instaLanding2,
+    element: <InstaLandingPage2 />,
   },
   {
     element: <AdminLayout />,
