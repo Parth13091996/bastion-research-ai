@@ -10,14 +10,61 @@ const BastionLanding = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id) => {
+  const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-[#0a2e2a] text-white overflow-x-hidden">
 
-      {/* Hero Section - Home */}
+      {/* NEW HERO SECTION - Unlock Your Mind */}
+      <section className="min-h-screen flex items-center justify-center relative bg-[#D80000] overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-8 items-center relative z-10 w-full py-12">
+          {/* Left Side: Title + Graphics */}
+          <div className="flex flex-col items-center md:items-start space-y-8 animate-slideInLeft text-center md:text-left">
+            <h1 className="text-6xl md:text-8xl lg:text-[8rem] font-black text-white leading-[0.9] tracking-tighter uppercase font-oswald">
+              UNLOCK<br />YOUR MIND
+            </h1>
+            <div className="relative w-full max-w-xl">
+              <img src="/media/mind-graphic.png" alt="Unlock Your Mind" className="w-full h-auto object-contain drop-shadow-2xl" />
+            </div>
+          </div>
+
+          {/* Right Side: Title + Button */}
+          <div className="flex flex-col items-center justify-center space-y-8 animate-slideInRight text-left">
+            <div className="flex flex-col items-start space-y-8">
+              <h2 className="text-4xl md:text-6xl font-bold text-white leading-[2] font-dm-sans [word-spacing:0.3em]">
+                The biggest<br />
+                enemy of your<br />
+                portfolio is not<br />
+                the market...
+              </h2>
+              <h2 className="text-5xl md:text-7xl font-black text-[#000080] leading-none tracking-wide font-oswald uppercase drop-shadow-sm text-left">
+                IT'S YOU
+              </h2>
+
+              <div className="pt-4 w-full md:w-auto text-left">
+                <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="inline-block bg-white hover:bg-gray-100 text-black px-8 md:px-12 py-4 rounded-full text-base md:text-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-lg text-center font-button-mix">
+                  SUBSCRIBE NOW FOR FREE!!!
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <ChevronDown size={40} className="text-white opacity-50" />
+        </div>
+      </section>
+
+      {/* Floating Sticky Button */}
+      {/* Appears when user scrolls past the first section */}
+      <div className={`fixed bottom-0 left-0 right-0 p-4 bg-transparent flex justify-center z-50 pointer-events-none transition-transform duration-500 transform ${scrollY > 600 ? 'translate-y-0' : 'translate-y-full'}`}>
+        <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="pointer-events-auto inline-block bg-[#D80000] hover:bg-red-700 text-white border-2 border-white px-8 md:px-16 py-4 rounded-full text-lg md:text-xl font-bold uppercase tracking-wider shadow-2xl transition-all duration-300 hover:scale-105 font-button-mix">
+          SUBSCRIBE NOW FOR FREE!!!
+        </a>
+      </div>
+
+      {/* Hero Section - Home (Shifted to Section 2) */}
       <section id="home" className="min-h-screen flex items-center justify-center relative bg-[#011e11]">
         <div
           className="absolute inset-0 opacity-20"
@@ -33,11 +80,6 @@ const BastionLanding = () => {
               for Decision<br />
               Makers
             </h1>
-            <div>
-              <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="inline-block bg-[#D80000] hover:bg-red-700 px-8 md:px-12 py-4 rounded-full text-base md:text-lg font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg border border-red-600 text-center">
-                SUBSCRIBE NOW FOR FREE!!!
-              </a>
-            </div>
           </div>
 
           <div className="flex justify-center md:justify-end relative animate-slideInRight mt-12 md:mt-0">
@@ -69,7 +111,7 @@ const BastionLanding = () => {
         </div>
       </section>
 
-      {/* Newsletter Section - Section 2 */}
+      {/* Newsletter Section - Section 3 */}
       <section id="about-us" className="bg-[#d40000] min-h-screen flex items-center justify-center py-16 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-wrap items-center justify-center gap-8 lg:gap-16">
           <div className="flex justify-center lg:justify-start lg:w-fit w-full">
@@ -85,12 +127,6 @@ const BastionLanding = () => {
               <span>Packed Newsletters</span>
               <span>from us every week</span>
             </h2>
-
-            <div className="text-start">
-              <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="inline-block bg-white hover:bg-gray-100 text-black font-black sm:text-lg text-md px-8 py-4 sm:px-12 rounded-full shadow-lg cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 uppercase tracking-wider text-center">
-                SUBSCRIBE NOW FOR FREE!!!
-              </a>
-            </div>
           </div>
         </div>
 
@@ -99,19 +135,29 @@ const BastionLanding = () => {
           <img
             src="/media/newsletter-icons.png"
             alt="BulbWithMessage"
-            className="w-20 md:w-28 lg:w-36 animate-bounce"
-            style={{ animationDuration: '3s' }}
+            className="w-20 md:w-28 lg:w-36"
           />
         </div>
       </section>
 
-      {/* Schedule Section - Section 3 */}
+      {/* Schedule Section - Section 4 */}
       <section id="schedule" className="min-h-screen flex items-center py-20 bg-[#011e11]">
         <style>
           {`
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Oswald:wght@400;500;700&display=swap');
+            
             .font-poppins {
               font-family: 'Poppins', sans-serif;
+            }
+            .font-oswald {
+                font-family: 'Oswald', sans-serif;
+            }
+            .font-dm-sans {
+                font-family: 'DM Sans', sans-serif;
+            }
+            .font-button-mix {
+                font-family: 'Neue Machina', 'DM Sans', sans-serif;
             }
           `}
         </style>
@@ -147,13 +193,6 @@ const BastionLanding = () => {
                       </p>
                     </div>
                   </div>
-
-                  {/* Button */}
-                  <div className="pt-4">
-                    <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="inline-block bg-white hover:bg-gray-100 text-black px-8 py-4 rounded-full text-lg md:text-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-lg w-full font-poppins text-center">
-                      SUBSCRIBE NOW FOR FREE!!!
-                    </a>
-                  </div>
                 </div>
               </div>
             </div>
@@ -170,7 +209,7 @@ const BastionLanding = () => {
         </div>
       </section>
 
-      {/* Content Types Section - Section 4 */}
+      {/* Content Types Section - Section 5 */}
       <section id="content-types" className="min-h-screen flex items-center py-20 bg-[#011e11]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-16 text-white font-poppins animate-fadeIn">
@@ -235,16 +274,10 @@ const BastionLanding = () => {
               </div>
             </div>
           </div>
-
-          <div className="text-center mt-16">
-            <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="inline-block bg-white hover:bg-gray-100 text-black px-8 md:px-12 py-4 rounded-full text-base md:text-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-lg font-poppins text-center">
-              JOIN THOUSANDS READING IT FOR FREE!!!
-            </a>
-          </div>
         </div>
       </section>
 
-      {/* Investing Concepts Section - Section 5 */}
+      {/* Investing Concepts Section - Section 6 */}
       <section id="investing-concepts" className="min-h-screen flex items-center py-20 bg-[#D80000]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-16">
@@ -302,16 +335,10 @@ const BastionLanding = () => {
               </div>
             </div>
           </div>
-
-          <div className="text-center mt-16">
-            <button className="bg-white hover:bg-gray-100 text-black px-8 md:px-12 py-4 rounded-full text-base md:text-xl font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-lg font-poppins">
-              JOIN THOUSANDS READING IT FOR FREE!!!
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* Booming Sectors Section - Section 6 */}
+      {/* Booming Sectors Section - Section 7 */}
       <section id="booming-sectors" className="min-h-screen border-b border-white/10 flex items-center bg-cover bg-center relative overflow-hidden bg-white/20 backdrop-blur-md" style={{ backgroundImage: "url('/media/booming-sectors-bg.png')" }}>
         <div className="absolute inset-0 bg-black/20 z-0" />
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -327,13 +354,6 @@ const BastionLanding = () => {
                   sectors<br />
                   with us
                 </h2>
-              </div>
-
-              {/* Button - Between */}
-              <div className="my-12">
-                <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="inline-block bg-white hover:bg-gray-100 text-black px-12 py-4 rounded-full text-base md:text-lg font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-lg font-poppins text-center">
-                  SUBSCRIBE NOW FOR FREE!!!
-                </a>
               </div>
 
               {/* Graphic - Down End */}
@@ -441,12 +461,6 @@ const BastionLanding = () => {
                 Insights
               </h2>
 
-              <div>
-                <a href="https://bastionresearch.substack.com/" target="_blank" rel="noopener noreferrer" className="inline-block bg-white hover:bg-gray-100 text-black px-12 py-4 rounded-full text-base md:text-lg font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 shadow-lg font-poppins text-center">
-                  SUBSCRIBE NOW FOR FREE!!!
-                </a>
-              </div>
-
               <div className="space-y-6 pt-4">
                 <h3 className="text-2xl font-bold text-[#D80000] font-poppins tracking-wide">CONNECT WITH US</h3>
                 <div className="space-y-4">
@@ -541,6 +555,7 @@ const BastionLanding = () => {
         .animate-slideInUp {
           animation: slideInUp 1s ease-out;
         }
+        /* ... existing keyframes ... */
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }

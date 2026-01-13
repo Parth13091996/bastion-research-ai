@@ -74,7 +74,7 @@ export const AppRoutes = {
   scratchPadView: "/scratch-pad/:id",
   ipoLanding: "/ipo-landing",
   instaLanding: "/insta",
-  instaLanding2: "/insta-2",
+  instaLanding2: "/newsletter",
 } as const;
 
 export const AuthRoutes = [
