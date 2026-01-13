@@ -93,6 +93,7 @@ const SingleRecommendation = () => {
         }
       : stock;
 
+
   useEffect(() => {
     if (!symbol) {
       setFetchError("Invalid recommendation symbol.");
@@ -176,7 +177,7 @@ const SingleRecommendation = () => {
         </div>
       ) : (
         <>
-          <Header stock={stock} />
+          <Header stock={stock} selectedPerformanceIndex={selectedPerformanceIndex}/>
           <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-4">

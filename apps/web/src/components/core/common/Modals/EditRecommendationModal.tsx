@@ -1,6 +1,7 @@
 import { uploadFile } from "@/api/files-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import {
   Table,
   TableBody,
@@ -43,6 +44,13 @@ const recommendationSchema = z.object({
   stock_performance_url: z.any(),
   quarterly_update: z.any().optional(),
   announcements_and_update: z.any().optional(),
+  // --- Additional Fields ---
+  recommendation_date: z.string().optional(),
+  recommendation_price: z.string().optional(),
+  exit_price: z.string().optional(),
+  exit_date: z.string().optional(),
+  holding_period: z.string().optional(),
+  total_return: z.string().optional(),
 });
 
 type RecommendationFormValues = z.infer<typeof recommendationSchema>;
@@ -64,6 +72,14 @@ interface StockPerformanceModel {
   video?: string;
   exit_rationale?: string;
   quarterly_update?: UpdateItem[];
+  // The new fields embedded inside each array entry:
+  recommendation_date?: string;
+  recommendation_price?: string;
+  exit_price?: string;
+  exit_date?: string;
+  holding_period?: string;
+  total_return?: string;
+  is_active?: boolean; // <-- We will use this field to track the currently 'active' performance entry
 }
 
 const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
@@ -83,7 +99,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   const [announcements, setAnnouncements] = useState<UpdateItem[]>([]);
   const [announcementUploading, setAnnouncementUploading] = useState<Record<number, boolean>>({});
   const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(null);
-  console.log({stockPerformance});
+
+  // Add a local state to manage the is_active checkbox value
+  const [isActive, setIsActive] = useState<boolean>(false);
+
+  // Remove the separated additionalInputs state
 
   // File inputs refs
   const logoInputRef = useRef<HTMLInputElement | null>(null);
@@ -119,13 +139,19 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         percentReturn: record.percentReturn ? String(record.percentReturn) : "",
         logo: (record as any).logo || "",
         tags: (record as any).tags || "",
+        recommendation_date: "",
+        recommendation_price: "",
+        exit_price: "",
+        exit_date: "",
+        holding_period: "",
+        total_return: "",
       });
 
       let perf = [] as StockPerformanceModel[];
       // Support string, array and missing
       const sp = (record as any).stock_performance_url;
       if (Array.isArray(sp)) {
-        perf = sp.map((item: any) => ({
+        perf = sp.map((item: any, idx: number) => ({
           date: item?.date || "",
           title: item?.title || "",
           stock_recommendation_url: item?.stock_recommendation_url || item?.url || "",
@@ -136,6 +162,14 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
           quarterly_update: Array.isArray(item?.quarterly_update)
             ? item?.quarterly_update
             : [],
+          // load new fields
+          recommendation_date: item?.recommendation_date || "",
+          recommendation_price: item?.recommendation_price ?? "",
+          exit_price: item?.exit_price ?? "",
+          exit_date: item?.exit_date || "",
+          holding_period: item?.holding_period ?? "",
+          total_return: item?.total_return ?? "",
+          is_active: !!item?.is_active, // fallback false if missing
         }));
       } else if (typeof sp === "string" && sp.trim() !== "") {
         perf = [{
@@ -147,11 +181,20 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
           video: record?.video || "",
           exit_rationale: record?.exit_rationale || "",
           quarterly_update: Array.isArray(record.quarterly_update) ? record.quarterly_update : [],
+          recommendation_date: (record as any).recommendation_date || "",
+          recommendation_price: (record as any).recommendation_price ?? "",
+          exit_price: (record as any).exit_price ?? "",
+          exit_date: (record as any).exit_date || "",
+          holding_period: (record as any).holding_period ?? "",
+          total_return: (record as any).total_return ?? "",
+          is_active: true,
         }];
       }
-      // Only keep actual performance data, do not inject "Initial recommendation" placeholder
       setStockPerformance(perf);
       setActivePerformanceIndex(perf && perf.length > 0 ? 0 : 0);
+
+      // Set isActive for first mount for the currently active item (default to first true found, else false)
+      setIsActive(perf[0]?.is_active ?? false);
 
       setAnnouncements(Array.isArray(record.announcements_and_update) ? [...record.announcements_and_update] : []);
       setLocalError({});
@@ -161,8 +204,15 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       setActivePerformanceIndex(0);
       setAnnouncements([]);
       setLocalError({});
+      setIsActive(false);
+      // additionalInputs cleared
     }
   }, [open, record, reset]);
+
+  // Keep isActive in sync with the selected entry's is_active on activePerformanceIndex change
+  useEffect(() => {
+    setIsActive(stockPerformance[activePerformanceIndex]?.is_active ?? false);
+  }, [activePerformanceIndex, stockPerformance]);
 
   // Helper for file selection and display (for company logo, static)
   const handleFileSelect = (fieldName: string, file: File) => {
@@ -321,10 +371,18 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
         video: "",
         exit_rationale: "",
         quarterly_update: [],
+        recommendation_date: "",
+        recommendation_price: "",
+        exit_price: "",
+        exit_date: "",
+        holding_period: "",
+        total_return: "",
+        is_active: false,
       },
       ...prev,
     ]);
     setActivePerformanceIndex(0); // Set to newly added (latest)
+    setIsActive(false);
   };
 
   // Remove an entry
@@ -338,6 +396,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     setActivePerformanceIndex((prev) =>
       prev === idx ? 0 : prev > idx ? prev - 1 : prev
     );
+    setTimeout(() => {
+      setIsActive(
+        (sp) => sp[activePerformanceIndex]?.is_active ?? false
+      );
+    }, 0);
   };
 
   // ----------- File field validation ---------------
@@ -377,18 +440,38 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       return;
     }
     try {
+      // Before submitting update is_active value for all performance objects, ensuring only one is active.
+      let newSP = [...stockPerformance];
+      // Set all to inactive except for current
+      newSP = newSP.map((perf, idx) => ({
+        ...perf,
+        is_active: idx === activePerformanceIndex ? isActive : false,
+      }));
+      // If "active" is checked for a non-first entry, ensure only one true in the entire list.
+      // Optionally: if isActive is true, forcibly clear "exit_price" and "exit_date" here before submit for business logic.
+
+      // Business rule: If this is active, exit_price/exit_date/etc should be cleared.
+      if (isActive) {
+        newSP[activePerformanceIndex] = {
+          ...newSP[activePerformanceIndex],
+          exit_price: "",
+          exit_date: "",
+        };
+      }
+
       const formData = new FormData();
       formData.append("company_symbol", record.nseSymbol || "");
       formData.append("tags", data.tags || "");
+
+      // No longer send additionalInputs as flat fields,
+      // but inject the fields into their respective stock performance entries
+      let finalPerformance = [...newSP].reverse();
+      formData.append("stock_performance_url", JSON.stringify(finalPerformance));
 
       // Save logo
       if (selectedFiles.logo) {
         formData.append("logo", selectedFiles.logo);
       }
-
-      // For backend, reverse to put the most recent performance first. Do not append any blank or placeholder.
-      let finalPerformance = [...stockPerformance].reverse();
-      formData.append("stock_performance_url", JSON.stringify(finalPerformance));
 
       // Announcements
       formData.append("announcements_and_update", JSON.stringify(announcements));
@@ -552,7 +635,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
             {/* --- Stock Performance CRUD --- */}
             <div className="bg-white border border-gray-200 p-4 rounded-md space-y-2 mb-2">
               <h3 className="font-medium text-base">Stock Performance</h3>
-              <p className="text-xs text-gray-500 mb-2">Each entry is a performance spreadsheet (date, title, and URL). Manage, add or remove below. Use the dropdown below to select an entry to edit its resources.</p>
+              <p className="text-xs text-gray-500 mb-2">Each entry is a performance spreadsheet (date, title, and URL). Manage, add or remove below. The checkbox in each row marks the entry as currently active.</p>
               <div className="space-y-2">
                 <Button type="button" size="sm" variant="outline" onClick={handleAddPerformance}>
                   <Plus className="h-4 w-4 mr-1" />
@@ -564,13 +647,14 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                       <TableHead>Date</TableHead>
                       <TableHead>Title</TableHead>
                       <TableHead>URL</TableHead>
+                      <TableHead className="text-center">Active</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {stockPerformance.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center">
+                        <TableCell colSpan={5} className="text-center">
                           No stock performance records yet.
                         </TableCell>
                       </TableRow>
@@ -615,6 +699,38 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                               });
                             }}
                           />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <input
+                            type="checkbox"
+                            checked={!!perf.is_active}
+                            onChange={e => {
+                              const checked = e.target.checked;
+                              setStockPerformance(prev => {
+                                const next = prev.map((p, i) =>
+                                  i === idx
+                                    ? {
+                                        ...p,
+                                        is_active: checked,
+                                        // If setting active, clear/disable exit fields for this entry
+                                        exit_price: checked ? "" : p.exit_price,
+                                        exit_date: checked ? "" : p.exit_date,
+                                        holding_period: checked ? "" : p.holding_period,
+                                        total_return: checked ? "" : p.total_return,
+                                      }
+                                    : { ...p, is_active: false }
+                                );
+                                return next;
+                              });
+                              setIsActive(checked);
+                              setActivePerformanceIndex(idx);
+                            }}
+                            aria-label="Mark as active performance"
+                            className="accent-blue-600"
+                          />
+                          {perf.is_active ? (
+                            <span className="sr-only">Active</span>
+                          ) : null}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -663,11 +779,183 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                       {perf.title
                         ? perf.title + (perf.date ? ` (${perf.date})` : "")
                         : `Entry ${idx + 1}`}
+                      {perf.is_active && (
+                        <span className="ml-1 text-xs text-green-600 font-medium">(Active)</span>
+                      )}
                     </span>
                   </label>
                 ))}
               </div>
             </div>
+
+            {/* ---- Additional Recommendation Fields ---- */}
+            <div className="bg-white border border-gray-200 p-4 rounded-md space-y-4 mb-2">
+              <h3 className="font-medium mb-2">Recommendation Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Recommendation Date</label>
+                  <Input
+                    type="date"
+                    value={stockPerformance[activePerformanceIndex]?.recommendation_date || ""}
+                    onChange={e => {
+                      setStockPerformance(prev => {
+                        const next = [...prev];
+                        next[activePerformanceIndex] = {
+                          ...next[activePerformanceIndex],
+                          recommendation_date: e.target.value,
+                        };
+                        return next;
+                      });
+                    }}
+                    placeholder="Recommendation Date"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Recommendation Price</label>
+                  <Input
+                    type="number"
+                    value={stockPerformance[activePerformanceIndex]?.recommendation_price || ""}
+                    onChange={e => {
+                      setStockPerformance(prev => {
+                        const next = [...prev];
+                        next[activePerformanceIndex] = {
+                          ...next[activePerformanceIndex],
+                          recommendation_price: e.target.value,
+                        };
+                        return next;
+                      });
+                    }}
+                    placeholder="Recommendation Price"
+                  />
+                </div>
+                {/* Only show Exit Price, Exit Date, Holding Period, Total Return if NOT active */}
+                {!stockPerformance[activePerformanceIndex]?.is_active && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Exit Price</label>
+                      <Input
+                        type="number"
+                        value={stockPerformance[activePerformanceIndex]?.exit_price || ""}
+                        onChange={e => {
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              exit_price: e.target.value,
+                            };
+                            return next;
+                          });
+                        }}
+                        placeholder="Exit Price"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Exit Date</label>
+                      <Input
+                        type="date"
+                        value={stockPerformance[activePerformanceIndex]?.exit_date || ""}
+                        onChange={e => {
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              exit_date: e.target.value,
+                            };
+                            return next;
+                          });
+                        }}
+                        placeholder="Exit Date"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Holding Period</label>
+                      <Input
+                        type="text"
+                        value={stockPerformance[activePerformanceIndex]?.holding_period || ""}
+                        onChange={e => {
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              holding_period: e.target.value,
+                            };
+                            return next;
+                          });
+                        }}
+                        placeholder="Holding Period"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Total Return</label>
+                      <Input
+                        type="text"
+                        value={stockPerformance[activePerformanceIndex]?.total_return || ""}
+                        onChange={e => {
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              total_return: e.target.value,
+                            };
+                            return next;
+                          });
+                        }}
+                        placeholder="Total Return"
+                      />
+                    </div>
+                  </>
+                )}
+                {stockPerformance[activePerformanceIndex]?.is_active && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-gray-400">
+                        Exit Price <span className="text-xs">(disabled for active)</span>
+                      </label>
+                      <Input
+                        type="number"
+                        value=""
+                        disabled
+                        placeholder="Not applicable"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-gray-400">
+                        Exit Date <span className="text-xs">(disabled for active)</span>
+                      </label>
+                      <Input
+                        type="date"
+                        value=""
+                        disabled
+                        placeholder="Not applicable"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-gray-400">
+                        Holding Period <span className="text-xs">(disabled for active)</span>
+                      </label>
+                      <Input
+                        type="text"
+                        value=""
+                        disabled
+                        placeholder="Not applicable"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-gray-400">
+                        Total Return <span className="text-xs">(disabled for active)</span>
+                      </label>
+                      <Input
+                        type="text"
+                        value=""
+                        disabled
+                        placeholder="Not applicable"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            {/* ---- End additional fields ---- */}
 
             {/* --- Selected Stock Performance Card --- */}
             {stockPerformance.length > 0 && (
