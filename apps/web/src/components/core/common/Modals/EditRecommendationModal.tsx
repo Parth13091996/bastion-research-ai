@@ -30,21 +30,19 @@ import {
 } from "@/components/ui/select";
 
 // --- Schema ---
+// quick_bite is not part of flat schema, but is embedded in each StockPerformanceModel object
 const recommendationSchema = z.object({
   nseSymbol: z.string().min(1, "Symbol is required"),
   action: z.string().optional(),
   percentReturn: z.string().optional(),
   logo: z.string().min(1, "Company Logo is required"),
   tags: z.string().min(1, "Tags is required"),
-  // The following are now managed in the selected stock performance entry
-  business_note: z.string().optional(),
-  quick_bite: z.string().optional(),
+  business_note: z.string().optional().nullable(),
   video: z.string().optional(),
-  exit_rationale: z.string().optional(),
+  exit_rationale: z.string().optional().nullable(),
   stock_performance_url: z.any(),
   quarterly_update: z.any().optional(),
   announcements_and_update: z.any().optional(),
-  // --- Additional Fields ---
   recommendation_date: z.string().optional(),
   recommendation_price: z.string().optional(),
   exit_price: z.string().optional(),
@@ -62,24 +60,22 @@ interface EditRecommendationModalProps {
   onSave: (data: Partial<ExtendedRecommendationRecord> | FormData) => Promise<void>;
 }
 
-// Model for stock performance entry
 interface StockPerformanceModel {
   date: string;
   title: string;
   stock_recommendation_url: string;
-  business_note?: string;
-  quick_bite?: string;
+  business_note?: string | null;
+  quick_bite?: string | null;
   video?: string;
-  exit_rationale?: string;
+  exit_rationale?: string | null;
   quarterly_update?: UpdateItem[];
-  // The new fields embedded inside each array entry:
   recommendation_date?: string;
   recommendation_price?: string;
   exit_price?: string;
   exit_date?: string;
   holding_period?: string;
   total_return?: string;
-  is_active?: boolean; // <-- We will use this field to track the currently 'active' performance entry
+  is_active?: boolean;
 }
 
 const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
@@ -88,7 +84,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   recommendation: record,
   onSave,
 }) => {
-  // State hooks
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
   const [stockPerformance, setStockPerformance] = useState<StockPerformanceModel[]>([]);
@@ -100,12 +95,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
   const [announcementUploading, setAnnouncementUploading] = useState<Record<number, boolean>>({});
   const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(null);
 
-  // Add a local state to manage the is_active checkbox value
   const [isActive, setIsActive] = useState<boolean>(false);
 
-  // Remove the separated additionalInputs state
-
-  // File inputs refs
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const businessNoteInputRef = useRef<HTMLInputElement | null>(null);
   const quickBiteInputRef = useRef<HTMLInputElement | null>(null);
@@ -127,10 +118,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     resolver: zodResolver(recommendationSchema),
   });
 
-  // Local error states for file validations
   const [localError, setLocalError] = useState<Record<string, string>>({});
 
-  // ----- Form load/reset -----
   useEffect(() => {
     if (open && record) {
       reset({
@@ -148,38 +137,34 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       });
 
       let perf = [] as StockPerformanceModel[];
-      // Support string, array and missing
       const sp = (record as any).stock_performance_url;
       if (Array.isArray(sp)) {
         perf = sp.map((item: any, idx: number) => ({
           date: item?.date || "",
           title: item?.title || "",
           stock_recommendation_url: item?.stock_recommendation_url || item?.url || "",
-          business_note: item?.business_note || "",
-          quick_bite: item?.quick_bite || "",
+          business_note: (typeof item?.business_note === "undefined" ? null : item?.business_note),
+          quick_bite: (typeof item?.quick_bite === "undefined" ? null : item?.quick_bite),
           video: item?.video || "",
-          exit_rationale: item?.exit_rationale || "",
-          quarterly_update: Array.isArray(item?.quarterly_update)
-            ? item?.quarterly_update
-            : [],
-          // load new fields
+          exit_rationale: (typeof item?.exit_rationale === "undefined" ? null : item?.exit_rationale),
+          quarterly_update: Array.isArray(item?.quarterly_update) ? item?.quarterly_update : [],
           recommendation_date: item?.recommendation_date || "",
           recommendation_price: item?.recommendation_price ?? "",
           exit_price: item?.exit_price ?? "",
           exit_date: item?.exit_date || "",
           holding_period: item?.holding_period ?? "",
           total_return: item?.total_return ?? "",
-          is_active: !!item?.is_active, // fallback false if missing
+          is_active: !!item?.is_active,
         }));
       } else if (typeof sp === "string" && sp.trim() !== "") {
         perf = [{
           date: record?.dateRecommended || "",
           title: "Initial recommendation",
           stock_recommendation_url: sp,
-          business_note: record?.business_note || "",
-          quick_bite: record?.quick_bite || "",
+          business_note: (typeof record?.business_note === "undefined" ? null : record?.business_note),
+          quick_bite: (typeof record?.quick_bite === "undefined" ? null : record?.quick_bite),
           video: record?.video || "",
-          exit_rationale: record?.exit_rationale || "",
+          exit_rationale: (typeof record?.exit_rationale === "undefined" ? null : record?.exit_rationale),
           quarterly_update: Array.isArray(record.quarterly_update) ? record.quarterly_update : [],
           recommendation_date: (record as any).recommendation_date || "",
           recommendation_price: (record as any).recommendation_price ?? "",
@@ -193,7 +178,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       setStockPerformance(perf);
       setActivePerformanceIndex(perf && perf.length > 0 ? 0 : 0);
 
-      // Set isActive for first mount for the currently active item (default to first true found, else false)
       setIsActive(perf[0]?.is_active ?? false);
 
       setAnnouncements(Array.isArray(record.announcements_and_update) ? [...record.announcements_and_update] : []);
@@ -205,26 +189,33 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       setAnnouncements([]);
       setLocalError({});
       setIsActive(false);
-      // additionalInputs cleared
     }
   }, [open, record, reset]);
 
-  // Keep isActive in sync with the selected entry's is_active on activePerformanceIndex change
   useEffect(() => {
     setIsActive(stockPerformance[activePerformanceIndex]?.is_active ?? false);
   }, [activePerformanceIndex, stockPerformance]);
 
-  // Helper for file selection and display (for company logo, static)
   const handleFileSelect = (fieldName: string, file: File) => {
     setSelectedFiles((prev) => ({ ...prev, [fieldName]: file }));
     setValue(fieldName as any, file.name as any, { shouldValidate: true, shouldDirty: true });
     setLocalError((prev) => ({ ...prev, [fieldName]: "" }));
   };
 
-  // File upload for PDFs attached to a particular field in an active performance entry
+  const handleClearFile = (fieldName: string) => {
+    setSelectedFiles((prev) => ({ ...prev, [fieldName]: null }));
+    setValue(fieldName as any, "", { shouldValidate: true, shouldDirty: true });
+    setLocalError((prev) => ({ ...prev, [fieldName]: "" }));
+
+    if (fieldName === "logo" && logoInputRef.current) {
+      logoInputRef.current.value = "";
+    }
+  };
+
+  // PDF upload for business_note, quick_bite, and exit_rationale
   const handlePerformanceFileUpload = async (
     perfIndex: number,
-    field: "business_note" | "quick_bite" | "exit_rationale",
+    field: "business_note" | "exit_rationale" | "quick_bite",
     file: File
   ) => {
     const perf = stockPerformance[perfIndex];
@@ -248,6 +239,27 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       toast.error(err?.response?.data?.error || "Failed to upload PDF");
     } finally {
       setUploading((prev) => ({ ...prev, [`stockperf_${perfIndex}_${field}`]: false }));
+    }
+  };
+
+  // Clear PDFs for performance fields (now handle quick_bite too, and allow setting null)
+  const handleClearPerformanceFile = (
+    perfIndex: number,
+    field: "business_note" | "exit_rationale" | "quick_bite"
+  ) => {
+    setStockPerformance((prev) => {
+      const next = [...prev];
+      next[perfIndex] = { ...next[perfIndex], [field]: null };
+      return next;
+    });
+    if (field === "business_note" && businessNoteInputRef.current) {
+      businessNoteInputRef.current.value = "";
+    }
+    if (field === "exit_rationale" && exitRationaleInputRef.current) {
+      exitRationaleInputRef.current.value = "";
+    }
+    if (field === "quick_bite" && quickBiteInputRef.current) {
+      quickBiteInputRef.current.value = "";
     }
   };
 
@@ -293,7 +305,10 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       formData.append("fileName", `quarterly_update_pdf_url_${idx}`);
       formData.append("category", "pdf");
       const symbol = record?.nseSymbol || "unknown";
-      formData.append("dir", `recommendations/${symbol}/performance/${activePerformanceIndex}/quarterly_updates`);
+      formData.append(
+        "dir",
+        `recommendations/${symbol}/performance/${activePerformanceIndex}/quarterly_updates`
+      );
       const response = await uploadFile(formData);
       setStockPerformance((prev) => {
         const next = [...prev];
@@ -311,7 +326,19 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     }
   };
 
-  // ---------- Announcements & Updates ----------
+  const handleClearQuarterlyPdf = (idx: number) => {
+    setStockPerformance((prev) => {
+      const next = [...prev];
+      const updates = [...(next[activePerformanceIndex].quarterly_update || [])];
+      updates[idx] = { ...updates[idx], pdf_url: "" };
+      next[activePerformanceIndex].quarterly_update = updates;
+      return next;
+    });
+    if (quarterlyPdfInputRefs.current[idx]) quarterlyPdfInputRefs.current[idx]!.value = "";
+  };
+
+  // Announcements & Updates logic unchanged...
+
   const handleAddAnnouncement = () => {
     setAnnouncements((prev) => [
       ...prev,
@@ -357,19 +384,27 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     }
   };
 
-  // ----------- Stock Performance CRUD -----------
+  const handleClearAnnouncementPdf = (idx: number) => {
+    setAnnouncements((prev) => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], pdf_url: "" };
+      return next;
+    });
+    if (announcementPdfInputRefs.current[idx]) announcementPdfInputRefs.current[idx]!.value = "";
+  };
 
-  // Add new performance, simply unshift a blank entry (no default/placeholder "Initial recommendation")
+  // Stock Performance CRUD...
+
   const handleAddPerformance = () => {
     setStockPerformance((prev) => [
       {
         date: "",
         title: "",
         stock_recommendation_url: "",
-        business_note: "",
-        quick_bite: "",
+        business_note: null,
+        quick_bite: null,
         video: "",
-        exit_rationale: "",
+        exit_rationale: null,
         quarterly_update: [],
         recommendation_date: "",
         recommendation_price: "",
@@ -381,11 +416,10 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       },
       ...prev,
     ]);
-    setActivePerformanceIndex(0); // Set to newly added (latest)
+    setActivePerformanceIndex(0);
     setIsActive(false);
   };
 
-  // Remove an entry
   const handleRemovePerformance = (idx: number) => {
     setStockPerformance((prev) => {
       let arr = [...prev];
@@ -403,14 +437,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     }, 0);
   };
 
-  // ----------- File field validation ---------------
   const validateFileFields = () => {
     const errors: Record<string, string> = {};
-    // Must have company logo
     if ((!selectedFiles.logo && !watch("logo")) || (typeof watch("logo") === "string" && watch("logo").trim() === "")) {
       errors.logo = "Company Logo is required";
     }
-    // Check for at least one valid stock performance entry (no placeholder logic)
     if (
       stockPerformance.length === 0 ||
       stockPerformance.some(
@@ -423,7 +454,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       errors.stock_performance_url =
         "At least one complete performance (Date, Title, URL) is required.";
     }
-    // Tags
     if (!watch("tags") || watch("tags").trim() === "") {
       errors.tags = "Tags is required";
     }
@@ -431,7 +461,22 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     return Object.keys(errors).length === 0;
   };
 
-  // ----------- Form Submit --------------
+  // --------- HANDLER FOR CLEARING QUICK BITE FIELD ---------
+  const handleClearQuickBite = () => {
+    setStockPerformance((prev) => {
+      const next = [...prev];
+      next[activePerformanceIndex] = {
+        ...next[activePerformanceIndex],
+        quick_bite: null,
+      };
+      return next;
+    });
+    if (quickBiteInputRef.current) {
+      quickBiteInputRef.current.value = "";
+    }
+  };
+
+  // --------- FORM SUBMIT ---------
   const onSubmit = async (data: RecommendationFormValues) => {
     const valid = await trigger();
     const validatedFiles = validateFileFields();
@@ -440,17 +485,16 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       return;
     }
     try {
-      // Before submitting update is_active value for all performance objects, ensuring only one is active.
       let newSP = [...stockPerformance];
-      // Set all to inactive except for current
       newSP = newSP.map((perf, idx) => ({
         ...perf,
         is_active: idx === activePerformanceIndex ? isActive : false,
+        // Ensure these three fields are allowed to be null
+        business_note: perf.business_note === "" ? null : perf.business_note,
+        quick_bite: perf.quick_bite === "" ? null : perf.quick_bite,
+        exit_rationale: perf.exit_rationale === "" ? null : perf.exit_rationale,
       }));
-      // If "active" is checked for a non-first entry, ensure only one true in the entire list.
-      // Optionally: if isActive is true, forcibly clear "exit_price" and "exit_date" here before submit for business logic.
 
-      // Business rule: If this is active, exit_price/exit_date/etc should be cleared.
       if (isActive) {
         newSP[activePerformanceIndex] = {
           ...newSP[activePerformanceIndex],
@@ -463,17 +507,13 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
       formData.append("company_symbol", record.nseSymbol || "");
       formData.append("tags", data.tags || "");
 
-      // No longer send additionalInputs as flat fields,
-      // but inject the fields into their respective stock performance entries
       let finalPerformance = [...newSP].reverse();
       formData.append("stock_performance_url", JSON.stringify(finalPerformance));
 
-      // Save logo
       if (selectedFiles.logo) {
         formData.append("logo", selectedFiles.logo);
       }
 
-      // Announcements
       formData.append("announcements_and_update", JSON.stringify(announcements));
       await onSave(formData as any);
     } catch (error: any) {
@@ -495,7 +535,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     setLocalError((prev) => ({ ...prev, tags: "" }));
   };
 
-  // Format date for input type="date"
   const formatDateForInput = (value?: string) => {
     if (!value) return "";
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
@@ -503,14 +542,11 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
     return !isNaN(parsed.getTime()) ? parsed.toISOString().slice(0, 10) : "";
   };
 
-  // ---- FIXED: Always open Select dropdown if there is value in stockPerformance ---- //
-  // Create a controlled open state for the performance select dropdown
   const [performanceSelectOpen, setPerformanceSelectOpen] = useState(false);
 
-  // When stockPerformance has value, set the dropdown open at least once after mount
   useEffect(() => {
     if (open && stockPerformance && stockPerformance.length > 0) {
-      setTimeout(() => setPerformanceSelectOpen(true), 150); // allow Radix mount
+      setTimeout(() => setPerformanceSelectOpen(true), 150);
     } else {
       setPerformanceSelectOpen(false);
     }
@@ -527,9 +563,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
           <Dialog.Description className="mt-2 text-sm text-gray-600">
             Update company information, logo, performance & resources.
           </Dialog.Description>
-          {/* Main Form */}
           <form className="mt-4 space-y-8" onSubmit={handleSubmit(onSubmit)} noValidate>
-            {/* --- Company Info --- */}
             <div className="bg-gray-50 p-4 rounded-md mb-2">
               <h3 className="font-medium mb-2">Company Information</h3>
               <div className="flex flex-wrap gap-4 text-sm">
@@ -550,15 +584,15 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
               </div>
             </div>
 
-            {/* --- Company Logo --- */}
             <div className="bg-white border border-gray-200 p-4 rounded-md mb-2">
               <label className="block text-sm font-medium mb-2">Company Logo (Image) <span className="text-red-600">*</span></label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <Input
                   {...register("logo")}
                   placeholder="Logo file or name"
                   className={localError.logo || errors.logo ? "border-red-500" : ""}
                   autoComplete="off"
+                  readOnly={!!selectedFiles.logo}
                 />
                 <label className="cursor-pointer">
                   <Button
@@ -584,6 +618,17 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                     }}
                   />
                 </label>
+                {(selectedFiles.logo || (watch("logo") && typeof watch("logo") === "string")) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500"
+                    onClick={() => handleClearFile("logo")}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               {(localError.logo || errors.logo) && (
                 <div className="text-xs text-red-600 mt-1">
@@ -609,7 +654,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
               )}
             </div>
 
-            {/* --- Tags --- */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Tags <span className="text-red-600">*</span>
@@ -632,7 +676,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
               )}
             </div>
 
-            {/* --- Stock Performance CRUD --- */}
             <div className="bg-white border border-gray-200 p-4 rounded-md space-y-2 mb-2">
               <h3 className="font-medium text-base">Stock Performance</h3>
               <p className="text-xs text-gray-500 mb-2">Each entry is a performance spreadsheet (date, title, and URL). Manage, add or remove below. The checkbox in each row marks the entry as currently active.</p>
@@ -712,7 +755,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                     ? {
                                         ...p,
                                         is_active: checked,
-                                        // If setting active, clear/disable exit fields for this entry
                                         exit_price: checked ? "" : p.exit_price,
                                         exit_date: checked ? "" : p.exit_date,
                                         holding_period: checked ? "" : p.holding_period,
@@ -751,7 +793,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 </Table>
                 {(localError.stock_performance_url || errors.stock_performance_url) && (
                   <div className="text-xs text-red-600 mt-1">
-                  {/* @ts-ignore */}
+                    {/* @ts-ignore */}
                     {localError.stock_performance_url || errors.stock_performance_url?.message}
                   </div>
                 )}
@@ -828,7 +870,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                     placeholder="Recommendation Price"
                   />
                 </div>
-                {/* Only show Exit Price, Exit Date, Holding Period, Total Return if NOT active */}
                 {!stockPerformance[activePerformanceIndex]?.is_active && (
                   <>
                     <div>
@@ -955,9 +996,8 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                 )}
               </div>
             </div>
-            {/* ---- End additional fields ---- */}
 
-            {/* --- Selected Stock Performance Card --- */}
+            {/* -- Selected Stock Performance Card with editable quick bite/business note/exit rationale -- */}
             {stockPerformance.length > 0 && (
             <div className="border rounded-lg bg-white p-4 space-y-6">
               <div className="flex justify-between items-center">
@@ -968,18 +1008,28 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   ({stockPerformance[activePerformanceIndex]?.date || "–"})
                 </span>
               </div>
-              {/* PDFs for this performance */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* --- Business Note --- */}
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Business Note (PDF)
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <Input
                       value={stockPerformance[activePerformanceIndex]?.business_note || ""}
+                      onChange={e => {
+                        const value = e.target.value === "" ? null : e.target.value;
+                        setStockPerformance(prev => {
+                          const next = [...prev];
+                          next[activePerformanceIndex] = {
+                            ...next[activePerformanceIndex],
+                            business_note: value,
+                          };
+                          return next;
+                        });
+                      }}
                       placeholder="PDF URL"
-                      readOnly
+                      key={stockPerformance[activePerformanceIndex]?.business_note || "empty"} // <--- force re-render on clear
                     />
                     <label className="cursor-pointer">
                       <Button
@@ -1003,10 +1053,53 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                           const file = e.target.files?.[0];
                           if (file) {
                             handlePerformanceFileUpload(activePerformanceIndex, "business_note", file);
+                            // Reset file input so user can reselect the same file after clearing
+                            e.target.value = "";
                           }
                         }}
                       />
                     </label>
+                    {(stockPerformance[activePerformanceIndex]?.business_note) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500"
+                        onClick={() => {
+                          handleClearPerformanceFile(activePerformanceIndex, "business_note");
+                          // If input ref is available, reset the file input too
+                          if (businessNoteInputRef.current) {
+                            businessNoteInputRef.current.value = "";
+                          }
+                        }}
+                        title="Clear PDF"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {/* NEW: allow clearing even if empty/non-null */}
+                    {(!stockPerformance[activePerformanceIndex]?.business_note) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400"
+                        onClick={() => {
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              business_note: null,
+                            };
+                            return next;
+                          });
+                          if (businessNoteInputRef.current) businessNoteInputRef.current.value = "";
+                        }}
+                        title="Clear"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                   {stockPerformance[activePerformanceIndex]?.business_note && (
                     <div className="mt-1 text-xs">
@@ -1026,11 +1119,18 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   <label className="block text-sm font-medium mb-2">
                     Quick Bite (PDF)
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <Input
                       value={stockPerformance[activePerformanceIndex]?.quick_bite || ""}
+                      onChange={e => {
+                        const value = e.target.value === "" ? null : e.target.value;
+                        setStockPerformance((prev) => {
+                          const next = [...prev];
+                          next[activePerformanceIndex] = { ...next[activePerformanceIndex], quick_bite: value };
+                          return next;
+                        });
+                      }}
                       placeholder="PDF URL"
-                      readOnly
                     />
                     <label className="cursor-pointer">
                       <Button
@@ -1058,6 +1158,43 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                         }}
                       />
                     </label>
+                    {(stockPerformance[activePerformanceIndex]?.quick_bite) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500"
+                        onClick={() =>
+                          handleClearPerformanceFile(activePerformanceIndex, "quick_bite")
+                        }
+                        title="Clear PDF"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {/* Always allow clearing */}
+                    {(!stockPerformance[activePerformanceIndex]?.quick_bite) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400"
+                        onClick={() => {
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              quick_bite: null,
+                            };
+                            return next;
+                          });
+                          if (quickBiteInputRef.current) quickBiteInputRef.current.value = "";
+                        }}
+                        title="Clear"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                   {stockPerformance[activePerformanceIndex]?.quick_bite && (
                     <div className="mt-1 text-xs">
@@ -1077,11 +1214,21 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   <label className="block text-sm font-medium mb-2">
                     Exit Rationale (PDF)
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <Input
                       value={stockPerformance[activePerformanceIndex]?.exit_rationale || ""}
+                      onChange={e => {
+                        const value = e.target.value === "" ? null : e.target.value;
+                        setStockPerformance(prev => {
+                          const next = [...prev];
+                          next[activePerformanceIndex] = {
+                            ...next[activePerformanceIndex],
+                            exit_rationale: value,
+                          };
+                          return next;
+                        });
+                      }}
                       placeholder="PDF URL"
-                      readOnly
                     />
                     <label className="cursor-pointer">
                       <Button
@@ -1109,6 +1256,42 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                         }}
                       />
                     </label>
+                    {(stockPerformance[activePerformanceIndex]?.exit_rationale) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500"
+                        onClick={() =>
+                          handleClearPerformanceFile(activePerformanceIndex, "exit_rationale")
+                        }
+                        title="Clear PDF"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {(!stockPerformance[activePerformanceIndex]?.exit_rationale) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400"
+                        onClick={() => {
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              exit_rationale: null,
+                            };
+                            return next;
+                          });
+                          if (exitRationaleInputRef.current) exitRationaleInputRef.current.value = "";
+                        }}
+                        title="Clear"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                   {stockPerformance[activePerformanceIndex]?.exit_rationale && (
                     <div className="mt-1 text-xs">
@@ -1123,7 +1306,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                     </div>
                   )}
                 </div>
-                {/* --- Video --- */}
+                {/* Video URL section unchanged */}
                 <div>
                   <label className="block text-sm font-medium mb-2">Video URL</label>
                   <Input
@@ -1225,6 +1408,18 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                         }}
                                       />
                                     </label>
+                                    {q.pdf_url && (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-500"
+                                        onClick={() => handleClearQuarterlyPdf(idx)}
+                                        title="Clear PDF"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    )}
                                   </div>
                                   {q.pdf_url && q.pdf_url.startsWith("http") && (
                                     <div className="mt-1 text-xs">
@@ -1300,7 +1495,6 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
             </div>
             )}
 
-            {/* Announcements & Updates */}
             <div className="border rounded-lg bg-white p-4 space-y-6">
               <div className="flex justify-between items-center mb-1">
                 <h3 className="font-medium text-base">Announcements & Updates</h3>
@@ -1386,6 +1580,18 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                       }}
                                     />
                                   </label>
+                                  {ann.pdf_url && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-500"
+                                      onClick={() => handleClearAnnouncementPdf(idx)}
+                                      title="Clear PDF"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  )}
                                 </div>
                                 {ann.pdf_url && ann.pdf_url.startsWith("http") && (
                                   <div className="mt-1 text-xs">

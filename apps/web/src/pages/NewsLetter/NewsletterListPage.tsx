@@ -39,7 +39,7 @@ const NewsletterArchive = () => {
   const loadNewsletters = async () => {
     try {
       setIsLoading(true);
-      const mailchimpData = await newsletterApi.getAll().catch(() => [])
+      const mailchimpData = await newsletterApi.getAll().catch(() => []);
       const sorted = mailchimpData.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -112,8 +112,8 @@ const NewsletterArchive = () => {
   };
 
   const handleViewNewsletter = (item: Newsletter) => {
+    // CHANGE 1: Make card click open the newsletter (link/card clickable)
     if (item.source === "cms" && item.link) {
-      // Open external/manual newsletter link directly from the list
       window.location.href = item.link;
       return;
     }
@@ -164,6 +164,42 @@ const NewsletterArchive = () => {
   const getSubtitle = (newsletter: Newsletter) =>
     //@ts-ignore
     newsletter.sub_title || newsletter.plain_text || "";
+
+  // CHANGE 2: Extract tag/label from newsletter.category and show it as a tag on the card
+  function renderCategoryTag(category?: string) {
+    if (!category) return null;
+    let label = "";
+    let color = "";
+    switch (category) {
+      case "learning-of-the-week":
+        label = "Learning of the Week";
+        color = COLORS.red;
+        break;
+      case "scratch-pad":
+        label = "Scratch Pad";
+        color = "#FECE56";
+        break;
+      case "topical-update":
+        label = "Topical Update";
+        color = COLORS.blue;
+        break;
+      default:
+        label = category;
+        color = COLORS.gray;
+    }
+    return (
+      <span
+        className="inline-block px-3 py-1 rounded-full text-xs font-medium mb-2"
+        style={{
+          backgroundColor: color,
+          color: category === "scratch-pad" ? COLORS.black : COLORS.white,
+          marginBottom: 8,
+        }}
+      >
+        {label}
+      </span>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -236,10 +272,20 @@ const NewsletterArchive = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {currentNewsletters.map((newsletter) => {
                 const summary = getSubtitle(newsletter);
+                // Make entire card clickable and accessible
                 return (
                   <div
                     key={newsletter.id}
-                    className="group rounded-2xl shadow-sm overflow-hidden bg-[#F9FAFB] flex flex-col border border-gray-200 transform transition-all hover:shadow-lg hover:-translate-y-1"
+                    className="group rounded-2xl shadow-sm overflow-hidden bg-[#F9FAFB] flex flex-col border border-gray-200 transform transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer focus:outline-none"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Read newsletter: ${newsletter.title}`}
+                    onClick={() => handleViewNewsletter(newsletter)}
+                    onKeyPress={e => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        handleViewNewsletter(newsletter);
+                      }
+                    }}
                   >
                     {/* Image */}
                     <div className="relative aspect-video overflow-hidden">
@@ -258,6 +304,9 @@ const NewsletterArchive = () => {
 
                     {/* Card Body */}
                     <div className="flex flex-col flex-grow px-4 py-3">
+                      {/* CATEGORY TAG */}
+                      {renderCategoryTag(newsletter.category)}
+
                       <h3
                         className="text-[#1C2852] text-base font-semibold mb-2 line-clamp-2 group-hover:text-[#C00000] transition-colors"
                         style={{
@@ -278,16 +327,24 @@ const NewsletterArchive = () => {
 
                       <div className="flex items-center justify-between text-gray-600 text-sm mt-auto mb-2">
                         <button
-                          onClick={() => handleViewNewsletter(newsletter)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleViewNewsletter(newsletter);
+                          }}
                           className="flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors"
+                          tabIndex={-1}
                         >
                           <Play className="w-4 h-4 flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors" />
                           <span>Read Now</span>
                         </button>
 
                         <button
-                          onClick={() => handleShare(newsletter)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleShare(newsletter);
+                          }}
                           className="flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors"
+                          tabIndex={-1}
                         >
                           <Share2 className="w-4 h-4 flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors" />
                           <span>Share</span>

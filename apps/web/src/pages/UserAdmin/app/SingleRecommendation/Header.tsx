@@ -62,23 +62,39 @@ const Header = ({ stock, selectedPerformanceIndex }) => {
       ? formatDate(stock.dateExit)
       : "N/A";
 
-  // Holding period, prefer from perf
+  // Holding period as plain text, do not parse, and do not add "days" (may be "2 years", "3 quarters", etc.)
   const holdingPeriod =
     performance?.holding_period && performance.holding_period.length > 0
-      ? `${performance.holding_period} days`
+      ? performance.holding_period
       : typeof stock?.holdingPeriod === "string"
       ? stock.holdingPeriod
       : typeof stock?.holdingPeriod === "number"
-      ? `${stock.holdingPeriod} days`
+      ? String(stock.holdingPeriod)
       : "N/A";
 
-  // Total return, prefer per perf
-  const totalReturnNum = performance?.total_return !== undefined && performance.total_return !== ""
-    ? Number(performance.total_return)
-    : typeof stock.percentReturn !== "undefined" && stock.percentReturn !== null
-    ? Number(stock.percentReturn)
-    : 0;
-  const totalReturnColor = totalReturnNum >= 0 ? "text-green-600" : "text-red-600";
+  // Total return as plain text, do not parse; handle as string if present, else fallback, else "N/A"
+  const totalReturn =
+    performance?.total_return && performance.total_return !== ""
+      ? performance.total_return
+      : typeof stock?.percentReturn === "string" && stock.percentReturn !== ""
+      ? stock.percentReturn
+      : typeof stock?.percentReturn !== "undefined" && stock.percentReturn !== null
+      ? String(stock.percentReturn)
+      : "N/A";
+
+  // Use color for totalReturn if it appears to be negative (contains -), otherwise use green if it's a number >=0, else text-gray-900
+  let totalReturnColor = "text-gray-900";
+  if (
+    typeof totalReturn === "string" &&
+    totalReturn.trim().length > 0
+  ) {
+    if (totalReturn.trim().startsWith('-')) {
+      totalReturnColor = "text-red-600";
+    } else if (!isNaN(Number(totalReturn))) {
+      totalReturnColor =
+        Number(totalReturn) >= 0 ? "text-green-600" : "text-red-600";
+    }
+  }
 
   // Exit status
   const isExit =
@@ -116,9 +132,7 @@ const Header = ({ stock, selectedPerformanceIndex }) => {
         },
         {
           label: "Total Return",
-          value: `${
-            !isNaN(totalReturnNum) && totalReturnNum >= 0 ? "+" : ""
-          }${!isNaN(totalReturnNum) ? totalReturnNum : 0}%`,
+          value: totalReturn,
           color: totalReturnColor
         }
       ]
@@ -149,9 +163,7 @@ const Header = ({ stock, selectedPerformanceIndex }) => {
         },
         {
           label: "Total Return",
-          value: `${
-            !isNaN(totalReturnNum) && totalReturnNum >= 0 ? "+" : ""
-          }${!isNaN(totalReturnNum) ? totalReturnNum : 0}%`,
+          value: totalReturn,
           color: totalReturnColor
         },
         {

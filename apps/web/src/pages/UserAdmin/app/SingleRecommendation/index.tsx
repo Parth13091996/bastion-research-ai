@@ -195,7 +195,7 @@ const SingleRecommendation = () => {
                             setSelectedPerformanceIndex(parseInt(v, 10))
                           }
                         >
-                          <SelectTrigger className="w-full max-w-xs">
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select date" />
                           </SelectTrigger>
                           <SelectContent>
