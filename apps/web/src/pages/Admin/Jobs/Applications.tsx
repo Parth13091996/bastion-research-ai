@@ -14,6 +14,7 @@ import { Edit, Trash2, Plus } from "lucide-react";
 import { confirmDelete } from "@/utils/confirm";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import { queryKeys } from "@/api/queryKeys";
+import ExpandableCell from "@/components/admin/ExpandableCell";
 
 const Applications = () => {
   const gridRef = useRef<AgGridReact>(null);
@@ -161,14 +162,18 @@ const Applications = () => {
       field: "cover_letter",
       flex: 2,
       minWidth: 240,
-      tooltipField: "cover_letter",
-      valueFormatter: (p) => {
-        if (!p.value) return "";
-        const str = String(p.value);
-        return str.length > 120 ? `${str.slice(0, 120)}…` : str;
-      },
+      cellRenderer: (params: any) => (
+        <ExpandableCell value={params.value} limit={120} title="Cover Letter" />
+      ),
     },
-    { headerName: "Comments", field: "comments", editable: true },
+    {
+      headerName: "Comments",
+      field: "comments",
+      editable: true,
+      cellRenderer: (params: any) => (
+        <ExpandableCell value={params.value} limit={50} title="Comments" />
+      ),
+    },
     { headerName: "Date Applied", field: "date_applied" },
     { headerName: "Status", field: "status" },
     {

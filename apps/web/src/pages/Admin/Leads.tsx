@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ColDef } from "ag-grid-community";
 import { useState } from "react";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
+import ExpandableCell from "@/components/admin/ExpandableCell";
 
 type Lead = {
   lead_id: number;
@@ -53,7 +54,7 @@ const LeadsPage = () => {
     setEditOpen(false);
   };
 
-  const deleteLead = (row: Lead) => deleteMutation.mutate(row.lead_id);
+  const handleDeleteLead = (row: Lead) => deleteMutation.mutate(row.lead_id);
 
   const columns: ColDef<Lead>[] = [
     { headerName: "ID", field: "lead_id", width: 90 },
@@ -66,7 +67,9 @@ const LeadsPage = () => {
       field: "message",
       flex: 2,
       minWidth: 240,
-      valueFormatter: (p) => (p.value ? String(p.value).slice(0, 120) : ""),
+      cellRenderer: (params: any) => (
+        <ExpandableCell value={params.value} limit={40} title="Message" />
+      ),
     },
     { headerName: "Status", field: "status", minWidth: 120 },
     {
@@ -75,6 +78,9 @@ const LeadsPage = () => {
       flex: 1.2,
       minWidth: 180,
       editable: true,
+      cellRenderer: (params: any) => (
+        <ExpandableCell value={params.value} limit={40} title="Comments" />
+      ),
     },
     {
       headerName: "Created",
@@ -93,7 +99,7 @@ const LeadsPage = () => {
         loading={isLoading}
         error={(error as any)?.message}
         onEdit={openEdit}
-        onDelete={deleteLead}
+        onDelete={handleDeleteLead}
         singleClickEdit
         onCellValueChanged={(e) => {
           const row = e.data as Lead;
