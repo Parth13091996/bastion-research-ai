@@ -61,6 +61,7 @@ interface StockData {
   dateRecommended?: string;
   holdingPeriod?: string;
   dateExit?: string;
+  cmpOrExitPrice?: string | number;
 }
 /**
  * Controls for search, sort, and filter.
