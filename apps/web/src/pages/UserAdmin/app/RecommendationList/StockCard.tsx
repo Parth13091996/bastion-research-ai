@@ -2,7 +2,7 @@ import { userCompanyAnalytics } from "@/api/recommendations-apis";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COLORS, getBlurStyle, getGainPercent, getLossPercent } from "./utils";
+import { COLORS, getBlurStyle, getGainPercent, getLossPercent, isExited } from "./utils";
 import StockCardHeader from "./StockCardHeader";
 import BandUpsidePills from "./BandsUpsidePills";
 import ProgressBar from "./ProgressBar";
@@ -18,13 +18,36 @@ const StockCard = ({ stock }: { stock: StockData }) => {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const navigate = useNavigate();
 
+  const exited = isExited(stock);
+
+  // Helper to safely get exit price from performance array if available
+  const getExitPriceFromPerf = () => {
+    // Cast to any to access potential stock_performance_url if not in Type
+    const perfData = (stock as any).stock_performance_url;
+    if (Array.isArray(perfData)) {
+      // Look for the first entry with a valid exit_price
+      const exitItem = perfData.find((p: any) => p.exit_price && !isNaN(Number(p.exit_price)));
+      if (exitItem) return Number(exitItem.exit_price);
+    }
+    return null;
+  };
+
+  const exitPriceFromPerf = getExitPriceFromPerf();
+
+  // If exited, prefer: performance exit price > cmpOrExitPrice > cmp
+  const effectiveCmp = exited
+    ? (exitPriceFromPerf ?? (stock.cmpOrExitPrice ? Number(stock.cmpOrExitPrice) : Number(stock.cmp ?? 0)))
+    : Number(stock.cmp ?? 0);
+
+  const priceLabel = exited ? "Exit Price" : "CMP";
+
   const gainPercent = getGainPercent(
-    Number(stock.cmp ?? 0), 
-    Number(stock.entryPrice ?? 0), 
+    effectiveCmp,
+    Number(stock.entryPrice ?? 0),
     Number(stock.target1 ?? 0)
   );
   const lossPercent = getLossPercent(
-    Number(stock.cmp ?? 0),
+    effectiveCmp,
     Number(stock.entryPrice ?? 0)
   );
   const blurStyle = getBlurStyle(isPaid);
@@ -46,6 +69,8 @@ const StockCard = ({ stock }: { stock: StockData }) => {
         gainPercent={gainPercent}
         lossPercent={lossPercent}
         blurStyle={blurStyle}
+        currentPrice={effectiveCmp}
+        priceLabel={priceLabel}
       />
       <ViewResearchButton
         isPaid={isPaid}
