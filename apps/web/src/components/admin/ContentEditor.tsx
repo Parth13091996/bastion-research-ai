@@ -58,6 +58,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   const [isPreview, setIsPreview] = useState(false);
   const [uploading, setUploading] = useState<Record<string, boolean>>({
     featured_image: false,
+    headline_image: false,
   });
 
   const handleFileUpload = async (
@@ -203,16 +204,54 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     // Headline image (newsletter only)
     if (type === "newsletters") {
       fields.push(
-        <div key="headline_image_url" className="space-y-2">
-          <Label htmlFor="headline_image_url">Headline Image URL</Label>
-          <Input
-            id="headline_image_url"
-            value={formData.headline_image_url}
-            onChange={(e) =>
-              handleInputChange("headline_image_url", e.target.value)
-            }
-            placeholder="Enter image URL"
-          />
+        <div key="headline_image_block" className="space-y-4">
+          <div className="space-y-2">
+            <Label>Headline Image</Label>
+            <div className="flex gap-2 items-center">
+              <label className="cursor-pointer">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading.headline_image}
+                  asChild
+                >
+                  <span className="flex items-center">
+                    <Upload className="h-4 w-4 mr-1" />
+                    {uploading.headline_image ? "Uploading..." : "Upload File"}
+                  </span>
+                </Button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file)
+                      handleFileUpload("headline_image", file, (url: string) => {
+                        handleInputChange("headline_image_url", url);
+                      });
+                  }}
+                />
+              </label>
+              {formData.headline_image_url && (
+                <span className="text-sm text-gray-500 max-w-xs truncate">
+                  {formData.headline_image_url}
+                </span>
+              )}
+            </div>
+          </div>
+          <div key="headline_image_url" className="space-y-2">
+            <Label htmlFor="headline_image_url">Headline Image URL</Label>
+            <Input
+              id="headline_image_url"
+              value={formData.headline_image_url}
+              onChange={(e) =>
+                handleInputChange("headline_image_url", e.target.value)
+              }
+              placeholder="Enter image URL"
+            />
+          </div>
         </div>
       );
     }
@@ -350,19 +389,19 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
               placeholder="Enter featured image URL"
             />
             <label className="cursor-pointer">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploading.logo}
-                asChild
-              >
-                <span>
-                  <Upload className="h-4 w-4 mr-1" />
-                  {uploading.logo ? "Uploading..." : "Upload"}
-                </span>
-              </Button>
-              <input
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading.featured_image}
+              asChild
+            >
+              <span>
+                <Upload className="h-4 w-4 mr-1" />
+                  {uploading.featured_image ? "Uploading..." : "Upload"}
+              </span>
+            </Button>
+            <input
                 type="file"
                 accept="image/*"
                 className="hidden"

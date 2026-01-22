@@ -23,6 +23,7 @@ import recommendationRoutes from "./routes/recommendation.routes";
 import settingsRoutes from "./routes/settings.routes";
 import scratchPadRoutes from "./routes/scratchpad.routes";
 import zohoBooksRoutes from "./routes/zoho-books.routes";
+import { startSubscriptionExpiryReminderJob } from "./automations/subscriptionReminder.scheduler";
 
 dotenv.config();
 
@@ -88,5 +89,7 @@ const host = "0.0.0.0";
 app.listen(port, host, () => {
   console.log(`[server]: Server is running at http://${host}:${port}`);
 });
+
+startSubscriptionExpiryReminderJob();
 
 export default app;

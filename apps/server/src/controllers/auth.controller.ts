@@ -5,6 +5,7 @@ import { config } from "../utils/config";
 import { supabase } from "../supabase";
 import crypto from "crypto";
 import sendEmail from "../utils/email";
+import { sendWelcomeEmail } from "../services/emailNotification.service";
 import { validateEmailOtp } from "./otp.controller";
 import { incrementCouponUsage } from "./coupon.controller";
 type OnboardingUserData = {
@@ -304,6 +305,7 @@ export const onboardUser = async (req: Request, res: Response) => {
       role: role,
       plan_id,
     };
+    let planDetails: { plan_name?: string | null } | null = null;
 
     // If a plan is attached at onboarding (e.g. free tier),
     // pre-compute subscription start and expiry dates based on plan duration.
@@ -311,11 +313,12 @@ export const onboardUser = async (req: Request, res: Response) => {
       try {
         const { data: planRow, error: planError } = await supabase
           .from("membership_plans")
-          .select("duration_months")
+          .select("duration_months, plan_name")
           .eq("plan_id", plan_id as any)
           .maybeSingle();
 
         if (!planError && planRow) {
+          planDetails = planRow as { plan_name?: string | null };
           const start = new Date();
           const startDateStr = start.toISOString().split("T")[0];
           let endDateStr: string | null = null;
@@ -383,6 +386,18 @@ export const onboardUser = async (req: Request, res: Response) => {
     } catch (e) {
       // ignore schema errors as optional
     }
+
+    const planNameValue = planDetails?.plan_name;
+    let welcomePlanName: string | undefined = undefined;
+    if (typeof planNameValue === "string") {
+      welcomePlanName = planNameValue;
+    }
+    void sendWelcomeEmail({
+      to: email,
+      firstName,
+      username,
+      planName: welcomePlanName,
+    });
 
     // Issue a session cookie so subsequent steps are authenticated
     try {
