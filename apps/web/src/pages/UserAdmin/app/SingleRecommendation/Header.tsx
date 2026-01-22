@@ -31,70 +31,76 @@ const Header = ({ stock, selectedPerformanceIndex }) => {
     performance?.recommendation_date && typeof performance.recommendation_date === "string" && performance.recommendation_date.length > 0
       ? formatDate(performance.recommendation_date)
       : stock?.dateRecommended && typeof stock.dateRecommended === "string"
-      ? formatDate(stock.dateRecommended)
-      : stock?.created_at && typeof stock.created_at === "string"
-      ? formatDate(stock.created_at)
-      : stock?.lastUpdated && typeof stock.lastUpdated === "string"
-      ? formatDate(stock.lastUpdated)
-      : "N/A";
+        ? formatDate(stock.dateRecommended)
+        : stock?.created_at && typeof stock.created_at === "string"
+          ? formatDate(stock.created_at)
+          : stock?.lastUpdated && typeof stock.lastUpdated === "string"
+            ? formatDate(stock.lastUpdated)
+            : "N/A";
 
   const recommendationPrice =
     performance?.recommendation_price && performance.recommendation_price.length > 0 && !isNaN(Number(performance.recommendation_price))
       ? `₹${formatIndianNumber(Number(performance.recommendation_price))}`
       : typeof stock?.entryPrice !== "undefined" && stock.entryPrice !== null && !isNaN(Number(stock.entryPrice))
-      ? `₹${formatIndianNumber(Number(stock.entryPrice))}`
-      : "₹0";
+        ? `₹${formatIndianNumber(Number(stock.entryPrice))}`
+        : "₹0";
 
   const exitPrice =
     performance?.exit_price && performance.exit_price.length > 0 && !isNaN(Number(performance.exit_price))
       ? `₹${formatIndianNumber(Number(performance.exit_price))}`
       : typeof stock?.cmpOrExitPrice !== "undefined" && stock.cmpOrExitPrice !== null && !isNaN(Number(stock.cmpOrExitPrice))
-      ? `₹${formatIndianNumber(Number(stock.cmpOrExitPrice))}`
-      : typeof stock?.cmp !== "undefined" && stock.cmp !== null && !isNaN(Number(stock.cmp))
-      ? `₹${formatIndianNumber(Number(stock.cmp))}`
-      : "₹0";
+        ? `₹${formatIndianNumber(Number(stock.cmpOrExitPrice))}`
+        : typeof stock?.cmp !== "undefined" && stock.cmp !== null && !isNaN(Number(stock.cmp))
+          ? `₹${formatIndianNumber(Number(stock.cmp))}`
+          : "₹0";
 
   // Exit date: Try performance.exit_date, else stock.dateExit
   const exitDate =
     performance?.exit_date && typeof performance.exit_date === "string" && performance.exit_date.length > 0
       ? formatDate(performance.exit_date)
       : stock?.dateExit && typeof stock.dateExit === "string"
-      ? formatDate(stock.dateExit)
-      : "N/A";
+        ? formatDate(stock.dateExit)
+        : "N/A";
 
   // Holding period as plain text, do not parse, and do not add "days" (may be "2 years", "3 quarters", etc.)
   const holdingPeriod =
     performance?.holding_period && performance.holding_period.length > 0
       ? performance.holding_period
       : typeof stock?.holdingPeriod === "string"
-      ? stock.holdingPeriod
-      : typeof stock?.holdingPeriod === "number"
-      ? String(stock.holdingPeriod)
-      : "N/A";
+        ? stock.holdingPeriod
+        : typeof stock?.holdingPeriod === "number"
+          ? String(stock.holdingPeriod)
+          : "N/A";
 
   // Total return as plain text, do not parse; handle as string if present, else fallback, else "N/A"
-  const totalReturn =
+  const totalReturnRaw =
     performance?.total_return && performance.total_return !== ""
       ? performance.total_return
       : typeof stock?.percentReturn === "string" && stock.percentReturn !== ""
-      ? stock.percentReturn
-      : typeof stock?.percentReturn !== "undefined" && stock.percentReturn !== null
-      ? String(stock.percentReturn)
-      : "N/A";
+        ? stock.percentReturn
+        : typeof stock?.percentReturn !== "undefined" && stock.percentReturn !== null
+          ? String(stock.percentReturn)
+          : null;
+
+  const totalReturnNumber =
+    totalReturnRaw !== null && totalReturnRaw !== undefined &&
+      !isNaN(Number(totalReturnRaw))
+      ? Number(totalReturnRaw)
+      : null;
+
+  const totalReturn =
+    totalReturnNumber !== null ? `${totalReturnNumber}%` : "N/A";
+
+
 
   // Use color for totalReturn if it appears to be negative (contains -), otherwise use green if it's a number >=0, else text-gray-900
   let totalReturnColor = "text-gray-900";
-  if (
-    typeof totalReturn === "string" &&
-    totalReturn.trim().length > 0
-  ) {
-    if (totalReturn.trim().startsWith('-')) {
-      totalReturnColor = "text-red-600";
-    } else if (!isNaN(Number(totalReturn))) {
-      totalReturnColor =
-        Number(totalReturn) >= 0 ? "text-green-600" : "text-red-600";
-    }
+
+  if (totalReturnNumber !== null) {
+    totalReturnColor =
+      totalReturnNumber >= 0 ? "text-green-600" : "text-red-600";
   }
+
 
   // Exit status
   const isExit =
@@ -110,72 +116,72 @@ const Header = ({ stock, selectedPerformanceIndex }) => {
   // Metrics: Show all exit related info from selected performance if available.
   const stockMetrics = isExit
     ? [
-        {
-          label: "Recommendation Date",
-          value: recommendationDate
-        },
-        {
-          label: "Recommendation Price",
-          value: recommendationPrice
-        },
-        {
-          label: "Exit Price",
-          value: exitPrice
-        },
-        {
-          label: "Exit Date",
-          value: exitDate
-        },
-        {
-          label: "Holding Period",
-          value: holdingPeriod ? holdingPeriod : "N/A"
-        },
-        {
-          label: "Total Return",
-          value: totalReturn,
-          color: totalReturnColor
-        }
-      ]
+      {
+        label: "Recommendation Date",
+        value: recommendationDate
+      },
+      {
+        label: "Recommendation Price",
+        value: recommendationPrice
+      },
+      {
+        label: "Exit Price",
+        value: exitPrice
+      },
+      {
+        label: "Exit Date",
+        value: exitDate
+      },
+      {
+        label: "Holding Period",
+        value: holdingPeriod ? holdingPeriod : "N/A"
+      },
+      {
+        label: "Total Return",
+        value: totalReturn,
+        color: totalReturnColor
+      }
+    ]
     : [
-        {
-          label: "Recommendation Date",
-          value: recommendationDate
-        },
-        {
-          label: "Recommendation Price",
-          value: recommendationPrice
-        },
-        {
-          label: "Target Price",
-          value:
-            typeof stock?.target1 !== "undefined" && stock.target1 !== null && !isNaN(Number(stock.target1))
-              ? `₹${formatIndianNumber(Number(stock.target1))}`
-              : typeof stock?.targetPrice !== "undefined" && stock.targetPrice !== null && !isNaN(Number(stock.targetPrice))
+      {
+        label: "Recommendation Date",
+        value: recommendationDate
+      },
+      {
+        label: "Recommendation Price",
+        value: recommendationPrice
+      },
+      {
+        label: "Target Price",
+        value:
+          typeof stock?.target1 !== "undefined" && stock.target1 !== null && !isNaN(Number(stock.target1))
+            ? `₹${formatIndianNumber(Number(stock.target1))}`
+            : typeof stock?.targetPrice !== "undefined" && stock.targetPrice !== null && !isNaN(Number(stock.targetPrice))
               ? `₹${formatIndianNumber(Number(stock.targetPrice))}`
               : "₹0"
-        },
-        {
-          label: "CMP",
-          value:
-            typeof stock?.cmp !== "undefined" && stock.cmp !== null && !isNaN(Number(stock.cmp))
-              ? `₹${formatIndianNumber(Number(stock.cmp))}`
-              : "₹0"
-        },
-        {
-          label: "Total Return",
-          value: totalReturn,
-          color: totalReturnColor
-        },
-        {
-          label: "Upside Left",
-          value:
-            typeof stock?.cmp === "number" && stock.cmp > 0 &&
+      },
+      {
+        label: "CMP",
+        value:
+          typeof stock?.cmp !== "undefined" && stock.cmp !== null && !isNaN(Number(stock.cmp))
+            ? `₹${formatIndianNumber(Number(stock.cmp))}`
+            : "₹0"
+      },
+      {
+        label: "Total Return",
+        value: totalReturn,
+        color: totalReturnColor
+      },
+      {
+        label: "Upside Left",
+        value:
+          typeof stock?.cmp === "number" && stock.cmp > 0 &&
             typeof stock?.target1 === "number"
-              ? `${Math.round(((stock.target1 - stock.cmp) / stock.cmp) * 100)}%`
-              : "0%",
-          color: "text-blue-600"
-        }
-      ];
+            ? `${Math.round(((stock.target1 - stock.cmp) / stock.cmp) * 100)}%`
+            : "0%",
+        color: "text-blue-600"
+      }
+    ];
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm md:sticky md:top-0 md:z-10">

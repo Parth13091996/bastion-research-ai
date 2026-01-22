@@ -26,7 +26,7 @@ const FooterTermAndCondition = () => {
         <h1 className="text-4xl font-bold mb-6">
           Terms And Conditions For Bastionresearch.In
         </h1>
-        <p className="mb-6 ">Effective Date: 1st August 2023</p>
+        <p className="mb-6 ">Effective Date: 9th September 2025</p>
 
         <p className="mb-6">
           The Website Owner, including subsidiaries and affiliates ("Website" or
@@ -43,8 +43,8 @@ const FooterTermAndCondition = () => {
           Welcome to our website. If you continue to browse and use this website
           you are agreeing to comply with and be bound by the following terms
           and conditions of use, which together with our{" "}
-          <a 
-            href="/privacy-policy" 
+          <a
+            href="/privacy-policy"
             className="text-red-600 underline"
           >
             privacy policy

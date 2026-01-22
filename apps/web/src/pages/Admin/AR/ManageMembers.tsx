@@ -4,6 +4,7 @@ import { UserActivityDropdown } from "@/components/admin/UserActivityDropdown";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useEditMemberStore } from "@/stores/edit-member-store";
+import { useViewMemberStore } from "@/stores/view-member-store";
 import { useModalStore } from "@/stores/modal-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColDef } from "ag-grid-community";
@@ -11,6 +12,8 @@ import { Mail, Shield, Trash2, User, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import axiosInstance from "@/api/axios";
+import ViewMemberModal from "@/components/core/common/Modals/ViewMemberModal";
+import { differenceInDays } from "date-fns";
 
 // Reuse UI patterns from All Users table
 const RoleRenderer = (params: any) => {
@@ -167,6 +170,7 @@ const MemberManagementDashboard = () => {
   };
 
   const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const setIsModalOpen = useModalStore((s) => s.set);
 
   const updateMutation = useMutation({
@@ -229,6 +233,27 @@ const MemberManagementDashboard = () => {
       minWidth: 120,
     },
     {
+      headerName: "Expires In",
+      field: "subscription_end_date",
+      width: 120,
+      cellRenderer: (params: any) => {
+        const endDate = params.value;
+        if (!endDate) return <span className="text-gray-400">-</span>;
+
+        const daysLeft = differenceInDays(new Date(endDate), new Date());
+
+        if (daysLeft < 0) {
+          return <span className="text-red-600 font-medium">Expired</span>;
+        }
+
+        if (daysLeft <= 7) {
+          return <span className="text-amber-600 font-medium">{daysLeft} days</span>;
+        }
+
+        return <span>{daysLeft} days</span>;
+      },
+    },
+    {
       headerName: "Logins",
       field: "id",
       width: 100,
@@ -273,9 +298,14 @@ const MemberManagementDashboard = () => {
   ];
 
   const openEditMember = useEditMemberStore((s) => s.open);
+  const openViewMember = useViewMemberStore((s) => s.open);
 
   const handleEdit = (row: any) => {
     openEditMember(row);
+  };
+
+  const handleView = (row: any) => {
+    openViewMember(row);
   };
 
   const handleDelete = (row: any) => {
@@ -343,6 +373,54 @@ const MemberManagementDashboard = () => {
     window.open(`mailto:${emails}`, "_blank");
   };
 
+  // Logic for counts and filtering
+  const users = rowData || [];
+  const roleCounts: Record<string, number> = {
+    all: users.length,
+    admin: 0,
+    employee: 0,
+    core_subscriber: 0,
+    ipo_subscriber: 0,
+    research_ally_subscriber: 0,
+  };
+
+  users.forEach((u: any) => {
+    let role = (u.role || "employee").toLowerCase().trim();
+    // Normalize: replace spaces/hyphens with underscores to match keys
+    role = role.replace(/[\s-]/g, "_");
+
+    if (roleCounts[role] !== undefined) {
+      roleCounts[role]++;
+    } else {
+      // Fallback: try to map common variations if needed, or just log/count as is.
+      // If we encounter a role not in our predefined keys, we can just ignore it or count it under a "other" bucket if we had one.
+      // For now, we only care about the specific keys in roleCounts.
+      // If we really want to capture everything:
+      // roleCounts[role] = (roleCounts[role] || 0) + 1;
+
+      // But since our buttons are hardcoded to specific keys, counting unknown roles won't help the buttons.
+      // Let's ensure "core subscriber" -> "core_subscriber" mapping works.
+      if (role.includes("core") && role.includes("sub")) roleCounts.core_subscriber++;
+      else if (role.includes("ipo") && role.includes("sub")) roleCounts.ipo_subscriber++;
+      else if (role.includes("research") && role.includes("ally")) roleCounts.research_ally_subscriber++;
+      else if (role === "admin" || role === "administrator") roleCounts.admin++;
+      else roleCounts.employee++; // Default fallback
+    }
+  });
+
+  const filteredData = selectedRole
+    ? users.filter((u: any) => (u.role || "employee") === selectedRole)
+    : users;
+
+  const roleFilterButtons = [
+    { label: "All Users", value: null, count: roleCounts.all },
+    { label: "Core Subs", value: "core_subscriber", count: roleCounts.core_subscriber },
+    { label: "IPO Subs", value: "ipo_subscriber", count: roleCounts.ipo_subscriber },
+    { label: "Research Ally", value: "research_ally_subscriber", count: roleCounts.research_ally_subscriber },
+    { label: "Employees", value: "employee", count: roleCounts.employee },
+    { label: "Admins", value: "admin", count: roleCounts.admin },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -362,20 +440,55 @@ const MemberManagementDashboard = () => {
         </Button>
       </div>
 
+      {/* Role Filters & Table Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Members</h2>
+          <p className="text-muted-foreground text-sm">
+            {rowData?.length || 0} total users
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 p-1 bg-muted/50 rounded-lg border">
+          {roleFilterButtons.map((role) => {
+            const isSelected = selectedRole === role.value;
+            return (
+              <button
+                key={role.label}
+                onClick={() => setSelectedRole(role.value)}
+                className={`
+                  relative flex items-center px-3 py-1.5 text-sm font-medium transition-all rounded-md
+                  ${isSelected
+                    ? "bg-white text-foreground shadow-sm ring-1 ring-black/5"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }
+                `}
+              >
+                <span>{role.label}</span>
+                <span className={`ml-2 text-xs py-0.5 px-1.5 rounded-full ${isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                  {role.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Data Table */}
       <DataTable
-        data={rowData || []}
+        data={filteredData}
         columns={columns}
         loading={loading}
         error={error?.message}
         onSelectionChange={setSelectedMembers}
         onEdit={handleEdit}
+        onView={handleView}
         onDelete={handleDelete}
         bulkActions={bulkActions}
         searchPlaceholder="Search members by name, email, or username..."
-        title="Members"
-        description={`${rowData?.length || 0} total users`}
+      // Title and description handled externally now
       />
+      <ViewMemberModal />
     </div>
   );
 };

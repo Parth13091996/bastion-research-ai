@@ -26,18 +26,41 @@ const FOOTER_LINKS = {
     { label: "Privacy Policy", to: "/privacy-policy" },
     { label: "Terms and Conditions", to: "/terms-and-conditions" },
     { label: "Compliance", to: "/compliance" },
+    {
+      label: "SEBI SCORES",
+      to: "https://scores.sebi.gov.in/scores-home",
+      external: true,
+    },
+    {
+      label: "SMARTODR",
+      to: "https://smartodr.in/login",
+      external: true,
+    },
   ],
 };
 
-const LinkItem = ({ to, label }) => (
+const LinkItem = ({ to, label, external = false }) => (
   <li>
-    <Link
-      to={to}
-      className="relative group transition-colors inline-block"
-    >
-      {label}
-      <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full" />
-    </Link>
+    {external ? (
+      <a
+        href={to}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative group transition-colors inline-block"
+      >
+        {label}
+        <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full" />
+      </a>
+    ) : (
+      <Link
+        to={to}
+        onClick={() => window.scrollTo(0, 0)}
+        className="relative group transition-colors inline-block"
+      >
+        {label}
+        <span className="absolute left-0 bottom-0 w-0 h-px bg-red-200 transition-all duration-300 group-hover:w-full" />
+      </Link>
+    )}
   </li>
 );
 
@@ -162,7 +185,7 @@ const Footer = () => {
             Bastion CORE is an independent equity research platform providing unbiased equity research to its subscribers. We do not recommend investing in any company covered and published by us as a part of our research activity to our Bastion CORE. The subscriber is solely responsible for all investment and financial decisions he/she takes and is requested to conduct due diligence himself/herself or consult his/her financial advisor before taking any action. Please note that Bastion Research takes no responsibility for the financial impact created due to the decisions taken by the subscriber. If one is unwilling to accept the above-mentioned facts, we request them to not subscribe to Bastion CORE.
           </p>
           <p>
-            Investment in Securities Market are subject to market risks. Read all related documents carefully before investing. The securities quoted are for illustration only and are not recommendatory. Registration granted by SEBI, membership of a SEBI recognised supervisory body (if any) and certification from NISM in no way guarantee performance of the intermediary or provide any assurance of returns to investors.
+            Investment in Securities Market are subject to market risks. Read all related documents carefully before investing. The securities quoted are for illustration only and are not recommendatory. Registration granted by SEBI, enlistment of BSE and certification from NISM in no way guarantee performance of the intermediary or provide any assurance of returns to investors.
           </p>
         </div>
 
