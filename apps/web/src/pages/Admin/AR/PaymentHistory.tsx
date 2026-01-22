@@ -8,6 +8,7 @@ import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { Eye, FileText, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
 
 const StatusBadge = ({ value }: { value: string }) => {
   const getStatusColor = (s: string) => {
@@ -124,15 +125,34 @@ const PaymentHistory = () => {
       field: "transaction_status",
       cellRenderer: StatusBadge,
     },
-    { headerName: "Date", field: "payment_date" },
+    {
+      headerName: "Date",
+      field: "payment_date",
+      minWidth: 280,
+      headerClass: "[&_.ag-header-cell-label]:!justify-center",
+      cellRenderer: (params: any) => {
+        if (!params.value) return "";
+        try {
+          const date = new Date(params.value);
+          return (
+            <span>
+              {format(date, "EEEE, MMMM d, yyyy")}
+              <span className="ml-6">{format(date, "hh:mm:ss a")}</span>
+            </span>
+          );
+        } catch (e) {
+          return params.value;
+        }
+      },
+    },
     {
       headerName: "Amount",
       field: "amount",
       valueFormatter: (params) =>
         typeof params.value === "number"
           ? new Intl.NumberFormat("en-IN", {
-              maximumFractionDigits: 2,
-            }).format(params.value)
+            maximumFractionDigits: 2,
+          }).format(params.value)
           : params.value,
     },
     {
