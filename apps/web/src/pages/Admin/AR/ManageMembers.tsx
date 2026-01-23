@@ -17,10 +17,11 @@ import { differenceInDays } from "date-fns";
 
 // Reuse UI patterns from All Users table
 const RoleRenderer = (params: any) => {
-  const role = params.value || "employee";
+  const role = params.value || "free_subscriber";
   const roleConfig = {
     admin: { color: "bg-red-100 text-red-800", icon: Shield },
     employee: { color: "bg-blue-100 text-blue-800", icon: User },
+    free_subscriber: { color: "bg-gray-100 text-gray-800", icon: User },
     core_subscriber: { color: "bg-green-100 text-green-800", icon: User },
     ipo_subscriber: { color: "bg-purple-100 text-purple-800", icon: User },
     research_ally_subscriber: {
@@ -29,7 +30,7 @@ const RoleRenderer = (params: any) => {
     },
   } as const;
 
-  const config = (roleConfig as any)[role] || roleConfig.employee;
+  const config = (roleConfig as any)[role] || roleConfig.free_subscriber;
   const Icon = config.icon as any;
 
   return (
@@ -379,41 +380,37 @@ const MemberManagementDashboard = () => {
     all: users.length,
     admin: 0,
     employee: 0,
+    free_subscriber: 0,
     core_subscriber: 0,
     ipo_subscriber: 0,
     research_ally_subscriber: 0,
   };
 
   users.forEach((u: any) => {
-    let role = (u.role || "employee").toLowerCase().trim();
+    let role = (u.role || "free_subscriber").toLowerCase().trim();
     // Normalize: replace spaces/hyphens with underscores to match keys
     role = role.replace(/[\s-]/g, "_");
 
     if (roleCounts[role] !== undefined) {
       roleCounts[role]++;
     } else {
-      // Fallback: try to map common variations if needed, or just log/count as is.
-      // If we encounter a role not in our predefined keys, we can just ignore it or count it under a "other" bucket if we had one.
-      // For now, we only care about the specific keys in roleCounts.
-      // If we really want to capture everything:
-      // roleCounts[role] = (roleCounts[role] || 0) + 1;
-
-      // But since our buttons are hardcoded to specific keys, counting unknown roles won't help the buttons.
-      // Let's ensure "core subscriber" -> "core_subscriber" mapping works.
+      // Check specific role types and count appropriately
       if (role.includes("core") && role.includes("sub")) roleCounts.core_subscriber++;
       else if (role.includes("ipo") && role.includes("sub")) roleCounts.ipo_subscriber++;
       else if (role.includes("research") && role.includes("ally")) roleCounts.research_ally_subscriber++;
       else if (role === "admin" || role === "administrator") roleCounts.admin++;
-      else roleCounts.employee++; // Default fallback
+      else if (role === "employee") roleCounts.employee++;
+      else roleCounts.free_subscriber++; // Default fallback to free subscriber
     }
   });
 
   const filteredData = selectedRole
-    ? users.filter((u: any) => (u.role || "employee") === selectedRole)
+    ? users.filter((u: any) => (u.role || "free_subscriber") === selectedRole)
     : users;
 
   const roleFilterButtons = [
     { label: "All Users", value: null, count: roleCounts.all },
+    { label: "Free Subs", value: "free_subscriber", count: roleCounts.free_subscriber },
     { label: "Core Subs", value: "core_subscriber", count: roleCounts.core_subscriber },
     { label: "IPO Subs", value: "ipo_subscriber", count: roleCounts.ipo_subscriber },
     { label: "Research Ally", value: "research_ally_subscriber", count: roleCounts.research_ally_subscriber },
