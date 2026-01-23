@@ -1,7 +1,7 @@
 import React from "react";
 import Profile1 from "../../../public/media/parth-profile.png";
 import Profile2 from "../../../public/media/parth-profile.png";
-import Profile3 from "../../../public/media/parth-profile.png";
+import Profile3 from "../../../public/media/navid.png";
 
 const TeamBastion = () => {
   const teamMembers = [
