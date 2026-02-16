@@ -30,15 +30,6 @@ const SiteProtector = () => {
 
       const isGridInteract = isGrid(target);
 
-      // Block F12, Ctrl+Shift+I/J/C
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && ["i", "j", "c", "k"].includes(key))
-      ) {
-        e.preventDefault();
-        return;
-      }
-
       // Block Saving (Ctrl+S), Print (Ctrl+P), etc.
       if (e.ctrlKey && ["s", "p", "a"].includes(key)) {
         e.preventDefault();
