@@ -55,8 +55,15 @@ export function getBlurStyle(isPaid: boolean) {
 export function getGainPercent(
   cmp: number,
   entryPrice: number,
-  target1: number
+  target1?: number
 ) {
+  // If target1 is missing or 0, or less than entry price, use a fixed visual representation (e.g. 50%)
+  if (!target1 || target1 <= entryPrice) {
+    // If it's pure profit with no known target, we can place the pin at 50% visually,
+    // or we can calculate a different scale. Since we just want it to "show the difference
+    // in the bar", pinning it at 50% allows the pin to be in the middle of the green bar.
+    return 50; 
+  }
   let rawGainPercent = ((cmp - entryPrice) / (target1 - entryPrice)) * 100;
   if (rawGainPercent < 0) rawGainPercent = 1;
   return Math.abs(Math.min(rawGainPercent, 100));

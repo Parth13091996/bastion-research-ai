@@ -19,6 +19,17 @@ const ProgressBar = ({
 }) => {
   const exited = isExited(stock);
   const displayPrice = currentPrice ?? Number(stock.cmp ?? 0);
+
+  // If Target1 is missing or zero, use the actual percent return to scale the green bar
+  // (Assuming we want to treat 100% gain as a full bar when there is no target price)
+  let effectiveGainPercent = gainPercent;
+  const target1 = Number(stock.target1 ?? 0);
+  if (!target1 || target1 <= Number(stock.entryPrice ?? 0)) {
+    const profitPoints = displayPrice - Number(stock.entryPrice ?? 0);
+    const relativePercentGain = (profitPoints / Number(stock.entryPrice ?? 0)) * 100;
+    effectiveGainPercent = Math.min(Math.max(relativePercentGain, 15), 100); // cap between 15% and 100%
+  }
+
   return (
     <div className="p-4 mx-4 mb-4 rounded-lg border">
       <div
@@ -32,7 +43,7 @@ const ProgressBar = ({
               <div
                 className="h-4 rounded-full rounded-r-lg transition-all duration-500 absolute"
                 style={{
-                  width: `${gainPercent}%`,
+                  width: `${effectiveGainPercent}%`,
                   backgroundColor: COLORS.darkGreen,
                   left: 0,
                 }}
@@ -50,7 +61,7 @@ const ProgressBar = ({
               <div
                 className="absolute -top-8 text-xs font-semibold text-green-700"
                 style={{
-                  left: `${gainPercent}%`,
+                  left: `${effectiveGainPercent}%`,
                   transform: "translateX(-50%)",
                 }}
               >
