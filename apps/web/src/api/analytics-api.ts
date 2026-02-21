@@ -26,6 +26,7 @@ export interface AnalyticsSummary {
     churnRateMonthly: number; // percentage 0-100
     nearingRenewal: {
       userId: string;
+      email: string | null;
       membershipId: number | string | null;
       planCode: string | null;
       expiresAt: string;

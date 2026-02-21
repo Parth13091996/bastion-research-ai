@@ -338,10 +338,11 @@ export function AnalyticsDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-2">
+
               {summary.subscribers.nearingRenewal.map((s, i) => (
                 <div key={i} className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    {s.userId} • {s.planCode || s.membershipId}
+                    {s.email || s.userId} • {s.planCode || s.membershipId}
                   </div>
                   <Badge variant="secondary">
                     {new Date(s.expiresAt).toLocaleDateString()}
