@@ -342,21 +342,37 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
       : 0;
 
     // Subscribers nearing renewal in next 30 days
-    const nearingRenewal = (subsRows || [])
+    const nearingRenewalRaw = (subsRows || [])
       .filter((s) => !!s.expire_next_renewal)
       .filter((s) => {
         const exp = new Date(s.expire_next_renewal!).getTime();
         const now = Date.now();
         return exp > now && exp - now <= 30 * 24 * 60 * 60 * 1000;
       })
-      .slice(0, 50)
-      .map((s) => ({
-        userId: s.user_id,
-        membershipId: s.membership_id,
-        //@ts-ignore
-        planCode: s.plan_code || null,
-        expiresAt: s.expire_next_renewal,
-      }));
+      .slice(0, 50);
+
+    const nearingRenewalIds = Array.from(new Set(nearingRenewalRaw.map(s => s.user_id).filter(Boolean)));
+    const userEmails: Record<string, string> = {};
+    if (nearingRenewalIds.length > 0) {
+      const { data: usersData } = await supabase
+        .from("users")
+        .select("id, email")
+        .in("id", nearingRenewalIds);
+      if (usersData) {
+        for (const u of usersData) {
+          userEmails[u.id] = u.email;
+        }
+      }
+    }
+
+    const nearingRenewal = nearingRenewalRaw.map((s) => ({
+      userId: s.user_id,
+      email: userEmails[s.user_id] || null,
+      membershipId: s.membership_id,
+      //@ts-ignore
+      planCode: s.plan_code || null,
+      expiresAt: s.expire_next_renewal,
+    }));
 
     // Revenue metrics based on subscriptions amounts (payment success path populates these)
     const withinPeriod = (iso: string | null | undefined, start: Date) => {
