@@ -25,6 +25,12 @@ export const endpoints = {
     base: "/api/leads",
     byId: (id: string | number) => `/api/leads/${id}`,
   },
+  webinarRegistrations: {
+    base: "/api/webinar-registrations",
+    admin: {
+      base: "/api/admin/webinar-registrations",
+    },
+  },
   membershipPlans: {
     base: "/api/membership-plans",
     byId: (id: string | number) => `/api/membership-plans/${id}`,

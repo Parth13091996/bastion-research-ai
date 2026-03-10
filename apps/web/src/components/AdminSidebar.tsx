@@ -85,6 +85,11 @@ const navItems = [
         path: AppRoutes.adminWebinarManagement,
       },
       {
+        name: "Webinar Registrations",
+        icon: Users,
+        path: AppRoutes.adminWebinarRegistrations,
+      },
+      {
         name: "Testimonials",
         icon: Star,
         path: AppRoutes.adminTestimonialManagement,

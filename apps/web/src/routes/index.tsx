@@ -87,6 +87,9 @@ const NewsletterManagement = lazy(
 const WebinarManagement = lazy(
   () => import("../pages/Admin/Content/WebinarManagement")
 );
+const WebinarRegistrations = lazy(
+  () => import("../pages/Admin/Content/WebinarRegistrations")
+);
 const PodcastManagement = lazy(
   () => import("../pages/Admin/Content/PodcastManagement")
 );
@@ -134,6 +137,9 @@ const NewsletterArchive = lazy(
   () => import("../pages/NewsLetter/NewsletterListPage")
 );
 const Webinar = lazy(() => import("../pages/Webinars/WebinarsListPage"));
+const PortfolioRedFlagsWebinar = lazy(
+  () => import("../pages/Webinars/PortfolioRedFlagsWebinar")
+);
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );
@@ -164,6 +170,10 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.podcasts, element: <PublicPodcastsPage /> },
       { path: AppRoutes.newsletter, element: <NewsletterArchive /> },
       { path: AppRoutes.webinar, element: <Webinar /> },
+      {
+        path: AppRoutes.webinarRedFlagsLanding,
+        element: <PortfolioRedFlagsWebinar />,
+      },
       { path: AppRoutes.smartFrameworks, element: <SmartFrameworks /> },
       { path: AppRoutes.newsletterView, element: <NewsletterView /> },
       {
@@ -250,6 +260,10 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminWebinarManagement,
         element: <WebinarManagement />,
+      },
+      {
+        path: AppRoutes.adminWebinarRegistrations,
+        element: <WebinarRegistrations />,
       },
       {
         path: AppRoutes.adminPodcastManagement,

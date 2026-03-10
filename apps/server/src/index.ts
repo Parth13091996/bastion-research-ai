@@ -23,6 +23,7 @@ import recommendationRoutes from "./routes/recommendation.routes";
 import settingsRoutes from "./routes/settings.routes";
 import scratchPadRoutes from "./routes/scratchpad.routes";
 import zohoBooksRoutes from "./routes/zoho-books.routes";
+import webinarRegistrationsRoutes from "./routes/webinar-registrations.routes";
 
 dotenv.config();
 
@@ -74,6 +75,7 @@ app.use("/api", recommendationRoutes);
 app.use("/api", settingsRoutes);
 app.use("/api", scratchPadRoutes);
 app.use("/api", zohoBooksRoutes);
+app.use("/api", webinarRegistrationsRoutes);
 
 app.set("trust proxy", 1); // if you use secure cookies or rely on req.protocol
 

@@ -39,6 +39,7 @@ import {
   listMailchimpNewsletters,
   setMailchimpNewsletterHidden,
 } from "../controllers/mailchimp.controller";
+import { listWebinarRegistrations } from "../controllers/webinar-registrations.controller";
 
 const router = Router();
 
@@ -105,6 +106,14 @@ router.get("/content/testimonials/:id", protect, admin, getTestimonial);
 router.post("/content/testimonials", protect, admin, createTestimonial);
 router.put("/content/testimonials/:id", protect, admin, updateTestimonial);
 router.delete("/content/testimonials/:id", protect, admin, deleteTestimonial);
+
+// Webinar registrations (admin only)
+router.get(
+  "/webinar-registrations",
+  protect,
+  admin,
+  listWebinarRegistrations
+);
 
 // Admin settings (full object)
 router.get("/settings", protect, admin, getAdminSettings);

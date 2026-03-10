@@ -8,4 +8,5 @@ export const queryKeys = {
   podcasts: "podcasts",
   research: "research",
   leads: "leads",
+  webinar_registrations: "webinar-registrations",
 };
