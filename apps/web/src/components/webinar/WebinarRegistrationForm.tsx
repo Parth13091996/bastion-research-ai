@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createWebinarRegistration } from "@/api/webinar-registrations-api";
+import mailchimpNewsletterApi from "@/api/mailchimp-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,28 +22,21 @@ export function WebinarRegistrationForm({
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Mailchimp subscribe helper
+  // Mailchimp subscribe helper via backend API
   const subscribeToMailchimp = async (email: string) => {
-    const formData = new FormData();
-    formData.append("EMAIL", email);
-    formData.append(
-      "b_158dbb8b064fdd32c6ba69a49_359e20a2f7",
-      "" // hidden field for spam bots
-    );
+    const baseTags = ["webinar-registration"];
+    const slugTag =
+      webinarSlug && webinarSlug.trim()
+        ? [`webinar-${webinarSlug.trim()}`]
+        : [];
 
     try {
-      await fetch(
-        "https://bastionresearch.us18.list-manage.com/subscribe/post?u=158dbb8b064fdd32c6ba69a49&id=359e20a2f7&f_id=0081b2e6f0",
-        {
-          method: "POST",
-          mode: "no-cors",
-          body: formData,
-        }
-      );
-      // Mailchimp doesn't send CORS response, so we don't actually "know" if this succeeded
-      // but carry on either way
+      await mailchimpNewsletterApi.subscribe({
+        email,
+        tags: [...baseTags, ...slugTag],
+      });
     } catch (error) {
-      // We will not notify failure, as there is no CORS response anyway
+      // Mailchimp failures should not block webinar registration
       console.error("Mailchimp integration error:", error);
     }
   };
