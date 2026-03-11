@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteWebinarRegistration, getWebinarRegistrations } from "@/api/webinar-registrations-api";
 import {
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Trash2, Users } from "lucide-react";
+import { Calendar, Trash2, Users, Download } from "lucide-react";
 import { queryKeys } from "@/api/queryKeys";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -23,13 +24,39 @@ type WebinarRegistration = {
   email: string;
   phone?: string | null;
   webinar_slug?: string | null;
-  source?: string | null;
-  utm_source?: string | null;
-  utm_medium?: string | null;
-  utm_campaign?: string | null;
 };
 
+function downloadCSV(data: WebinarRegistration[]) {
+  if (data.length === 0) return;
+
+  const toCSVValue = (v: any) =>
+    `"${(v ?? "").toString().replace(/"/g, '""')}"`;
+
+  const headers = [
+    "id",
+    "created_at",
+    "name",
+    "email",
+    "phone",
+    "webinar_slug",
+  ];
+
+  const csv =
+    headers.join(",") +
+    "\n" +
+    data
+      .map((row) => headers.map((key) => toCSVValue((row as any)[key])).join(","))
+      .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "webinar_registrations.csv";
+  link.click();
+}
+
 const WebinarRegistrationsPage: React.FC = () => {
+  const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery<WebinarRegistration[]>({
     queryKey: [queryKeys.webinar_registrations],
@@ -55,7 +82,18 @@ const WebinarRegistrationsPage: React.FC = () => {
     deleteMutation.mutate(item.id);
   };
 
-  const items = data || [];
+  const items: WebinarRegistration[] = useMemo(() => {
+    if (!data) return [];
+    if (!search.trim()) return data;
+    const lower = search.toLowerCase();
+    return data.filter(
+      (r) =>
+        r.name?.toLowerCase().includes(lower) ||
+        r.email?.toLowerCase().includes(lower) ||
+        (r.phone && r.phone.toLowerCase().includes(lower)) ||
+        (r.webinar_slug && r.webinar_slug.toLowerCase().includes(lower))
+    );
+  }, [data, search]);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -64,6 +102,31 @@ const WebinarRegistrationsPage: React.FC = () => {
           <Users className="h-6 w-6 text-red-500" />
           <h1 className="text-2xl font-bold">Webinar Registrations</h1>
           <Badge variant="secondary">{items.length} registrations</Badge>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            className="border rounded px-2 py-1 text-sm"
+            placeholder="Search by name, email, phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              minWidth: 180,
+              outline: "none",
+              borderColor: "#ddd",
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="flex items-center space-x-1"
+            onClick={() => downloadCSV(items)}
+            disabled={!items.length}
+            title="Download CSV"
+          >
+            <Download className="h-4 w-4" />
+            <span className="sr-only">Download CSV</span>
+          </Button>
         </div>
       </div>
 
@@ -91,8 +154,6 @@ const WebinarRegistrationsPage: React.FC = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>UTM</TableHead>
                   <TableHead>Registered At</TableHead>
                   <TableHead className="w-[120px] text-center">Actions</TableHead>
                 </TableRow>
@@ -103,23 +164,6 @@ const WebinarRegistrationsPage: React.FC = () => {
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.email}</TableCell>
                     <TableCell>{item.phone || "-"}</TableCell>
-                    <TableCell>{item.source || item.webinar_slug || "-"}</TableCell>
-                    <TableCell>
-                      <div className="text-xs text-gray-600 space-y-1">
-                        {item.utm_source && (
-                          <div>source: {item.utm_source}</div>
-                        )}
-                        {item.utm_medium && (
-                          <div>medium: {item.utm_medium}</div>
-                        )}
-                        {item.utm_campaign && (
-                          <div>campaign: {item.utm_campaign}</div>
-                        )}
-                        {!item.utm_source &&
-                          !item.utm_medium &&
-                          !item.utm_campaign && <span>-</span>}
-                      </div>
-                    </TableCell>
                     <TableCell>
                       {item.created_at ? (
                         <div className="flex items-center text-sm text-gray-600">
