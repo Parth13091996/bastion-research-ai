@@ -157,6 +157,15 @@ export const endpoints = {
     bySymbolAnalytics: (symbol: string, userId: string) =>
       `/api/recommendations/company/analytics/${symbol}?id=${userId}`,
   },
+  redFlags: {
+    companies: "/api/red-flags/companies",
+    submissions: "/api/red-flags/submissions",
+    companyStats: (companyId: string) => `/api/red-flags/companies/${companyId}/stats`,
+    admin: {
+      companies: "/api/admin/red-flags/companies",
+      stats: "/api/admin/red-flags/stats",
+    },
+  },
 } as const
 
 export type Endpoints = typeof endpoints

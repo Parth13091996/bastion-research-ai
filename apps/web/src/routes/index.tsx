@@ -90,6 +90,9 @@ const WebinarManagement = lazy(
 const WebinarRegistrations = lazy(
   () => import("../pages/Admin/Content/WebinarRegistrations")
 );
+const RedFlagAnalytics = lazy(
+  () => import("../pages/Admin/Content/RedFlagAnalytics")
+);
 const PodcastManagement = lazy(
   () => import("../pages/Admin/Content/PodcastManagement")
 );
@@ -152,7 +155,7 @@ const InstaLandingPage2 = lazy(
   () => import("../pages/SocialMediaLandingPage/InstaLandingPage2")
 );
 const RedFlagDecision = lazy(
-  () => import("../pages/SocialMediaLandingPage/RedFlagDicision")
+  () => import("../pages/SocialMediaLandingPage/RedFlagDecision")
 );
 const IpoUserDashboardPage = lazy(
   () => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard")
@@ -285,6 +288,10 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminWebinarRegistrations,
         element: <WebinarRegistrations />,
+      },
+      {
+        path: AppRoutes.adminRedFlagAnalytics,
+        element: <RedFlagAnalytics />,
       },
       {
         path: AppRoutes.adminPodcastManagement,

@@ -65,6 +65,7 @@ export const AppRoutes = {
   adminTestimonialEdit: "/admin/content/testimonials/:id/edit",
   adminRecommendationManagement: "/admin/content/recommendations",
   adminWebinarRegistrations: "/admin/content/webinar-registrations",
+  adminRedFlagAnalytics: "/admin/content/red-flag-analytics",
   userRoute: "/user",
   premiumWebinars: "/user/app/premium-webinars",
   singlePremiumWebinar: "/user/app/premium-webinars/:id",

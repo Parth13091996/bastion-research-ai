@@ -95,6 +95,11 @@ const navItems = [
         path: AppRoutes.adminTestimonialManagement,
       },
       {
+        name: "Red Flag Analytics",
+        icon: FileText,
+        path: AppRoutes.adminRedFlagAnalytics,
+      },
+      {
         name: "Scratch Pad",
         icon: BookOpen,
         path: "/admin/content/scratch-pad",
