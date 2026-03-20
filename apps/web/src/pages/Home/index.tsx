@@ -581,7 +581,8 @@ export default function LandingPage() {
                             boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                           }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => openPopup("/coming-soon")}
+                          // onClick={() => openPopup("/coming-soon")}
+                          onClick={() => open("http://bastionresearch.smallcase.com/")}
                         >
                           View Product Page
                         </motion.button>
@@ -597,7 +598,8 @@ export default function LandingPage() {
                             boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
                           }}
                           whileTap={{ scale: 0.95 }}
-                          onClick={() => openPopup("/coming-soon")}
+                          // onClick={() => openPopup("/coming-soon")}
+                          onClick={() => open("http://bastionresearch.smallcase.com/")}
                         >
                           Subscribe Portfolio
                         </motion.button>
