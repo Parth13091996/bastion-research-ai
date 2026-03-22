@@ -8,6 +8,7 @@ type Theme = 'dark' | 'light'
 type RedFlagCompany = {
   id: string
   name: string
+  logo_url?: string | null
   created_at?: string
 }
 

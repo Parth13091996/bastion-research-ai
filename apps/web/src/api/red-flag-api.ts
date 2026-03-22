@@ -31,10 +31,13 @@ export const redFlagApi = {
       )
       return res.data
     },
-    createCompany: async (name: string) => {
+    createCompany: async (payload: {
+      name: string
+      logo_url?: string | null
+    }) => {
       const res = await axiosInstance.post<RedFlagCompany>(
         endpoints.redFlags.admin.companies,
-        { name }
+        payload
       )
       return res.data
     },

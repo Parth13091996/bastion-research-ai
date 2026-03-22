@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { redFlagApi, type RedFlagCompanyStats } from "@/api/red-flag-api";
+import { uploadFile } from "@/api/files-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -24,6 +26,9 @@ const RedFlagAnalytics: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<RedFlagCompanyStats[]>([]);
   const [newCompanyName, setNewCompanyName] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -45,12 +50,37 @@ const RedFlagAnalytics: React.FC = () => {
     const name = newCompanyName.trim();
     if (!name) return;
     try {
-      await redFlagApi.admin.createCompany(name);
+      let logoUrl: string | undefined;
+      if (logoFile) {
+        setUploadingLogo(true);
+        const formData = new FormData();
+        formData.append("file", logoFile);
+        formData.append("category", "image");
+        formData.append("dir", "red-flag-companies");
+        const res = await uploadFile(formData);
+        const url = res.data?.url as string | undefined;
+        if (!url) {
+          toast.error("Upload did not return a URL");
+          return;
+        }
+        logoUrl = url;
+      }
+      await redFlagApi.admin.createCompany({
+        name,
+        ...(logoUrl ? { logo_url: logoUrl } : {}),
+      });
       toast.success("Company created");
       setNewCompanyName("");
+      setLogoFile(null);
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview);
+        setLogoPreview(null);
+      }
       await load();
     } catch (e: any) {
       toast.error(e?.response?.data?.error || "Failed to create company");
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -84,15 +114,54 @@ const RedFlagAnalytics: React.FC = () => {
           <CardTitle>Create Company</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2 max-w-xl">
-            <Input
-              value={newCompanyName}
-              onChange={(e) => setNewCompanyName(e.target.value)}
-              placeholder="e.g. PB Fintech"
-            />
-            <Button onClick={handleCreate} disabled={!newCompanyName.trim()}>
-              <Plus className="mr-2 h-4 w-4" /> Add
-            </Button>
+          <div className="flex flex-col gap-4 max-w-xl">
+            <div className="flex gap-2 flex-wrap items-end">
+              <div className="flex-1 min-w-[200px] space-y-2">
+                <Label htmlFor="red-flag-company-name">Company name</Label>
+                <Input
+                  id="red-flag-company-name"
+                  value={newCompanyName}
+                  onChange={(e) => setNewCompanyName(e.target.value)}
+                  placeholder="e.g. PB Fintech"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="red-flag-company-logo">Logo (optional)</Label>
+                <Input
+                  id="red-flag-company-logo"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="cursor-pointer max-w-[240px]"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null;
+                    setLogoFile(f);
+                    setLogoPreview((prev) => {
+                      if (prev) URL.revokeObjectURL(prev);
+                      return f ? URL.createObjectURL(f) : null;
+                    });
+                  }}
+                />
+              </div>
+              <Button
+                onClick={handleCreate}
+                disabled={
+                  !newCompanyName.trim() || uploadingLogo || loading
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" />{" "}
+                {uploadingLogo ? "Uploading…" : "Add"}
+              </Button>
+            </div>
+            {logoPreview ? (
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span>Preview:</span>
+                <img
+                  src={logoPreview}
+                  alt=""
+                  className="h-10 w-10 rounded object-contain border bg-muted"
+                />
+              </div>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -120,7 +189,18 @@ const RedFlagAnalytics: React.FC = () => {
               ) : (
                 rows.map((r) => (
                   <TableRow key={r.company.id}>
-                    <TableCell className="font-medium">{r.company.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        {r.company.logo_url ? (
+                          <img
+                            src={r.company.logo_url}
+                            alt=""
+                            className="h-9 w-9 rounded object-contain border bg-muted shrink-0"
+                          />
+                        ) : null}
+                        <span>{r.company.name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {r.flaggedQuestions.length === 0 ? (
                         <span className="text-muted-foreground">—</span>

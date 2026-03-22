@@ -1,8 +1,11 @@
 import { redFlagApi } from "@/api/red-flag-api";
+import { toast } from "sonner";
 import {
   RED_FLAG_QUESTION_KEY_BY_ID,
   RED_FLAG_QUESTIONS_COUNT
 } from "@/config/redFlagQuestions";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CompanyDropdown from "./CompanyDropdown";
 import { COMBOS, darkTokens, FLAGS, lightTokens, SEGMENTS } from "./constants";
@@ -22,6 +25,7 @@ export default function RedFlagChecklist() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const scoreBarRef = useRef<HTMLDivElement>(null);
+  const printableContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -62,6 +66,12 @@ export default function RedFlagChecklist() {
   const allAnswered = answered === RED_FLAG_QUESTIONS_COUNT;
   const canSubmit = allAnswered && Boolean(selectedCompanyId) && !isSubmitting;
 
+  const resetAll = useCallback(() => {
+    setFlags({});
+    setFilter("all");
+    setSubmitted(false);
+  }, []);
+
   const handleSubmit = async () => {
     if (!selectedCompanyId || !allAnswered) return;
     const flaggedKeys = Object.entries(flags)
@@ -75,62 +85,63 @@ export default function RedFlagChecklist() {
         companyId: selectedCompanyId,
         flaggedKeys,
       });
-      setSubmitted(true);
-    } catch (e) {
+      toast.success("Checklist submitted.");
+      resetAll();
+    } catch (e: any) {
       console.error("Failed to submit red-flag decision", e);
+      const status = e?.response?.status;
+      if (status === 401) {
+        toast.error("Sign in to submit your checklist. Submissions are saved per account.");
+      } else {
+        toast.error(e?.response?.data?.error || "Could not save submission. Try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDownload = async () => {
-    if (!selectedCompanyId) return;
+    const root = printableContentRef.current;
+    if (!root) return;
     setIsDownloading(true);
     try {
-      const stats = await redFlagApi.getCompanyStats(selectedCompanyId);
-      const companyName = stats.company?.name ?? "company";
-
-      const header = [
-        "company",
-        "users_frequency",
-        "flagged_question_key",
-        "flagged_question",
-        "flagged_count",
-      ];
-      const rows = stats.flaggedQuestions.map((fq) => {
-        const label = FLAGS.find(
-          (q) => RED_FLAG_QUESTION_KEY_BY_ID[q.id] === fq.key
-        )?.name;
-        return [
-          companyName,
-          stats.usersFrequency,
-          fq.key,
-          label ?? fq.key,
-          fq.count,
-        ];
+      const companyName =
+        companies.find((c) => c.id === selectedCompanyId)?.name?.replace(
+          /[^\w\-]+/g,
+          "_"
+        ) ?? "checklist";
+      const canvas = await html2canvas(root, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: t.bg,
+        scrollY: -window.scrollY,
       });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * pageWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
 
-      const csv = [header, ...(rows.length ? rows : [[companyName, stats.usersFrequency, "", "", 0]])]
-        .map((r) =>
-          r
-            .map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`)
-            .join(",")
-        )
-        .join("\n");
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
 
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `red-flag-stats-${companyName}-${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(
+        `red-flag-checklist-${companyName}-${new Date().toISOString().slice(0, 10)}.pdf`
+      );
     } catch (e) {
-      console.error("Failed to download red-flag stats", e);
+      console.error("Failed to export PDF", e);
+      toast.error("Could not create PDF. Try again.");
     } finally {
       setIsDownloading(false);
     }
@@ -219,12 +230,6 @@ export default function RedFlagChecklist() {
         bannerVariant === "caution" ? t.gold :
           t.red;
 
-  const resetAll = () => {
-    setFlags({});
-    setFilter("all");
-    setSubmitted(false);
-  };
-
   return (
     <>
       <style>{`
@@ -260,8 +265,11 @@ export default function RedFlagChecklist() {
           <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
         </button>
 
-        {/* Wrapper */}
-        <div style={{ maxWidth: 980, margin: "0 auto", padding: "52px 24px 88px" }}>
+        {/* Wrapper — PDF export captures this region (excludes fixed theme toggle) */}
+        <div
+          ref={printableContentRef}
+          style={{ maxWidth: 980, margin: "0 auto", padding: "52px 24px 88px" }}
+        >
 
           {/* Header */}
           <header style={{ textAlign: "center", marginBottom: 48, paddingTop: 8 }}>
@@ -296,10 +304,10 @@ export default function RedFlagChecklist() {
               loading={companiesLoading}
             />
             <DownloadButton
-              onClick={handleDownload}
-              disabled={!selectedCompanyId || isDownloading}
+              onClick={() => void handleDownload()}
+              disabled={isDownloading}
               t={t}
-              label={isDownloading ? "Downloading..." : undefined}
+              label={isDownloading ? "Exporting..." : undefined}
             />
           </div>
 
@@ -318,7 +326,7 @@ export default function RedFlagChecklist() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
-                onClick={handleSubmit}
+                onClick={() => void handleSubmit()}
                 disabled={!canSubmit || submitted}
                 style={{
                   background: canSubmit && !submitted ? t.blue : "transparent",
@@ -393,8 +401,8 @@ export default function RedFlagChecklist() {
               style={{ position: "fixed", bottom: 30, right: 30, zIndex: 1000 }}
             >
               <button
-                onClick={() => setSubmitted(true)}
-                disabled={!allAnswered}
+                onClick={() => void handleSubmit()}
+                disabled={!canSubmit || submitted}
                 style={{
                   background: allAnswered ? t.blue : t.surface3,
                   border: `1px solid ${allAnswered ? t.blueBright : t.border}`,

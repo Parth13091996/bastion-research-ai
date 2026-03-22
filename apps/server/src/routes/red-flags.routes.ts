@@ -12,7 +12,7 @@ const router = Router()
 
 // Protected (member) routes
 router.get('/red-flags/companies', listRedFlagCompanies)
-router.post('/red-flags/submissions', submitRedFlagDecision)
+router.post('/red-flags/submissions', protect, submitRedFlagDecision)
 router.get('/red-flags/companies/:companyId/stats', getRedFlagCompanyStats)
 
 // Admin routes

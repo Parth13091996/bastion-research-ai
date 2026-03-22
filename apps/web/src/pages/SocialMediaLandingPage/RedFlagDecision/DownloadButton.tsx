@@ -29,7 +29,7 @@ function DownloadButton({
         transition: "all 0.2s",
         whiteSpace: "nowrap",
       }}
-      title={disabled ? "Select a company to download" : "Download CSV"}
+      title={disabled ? "Export in progress" : "Download this page as PDF"}
     >
       {label ?? "⬇ Download"}
     </button>

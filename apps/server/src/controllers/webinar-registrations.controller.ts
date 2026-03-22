@@ -2,37 +2,6 @@ import { Request, Response } from 'express'
 import { supabase } from '../supabase'
 import { sendAiSensyCampaign } from '../services/aisensy.service'
 
-function buildAiSensyTemplateParams(context: {
-  name: string
-  email: string
-  phone?: string
-  webinar_slug?: string
-}) {
-  const spec = (process.env.AISENSY_TEMPLATE_PARAMS || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-
-  if (!spec.length) return undefined
-
-  const valueForKey = (key: string) => {
-    switch (key) {
-      case 'name':
-        return context.name
-      case 'email':
-        return context.email
-      case 'phone':
-        return context.phone || ''
-      case 'webinar_slug':
-        return context.webinar_slug || ''
-      default:
-        return ''
-    }
-  }
-
-  return spec.map(valueForKey)
-}
-
 // Create a new webinar registration (public endpoint), avoid duplicate per (email, webinar_slug)
 export const createWebinarRegistration = async (
   req: Request,
@@ -129,12 +98,12 @@ export const createWebinarRegistration = async (
         destination: String(phone),
         userName: String(name),
         source: source ?? 'portfolio-red-flags-landing',
-        templateParams: buildAiSensyTemplateParams({
-          name: String(name),
-          email: String(email),
-          phone: String(phone),
-          webinar_slug: webinar_slug ? String(webinar_slug) : undefined,
-        }),
+        templateParams: [
+          String(name),
+          String(email),
+          String(phone),
+          String(webinar_slug || ''),
+        ],
         attributes: {
           ...(email ? { email: String(email) } : {}),
           ...(webinar_slug ? { webinar_slug: String(webinar_slug) } : {}),
