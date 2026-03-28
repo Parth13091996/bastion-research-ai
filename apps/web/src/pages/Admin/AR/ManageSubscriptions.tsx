@@ -4,18 +4,73 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { confirm } from "@/utils/confirm";
-import {
-  cancelSubscription,
-  getMembershipPlans,
-  getPaymentHistory,
-  getSubscriptions,
-} from "@/api/membership-api";
+import { getSubscriptions, getPaymentHistory, getMembershipPlans, cancelSubscription } from "@/api/membership-api";
+import { ICellRendererParams } from "ag-grid-community";
+
+interface SubscriptionRow {
+  membership: string;
+  user: string;
+  name: string;
+  startDate: string;
+  expiryNextRenewal: string;
+  amount: string | number;
+  paymentType: string;
+  transactionId: string;
+  status: string;
+  membership_id: string | number;
+  user_role?: string | null;
+}
+
+interface ActivityRow {
+  invoiceId: string;
+  membership: string;
+  username: string;
+  name: string;
+  paymentDate: string;
+  amount: string | number;
+  paymentType: string;
+  status: string;
+}
+
+interface RawPlan {
+  plan_id: string | number;
+  plan_name: string;
+}
+
+interface RawSubscriptionRow {
+  membership_id: string | number;
+  user_id: string;
+  name?: string;
+  start_date?: string;
+  expire_next_renewal?: string;
+  amount: string | number;
+  currency?: string;
+  payment_type?: string;
+  transaction_id: string;
+  status?: string;
+  user_role?: string;
+}
+
+interface RawActivityRow {
+  invoice_id?: string;
+  plan_id?: string | number;
+  user_email?: string;
+  payer_email?: string;
+  user_id?: string;
+  payment_date?: string;
+  created_at?: string;
+  amount: string | number;
+  currency?: string;
+  payment_type?: string;
+  payment_gateway?: string;
+  transaction_status?: string;
+}
 
 const SubscriptionGrid = ({
   rowData,
   columnDefs,
 }: {
-  rowData: any[];
+  rowData: SubscriptionRow[] | ActivityRow[];
   columnDefs: ColDef[];
 }) => {
   return (
@@ -41,7 +96,7 @@ const SubscriptionGrid = ({
   );
 };
 
-const SubscriptionsActionsRenderer = (params: any) => (
+const SubscriptionsActionsRenderer = (params: ICellRendererParams<SubscriptionRow>) => (
   <div className="flex items-center space-x-2">
     <button
       className="text-blue-600 hover:text-blue-800 p-1"
@@ -60,7 +115,7 @@ const SubscriptionsActionsRenderer = (params: any) => (
   </div>
 );
 
-const ActivitiesActionsRenderer = (params: any) => (
+const ActivitiesActionsRenderer = (params: ICellRendererParams<ActivityRow>) => (
   <div className="flex items-center space-x-2">
     <button
       className="text-blue-600 hover:text-blue-800 p-1"
@@ -86,6 +141,7 @@ const ActivitiesActionsRenderer = (params: any) => (
     </button>
   </div>
 );
+
 
 const StatusCellRenderer = ({ value }: { value: string }) => (
   <span
@@ -121,23 +177,25 @@ const ManageSubscriptions = () => {
     queryFn: () => getMembershipPlans(),
   });
 
+
+
   const planMap: Record<string, string> = useMemo(() => {
     const m: Record<string, string> = {};
-    (plansRaw || []).forEach((p: any) => {
+    ((plansRaw as RawPlan[]) || []).forEach((p) => {
       m[String(p.plan_id)] = p.plan_name;
     });
     return m;
   }, [plansRaw]);
 
   const cancelMutation = useMutation({
-    mutationFn: (payload: any) =>
-      cancelSubscription(payload.membership_id),
+    mutationFn: (payload: SubscriptionRow) =>
+      cancelSubscription(String(payload.membership_id)),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] }),
   });
 
-  const mapSubscriptions = (rows: any[]) => {
-    return (rows || []).map((r: any) => ({
+  const mapSubscriptions = (rows: RawSubscriptionRow[]): SubscriptionRow[] => {
+    return (rows || []).map((r) => ({
       membership:
         planMap[String(r.membership_id)] || r.name || String(r.membership_id),
       user: r.user_id,
@@ -159,11 +217,12 @@ const ManageSubscriptions = () => {
       transactionId: r.transaction_id || "",
       status: r.status || "Active",
       membership_id: r.membership_id,
+      user_role: r.user_role,
     }));
   };
 
-  const mapActivities = (rows: any[]) => {
-    return (rows || []).map((r: any) => ({
+  const mapActivities = (rows: RawActivityRow[]): ActivityRow[] => {
+    return (rows || []).map((r) => ({
       invoiceId: r.invoice_id || "",
       membership: planMap[String(r.plan_id)] || String(r.plan_id || ""),
       username: r.user_email || r.payer_email || r.user_id || "",
@@ -186,8 +245,11 @@ const ManageSubscriptions = () => {
   };
 
   const subscriptionsData = mapSubscriptions(subsRaw || []);
+  const dropOffData = subscriptionsData.filter((r) => r.user_role === "drop_off");
+  const activeSubscriptionsData = subscriptionsData.filter((r) => r.user_role !== "drop_off");
+
   const allActivitiesData = mapActivities(activitiesRaw || []);
-  const upcomingSubscriptionsData = subscriptionsData.filter((r: any) => {
+  const upcomingSubscriptionsData = activeSubscriptionsData.filter((r) => {
     if (!r.expiryNextRenewal) return false;
     const d = new Date(r.expiryNextRenewal);
     return d.getTime() > Date.now();
@@ -239,36 +301,40 @@ const ManageSubscriptions = () => {
   ];
 
   const filteredData = useMemo(() => {
-    let data: any =
+    let data: unknown[] =
       activeTab === "subscriptions"
-        ? subscriptionsData
-        : activeTab === "activities"
-          ? allActivitiesData
-          : upcomingSubscriptionsData;
+        ? activeSubscriptionsData
+        : activeTab === "drop_off"
+          ? dropOffData
+          : activeTab === "activities"
+            ? allActivitiesData
+            : upcomingSubscriptionsData;
+
     if (searchTerm) {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      data = data.filter((item: any) =>
-        Object.values(item).some((value: any) =>
+      data = data.filter((item) =>
+        Object.values(item as object).some((value) =>
           value?.toString().toLowerCase().includes(lowerCaseSearchTerm)
         )
       );
     }
     if (membershipFilter)
-      data = data.filter((item: any) => item.membership === membershipFilter);
+      data = (data as SubscriptionRow[]).filter((item) => item.membership === membershipFilter);
     if (statusFilter && activeTab !== "upcoming")
-      data = data.filter((item: any) => item.status === statusFilter);
-    return data;
+      data = (data as SubscriptionRow[]).filter((item) => item.status === statusFilter);
+    return data as (SubscriptionRow[] | ActivityRow[]);
   }, [
     activeTab,
     searchTerm,
     membershipFilter,
     statusFilter,
-    subscriptionsData,
+    activeSubscriptionsData,
+    dropOffData,
     allActivitiesData,
     upcomingSubscriptionsData,
   ]);
 
-  const cancel = async (row: any) => {
+  const cancel = async (row: SubscriptionRow) => {
     const ok = await confirm({
       title: "Cancel subscription?",
       description: `This will cancel membership ${row?.membership || ""}.`,
@@ -278,7 +344,7 @@ const ManageSubscriptions = () => {
     if (ok) cancelMutation.mutate(row);
   };
 
-  const edit = (row: any) => {
+  const edit = (row: SubscriptionRow | ActivityRow) => {
     // TODO: Implement edit functionality - could open a modal or navigate to edit page
     // For now, just log the row data for demonstration
   };
@@ -288,21 +354,28 @@ const ManageSubscriptions = () => {
       case "subscriptions":
         return (
           <SubscriptionGrid
-            rowData={filteredData}
+            rowData={filteredData as SubscriptionRow[]}
+            columnDefs={subscriptionsColDefs}
+          />
+        );
+      case "drop_off":
+        return (
+          <SubscriptionGrid
+            rowData={filteredData as SubscriptionRow[]}
             columnDefs={subscriptionsColDefs}
           />
         );
       case "activities":
         return (
           <SubscriptionGrid
-            rowData={filteredData}
+            rowData={filteredData as ActivityRow[]}
             columnDefs={activitiesColDefs}
           />
         );
       case "upcoming":
         return (
           <SubscriptionGrid
-            rowData={filteredData}
+            rowData={filteredData as SubscriptionRow[]}
             columnDefs={upcomingColDefs}
           />
         );
@@ -368,6 +441,12 @@ const ManageSubscriptions = () => {
               className={`px-6 py-3 text-sm font-medium flex items-center gap-2 ${activeTab === "subscriptions" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
             >
               Subscriptions
+            </button>
+            <button
+              onClick={() => setActiveTab("drop_off")}
+              className={`px-6 py-3 text-sm font-medium flex items-center gap-2 border-l border-gray-300 ${activeTab === "drop_off" ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+            >
+              Drop Off
             </button>
             <button
               onClick={() => setActiveTab("activities")}

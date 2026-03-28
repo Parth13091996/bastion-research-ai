@@ -9,6 +9,7 @@ export const config = {
     core_subscriber: 'core_subscriber',
     ipo_subscriber: 'ipo_subscriber',
     research_ally_subscriber: 'research_ally_subscriber',
+    drop_off: 'drop_off',
   },
   aisensy_endpoint: 'https://backend.aisensy.com/campaign/t1/api/v2',
 }

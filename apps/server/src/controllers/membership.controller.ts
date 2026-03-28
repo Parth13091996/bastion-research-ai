@@ -95,7 +95,7 @@ export const getSubscriptions = async (req: Request, res: Response) => {
       transaction_status,
       payer_email,
       created_at,
-      users!payment_history_user_id_fkey ( id, first_name, last_name, email ),
+      users!payment_history_user_id_fkey ( id, first_name, last_name, email, role ),
       membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, currency, price_amount, plan_code, duration_months )
     `
     )
@@ -144,6 +144,7 @@ export const getSubscriptions = async (req: Request, res: Response) => {
       payment_type: "Subscription",
       status: r.transaction_status || "Active",
       user_email: user.email || null,
+      user_role: user.role || null,
       membership_name: plan.plan_name || null,
       plan_code: plan.plan_code || null,
     };

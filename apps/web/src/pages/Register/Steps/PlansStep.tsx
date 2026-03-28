@@ -6,6 +6,25 @@ import { ArrowLeft, Check, Info, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { OnboardingPayload } from "@/api/onboarding-apis";
+
+interface Plan {
+  code: string;
+  name: string;
+  amount: string | number;
+  plan_code?: string;
+}
+
+interface PlansStepProps {
+  plans: Plan[];
+  formData: Record<string, unknown>;
+  updateFormData: (key: string, value: unknown) => void;
+  onBack: () => void;
+  onNext: () => void;
+  isLoading: boolean;
+  error: string | null;
+  setIsLoading: (loading: boolean) => void;
+}
 
 const PlansStep: React.FC<PlansStepProps> = ({
   plans,
@@ -19,10 +38,8 @@ const PlansStep: React.FC<PlansStepProps> = ({
 }) => {
   const navigate = useNavigate();
   const { refetchUser } = useAuth();
-  const getOnboardTag = (plan?: any) => {
-    const code = ((plan as any)?.plan_code as string | undefined)
-      ?.toLowerCase()
-      .trim();
+  const getOnboardTag = (plan?: Plan) => {
+    const code = plan?.plan_code?.toLowerCase().trim();
     const name = (plan?.name || "").toLowerCase();
     const isFree =
       String(plan?.amount ?? "") === "0" || code === "freemium";
@@ -36,21 +53,20 @@ const PlansStep: React.FC<PlansStepProps> = ({
   const plansStepNextHandler = async () => {
     try {
       setIsLoading(true);
-      const selectedPlanDetails = plans.find(
-        (p) => p.code === formData.selectedPlan
-      );
+      const selectedPlan = formData.selectedPlan as string;
+      const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
       if (formData.email) {
         const tag = getOnboardTag(selectedPlanDetails);
         if (tag) {
           void mailchimpNewsletterApi
-            .subscribe({ email: formData.email, tags: [tag] })
+            .subscribe({ email: formData.email as string, tags: [tag] })
             .catch(() => null);
         }
       }
       const isFree = selectedPlanDetails?.plan_code === "freemium";
       if (isFree) {
         const response = await createFreeAccount({
-          ...formData,
+          ...(formData as unknown as OnboardingPayload),
           status: "free",
           role: "free_subscriber",
           plan_id: 1,
@@ -61,7 +77,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
         navigate("/user/app/dashboard");
         return;
       }
-      updateFormData("role", "core_subscriber");
+      updateFormData("role", "drop_off");
       onNext();
     } catch (error) {
       setIsLoading(false);
@@ -74,11 +90,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (formData && formData?.selectedPlan !== undefined) {
-      updateFormData("selectedPlan", "");
-    }
-  }, []);
+
 
   return (
     <div className="space-y-6">
@@ -99,14 +111,13 @@ const PlansStep: React.FC<PlansStepProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {plans
             .sort((a, b) =>
-              ((a as any)?.plan_code || "").localeCompare(
-                (b as any)?.plan_code || ""
+              (a.plan_code || "").localeCompare(
+                b.plan_code || ""
               )
             )
             .map((plan, index) => {
               const isSelected = formData?.selectedPlan === plan.code;
-              const pc =
-                ((plan as any)?.plan_code as string | undefined) || undefined;
+              const pc = plan.plan_code;
               const isFree = String(plan.amount) === "0" || pc === "freemium";
               const isPopular = pc === "core_annual";
 
@@ -137,11 +148,10 @@ const PlansStep: React.FC<PlansStepProps> = ({
               return (
                 <div
                   key={index}
-                  className={`relative rounded-xl border p-4 flex flex-col h-full transition-colors cursor-pointer bg-white ${
-                    isSelected
-                      ? "border-red-500 ring-2 ring-red-500/20"
-                      : "border-gray-200 hover:border-red-300"
-                  }`}
+                  className={`relative rounded-xl border p-4 flex flex-col h-full transition-colors cursor-pointer bg-white ${isSelected
+                    ? "border-red-500 ring-2 ring-red-500/20"
+                    : "border-gray-200 hover:border-red-300"
+                    }`}
                   onClick={() => updateFormData("selectedPlan", plan.code)}
                 >
                   {isPopular && (
@@ -215,11 +225,10 @@ const PlansStep: React.FC<PlansStepProps> = ({
                   <div className="mt-auto pt-4">
                     <button
                       type="button"
-                      className={`w-full rounded-lg py-2 text-sm font-medium transition-colors ${
-                        isSelected
-                          ? "bg-red-600 text-white"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
+                      className={`w-full rounded-lg py-2 text-sm font-medium transition-colors ${isSelected
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                        }`}
                     >
                       {isSelected
                         ? "Selected"

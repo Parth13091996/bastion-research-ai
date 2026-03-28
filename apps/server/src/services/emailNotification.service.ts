@@ -125,6 +125,20 @@ export const sendSubscriptionExpiryReminderEmail = async (
   }
 };
 
+interface DropOffSummaryEntry {
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  createdAt: string;
+}
+
+interface DropOffSummaryPayload {
+  to: string;
+  dateLabel: string;
+  entries: DropOffSummaryEntry[];
+}
+
 interface SubscriptionExpirySummaryEntry {
   email: string;
   firstName?: string | null;
@@ -139,7 +153,11 @@ interface SubscriptionExpirySummaryPayload {
   entries: SubscriptionExpirySummaryEntry[];
 }
 
-const buildEntryLabel = (entry: SubscriptionExpirySummaryEntry) => {
+const buildEntryLabel = (entry: {
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+}) => {
   const nameParts: string[] = [];
   if (entry.firstName?.trim()) nameParts.push(entry.firstName.trim());
   if (entry.lastName?.trim()) nameParts.push(entry.lastName.trim());
@@ -148,6 +166,82 @@ const buildEntryLabel = (entry: SubscriptionExpirySummaryEntry) => {
 
 const formatPlanName = (entry: SubscriptionExpirySummaryEntry) => {
   return entry.planName?.trim() || "(plan not recorded)";
+};
+
+export const sendDropOffSummaryEmail = async (
+  payload: DropOffSummaryPayload
+): Promise<void> => {
+  const sender = getSenderEmail();
+  if (!sender) {
+    console.warn(
+      "CONNECT_EMAIL is not configured; skipping drop-off summary email."
+    );
+    return;
+  }
+
+  const subject = `Daily Drop-Off Summary - ${payload.dateLabel}`;
+  const hasEntries = payload.entries.length > 0;
+
+  const textBody = hasEntries
+    ? payload.entries
+        .map((entry) => {
+          const personLabel = buildEntryLabel(entry);
+          return `- ${personLabel} (${entry.email}${entry.phone ? `, ${entry.phone}` : ""}) – Registered at ${formatDateForEmail(entry.createdAt)}`;
+        })
+        .join("\n")
+    : `There were no new drop-offs on ${payload.dateLabel}.`;
+
+  const htmlEntries = hasEntries
+    ? `<table style="width:100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:8px; border-bottom: 2px solid #0f172a;">Customer</th>
+              <th style="text-align:left; padding:8px; border-bottom: 2px solid #0f172a;">Contact</th>
+              <th style="text-align:left; padding:8px; border-bottom: 2px solid #0f172a;">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${payload.entries
+              .map((entry) => {
+                const personLabel = buildEntryLabel(entry);
+                return `<tr>
+                  <td style="padding:8px; border-bottom: 1px solid #e2e8f0;">${personLabel}</td>
+                  <td style="padding:8px; border-bottom: 1px solid #e2e8f0;">${entry.email}${entry.phone ? `<br/><small>${entry.phone}</small>` : ""}</td>
+                  <td style="padding:8px; border-bottom: 1px solid #e2e8f0;">${formatDateForEmail(entry.createdAt)}</td>
+                </tr>`;
+              })
+              .join("")}
+          </tbody>
+        </table>`
+    : `<p style="margin:0;">There were no new drop-offs on ${payload.dateLabel}.</p>`;
+
+  const htmlBody = `
+    <div style="font-family:'Segoe UI', Arial, sans-serif; background:#f8fafc; padding:32px 16px;">
+      <div style="max-width:720px; margin:0 auto; background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 10px 35px rgba(15,23,42,0.12);">
+        <div style="background:linear-gradient(135deg, #7f1d1d, #450a0a); color:#fff; padding:28px;">
+          <h1 style="margin:0; font-size:24px;">Daily Drop-Off Summary</h1>
+          <p style="margin:8px 0 0; font-size:16px;">${payload.dateLabel}</p>
+        </div>
+        <div style="padding:28px; color:#0f172a; font-size:15px; line-height:1.6;">
+          <p>The following users started the onboarding process for Bastion Core but did not complete the payment.</p>
+          ${htmlEntries}
+          <p style="margin:24px 0 0;">Follow up with these customers to assist them with the onboarding process.</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  try {
+    await sendEmail({
+      to: payload.to,
+      from: sender,
+      subject,
+      text: textBody,
+      html: htmlBody,
+    });
+  } catch (error) {
+    console.error("Failed to send drop-off summary email", error);
+  }
 };
 
 export const sendMonthlySubscriptionExpirySummaryEmail = async (
