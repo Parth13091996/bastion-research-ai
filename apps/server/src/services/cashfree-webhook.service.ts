@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import { supabase } from '../supabase'
 import { createZohoInvoiceForPayment } from './zoho-books.service'
+import { config } from '../utils/config'
 
 export const verifyWebhookSignature = (
   signature: string | undefined,
@@ -88,6 +89,10 @@ export const handlePaymentSuccess = async (payload: any) => {
     plan_id: currentPlan?.plan_id || null,
     subscription_start_date: startDateStr,
     subscription_end_date: endDateStr,
+    role:
+      currentPlan?.plan_code === 'research_hub'
+        ? config.roles.research_ally_subscriber
+        : config.roles.core_subscriber,
   }
 
   const updateUserPromise = supabase

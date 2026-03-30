@@ -27,6 +27,7 @@ export default function RedFlagChecklist() {
   const [isDownloading, setIsDownloading] = useState(false);
   const scoreBarRef = useRef<HTMLDivElement>(null);
   const printableContentRef = useRef<HTMLDivElement>(null);
+  const topControlsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -47,12 +48,19 @@ export default function RedFlagChecklist() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      // Show floating if user has scrolled down at least 400px
-      setShowFloating(window.scrollY > 400);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show the floating button only when the top controls are NOT visible
+        setShowFloating(!entry.isIntersecting);
+      },
+      {
+        threshold: 0,
+        rootMargin: "-20px 0px 0px 0px" // Slight offset for better feel
+      }
+    );
+
+    if (topControlsRef.current) observer.observe(topControlsRef.current);
+    return () => observer.disconnect();
   }, []);
 
   const t: Tokens = theme === "dark" ? darkTokens : lightTokens;
@@ -87,7 +95,7 @@ export default function RedFlagChecklist() {
         flaggedKeys,
       });
       toast.success("Checklist submitted.");
-      resetAll();
+      setSubmitted(true);
     } catch (e: any) {
       console.error("Failed to submit red-flag decision", e);
       toast.error(e?.response?.data?.error || "Could not save submission. Try again.");
@@ -144,10 +152,10 @@ export default function RedFlagChecklist() {
   };
 
   const evaluateCombos = () => {
-    const triggered = { critical: [] as string[], high: [] as string[] };
+    const triggered = { critical: [] as any[], high: [] as any[] };
     COMBOS.forEach((combo) => {
       if (combo.flags.every((f) => isFlagged(f))) {
-        triggered[combo.tier].push(combo.name);
+        triggered[combo.tier].push(combo);
       }
     });
     return triggered;
@@ -156,10 +164,10 @@ export default function RedFlagChecklist() {
   const triggered = evaluateCombos();
   const hasCritical = triggered.critical.length > 0;
   const hasHigh = triggered.high.length > 0;
-  const allActiveNames = [...triggered.critical, ...triggered.high];
+  const allActiveItems = [...triggered.critical, ...triggered.high];
 
-  const scoreColor = flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold;
-  const progressColor = flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold;
+  const scoreColor = !submitted ? t.textDim : flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold;
+  const progressColor = !submitted ? t.blue : (flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold);
 
   const verdictInlineText =
     !submitted ? "Awaiting Submission" :
@@ -175,7 +183,7 @@ export default function RedFlagChecklist() {
           t.greenBright;
 
   const verdictSubText =
-    !submitted ? "Mark flags below to begin" :
+    !submitted ? "Your forensic analysis is pending. Please complete all marks and click Submit for the final verdict." :
       hasCritical ? `${triggered.critical.length} critical combination(s) triggered` :
         hasHigh ? `${triggered.high.length} high-risk combination(s) triggered` :
           flagged > 0 ? `${flagged} flag(s) raised — review remaining items` :
@@ -195,7 +203,7 @@ export default function RedFlagChecklist() {
             "✓ PASSES FORENSIC CHECK";
 
   const bannerDetail =
-    !submitted ? "Mark each flag above as CLEAR or FLAGGED and click SUBMIT to receive your verdict. The verdict is driven entirely by meaningful flag combinations — not a raw count." :
+    !submitted ? "Your forensic data has been prepared. Please review each item, mark them CLEAR or FLAGGED, and click SUBMIT to receive your final risk verdict. The analysis checks for 20+ toxic forensic combinations including Fake Cash, Diverted Profits, and Hidden Debt balance sheet traps." :
       bannerVariant === "danger" ? "One or more Critical combinations are active. These patterns indicate a high probability of capital destruction, accounting fraud, or governance collapse. No valuation is cheap enough to justify this." :
         bannerVariant === "high" ? "One or more High Risk combinations are active. Serious structural problems are present. Unless you have a well-researched, time-bound turnaround thesis with specific numeric evidence — do not commit capital." :
           bannerVariant === "caution" ? "Flags have been raised but no dangerous combination has triggered yet. Complete the remaining flags — a combination may still emerge. Investigate each flagged item in depth before investing." :
@@ -277,12 +285,13 @@ export default function RedFlagChecklist() {
             </h1>
             <div style={{ width: 60, height: 3, background: `linear-gradient(90deg, ${t.red}, transparent)`, margin: "20px auto 16px", borderRadius: 2 }} />
             <p style={{ color: t.textDim, fontSize: 14, fontWeight: 300, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>
-              Mark each flag CLEAR ✓ or FLAGGED ✗. The verdict updates live and is driven <em>only</em> by meaningful flag combinations — never by a raw count.
+              Mark each flag CLEAR ✓ or FLAGGED ✗ and click SUBMIT to receive your verdict. The verdict is driven entirely by meaningful flag combinations — not a raw count.
             </p>
           </header>
 
           {/* Company Controls */}
           <div
+            ref={topControlsRef}
             style={{
               display: "flex",
               alignItems: "flex-end",
@@ -393,18 +402,31 @@ export default function RedFlagChecklist() {
           {/* Floating Submit Button */}
           {showFloating && !submitted && (
             <div
-              className="animate-fadeIn"
-              style={{ position: "fixed", bottom: 30, right: 30, zIndex: 1000 }}
+              style={{
+                position: "fixed",
+                bottom: 30,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "100%",
+                maxWidth: 980,
+                zIndex: 1000,
+                display: "flex",
+                justifyContent: "center",
+                pointerEvents: "none",
+                padding: "0 24px",
+              }}
             >
               <button
                 onClick={() => void handleSubmit()}
                 disabled={!canSubmit || submitted}
+                className="animate-fadeIn"
                 style={{
+                  pointerEvents: "auto",
                   background: allAnswered ? t.blue : t.surface3,
                   border: `1px solid ${allAnswered ? t.blueBright : t.border}`,
                   color: allAnswered ? "#fff" : t.textMuted,
                   fontFamily: "'DM Mono', monospace",
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: 600,
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
@@ -417,6 +439,7 @@ export default function RedFlagChecklist() {
                   gap: 12,
                   transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                   opacity: allAnswered ? 1 : 0.8,
+                  whiteSpace: "nowrap",
                 }}
                 onMouseEnter={(e) => {
                   if (allAnswered) {
@@ -431,7 +454,7 @@ export default function RedFlagChecklist() {
                   }
                 }}
               >
-                <span>{allAnswered ? "Submit Forensic Data" : `${answered}/10 Reviewed`}</span>
+                <span>Submit Forensic Data</span>
                 {allAnswered && <span style={{ fontSize: 16 }}>➔</span>}
               </button>
             </div>
@@ -441,10 +464,13 @@ export default function RedFlagChecklist() {
           <div style={{ marginTop: 32, borderRadius: 12, padding: "30px 36px", textAlign: "center", transition: "all 0.45s", background: bannerBg, border: `1px solid ${bannerBorderColor}`, borderTop: bannerBorderTop }}>
             <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: "0.05em", marginBottom: 10, color: bannerTitleColor, transition: "color 0.4s" }}>{bannerMain}</div>
             <div style={{ fontSize: 13.5, color: t.textDim, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>{bannerDetail}</div>
-            {allActiveNames.length > 0 && (
-              <div style={{ marginTop: 16, fontFamily: "'DM Mono', monospace", fontSize: 11, color: t.textDim, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
-                {allActiveNames.map((name) => (
-                  <span key={name} style={{ display: "inline-block", background: t.redMuted, border: `1px solid ${t.redBorder}`, borderRadius: 4, padding: "3px 10px", color: t.redBright }}>{name}</span>
+            {submitted && allActiveItems.length > 0 && (
+              <div style={{ marginTop: 20, display: "grid", gap: 12, textAlign: "left" }}>
+                {allActiveItems.map((combo) => (
+                  <div key={combo.name} style={{ background: t.redMuted, border: `1px solid ${t.redBorder}`, borderRadius: 8, padding: "14px 18px" }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, color: t.redBright, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{combo.name}</div>
+                    <div style={{ fontSize: 12.5, color: t.textDim, lineHeight: 1.6 }}>{combo.desc}</div>
+                  </div>
                 ))}
               </div>
             )}

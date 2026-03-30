@@ -2,12 +2,15 @@ import { supabase } from '../supabase'
 import {
   sendMonthlySubscriptionExpirySummaryEmail,
   sendSubscriptionExpiryReminderEmail,
+  sendDropOffSummaryEmail,
 } from '../services/emailNotification.service'
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 const MONTHLY_SUMMARY_RECIPIENT =
   process.env.MONTHLY_SUBSCRIPTION_EXPIRY_REPORT_EMAIL ||
   'subscription@bastionresearch.in'
+const DROP_OFF_SUMMARY_RECIPIENT =
+  process.env.DROP_OFF_REPORT_EMAIL || 'reach@bastionresearch.in'
 
 type ExpiringUserRow = {
   id: string
@@ -154,6 +157,52 @@ export const runMonthlySubscriptionExpirySummary = async (
   }
 }
 
+export const runDropOffSummary = async (referenceDate: Date = new Date()) => {
+  if (!DROP_OFF_SUMMARY_RECIPIENT) {
+    return
+  }
+
+  const today = referenceDate.toISOString().split('T')[0]
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, email, first_name, last_name, phone, created_at')
+      .eq('role', 'drop_off')
+      .gte('created_at', today)
+
+    if (error) {
+      console.error('Failed to fetch drop-off users', error)
+      return
+    }
+
+    const rows = (data ?? []) as any[]
+    const entries = rows.map((row) => ({
+      email: row.email,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      phone: row.phone,
+      createdAt: row.created_at,
+    }))
+
+    if (entries.length === 0) {
+      console.log('No new drop-offs today.')
+      return
+    }
+
+    await sendDropOffSummaryEmail({
+      to: DROP_OFF_SUMMARY_RECIPIENT,
+      dateLabel: referenceDate.toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }),
+      entries,
+    })
+  } catch (error) {
+    console.error('Drop-off summary job failed', error)
+  }
+}
+
 let scheduled = false
 let lastRunDay: string | null = null
 
@@ -169,6 +218,7 @@ export const startSubscriptionExpiryReminderJob = () => {
     }
     lastRunDay = today
     await runSubscriptionExpiryReminder()
+    await runDropOffSummary(now)
 
     const monthKey = getMonthKey(now)
     if (now.getUTCDate() === 1 && lastMonthlySummaryMonthKey !== monthKey) {

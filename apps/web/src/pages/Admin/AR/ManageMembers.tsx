@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { Edit, Eye, Mail, Shield, Trash2, User, UserPlus } from "lucide-react";
+import { ICellRendererParams } from "ag-grid-community";
 import { useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import axiosInstance from "@/api/axios";
@@ -16,10 +17,34 @@ import ViewMemberModal from "@/components/core/common/Modals/ViewMemberModal";
 import { differenceInDays } from "date-fns";
 import { confirm } from "@/utils/confirm";
 
+interface MemberData {
+  id: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  created_at?: string;
+  subscription_end_date?: string | null;
+  digio_documents?: { document_id: string }[];
+}
+
+interface UserActivity {
+  login_count: number;
+  pageviews_count: number;
+  recommendations_count: number;
+}
+
+interface RoleStyle {
+  color: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
 // Reuse UI patterns from All Users table
-const RoleRenderer = (params: any) => {
-  const role = params.value || "free_subscriber";
-  const roleConfig = {
+const RoleRenderer = (params: ICellRendererParams<MemberData>) => {
+  const role = (params.value as string) || "free_subscriber";
+  const roleConfig: Record<string, RoleStyle> = {
     admin: { color: "bg-red-100 text-red-800", icon: Shield },
     employee: { color: "bg-blue-100 text-blue-800", icon: User },
     free_subscriber: { color: "bg-gray-100 text-gray-800", icon: User },
@@ -29,26 +54,30 @@ const RoleRenderer = (params: any) => {
       color: "bg-orange-100 text-orange-800",
       icon: User,
     },
-  } as const;
+    drop_off: {
+      color: "bg-red-50 text-red-700 border border-red-200",
+      icon: User,
+    },
+  };
 
-  const config = (roleConfig as any)[role] || roleConfig.free_subscriber;
-  const Icon = config.icon as any;
+  const config = roleConfig[role] || roleConfig.free_subscriber;
+  const Icon = config.icon;
 
   return (
     <span
       className={`px-2 py-1 rounded-full text-xs font-medium flex items-center w-fit ${config.color}`}
     >
       <Icon className="mr-1 h-3 w-3" />
-      {String(role)
+      {role
         .replace(/_/g, " ")
         .replace(/\b\w/g, (l) => l.toUpperCase())}
     </span>
   );
 };
 
-const EmailRenderer = (params: any) => (
+const EmailRenderer = (params: ICellRendererParams<MemberData>) => (
   <a
-    href={`mailto:${params.value}`}
+    href={`mailto:${String(params.value)}`}
     className="text-blue-600 hover:underline flex items-center"
   >
     <Mail className="mr-1 h-3 w-3" />
@@ -56,8 +85,8 @@ const EmailRenderer = (params: any) => (
   </a>
 );
 
-const PhoneRenderer = (params: any) => {
-  const phone = params.value;
+const PhoneRenderer = (params: ICellRendererParams<MemberData>) => {
+  const phone = params.value as string;
   if (!phone) return null;
   // Try E.164, otherwise just pass phone as is
   const telHref = `tel:${phone.replace(/[^+\d]/g, "")}`;
@@ -73,8 +102,9 @@ const PhoneRenderer = (params: any) => {
   );
 };
 
-const ActivityRenderer = (params: any, activityMap: any) => {
-  const userId = params.data.id;
+const ActivityRenderer = (params: ICellRendererParams<MemberData>, activityMap: Record<string, UserActivity>) => {
+  const userId = params.data?.id;
+  if (!userId) return null;
   const activity = activityMap[userId] || {
     pageviews_count: 0,
     recommendations_count: 0,
@@ -152,7 +182,7 @@ const MemberManagementDashboard = () => {
     }
   };
 
-  const AgreementRenderer = (params: any) => {
+  const AgreementRenderer = (params: ICellRendererParams<MemberData>) => {
     const documents = params.data?.digio_documents;
     const documentId =
       Array.isArray(documents) && documents.length > 0
@@ -184,15 +214,15 @@ const MemberManagementDashboard = () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] }),
   });
 
-  const handleEdit = (row: any) => {
+  const handleEdit = (row: MemberData) => {
     openEditMember(row);
   };
 
-  const handleView = (row: any) => {
+  const handleView = (row: MemberData) => {
     openViewMember(row);
   };
 
-  const handleDelete = (row: any) => {
+  const handleDelete = (row: MemberData) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -256,26 +286,26 @@ const MemberManagementDashboard = () => {
     window.open(`mailto:${emails}`, "_blank");
   };
 
-  const ActionRenderer = (params: any) => (
+  const ActionRenderer = (params: ICellRendererParams<MemberData>) => (
     <div className="flex items-center space-x-1">
       <button
         className="p-1 text-gray-600 hover:text-blue-600"
         title="View"
-        onClick={() => handleView(params.data)}
+        onClick={() => params.data && handleView(params.data)}
       >
         <Eye className="h-4 w-4" />
       </button>
       <button
         className="p-1 text-gray-600 hover:text-blue-600"
         title="Edit"
-        onClick={() => handleEdit(params.data)}
+        onClick={() => params.data && handleEdit(params.data)}
       >
         <Edit className="h-4 w-4" />
       </button>
       <button
         className="p-1 text-gray-600 hover:text-red-600"
         title="Delete"
-        onClick={() => handleDelete(params.data)}
+        onClick={() => params.data && handleDelete(params.data)}
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -334,8 +364,8 @@ const MemberManagementDashboard = () => {
       headerName: "Expires In",
       field: "subscription_end_date",
       width: 140,
-      cellRenderer: (params: any) => {
-        const endDate = params.value;
+      cellRenderer: (params: ICellRendererParams<MemberData>) => {
+        const endDate = params.value as string | null | undefined;
         if (!endDate) return <span className="text-gray-400">-</span>;
 
         const daysLeft = differenceInDays(new Date(endDate), new Date());
@@ -371,7 +401,7 @@ const MemberManagementDashboard = () => {
       field: "id", // Using ID but displaying count from map
       colId: "analytics",
       width: 140,
-      cellRenderer: (params: any) => ActivityRenderer(params, activityMap),
+      cellRenderer: (params: ICellRendererParams<MemberData>) => ActivityRenderer(params, activityMap),
       sortable: false,
     },
     {
@@ -404,14 +434,15 @@ const MemberManagementDashboard = () => {
       core_subscriber: 0,
       ipo_subscriber: 0,
       research_ally_subscriber: 0,
+      drop_off: 0,
     };
 
-    users.forEach((u: any) => {
+    users.forEach((u: MemberData) => {
       let role = (u.role || "free_subscriber").toLowerCase().trim();
       role = role.replace(/[\s-]/g, "_");
 
-      if ((counts as any)[role] !== undefined) {
-        (counts as any)[role]++;
+      if (Object.prototype.hasOwnProperty.call(counts, role)) {
+        (counts as Record<string, number>)[role]++;
       } else {
         if (role.includes("core") && role.includes("sub")) counts.core_subscriber++;
         else if (role.includes("ipo") && role.includes("sub")) counts.ipo_subscriber++;
@@ -427,13 +458,13 @@ const MemberManagementDashboard = () => {
   const filteredData = useMemo(() => {
     // 1. Filter by Role
     let data = selectedRole
-      ? users.filter((u: any) => (u.role || "free_subscriber") === selectedRole)
+      ? users.filter((u: MemberData) => (u.role || "free_subscriber") === selectedRole)
       : users;
 
     // 2. Filter by Search Query
     if (searchQuery) {
       const lowerQ = searchQuery.toLowerCase();
-      data = data.filter((u: any) =>
+      data = data.filter((u: MemberData) =>
         u.username?.toLowerCase().includes(lowerQ) ||
         u.email?.toLowerCase().includes(lowerQ) ||
         (u.first_name && u.first_name.toLowerCase().includes(lowerQ)) ||
@@ -451,6 +482,7 @@ const MemberManagementDashboard = () => {
     { label: "Research Ally", value: "research_ally_subscriber", count: roleCounts.research_ally_subscriber },
     { label: "Employees", value: "employee", count: roleCounts.employee },
     { label: "Admins", value: "admin", count: roleCounts.admin },
+    { label: "Drop Off", value: "drop_off", count: roleCounts.drop_off },
   ];
 
   const [selectedCount, setSelectedCount] = useState(0);
