@@ -540,20 +540,35 @@ export const zeroAmountAccountCreation = async (
     // Compute subscription window based on plan duration
     let subscriptionStartDate: string | null = null;
     let subscriptionEndDate: string | null = null;
+    let roleAfterActivation: string | null = null;
     try {
       const { data: planRow, error: planError } = await supabase
         .from("membership_plans")
-        .select("duration_months")
+        .select("duration_months, plan_code")
         .eq("plan_id", plan_id as any)
         .maybeSingle();
 
       if (!planError && planRow) {
         subscriptionStartDate = startDate.toISOString().split("T")[0];
         const durationMonths = (planRow as any).duration_months;
+        const planCode = (planRow as any).plan_code;
+
         if (typeof durationMonths === "number" && durationMonths > 0) {
           const end = new Date(startDate);
           end.setMonth(end.getMonth() + durationMonths);
           subscriptionEndDate = end.toISOString().split("T")[0];
+        }
+
+        // Keep role aligned with payment_success webhook behavior.
+        // - research_hub -> research_ally_subscriber
+        // - freemium -> free_subscriber
+        // - everything else -> core_subscriber
+        if (planCode === "research_hub") {
+          roleAfterActivation = config.roles.research_ally_subscriber;
+        } else if (planCode === "freemium") {
+          roleAfterActivation = "free_subscriber";
+        } else {
+          roleAfterActivation = config.roles.core_subscriber;
         }
       }
     } catch (e: any) {
@@ -565,6 +580,8 @@ export const zeroAmountAccountCreation = async (
       const userUpdate: any = {
         plan_id,
         status: "active",
+        role: roleAfterActivation || config.roles.core_subscriber,
+        updated_at: new Date().toISOString(),
       };
 
       if (subscriptionStartDate) {

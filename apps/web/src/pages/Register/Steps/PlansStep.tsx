@@ -77,7 +77,14 @@ const PlansStep: React.FC<PlansStepProps> = ({
         navigate("/user/app/dashboard");
         return;
       }
-      updateFormData("role", "drop_off");
+      // Don't mark as `drop_off` immediately; the backend will flip the role
+      // after a configurable delay if onboarding isn't completed.
+      // If the user is already `drop_off` (e.g. timer already triggered),
+      // preserve that value.
+      updateFormData(
+        "role",
+        formData?.role === "drop_off" ? "drop_off" : "employee"
+      );
       onNext();
     } catch (error) {
       setIsLoading(false);

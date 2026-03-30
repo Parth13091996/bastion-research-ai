@@ -166,9 +166,10 @@ export const runDropOffSummary = async (referenceDate: Date = new Date()) => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, first_name, last_name, phone, created_at')
+      .select('id, email, first_name, last_name, phone, created_at, updated_at')
       .eq('role', 'drop_off')
-      .gte('created_at', today)
+      // Use `updated_at` so we capture delayed `drop_off` assignments correctly.
+      .gte('updated_at', today)
 
     if (error) {
       console.error('Failed to fetch drop-off users', error)
