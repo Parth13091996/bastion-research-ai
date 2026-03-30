@@ -12,6 +12,7 @@ import CompanyDropdown from "./CompanyDropdown";
 import { COMBOS, darkTokens, FLAGS, lightTokens, SEGMENTS } from "./constants";
 import DownloadButton from "./DownloadButton";
 import ToggleButton from "./ToggleButton";
+import "./pdfStyles.css";
 
 
 export default function RedFlagChecklist() {
@@ -96,8 +97,9 @@ export default function RedFlagChecklist() {
       });
       toast.success("Checklist submitted.");
       setSubmitted(true);
-    } catch (e: any) {
-      console.error("Failed to submit red-flag decision", e);
+    } catch (err: unknown) {
+      console.error("Failed to submit red-flag decision", err);
+      const e = err as { response?: { data?: { error?: string } } };
       toast.error(e?.response?.data?.error || "Could not save submission. Try again.");
     } finally {
       setIsSubmitting(false);
@@ -108,41 +110,125 @@ export default function RedFlagChecklist() {
     const root = printableContentRef.current;
     if (!root) return;
     setIsDownloading(true);
+
     try {
-      const companyName =
-        companies.find((c) => c.id === selectedCompanyId)?.name?.replace(
-          /[^\w\-]+/g,
-          "_"
-        ) ?? "checklist";
-      const canvas = await html2canvas(root, {
+      const company = companies.find((c) => c.id === selectedCompanyId);
+      const companyName = company?.name?.replace(/[^\w-]+/g, "_") ?? "checklist";
+
+      // 1. Create a clone for capture to ensure desktop layout and no UI elements
+      const clone = root.cloneNode(true) as HTMLElement;
+
+      // Remove UI elements we don't want in PDF
+      clone.querySelectorAll('[data-html2canvas-ignore]').forEach(el => el.remove());
+
+      // Standardize styles for capture (force desktop width)
+      clone.style.width = '800px';
+      clone.style.position = 'relative'; // Important for offsetTop calculation
+      clone.style.top = '0';
+      clone.style.left = '0';
+      clone.style.background = t.bg;
+      clone.classList.add('pdf-capture-container');
+
+      // We need it in the DOM to get offsets, but hidden
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.top = '-99999px';
+      container.style.left = '0';
+      container.style.width = '800px';
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      // Wait for any layout shifts and fonts to stabilize
+      await new Promise(r => setTimeout(r, 500));
+
+      // 2. Capture the entire clone
+      const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: t.bg,
-        scrollY: -window.scrollY,
+        width: 800,
       });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+
+      // 3. Identify block positions for smart slicing
+      // Using getBoundingClientRect relative to clone for high precision
+      const cloneRect = clone.getBoundingClientRect();
+      const blocks = Array.from(clone.querySelectorAll('[data-pdf-block]')).map(el => {
+        const rect = el.getBoundingClientRect();
+        return {
+          top: rect.top - cloneRect.top,
+          bottom: rect.bottom - cloneRect.top,
+          forceBreak: el.hasAttribute('data-pdf-force-page-break')
+        };
+      });
+
+      document.body.removeChild(container);
+
+      // 4. PDF Generation with Smart Slicing
+      const pdf = new jsPDF({ orientation: "p", unit: "px", format: "a4" });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * pageWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
 
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Calculate scale from canvas to PDF page
+      const canvasWidth = canvas.width / 2; // Since scale was 2
+      const pdfScale = pageWidth / canvasWidth;
+      const pageHeightCanvas = pageHeight / pdfScale;
 
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      let currentY = 0;
+      const totalHeight = canvas.height / 2;
+
+      while (currentY < totalHeight) {
+        let sliceHeight = pageHeightCanvas;
+
+        // Find if any block is being cut
+        const potentialBottom = currentY + pageHeightCanvas;
+        const intersectingBlock = blocks.find(b => b.top < potentialBottom && b.bottom > potentialBottom);
+
+        // Check for forced page breaks
+        const forcedBlock = blocks.find(b => b.top >= currentY && b.top < potentialBottom && b.forceBreak);
+
+        if (forcedBlock && forcedBlock.top > currentY) {
+          // Force break at the start of this block
+          sliceHeight = forcedBlock.top - currentY;
+        } else if (intersectingBlock && intersectingBlock.top > currentY) {
+          // Move the slice bottom up to the start of the intersecting block
+          sliceHeight = intersectingBlock.top - currentY;
+        }
+
+        // Add the slice to PDF
+        // sY/sHeight are in "canvas pixels" (which is normal pixels * scale)
+        const sY = currentY * 2;
+        const sHeight = sliceHeight * 2;
+
+        // Create a temporary canvas for this slice to maintain quality
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sHeight;
+        const ctx = sliceCanvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(canvas, 0, sY, canvas.width, sHeight, 0, 0, canvas.width, sHeight);
+          const imgData = sliceCanvas.toDataURL("image/png");
+
+          if (currentY > 0) {
+            pdf.addPage();
+          }
+
+          // Fill background for the entire page to avoid white gaps
+          pdf.setFillColor(t.bg);
+          pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+          pdf.addImage(imgData, "PNG", 0, 0, pageWidth, sliceHeight * pdfScale);
+        }
+
+        currentY += sliceHeight;
+
+        // Safety break to prevent infinite loops if a block is larger than a page
+        if (sliceHeight <= 0) {
+          currentY += pageHeightCanvas;
+        }
       }
 
-      pdf.save(
-        `red-flag-checklist-${companyName}-${new Date().toISOString().slice(0, 10)}.pdf`
-      );
+      pdf.save(`red-flag-checklist-${companyName}-${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (e) {
       console.error("Failed to export PDF", e);
       toast.error("Could not create PDF. Try again.");
@@ -152,7 +238,7 @@ export default function RedFlagChecklist() {
   };
 
   const evaluateCombos = () => {
-    const triggered = { critical: [] as any[], high: [] as any[] };
+    const triggered: { critical: Combo[]; high: Combo[] } = { critical: [], high: [] };
     COMBOS.forEach((combo) => {
       if (combo.flags.every((f) => isFlagged(f))) {
         triggered[combo.tier].push(combo);
@@ -165,6 +251,15 @@ export default function RedFlagChecklist() {
   const hasCritical = triggered.critical.length > 0;
   const hasHigh = triggered.high.length > 0;
   const allActiveItems = [...triggered.critical, ...triggered.high];
+
+  // Helper to chunk the results into groups of 8 for pagination
+  const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+    if (arr.length === 0) return [[]];
+    return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+      arr.slice(i * size, i * size + size)
+    );
+  };
+  const activeChunks = allActiveItems.length > 0 ? chunkArray(allActiveItems, 8) : [[]];
 
   const scoreColor = !submitted ? t.textDim : flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold;
   const progressColor = !submitted ? t.blue : (flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold);
@@ -234,6 +329,8 @@ export default function RedFlagChecklist() {
         bannerVariant === "caution" ? t.gold :
           t.red;
 
+  const currentCompany = companies.find((c) => c.id === selectedCompanyId);
+
   return (
     <>
       <style>{`
@@ -276,13 +373,18 @@ export default function RedFlagChecklist() {
         >
 
           {/* Header */}
-          <header style={{ textAlign: "center", marginBottom: 48, paddingTop: 8 }}>
+          <header data-pdf-block style={{ textAlign: "center", marginBottom: 48, paddingTop: 8 }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.3em", color: t.gold, textTransform: "uppercase", marginBottom: 16, opacity: 0.9 }}>
-              Bastion CORE · Forensic Stock Checklist
+              Bastion Research · Forensic Stock Checklist
             </div>
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "clamp(36px, 7vw, 72px)", letterSpacing: "0.02em", lineHeight: 0.95, color: t.text }}>
               Did Your Stock Pass<br />The <span style={{ color: t.red }}>Red Flag</span> Test?
             </h1>
+            {currentCompany && (
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, color: t.blueBright, marginTop: 14, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                Insights for: {currentCompany.name}
+              </div>
+            )}
             <div style={{ width: 60, height: 3, background: `linear-gradient(90deg, ${t.red}, transparent)`, margin: "20px auto 16px", borderRadius: 2 }} />
             <p style={{ color: t.textDim, fontSize: 14, fontWeight: 300, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>
               Mark each flag CLEAR ✓ or FLAGGED ✗ and click SUBMIT to receive your verdict. The verdict is driven entirely by meaningful flag combinations — not a raw count.
@@ -292,6 +394,7 @@ export default function RedFlagChecklist() {
           {/* Company Controls */}
           <div
             ref={topControlsRef}
+            data-html2canvas-ignore
             style={{
               display: "flex",
               alignItems: "flex-end",
@@ -317,10 +420,10 @@ export default function RedFlagChecklist() {
           </div>
 
           {/* Score Bar */}
-          <div ref={scoreBarRef} className="score-bar" style={{ background: t.surface, border: `1px solid ${t.border}`, borderTop: `3px solid ${t.blue}`, borderRadius: 12, padding: "22px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, marginBottom: 40, flexWrap: "wrap", transition: "background 0.3s, border-color 0.3s" }}>
-            <div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", color: t.textDim, textTransform: "uppercase", marginBottom: 4 }}>Flags Triggered</div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, lineHeight: 1, color: scoreColor, transition: "color 0.4s" }}>{flagged} / {RED_FLAG_QUESTIONS_COUNT}</div>
+          <div ref={scoreBarRef} data-pdf-block className="score-bar" style={{ background: t.surface, border: `1px solid ${t.border}`, borderTop: `3px solid ${t.blue}`, borderRadius: 12, padding: "22px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, marginBottom: 40, flexWrap: "wrap", transition: "background 0.3s, border-color 0.3s" }}>
+            <div className="pdf-score-container" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div className="pdf-score-label" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", color: t.textDim, textTransform: "uppercase", marginBottom: 4 }}>Flags Triggered</div>
+              <div className="pdf-score-value" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, lineHeight: 1, color: scoreColor, transition: "color 0.4s" }}>{flagged} / {RED_FLAG_QUESTIONS_COUNT}</div>
               <div className="progress-track" style={{ width: 160, height: 4, background: t.surface3, borderRadius: 99, overflow: "hidden", marginTop: 10 }}>
                 <div style={{ height: "100%", borderRadius: 99, background: progressColor, width: `${(flagged / RED_FLAG_QUESTIONS_COUNT) * 100}%`, transition: "width 0.5s ease, background 0.4s" }} />
               </div>
@@ -329,7 +432,7 @@ export default function RedFlagChecklist() {
               <div style={{ fontSize: 16, fontWeight: 600, color: submitted ? verdictInlineColor : t.textMuted, transition: "color 0.3s" }}>{verdictInlineText}</div>
               <div style={{ fontSize: 12, color: t.textMuted, marginTop: 5, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em" }}>{verdictSubText}</div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div data-html2canvas-ignore style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
                 onClick={() => void handleSubmit()}
                 disabled={!canSubmit || submitted}
@@ -362,40 +465,55 @@ export default function RedFlagChecklist() {
           </div>
 
           {/* Segments */}
-          {SEGMENTS.map((seg) => (
-            <div key={seg.title} style={{ marginBottom: 36 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, paddingBottom: 14, borderBottom: `1px solid ${t.borderSoft}` }}>
-                <div style={{ width: 38, height: 38, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, flexShrink: 0, background: seg.iconBg }}>{seg.icon}</div>
-                <div>
-                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 21, letterSpacing: "0.06em", color: t.text }}>{seg.title}</div>
-                  <div style={{ fontSize: 12, color: t.textDim, marginTop: 2, fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>{seg.desc}</div>
+          {SEGMENTS.map((seg) => {
+            const isFakeProfits = seg.title === "Fake Profits & Margins";
+            const isShadyPromoters = seg.title === "Shady Promoters & Governance";
+
+            // Force page breaks based on user request:
+            // Page 2 starts with "Fake Profits & Margins"
+            // Page 3 starts with "Shady Promoters & Governance"
+            const shouldForceBreak = isFakeProfits || isShadyPromoters;
+
+            return (
+              <div
+                key={seg.title}
+                data-pdf-block
+                data-pdf-force-page-break={shouldForceBreak ? "true" : undefined}
+                style={{ marginBottom: 36 }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, paddingBottom: 14, borderBottom: `1px solid ${t.borderSoft}` }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, flexShrink: 0, background: seg.iconBg }}>{seg.icon}</div>
+                  <div>
+                    <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 21, letterSpacing: "0.06em", color: t.text }}>{seg.title}</div>
+                    <div style={{ fontSize: 12, color: t.textDim, marginTop: 2, fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>{seg.desc}</div>
+                  </div>
+                </div>
+                <div style={{ display: "grid", gap: 10 }}>
+                  {seg.flagIds.map((fid) => {
+                    const flag = FLAGS.find((f) => f.id === fid)!;
+                    const status = flags[fid] ?? null;
+                    const isFl = status === "flagged";
+                    const isCl = status === "clear";
+                    return (
+                      <div key={fid} data-pdf-block className="flag-card-grid" style={{ background: isFl ? t.redMuted : isCl ? t.greenMuted : t.surface, border: `1px solid ${isFl ? t.redBorder : isCl ? t.greenBorder : t.borderSoft}`, borderRadius: 10, padding: "18px 20px", display: "grid", gridTemplateColumns: "1fr auto", gap: 16, alignItems: "center", transition: "border-color 0.25s, background 0.25s", position: "relative", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: isFl ? t.red : isCl ? t.greenBright : t.border, transition: "background 0.3s" }} />
+                        <div>
+                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: isFl ? t.redBright : isCl ? t.greenBright : t.textMuted, letterSpacing: "0.12em", marginBottom: 5, textTransform: "uppercase", opacity: isFl || isCl ? 0.8 : 1 }}>{flag.num}</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginBottom: 6, letterSpacing: "0.01em" }}>{flag.name}</div>
+                          <div style={{ fontSize: 12, color: t.textDim, lineHeight: 1.6 }}>{flag.desc}</div>
+                          <div className="pdf-flag-check" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: t.gold, background: t.goldMuted, border: `1px solid ${t.goldBorder}`, borderRadius: 4, padding: "4px 9px", marginTop: 9, display: "flex", alignItems: "center", justifyContent: "flex-start", letterSpacing: "0.04em", textAlign: "left", minHeight: "26px" }}>{flag.check}</div>
+                        </div>
+                        <div data-html2canvas-ignore className="toggle-group" style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
+                          <ToggleButton label="✓ CLEAR" active={isCl} activeStyle={{ background: t.green, borderColor: t.greenBright, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(26,158,120,0.35)" }} t={t} onClick={() => setFlag(fid, "clear")} />
+                          <ToggleButton label="✗ FLAG" active={isFl} activeStyle={{ background: t.red, borderColor: t.red, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(192,0,0,0.4)" }} t={t} onClick={() => setFlag(fid, "flagged")} />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              <div style={{ display: "grid", gap: 10 }}>
-                {seg.flagIds.map((fid) => {
-                  const flag = FLAGS.find((f) => f.id === fid)!;
-                  const status = flags[fid] ?? null;
-                  const isFl = status === "flagged";
-                  const isCl = status === "clear";
-                  return (
-                    <div key={fid} className="flag-card-grid" style={{ background: isFl ? t.redMuted : isCl ? t.greenMuted : t.surface, border: `1px solid ${isFl ? t.redBorder : isCl ? t.greenBorder : t.borderSoft}`, borderRadius: 10, padding: "18px 20px", display: "grid", gridTemplateColumns: "1fr auto", gap: 16, alignItems: "center", transition: "border-color 0.25s, background 0.25s", position: "relative", overflow: "hidden" }}>
-                      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: isFl ? t.red : isCl ? t.greenBright : t.border, transition: "background 0.3s" }} />
-                      <div>
-                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: isFl ? t.redBright : isCl ? t.greenBright : t.textMuted, letterSpacing: "0.12em", marginBottom: 5, textTransform: "uppercase", opacity: isFl || isCl ? 0.8 : 1 }}>{flag.num}</div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: t.text, marginBottom: 6, letterSpacing: "0.01em" }}>{flag.name}</div>
-                        <div style={{ fontSize: 12, color: t.textDim, lineHeight: 1.6 }}>{flag.desc}</div>
-                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: t.gold, background: t.goldMuted, border: `1px solid ${t.goldBorder}`, borderRadius: 4, padding: "4px 9px", marginTop: 9, display: "inline-block", letterSpacing: "0.04em" }}>{flag.check}</div>
-                      </div>
-                      <div className="toggle-group" style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-                        <ToggleButton label="✓ CLEAR" active={isCl} activeStyle={{ background: t.green, borderColor: t.greenBright, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(26,158,120,0.35)" }} t={t} onClick={() => setFlag(fid, "clear")} />
-                        <ToggleButton label="✗ FLAG" active={isFl} activeStyle={{ background: t.red, borderColor: t.red, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(192,0,0,0.4)" }} t={t} onClick={() => setFlag(fid, "flagged")} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Divider removed as well as Toxic Combinations */}
 
@@ -460,8 +578,20 @@ export default function RedFlagChecklist() {
             </div>
           )}
 
-          {/* Verdict Banner */}
-          <div style={{ marginTop: 32, borderRadius: 12, padding: "30px 36px", textAlign: "center", transition: "all 0.45s", background: bannerBg, border: `1px solid ${bannerBorderColor}`, borderTop: bannerBorderTop }}>
+          {/* Verdict Banner - Web Version (Single block, ignored in PDF capture) */}
+          <div
+            data-html2canvas-ignore
+            style={{
+              marginTop: 32,
+              borderRadius: 12,
+              padding: "30px 36px",
+              textAlign: "center",
+              transition: "all 0.45s",
+              background: bannerBg,
+              border: `1px solid ${bannerBorderColor}`,
+              borderTop: bannerBorderTop
+            }}
+          >
             <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: "0.05em", marginBottom: 10, color: bannerTitleColor, transition: "color 0.4s" }}>{bannerMain}</div>
             <div style={{ fontSize: 13.5, color: t.textDim, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>{bannerDetail}</div>
             {submitted && allActiveItems.length > 0 && (
@@ -476,9 +606,53 @@ export default function RedFlagChecklist() {
             )}
           </div>
 
+          {/* Verdict Banner(s) - PDF-Only Paginated version (Revealed only in PDF capture) */}
+          <div className="pdf-results-only">
+            {activeChunks.map((chunk, index) => (
+              <div
+                key={index}
+                data-pdf-block
+                data-pdf-force-page-break="true"
+                className="verdict-page"
+                style={{
+                  marginTop: index === 0 ? 32 : 0,
+                  borderRadius: index === 0 ? 12 : 0,
+                  borderBottomLeftRadius: (index === activeChunks.length - 1) ? 12 : 0,
+                  borderBottomRightRadius: (index === activeChunks.length - 1) ? 12 : 0,
+                  padding: index === 0 ? "30px 48px 48px" : "60px 48px",
+                  textAlign: "center",
+                  transition: "all 0.45s",
+                  background: bannerBg,
+                  border: `1px solid ${bannerBorderColor}`,
+                  borderTop: index === 0 ? bannerBorderTop : `1px solid ${bannerBorderColor}`,
+                  width: "100%",
+                  minHeight: activeChunks.length > 1 ? "1120px" : "auto",
+                }}
+              >
+                {index === 0 && (
+                  <>
+                    <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: "0.05em", marginBottom: 10, color: bannerTitleColor, transition: "color 0.4s" }}>{bannerMain}</div>
+                    <div style={{ fontSize: 13.5, color: t.textDim, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>{bannerDetail}</div>
+                  </>
+                )}
+
+                {submitted && chunk.length > 0 && (
+                  <div style={{ marginTop: 20, display: "grid", gap: 12, textAlign: "left" }}>
+                    {chunk.map((combo) => (
+                      <div key={combo.name} style={{ background: t.redMuted, border: `1px solid ${t.redBorder}`, borderRadius: 8, padding: "14px 18px" }}>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, color: t.redBright, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{combo.name}</div>
+                        <div style={{ fontSize: 12.5, color: t.textDim, lineHeight: 1.6 }}>{combo.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
           {/* Footer */}
-          <div style={{ marginTop: 56, textAlign: "center", fontSize: 10, color: t.textMuted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            BASTION CORE · FOR EDUCATIONAL PURPOSES ONLY · NOT INVESTMENT ADVICE
+          <div data-pdf-block style={{ marginTop: 56, textAlign: "center", fontSize: 10, color: t.textMuted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            BASTION RESEARCH · FOR EDUCATIONAL PURPOSES ONLY · NOT INVESTMENT RECOMMENDATION
           </div>
 
         </div>
