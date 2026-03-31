@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RefreshCw, Plus, Trash2 } from "lucide-react";
+import { RefreshCw, Plus, Trash2, Edit, X, Check, Search } from "lucide-react";
 import { RED_FLAG_QUESTIONS, type RedFlagQuestionKey } from "@/config/redFlagQuestions";
 // Remove unused ConfirmationModal and modal-store imports, matching WebinarManagement.tsx approach
 
@@ -27,15 +27,19 @@ const RedFlagAnalytics: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<RedFlagCompanyStats[]>([]);
   const [newCompanyName, setNewCompanyName] = useState("");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [confirmState, setConfirmState] = useState<{
     open: boolean;
     id: string | null;
     name: string | null;
-  }>({ open: false, id: null, name: null });
+    mode: "delete-company" | "clear-stats";
+  }>({ open: false, id: null, name: null, mode: "clear-stats" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showManageCompaniesModal, setShowManageCompaniesModal] = useState(false);
+  const [manageSearchQuery, setManageSearchQuery] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -56,87 +60,111 @@ const RedFlagAnalytics: React.FC = () => {
   const handleCreate = async () => {
     const name = newCompanyName.trim();
     if (!name) return;
+
+    // Duplicate check
+    const exists = stats.some(s => s.company.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+      toast.error(`Company "${name}" already exists.`);
+      return;
+    }
+
     try {
-      let logoUrl: string | undefined;
-      if (logoFile) {
-        setUploadingLogo(true);
-        const formData = new FormData();
-        formData.append("file", logoFile);
-        formData.append("category", "image");
-        formData.append("dir", "red-flag-companies");
-        const res = await uploadFile(formData);
-        const url = res.data?.url as string | undefined;
-        if (!url) {
-          toast.error("Upload did not return a URL");
-          return;
-        }
-        logoUrl = url;
-      }
       await redFlagApi.admin.createCompany({
         name,
-        ...(logoUrl ? { logo_url: logoUrl } : {}),
       });
       toast.success("Company created");
       setNewCompanyName("");
-      setLogoFile(null);
-      if (logoPreview) {
-        URL.revokeObjectURL(logoPreview);
-        setLogoPreview(null);
-      }
       await load();
     } catch (e: any) {
       toast.error(e?.response?.data?.error || "Failed to create company");
-    } finally {
-      setUploadingLogo(false);
     }
   };
 
-  const handleConfirmDelete = (id: string, name: string) => {
-    setConfirmState({ open: true, id, name });
+  const handleUpdate = async (id: string) => {
+    const name = editingName.trim();
+    if (!name) return;
+
+    // Duplicate check
+    const exists = stats.some(s => s.company.id !== id && s.company.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+      toast.error(`Company "${name}" already exists.`);
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await redFlagApi.admin.updateCompany(id, { name });
+      toast.success("Company updated");
+      setEditingId(null);
+      await load();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "Failed to update company");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleConfirmDelete = (id: string, name: string, mode: "delete-company" | "clear-stats" = "delete-company") => {
+    setConfirmState({ open: true, id, name, mode });
   };
 
   const handleDelete = async () => {
     if (!confirmState.id || !confirmState.name) return;
     setDeletingId(confirmState.id);
     try {
-      await redFlagApi.admin.deleteCompany(confirmState.id);
-      toast.success("Company deleted");
+      if (confirmState.mode === "delete-company") {
+        await redFlagApi.admin.deleteCompany(confirmState.id);
+        toast.success("Company deleted");
+      } else {
+        await redFlagApi.admin.clearCompanyStats(confirmState.id);
+        toast.success("Analytics data cleared");
+      }
       await load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || "Failed to delete company");
+      const action = confirmState.mode === "delete-company" ? "delete company" : "clear analytics";
+      toast.error(e?.response?.data?.error || `Failed to ${action}`);
     } finally {
       setDeletingId(null);
-      setConfirmState({ open: false, id: null, name: null });
+      setConfirmState({ open: false, id: null, name: null, mode: "clear-stats" });
     }
   };
 
   const handleCancelDelete = () => {
-    setConfirmState({ open: false, id: null, name: null });
+    setConfirmState({ open: false, id: null, name: null, mode: "clear-stats" });
   };
 
   const rows = useMemo(() => {
-    return [...stats].sort((a, b) =>
+    let filtered = stats.filter(s => s.flaggedQuestions.length > 0 || s.usersFrequency > 0);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(s => s.company.name.toLowerCase().includes(q));
+    }
+    return filtered.sort((a, b) =>
       a.company.name.localeCompare(b.company.name)
     );
-  }, [stats]);
+  }, [stats, searchQuery]);
 
   return (
     <div className="space-y-6">
       {/* Confirmation Modal, matching WebinarManagement style */}
       {confirmState.open && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-2">
-              Delete {confirmState.name}?
+        <div className="fixed inset-0 flex items-center justify-center z-[3000] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 animate-in zoom-in-95 duration-200 border relative z-[3001]">
+            <h3 className="text-xl font-bold mb-3 text-gray-900">
+              {confirmState.mode === "delete-company" ? `Delete ${confirmState.name}?` : `Clear Analytics for ${confirmState.name}?`}
             </h3>
-            <p className="mb-6 text-gray-700">
-              Are you sure you want to delete the company "{confirmState.name}"? This action cannot be undone.
+            <p className="mb-8 text-gray-600 leading-relaxed">
+              {confirmState.mode === "delete-company" 
+                ? `Are you sure you want to delete the company "${confirmState.name}"? This action cannot be undone.`
+                : `Are you sure you want to clear all forensic submissions for "${confirmState.name}"? This will reset its stats but keep the company name.`
+              }
             </p>
             <div className="flex justify-end gap-3">
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={handleCancelDelete}
                 disabled={deletingId === confirmState.id}
+                className="px-6"
               >
                 Cancel
               </Button>
@@ -144,9 +172,12 @@ const RedFlagAnalytics: React.FC = () => {
                 variant="destructive"
                 onClick={handleDelete}
                 disabled={deletingId === confirmState.id}
-                className="hover:bg-red-600 hover:text-white"
+                className="px-6 bg-red-600 hover:bg-red-700"
               >
-                {deletingId === confirmState.id ? "Deleting..." : "Delete"}
+                {deletingId === confirmState.id 
+                  ? (confirmState.mode === "delete-company" ? "Deleting..." : "Clearing...") 
+                  : (confirmState.mode === "delete-company" ? "Delete" : "Clear Data")
+                }
               </Button>
             </div>
           </div>
@@ -171,8 +202,18 @@ const RedFlagAnalytics: React.FC = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Create Company</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div className="flex flex-col space-y-1.5 p-0">
+            <CardTitle>Create Company</CardTitle>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowManageCompaniesModal(true)}
+            className="h-8"
+          >
+            <Search className="mr-2 h-4 w-4" /> Show Company List
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 max-w-xl">
@@ -186,50 +227,31 @@ const RedFlagAnalytics: React.FC = () => {
                   placeholder="e.g. PB Fintech"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="red-flag-company-logo">Logo (optional)</Label>
-                <Input
-                  id="red-flag-company-logo"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="cursor-pointer max-w-[240px]"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0] ?? null;
-                    setLogoFile(f);
-                    setLogoPreview((prev) => {
-                      if (prev) URL.revokeObjectURL(prev);
-                      return f ? URL.createObjectURL(f) : null;
-                    });
-                  }}
-                />
-              </div>
               <Button
                 onClick={handleCreate}
                 disabled={
-                  !newCompanyName.trim() || uploadingLogo || loading
+                  !newCompanyName.trim() || loading
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />{" "}
-                {uploadingLogo ? "Uploading…" : "Add"}
+                Add
               </Button>
             </div>
-            {logoPreview ? (
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span>Preview:</span>
-                <img
-                  src={logoPreview}
-                  alt=""
-                  className="h-10 w-10 rounded object-contain border bg-muted"
-                />
-              </div>
-            ) : null}
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Company Stats</CardTitle>
+          <div className="w-full max-w-sm">
+            <Input
+              placeholder="Search companies..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -253,14 +275,39 @@ const RedFlagAnalytics: React.FC = () => {
                   <TableRow key={r.company.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
-                        {r.company.logo_url ? (
-                          <img
-                            src={r.company.logo_url}
-                            alt=""
-                            className="h-9 w-9 rounded object-contain border bg-muted shrink-0"
-                          />
-                        ) : null}
-                        <span>{r.company.name}</span>
+                        {editingId === r.company.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              autoFocus
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              className="h-8 py-1"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleUpdate(r.company.id);
+                                if (e.key === 'Escape') setEditingId(null);
+                              }}
+                            />
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-green-600"
+                              onClick={() => handleUpdate(r.company.id)}
+                              disabled={isUpdating}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-muted-foreground"
+                              onClick={() => setEditingId(null)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span>{r.company.name}</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -281,16 +328,18 @@ const RedFlagAnalytics: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-right">{r.usersFrequency}</TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        disabled={deletingId === r.company.id || loading}
-                        onClick={() => handleConfirmDelete(r.company.id, r.company.name)}
-                        aria-label="Delete company"
-                        className=""
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          disabled={deletingId === r.company.id || loading}
+                          onClick={() => handleConfirmDelete(r.company.id, r.company.name, "clear-stats")}
+                          title="Clear Analytics"
+                          aria-label="Clear analytics"
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -299,6 +348,136 @@ const RedFlagAnalytics: React.FC = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Manage Companies Modal (Admin version) */}
+      {showManageCompaniesModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black bg-opacity-40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="px-6 py-4 border-b flex items-center justify-between bg-gray-50/50">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 leading-none">Manage Companies</h3>
+                <p className="text-sm text-muted-foreground mt-1.5">View, edit, or delete existing companies</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => { setShowManageCompaniesModal(false); setEditingId(null); setManageSearchQuery(""); }}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Search */}
+            <div className="px-6 py-3 border-b bg-white">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={manageSearchQuery}
+                  onChange={(e) => setManageSearchQuery(e.target.value)}
+                  placeholder="Search companies..."
+                  className="pl-9 h-9"
+                />
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+              <div className="grid gap-2">
+                {stats
+                  .filter(s => s.company.name.toLowerCase().includes(manageSearchQuery.toLowerCase()))
+                  .sort((a, b) => a.company.name.localeCompare(b.company.name))
+                  .map((s) => (
+                    <div
+                      key={s.company.id}
+                      className="group flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                      {editingId === s.company.id ? (
+                        <div className="flex items-center gap-2 flex-1 mr-4">
+                          <Input
+                            autoFocus
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            className="h-8"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleUpdate(s.company.id);
+                              if (e.key === 'Escape') setEditingId(null);
+                            }}
+                          />
+                          <Button
+                            size="icon"
+                            variant="default"
+                            className="h-8 w-8 bg-blue-600 hover:bg-blue-700"
+                            onClick={() => handleUpdate(s.company.id)}
+                            disabled={isUpdating}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => setEditingId(null)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium text-gray-800">{s.company.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 isolate">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 hover:bg-blue-50 hover:text-blue-600 transition-colors pointer-events-auto"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingId(s.company.id);
+                                setEditingName(s.company.name);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 hover:bg-red-50 hover:text-red-600 transition-colors pointer-events-auto"
+                              disabled={deletingId === s.company.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleConfirmDelete(s.company.id, s.company.name);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                {stats.filter(s => s.company.name.toLowerCase().includes(manageSearchQuery.toLowerCase())).length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground bg-white border border-dashed rounded-lg">
+                    No results found for "{manageSearchQuery}"
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t bg-gray-50/50 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => { setShowManageCompaniesModal(false); setEditingId(null); setManageSearchQuery(""); }}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import {
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Edit, Trash2, X, Check, Search } from "lucide-react";
 import CompanyDropdown from "./CompanyDropdown";
 import { COMBOS, darkTokens, FLAGS, lightTokens, SEGMENTS } from "./constants";
 import DownloadButton from "./DownloadButton";
@@ -26,6 +27,15 @@ export default function RedFlagChecklist() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showAddCompanyModal, setShowAddCompanyModal] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState("");
+  const [isCreatingCompany, setIsCreatingCompany] = useState(false);
+  const [showManageCompaniesModal, setShowManageCompaniesModal] = useState(false);
+  const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
+  const [editingCompanyName, setEditingCompanyName] = useState("");
+  const [isUpdatingCompany, setIsUpdatingCompany] = useState(false);
+  const [deletingCompanyId, setDeletingCompanyId] = useState<string | null>(null);
+  const [manageSearchQuery, setManageSearchQuery] = useState("");
   const scoreBarRef = useRef<HTMLDivElement>(null);
   const printableContentRef = useRef<HTMLDivElement>(null);
   const topControlsRef = useRef<HTMLDivElement>(null);
@@ -36,9 +46,6 @@ export default function RedFlagChecklist() {
       try {
         const data = await redFlagApi.getCompanies();
         setCompanies(data);
-        if (data.length > 0) {
-          setSelectedCompanyId((prev) => prev || data[0].id);
-        }
       } catch (e) {
         console.error("Failed to load companies", e);
       } finally {
@@ -47,6 +54,86 @@ export default function RedFlagChecklist() {
     };
     loadCompanies();
   }, []);
+
+  const refreshCompanies = async (selectId?: string) => {
+    setCompaniesLoading(true);
+    try {
+      const data = await redFlagApi.getCompanies();
+      setCompanies(data);
+      if (selectId) {
+        setSelectedCompanyId(selectId);
+      }
+    } catch (e) {
+      console.error("Failed to load companies", e);
+    } finally {
+      setCompaniesLoading(false);
+    }
+  };
+
+  const handleCreateCompany = async () => {
+    const name = newCompanyName.trim();
+    if (!name) return;
+
+    // Duplicate check
+    const exists = companies.some((c) => c.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+      toast.error(`Company "${name}" already exists.`);
+      return;
+    }
+
+    setIsCreatingCompany(true);
+    try {
+      const res = await redFlagApi.createCompany({ name });
+      toast.success(`Company "${res.name}" added successfully.`);
+      setNewCompanyName("");
+      setShowAddCompanyModal(false);
+      await refreshCompanies(res.id);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "Failed to add company.");
+    } finally {
+      setIsCreatingCompany(false);
+    }
+  };
+
+  const handleUpdateCompany = async (id: string) => {
+    const name = editingCompanyName.trim();
+    if (!name) return;
+
+    // Duplicate check (excluding self)
+    const exists = companies.some((c) => c.id !== id && c.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+      toast.error(`Company "${name}" already exists.`);
+      return;
+    }
+
+    setIsUpdatingCompany(true);
+    try {
+      await redFlagApi.admin.updateCompany(id, { name });
+      toast.success(`Company updated successfully.`);
+      setEditingCompanyId(null);
+      await refreshCompanies();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "Failed to update company.");
+    } finally {
+      setIsUpdatingCompany(false);
+    }
+  };
+
+  const handleDeleteCompany = async (id: string) => {
+    setDeletingCompanyId(id);
+    try {
+      await redFlagApi.admin.deleteCompany(id);
+      toast.success("Company deleted.");
+      if (selectedCompanyId === id) {
+        setSelectedCompanyId(companies[0]?.id === id ? companies[1]?.id || "" : companies[0]?.id || "");
+      }
+      await refreshCompanies();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "Failed to delete company.");
+    } finally {
+      setDeletingCompanyId(null);
+    }
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -62,6 +149,30 @@ export default function RedFlagChecklist() {
 
     if (topControlsRef.current) observer.observe(topControlsRef.current);
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    // Set page title
+    const originalTitle = document.title;
+    document.title = "Bastion CORE · Red Flag Checklist";
+
+    // Set page favicon
+    const originalFavicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    const originalHref = originalFavicon?.href;
+    const originalType = originalFavicon?.type;
+
+    if (originalFavicon) {
+      originalFavicon.href = "/media/favicon.webp";
+      originalFavicon.type = "image/webp";
+    }
+
+    return () => {
+      document.title = originalTitle;
+      if (originalFavicon) {
+        originalFavicon.href = originalHref || "";
+        originalFavicon.type = originalType || "";
+      }
+    };
   }, []);
 
   const t: Tokens = theme === "dark" ? darkTokens : lightTokens;
@@ -153,7 +264,7 @@ export default function RedFlagChecklist() {
       // 3. Identify block positions for smart slicing
       // Using getBoundingClientRect relative to clone for high precision
       const cloneRect = clone.getBoundingClientRect();
-      const blocks = Array.from(clone.querySelectorAll('[data-pdf-block]')).map(el => {
+      const blocks = Array.from(clone.querySelectorAll('[data-pdf-block], .pdf-page-break-avoid, .flag-card-grid')).map(el => {
         const rect = el.getBoundingClientRect();
         return {
           top: rect.top - cloneRect.top,
@@ -174,26 +285,44 @@ export default function RedFlagChecklist() {
       const pdfScale = pageWidth / canvasWidth;
       const pageHeightCanvas = pageHeight / pdfScale;
 
+      const topMargin = 40; // Marginal space for pages 2+
+      const topMarginCanvas = topMargin / pdfScale;
+
       let currentY = 0;
       const totalHeight = canvas.height / 2;
 
       while (currentY < totalHeight) {
-        let sliceHeight = pageHeightCanvas;
+        const isFirstPage = currentY === 0;
+        const availableHeightCanvas = isFirstPage ? pageHeightCanvas : (pageHeightCanvas - topMarginCanvas);
+
+        let sliceHeight = availableHeightCanvas;
 
         // Find if any block is being cut
-        const potentialBottom = currentY + pageHeightCanvas;
-        const intersectingBlock = blocks.find(b => b.top < potentialBottom && b.bottom > potentialBottom);
+        const potentialBottom = currentY + availableHeightCanvas;
+
+        // Find ALL blocks that cross the potential cut line and start AFTER the current page began
+        // We use a small 5px buffer to avoid being stuck on a block that starts exactly at currentY
+        const intersectingBlocks = blocks.filter(b =>
+          b.top > currentY + 5 &&
+          b.top < potentialBottom &&
+          b.bottom > potentialBottom
+        );
+
+        // Sort by top (ascending) to find the first block that starts on this page but would be cut
+        intersectingBlocks.sort((a, b) => a.top - b.top);
+        const firstIntersectingBlock = intersectingBlocks[0];
 
         // Check for forced page breaks
-        const forcedBlock = blocks.find(b => b.top >= currentY && b.top < potentialBottom && b.forceBreak);
+        const forcedBlock = blocks.find(b => b.top >= currentY + 5 && b.top < potentialBottom && b.forceBreak);
 
-        if (forcedBlock && forcedBlock.top > currentY) {
+        if (forcedBlock) {
           // Force break at the start of this block
           sliceHeight = forcedBlock.top - currentY;
-        } else if (intersectingBlock && intersectingBlock.top > currentY) {
-          // Move the slice bottom up to the start of the intersecting block
-          sliceHeight = intersectingBlock.top - currentY;
+        } else if (firstIntersectingBlock) {
+          // Move the slice bottom up to the start of the first intersecting block
+          sliceHeight = firstIntersectingBlock.top - currentY;
         }
+
 
         // Add the slice to PDF
         // sY/sHeight are in "canvas pixels" (which is normal pixels * scale)
@@ -209,7 +338,7 @@ export default function RedFlagChecklist() {
           ctx.drawImage(canvas, 0, sY, canvas.width, sHeight, 0, 0, canvas.width, sHeight);
           const imgData = sliceCanvas.toDataURL("image/png");
 
-          if (currentY > 0) {
+          if (!isFirstPage) {
             pdf.addPage();
           }
 
@@ -217,7 +346,8 @@ export default function RedFlagChecklist() {
           pdf.setFillColor(t.bg);
           pdf.rect(0, 0, pageWidth, pageHeight, 'F');
 
-          pdf.addImage(imgData, "PNG", 0, 0, pageWidth, sliceHeight * pdfScale);
+          const yOffset = isFirstPage ? 0 : topMargin;
+          pdf.addImage(imgData, "PNG", 0, yOffset, pageWidth, sliceHeight * pdfScale);
         }
 
         currentY += sliceHeight;
@@ -251,15 +381,6 @@ export default function RedFlagChecklist() {
   const hasCritical = triggered.critical.length > 0;
   const hasHigh = triggered.high.length > 0;
   const allActiveItems = [...triggered.critical, ...triggered.high];
-
-  // Helper to chunk the results into groups of 8 for pagination
-  const chunkArray = <T,>(arr: T[], size: number): T[][] => {
-    if (arr.length === 0) return [[]];
-    return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
-      arr.slice(i * size, i * size + size)
-    );
-  };
-  const activeChunks = allActiveItems.length > 0 ? chunkArray(allActiveItems, 8) : [[]];
 
   const scoreColor = !submitted ? t.textDim : flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold;
   const progressColor = !submitted ? t.blue : (flagged === 0 ? t.blueBright : hasCritical ? t.red : t.gold);
@@ -343,6 +464,23 @@ export default function RedFlagChecklist() {
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fadeIn { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .combo-turnaround {
+          font-size: 11px;
+          color: #C4B696;
+          background: rgba(196,182,150,0.1);
+          border: 1px solid rgba(196,182,150,0.3);
+          border-left: 3px solid #C4B696;
+          border-radius: 4px;
+          padding: 8px 12px;
+          margin-top: 10px;
+          line-height: 1.55;
+        }
+        [data-theme="light"] .combo-turnaround {
+          color: #8a7650;
+          background: rgba(138,118,80,0.08);
+          border: 1px solid rgba(138,118,80,0.3);
+          border-left: 3px solid #8a7650;
+        }
         @media (max-width: 580px) {
           .flag-card-grid { grid-template-columns: 1fr !important; }
           .toggle-group { flex-direction: row !important; }
@@ -373,7 +511,19 @@ export default function RedFlagChecklist() {
         >
 
           {/* Header */}
-          <header data-pdf-block style={{ textAlign: "center", marginBottom: 48, paddingTop: 8 }}>
+          <header data-pdf-block className="pdf-page-break-avoid" style={{ textAlign: "center", marginBottom: 48, paddingTop: 8 }}>
+            {/* Brand Logo */}
+            <div style={{
+              display: "inline-flex",
+              marginBottom: 32,
+            }}>
+              <img
+                src="/media/Bastion-Logo.png"
+                alt="Bastion Research"
+                style={{ height: 100, width: "auto", display: "block" }}
+              />
+            </div>
+
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.3em", color: t.gold, textTransform: "uppercase", marginBottom: 16, opacity: 0.9 }}>
               Bastion Research · Forensic Stock Checklist
             </div>
@@ -404,13 +554,41 @@ export default function RedFlagChecklist() {
               flexWrap: "wrap",
             }}
           >
-            <CompanyDropdown
-              companies={companies}
-              value={selectedCompanyId}
-              onChange={setSelectedCompanyId}
-              t={t}
-              loading={companiesLoading}
-            />
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
+              <CompanyDropdown
+                companies={companies}
+                value={selectedCompanyId}
+                onChange={(id) => setSelectedCompanyId(id)}
+                t={t}
+                placeholder="Select Company"
+                loading={companiesLoading}
+              />
+              <button
+                onClick={() => setShowAddCompanyModal(true)}
+                style={{
+                  background: t.surface,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  color: t.textDim,
+                  fontSize: 12,
+                  cursor: "pointer",
+                  fontFamily: "'DM Mono', monospace",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  transition: "all 0.2s",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  height: 42,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = t.blue; e.currentTarget.style.color = t.text; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textDim; }}
+              >
+                <span style={{ fontSize: 16 }}>+</span>
+                <span>Add Company</span>
+              </button>
+            </div>
             <DownloadButton
               onClick={() => void handleDownload()}
               disabled={isDownloading}
@@ -420,7 +598,7 @@ export default function RedFlagChecklist() {
           </div>
 
           {/* Score Bar */}
-          <div ref={scoreBarRef} data-pdf-block className="score-bar" style={{ background: t.surface, border: `1px solid ${t.border}`, borderTop: `3px solid ${t.blue}`, borderRadius: 12, padding: "22px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, marginBottom: 40, flexWrap: "wrap", transition: "background 0.3s, border-color 0.3s" }}>
+          <div ref={scoreBarRef} data-pdf-block className="score-bar pdf-page-break-avoid" style={{ background: t.surface, border: `1px solid ${t.border}`, borderTop: `3px solid ${t.blue}`, borderRadius: 12, padding: "22px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, marginBottom: 40, flexWrap: "wrap", transition: "background 0.3s, border-color 0.3s" }}>
             <div className="pdf-score-container" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div className="pdf-score-label" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", color: t.textDim, textTransform: "uppercase", marginBottom: 4 }}>Flags Triggered</div>
               <div className="pdf-score-value" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 48, lineHeight: 1, color: scoreColor, transition: "color 0.4s" }}>{flagged} / {RED_FLAG_QUESTIONS_COUNT}</div>
@@ -457,31 +635,44 @@ export default function RedFlagChecklist() {
               </button>
               <button
                 onClick={resetAll}
-                onMouseEnter={(e) => { (e.currentTarget).style.borderColor = t.blueBright; (e.currentTarget).style.color = t.text; }}
+                disabled={!selectedCompanyId}
+                onMouseEnter={(e) => { if (selectedCompanyId) { (e.currentTarget).style.borderColor = t.blueBright; (e.currentTarget).style.color = t.text; } }}
                 onMouseLeave={(e) => { (e.currentTarget).style.borderColor = t.border; (e.currentTarget).style.color = t.textDim; }}
-                style={{ background: "transparent", border: `1px solid ${t.border}`, color: t.textDim, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 18px", borderRadius: 6, cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap" }}
+                style={{
+                  background: "transparent",
+                  border: `1px solid ${t.border}`,
+                  color: t.textDim,
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 10,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  padding: "9px 18px",
+                  borderRadius: 6,
+                  cursor: selectedCompanyId ? "pointer" : "not-allowed",
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                  opacity: selectedCompanyId ? 1 : 0.4
+                }}
               >↺ Reset</button>
             </div>
           </div>
 
           {/* Segments */}
           {SEGMENTS.map((seg) => {
-            const isFakeProfits = seg.title === "Fake Profits & Margins";
-            const isShadyPromoters = seg.title === "Shady Promoters & Governance";
-
-            // Force page breaks based on user request:
-            // Page 2 starts with "Fake Profits & Margins"
-            // Page 3 starts with "Shady Promoters & Governance"
-            const shouldForceBreak = isFakeProfits || isShadyPromoters;
+            // Forced page breaks based on user request:
+            // Page 2 starts with "Debt-to-Equity Over 1.0 & Rising"
+            // The rest follow on the same page and continue as they fit.
+            const shouldForceBreak = false; // No longer forcing at segment level
 
             return (
               <div
                 key={seg.title}
                 data-pdf-block
                 data-pdf-force-page-break={shouldForceBreak ? "true" : undefined}
+                className="pdf-page-break-avoid"
                 style={{ marginBottom: 36 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, paddingBottom: 14, borderBottom: `1px solid ${t.borderSoft}` }}>
+                <div data-pdf-block className="pdf-page-break-avoid" style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, paddingBottom: 14, borderBottom: `1px solid ${t.borderSoft}` }}>
                   <div style={{ width: 38, height: 38, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, flexShrink: 0, background: seg.iconBg }}>{seg.icon}</div>
                   <div>
                     <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 21, letterSpacing: "0.06em", color: t.text }}>{seg.title}</div>
@@ -494,8 +685,28 @@ export default function RedFlagChecklist() {
                     const status = flags[fid] ?? null;
                     const isFl = status === "flagged";
                     const isCl = status === "clear";
+                    const forceBreakAtThisFlag = flag.name === "Debt-to-Equity Over 1.0 & Rising";
+
                     return (
-                      <div key={fid} data-pdf-block className="flag-card-grid" style={{ background: isFl ? t.redMuted : isCl ? t.greenMuted : t.surface, border: `1px solid ${isFl ? t.redBorder : isCl ? t.greenBorder : t.borderSoft}`, borderRadius: 10, padding: "18px 20px", display: "grid", gridTemplateColumns: "1fr auto", gap: 16, alignItems: "center", transition: "border-color 0.25s, background 0.25s", position: "relative", overflow: "hidden" }}>
+                      <div
+                        key={fid}
+                        data-pdf-block
+                        data-pdf-force-page-break={forceBreakAtThisFlag ? "true" : undefined}
+                        className="flag-card-grid"
+                        style={{
+                          background: isFl ? t.redMuted : isCl ? t.greenMuted : t.surface,
+                          border: `1px solid ${isFl ? t.redBorder : isCl ? t.greenBorder : t.borderSoft}`,
+                          borderRadius: 10,
+                          padding: "18px 20px",
+                          display: "grid",
+                          gridTemplateColumns: "1fr auto",
+                          gap: 16,
+                          alignItems: "center",
+                          transition: "border-color 0.25s, background 0.25s",
+                          position: "relative",
+                          overflow: "hidden"
+                        }}
+                      >
                         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: isFl ? t.red : isCl ? t.greenBright : t.border, transition: "background 0.3s" }} />
                         <div>
                           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: isFl ? t.redBright : isCl ? t.greenBright : t.textMuted, letterSpacing: "0.12em", marginBottom: 5, textTransform: "uppercase", opacity: isFl || isCl ? 0.8 : 1 }}>{flag.num}</div>
@@ -504,8 +715,8 @@ export default function RedFlagChecklist() {
                           <div className="pdf-flag-check" style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: t.gold, background: t.goldMuted, border: `1px solid ${t.goldBorder}`, borderRadius: 4, padding: "4px 9px", marginTop: 9, display: "flex", alignItems: "center", justifyContent: "flex-start", letterSpacing: "0.04em", textAlign: "left", minHeight: "26px" }}>{flag.check}</div>
                         </div>
                         <div data-html2canvas-ignore className="toggle-group" style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-                          <ToggleButton label="✓ CLEAR" active={isCl} activeStyle={{ background: t.green, borderColor: t.greenBright, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(26,158,120,0.35)" }} t={t} onClick={() => setFlag(fid, "clear")} />
-                          <ToggleButton label="✗ FLAG" active={isFl} activeStyle={{ background: t.red, borderColor: t.red, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(192,0,0,0.4)" }} t={t} onClick={() => setFlag(fid, "flagged")} />
+                          <ToggleButton label="✓ CLEAR" active={isCl} activeStyle={{ background: t.green, borderColor: t.greenBright, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(26,158,120,0.35)" }} t={t} onClick={() => setFlag(fid, "clear")} disabled={!selectedCompanyId} />
+                          <ToggleButton label="✗ FLAG" active={isFl} activeStyle={{ background: t.red, borderColor: t.red, color: "#fff", fontWeight: 600, boxShadow: "0 2px 12px rgba(192,0,0,0.4)" }} t={t} onClick={() => setFlag(fid, "flagged")} disabled={!selectedCompanyId} />
                         </div>
                       </div>
                     );
@@ -514,8 +725,6 @@ export default function RedFlagChecklist() {
               </div>
             );
           })}
-
-          {/* Divider removed as well as Toxic Combinations */}
 
           {/* Floating Submit Button */}
           {showFloating && !submitted && (
@@ -578,9 +787,10 @@ export default function RedFlagChecklist() {
             </div>
           )}
 
-          {/* Verdict Banner - Web Version (Single block, ignored in PDF capture) */}
+          {/* Verdict Banner */}
           <div
-            data-html2canvas-ignore
+            data-pdf-block
+            className="pdf-page-break-avoid"
             style={{
               marginTop: 32,
               borderRadius: 12,
@@ -592,62 +802,38 @@ export default function RedFlagChecklist() {
               borderTop: bannerBorderTop
             }}
           >
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: "0.05em", marginBottom: 10, color: bannerTitleColor, transition: "color 0.4s" }}>{bannerMain}</div>
-            <div style={{ fontSize: 13.5, color: t.textDim, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>{bannerDetail}</div>
+            <div data-pdf-block className="pdf-page-break-avoid">
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: "0.05em", marginBottom: 10, color: bannerTitleColor, transition: "color 0.4s" }}>{bannerMain}</div>
+              <div style={{ fontSize: 13.5, color: t.textDim, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>{bannerDetail}</div>
+            </div>
             {submitted && allActiveItems.length > 0 && (
               <div style={{ marginTop: 20, display: "grid", gap: 12, textAlign: "left" }}>
                 {allActiveItems.map((combo) => (
-                  <div key={combo.name} style={{ background: t.redMuted, border: `1px solid ${t.redBorder}`, borderRadius: 8, padding: "14px 18px" }}>
+                  <div
+                    key={combo.name}
+                    data-pdf-block
+                    className="pdf-page-break-avoid"
+                    style={{ background: t.redMuted, border: `1px solid ${t.redBorder}`, borderRadius: 8, padding: "14px 18px" }}
+                  >
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, color: t.redBright, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{combo.name}</div>
                     <div style={{ fontSize: 12.5, color: t.textDim, lineHeight: 1.6 }}>{combo.desc}</div>
+                    {combo.turnaround && (
+                      <div className="combo-turnaround" style={{
+                        fontSize: "11px",
+                        color: t.gold,
+                        background: t.goldMuted,
+                        border: `1px solid ${t.goldBorder}`,
+                        borderLeft: `3px solid ${t.gold}`,
+                        borderRadius: "4px",
+                        padding: "6px 10px",
+                        marginTop: "9px",
+                        lineHeight: "1.55"
+                      }}>{combo.turnaround}</div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Verdict Banner(s) - PDF-Only Paginated version (Revealed only in PDF capture) */}
-          <div className="pdf-results-only">
-            {activeChunks.map((chunk, index) => (
-              <div
-                key={index}
-                data-pdf-block
-                data-pdf-force-page-break="true"
-                className="verdict-page"
-                style={{
-                  marginTop: index === 0 ? 32 : 0,
-                  borderRadius: index === 0 ? 12 : 0,
-                  borderBottomLeftRadius: (index === activeChunks.length - 1) ? 12 : 0,
-                  borderBottomRightRadius: (index === activeChunks.length - 1) ? 12 : 0,
-                  padding: index === 0 ? "30px 48px 48px" : "60px 48px",
-                  textAlign: "center",
-                  transition: "all 0.45s",
-                  background: bannerBg,
-                  border: `1px solid ${bannerBorderColor}`,
-                  borderTop: index === 0 ? bannerBorderTop : `1px solid ${bannerBorderColor}`,
-                  width: "100%",
-                  minHeight: activeChunks.length > 1 ? "1120px" : "auto",
-                }}
-              >
-                {index === 0 && (
-                  <>
-                    <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: "0.05em", marginBottom: 10, color: bannerTitleColor, transition: "color 0.4s" }}>{bannerMain}</div>
-                    <div style={{ fontSize: 13.5, color: t.textDim, maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>{bannerDetail}</div>
-                  </>
-                )}
-
-                {submitted && chunk.length > 0 && (
-                  <div style={{ marginTop: 20, display: "grid", gap: 12, textAlign: "left" }}>
-                    {chunk.map((combo) => (
-                      <div key={combo.name} style={{ background: t.redMuted, border: `1px solid ${t.redBorder}`, borderRadius: 8, padding: "14px 18px" }}>
-                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, color: t.redBright, marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{combo.name}</div>
-                        <div style={{ fontSize: 12.5, color: t.textDim, lineHeight: 1.6 }}>{combo.desc}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
 
           {/* Footer */}
@@ -657,6 +843,105 @@ export default function RedFlagChecklist() {
 
         </div>
       </div>
+
+      {/* Add Company Modal */}
+      {showAddCompanyModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.8)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2000,
+          padding: 20,
+        }}>
+          <div
+            className="animate-fadeIn"
+            style={{
+              background: t.surface,
+              border: `1px solid ${t.border}`,
+              borderRadius: 16,
+              width: "100%",
+              maxWidth: 400,
+              padding: 32,
+              boxShadow: "0 24px 64px rgba(0,0,0,0.42)",
+            }}
+          >
+            <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, color: t.text, marginBottom: 8, letterSpacing: "0.04em" }}>Add New Company</h3>
+            <p style={{ fontSize: 13, color: t.textDim, marginBottom: 24, lineHeight: 1.6 }}>This will add a new company to the forensic tracking database.</p>
+
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 10, color: t.textDim, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 8 }}>Company Name</label>
+              <input
+                autoFocus
+                value={newCompanyName}
+                onChange={(e) => setNewCompanyName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newCompanyName.trim() && !isCreatingCompany) {
+                    void handleCreateCompany();
+                  }
+                }}
+                placeholder="e.g. Reliance Industries"
+                style={{
+                  width: "100%",
+                  background: t.surface2,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                  color: t.text,
+                  fontSize: 14,
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                disabled={isCreatingCompany}
+                onClick={() => { setShowAddCompanyModal(false); setNewCompanyName(""); }}
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  border: `1px solid ${t.border}`,
+                  color: t.textDim,
+                  padding: "12px",
+                  borderRadius: 8,
+                  fontSize: 11,
+                  fontFamily: "'DM Mono', monospace",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >Cancel</button>
+              <button
+                disabled={!newCompanyName.trim() || isCreatingCompany}
+                onClick={() => void handleCreateCompany()}
+                style={{
+                  flex: 1,
+                  background: newCompanyName.trim() ? t.blue : t.surface3,
+                  border: `1px solid ${newCompanyName.trim() ? t.blueBright : t.border}`,
+                  color: newCompanyName.trim() ? "#fff" : t.textMuted,
+                  padding: "12px",
+                  borderRadius: 8,
+                  fontSize: 11,
+                  fontFamily: "'DM Mono', monospace",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  cursor: newCompanyName.trim() ? "pointer" : "not-allowed",
+                  transition: "all 0.2s",
+                  boxShadow: newCompanyName.trim() ? `0 4px 12px ${t.blueBright}33` : "none"
+                }}
+              >
+                {isCreatingCompany ? "Saving..." : "Save Company"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -246,7 +246,7 @@ export const COMBOS: Combo[] = [
     desc: 'Low ROCE + Volatile Margins. No pricing power and no capital efficiency. Management claims specialty status; the numbers prove otherwise. You are paying a premium multiple for a commodity producer.',
     flagsLabel: 'Triggers: Flag 01 + Flag 05',
     turnaround:
-      '⚡ Turnaround Exception: A commodity business at the bottom of its cycle can show temporarily low ROCE and volatile margins before recovering. Acceptable only if there is a clear industry cycle thesis, the balance sheet is clean enough to survive the downturn, and management is not dressing it up as specialty.',
+      '⚡ Turnaround Exception: A commodity business at the bottom of its cycle can show temporarily low ROCE and volatile margins before recovering. Acceptable only if there is a clear industry cycle thesis, the balance sheet is clean enough to survive the downturn, and management is not dressing it up as "specialty."',
     alert: '⚠ ACTIVE — OVERVALUED COMMODITY BUSINESS',
   },
   {
@@ -254,10 +254,10 @@ export const COMBOS: Combo[] = [
     tier: 'high',
     flags: [1],
     name: 'The Dead Capital Business',
-    desc: 'Low ROCE — standalone. A business with persistently low ROCE and no credible path to improving it is a value trap regardless of how cheap the valuation looks. Capital deployed here earns less than it cost to raise. Time destroys value in these companies even if nothing else goes wrong.',
+    desc: 'Low ROCE — standalone. A business with persistently low ROCE and no credible path to improving it is a value trap regardless of how cheap the valuation looks. Capital deployed here earns less than it cost to raise. Time destroys value in these companies even if nothing else "goes wrong."',
     flagsLabel: 'Triggers: Flag 01 (standalone)',
     turnaround:
-      '⚡ Turnaround Exception: The only acceptable scenario is an active, time-bound turnaround where ROCE is already showing measurable quarterly improvement — not a promise of future improvement. If management has been saying ROCE will improve for 3+ years with no data to back it, there is no turnaround. Walk away.',
+      '⚡ Turnaround Exception: The only acceptable scenario is an active, time-bound turnaround where ROCE is already showing measurable quarterly improvement — not a promise of future improvement. If management has been saying "ROCE will improve" for 3+ years with no data to back it, there is no turnaround. Walk away.',
     alert: '⚠ ACTIVE — AVOID UNLESS TURNAROUND IS PROVEN',
   },
   {

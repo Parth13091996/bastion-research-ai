@@ -82,22 +82,56 @@ const normalizeLogoUrl = (value: unknown) => {
   return u
 }
 
-export const listRedFlagCompanies = async (req: Request, res: Response) => {
-  try {
+const fetchAllCompanies = async () => {
+  let allData: any[] = []
+  let from = 0
+  const PAGE_SIZE = 1000
+
+  while (true) {
     const { data, error } = await supabase
       .from(COMPANIES_TABLE)
       .select('id,name,logo_url,created_at')
       .order('name', { ascending: true })
+      .range(from, from + PAGE_SIZE - 1)
 
-    if (error) {
-      console.error('Database error:', error)
-      return res.status(500).json({ error: error.message })
-    }
+    if (error) throw error
+    if (!data || data.length === 0) break
 
-    return res.status(200).json(data ?? [])
+    allData = allData.concat(data)
+    if (data.length < PAGE_SIZE) break
+    from += PAGE_SIZE
+  }
+  return allData
+}
+
+const fetchAllSubmissions = async () => {
+  let allData: any[] = []
+  let from = 0
+  const PAGE_SIZE = 1000
+
+  while (true) {
+    const { data, error } = await supabase
+      .from(SUBMISSIONS_TABLE)
+      .select('company_id,flagged_keys')
+      .range(from, from + PAGE_SIZE - 1)
+
+    if (error) throw error
+    if (!data || data.length === 0) break
+
+    allData = allData.concat(data)
+    if (data.length < PAGE_SIZE) break
+    from += PAGE_SIZE
+  }
+  return allData
+}
+
+export const listRedFlagCompanies = async (req: Request, res: Response) => {
+  try {
+    const data = await fetchAllCompanies()
+    return res.status(200).json(data)
   } catch (error: any) {
     console.error('Error listing red-flag companies:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ error: error?.message || 'Internal server error' })
   }
 }
 
@@ -121,6 +155,30 @@ export const deleteRedFlagCompany = async (req: Request, res: Response) => {
     return res.status(204).send() // No Content
   } catch (error: any) {
     console.error('Error deleting red-flag company:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export const clearRedFlagSubmissions = async (req: Request, res: Response) => {
+  try {
+    const companyId = req.params.id
+    if (!companyId) {
+      return res.status(400).json({ error: 'Company ID is required' })
+    }
+
+    const { error } = await supabase
+      .from(SUBMISSIONS_TABLE)
+      .delete()
+      .eq('company_id', companyId)
+
+    if (error) {
+      console.error('Database error:', error)
+      return res.status(500).json({ error: error.message })
+    }
+
+    return res.status(200).json({ message: 'Analytics data cleared' })
+  } catch (error: any) {
+    console.error('Error clearing red-flag submissions:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -150,6 +208,46 @@ export const createRedFlagCompany = async (req: Request, res: Response) => {
     return res.status(201).json(data)
   } catch (error: any) {
     console.error('Error creating red-flag company:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export const updateRedFlagCompany = async (req: Request, res: Response) => {
+  try {
+    const companyId = req.params.id
+    if (!companyId) {
+      return res.status(400).json({ error: 'Company ID is required' })
+    }
+
+    const name = normalizeCompanyName(req.body?.name)
+    const logoUrl = normalizeLogoUrl(req.body?.logo_url)
+
+    const updates: { name?: string; logo_url?: string | null } = {}
+    if (name) updates.name = name
+    if (req.body?.logo_url !== undefined) updates.logo_url = logoUrl
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'At least one field (name or logo_url) is required for update' })
+    }
+
+    const { data, error } = await supabase
+      .from(COMPANIES_TABLE)
+      .update(updates)
+      .eq('id', companyId)
+      .select('id,name,logo_url,created_at')
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Company not found' })
+      }
+      console.error('Database error:', error)
+      return res.status(500).json({ error: error.message })
+    }
+
+    return res.status(200).json(data)
+  } catch (error: any) {
+    console.error('Error updating red-flag company:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -272,25 +370,10 @@ export const getAllRedFlagCompanyStats = async (
   res: Response
 ) => {
   try {
-    const [
-      { data: companies, error: companiesError },
-      { data: submissions, error: submissionsError },
-    ] = await Promise.all([
-      supabase
-        .from(COMPANIES_TABLE)
-        .select('id,name,logo_url,created_at')
-        .order('name', { ascending: true }),
-      supabase.from(SUBMISSIONS_TABLE).select('company_id,flagged_keys'),
+    const [companies, submissions] = await Promise.all([
+      fetchAllCompanies(),
+      fetchAllSubmissions(),
     ])
-
-    if (companiesError) {
-      console.error('Database error:', companiesError)
-      return res.status(500).json({ error: companiesError.message })
-    }
-    if (submissionsError) {
-      console.error('Database error:', submissionsError)
-      return res.status(500).json({ error: submissionsError.message })
-    }
 
     const byCompany = new Map<
       string,

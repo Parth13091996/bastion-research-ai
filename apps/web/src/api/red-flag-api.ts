@@ -8,6 +8,16 @@ export const redFlagApi = {
     )
     return res.data
   },
+  createCompany: async (payload: {
+    name: string
+    logo_url?: string | null
+  }) => {
+    const res = await axiosInstance.post<RedFlagCompany>(
+      endpoints.redFlags.companies,
+      payload
+    )
+    return res.data
+  },
   submitDecision: async (payload: {
     companyId: string
     flaggedKeys: string[]
@@ -50,6 +60,19 @@ export const redFlagApi = {
     deleteCompany: async (id: string) => {
       const res = await axiosInstance.delete<{ message: string }>(
         endpoints.redFlags.admin.deleteCompany(id)
+      )
+      return res.data
+    },
+    clearCompanyStats: async (id: string) => {
+      const res = await axiosInstance.delete<{ message: string }>(
+        endpoints.redFlags.admin.clearStats(id)
+      )
+      return res.data
+    },
+    updateCompany: async (id: string, payload: { name: string; logo_url?: string | null }) => {
+      const res = await axiosInstance.patch<RedFlagCompany>(
+        endpoints.redFlags.admin.deleteCompany(id),
+        payload
       )
       return res.data
     },

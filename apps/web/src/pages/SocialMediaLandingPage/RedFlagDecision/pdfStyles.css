@@ -73,3 +73,17 @@
 .pdf-capture-container .pdf-results-only {
   display: block !important;
 }
+
+/* Page Break Avoidance Controls */
+.pdf-page-break-avoid {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  -webkit-column-break-inside: avoid !important;
+  /* Added to reinforce avoidance in canvas/printing engines */
+}
+
+/* Ensure individual cards and their contents don't break */
+.flag-card-grid {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}

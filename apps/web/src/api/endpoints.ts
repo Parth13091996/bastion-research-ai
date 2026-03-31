@@ -167,6 +167,7 @@ export const endpoints = {
       stats: '/api/admin/red-flags/stats',
       // New endpoint for deleting red-flag companies
       deleteCompany: (id: string) => `/api/admin/red-flags/companies/${id}`,
+      clearStats: (id: string) => `/api/admin/red-flags/stats/${id}`,
     },
   },
 } as const
