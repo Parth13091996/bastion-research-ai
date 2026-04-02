@@ -96,7 +96,7 @@ export default function ContactPage() {
           <InfoCard
             icon={<Phone className="w-6 h-6" />}
             title="Phone number"
-            lines={["+91 98765 43210"]}
+            lines={["+91 8780507966"]}
           />
         </div>
       </section>
@@ -165,7 +165,7 @@ export default function ContactPage() {
                     value={form.phone}
                     onChange={onChange}
                     className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    placeholder="e.g., +91 98765 43210"
+                    placeholder="e.g., +91 8780507966"
                   />
                 }
               />

@@ -134,7 +134,7 @@ export function WebinarRegistrationForm({
           type="tel"
           value={form.phone}
           onChange={handleChange}
-          placeholder="+91 98765 43210"
+          placeholder="+91 8780507966"
           disabled={submitting}
           required={requirePhone}
         />
