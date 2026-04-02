@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import sendEmail from "../utils/email";
+import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { supabase } from "../supabase";
 import { config } from "../utils/config";
 
@@ -260,10 +260,11 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Send signup email if requested
     if (sendSignupEmail && Boolean(sendSignupEmail) === true) {
-      const welcomeSenderEmail = process.env.CONNECT_EMAIL;
+      const welcomeSenderEmail = getResolvedSmtpFromAddress();
       if (!welcomeSenderEmail) {
         return res.status(500).json({
-          error: "Welcome Sender email is missing from backend/envs.",
+          error:
+            "SMTP sender is not configured (set SMTP_USERNAME and matching CONNECT_EMAIL / SMTP_FROM).",
         });
       }
 

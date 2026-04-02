@@ -1,4 +1,7 @@
-import sendEmail, { EmailOptions } from "../utils/email";
+import sendEmail, {
+  EmailOptions,
+  getResolvedSmtpFromAddress,
+} from "../utils/email";
 import { config } from "../utils/config";
 
 const formatDateForEmail = (value?: string | null) => {
@@ -12,7 +15,7 @@ const formatDateForEmail = (value?: string | null) => {
   });
 };
 
-const getSenderEmail = () => process.env.CONNECT_EMAIL;
+const getSenderEmail = () => getResolvedSmtpFromAddress();
 
 const getAppUrl = () => (config.app_url || "https://app")?.replace(/\/$/, "");
 
@@ -38,7 +41,9 @@ export const sendWelcomeEmail = async (
 ): Promise<void> => {
   const sender = getSenderEmail();
   if (!sender) {
-    console.warn("CONNECT_EMAIL is not configured; skipping welcome email.");
+    console.warn(
+      "SMTP sender is not configured (SMTP_USERNAME / CONNECT_EMAIL / LEADS_EMAIL); skipping welcome email."
+    );
     return;
   }
 
@@ -85,7 +90,7 @@ export const sendSubscriptionExpiryReminderEmail = async (
   const sender = getSenderEmail();
   if (!sender) {
     console.warn(
-      "CONNECT_EMAIL is not configured; skipping subscription expiry reminder email."
+      "SMTP sender is not configured; skipping subscription expiry reminder email."
     );
     return;
   }
@@ -174,7 +179,7 @@ export const sendDropOffSummaryEmail = async (
   const sender = getSenderEmail();
   if (!sender) {
     console.warn(
-      "CONNECT_EMAIL is not configured; skipping drop-off summary email."
+      "SMTP sender is not configured; skipping drop-off summary email."
     );
     return;
   }
@@ -250,7 +255,7 @@ export const sendMonthlySubscriptionExpirySummaryEmail = async (
   const sender = getSenderEmail();
   if (!sender) {
     console.warn(
-      "CONNECT_EMAIL is not configured; skipping monthly subscription expiry summary email."
+      "SMTP sender is not configured; skipping monthly subscription expiry summary email."
     );
     return;
   }

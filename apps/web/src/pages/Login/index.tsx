@@ -77,16 +77,17 @@ const Login = () => {
   });
 
   const onSubmit = (data: LoginFormValues) => {
+    const normalizedEmail = data.email.trim().toLowerCase();
     if (useOtp) {
       // handle OTP login
-      mutation.mutate({ email: data.email, otp: data.otp });
+      mutation.mutate({ email: normalizedEmail, otp: data.otp });
     } else {
-      mutation.mutate(data);
+      mutation.mutate({ ...data, email: normalizedEmail });
     }
   };
 
   const handleSendOtp = () => {
-    const email = watch("email");
+    const email = watch("email")?.trim().toLowerCase();
     if (!email) {
       toast.error("Please enter your email to receive OTP");
       return;

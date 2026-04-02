@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import twilio from "twilio";
 import { config } from "../utils/config";
-import sendEmail from "../utils/email";
+import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { supabase } from "../supabase";
 
 // Initialize Twilio Client
@@ -22,6 +22,8 @@ const otpStore = new Map<string, { otp: string; expiresAt: number }>();
 const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
+
+const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
 export const sendOtp = async (req: Request, res: Response) => {
   const { phone } = req.body as { phone?: string };
@@ -64,13 +66,14 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
   if (!email) {
     return res.status(400).json({ message: "email is required." });
   }
+  const normalizedEmail = normalizeEmail(email);
 
   try {
     // Check if the email exists in the users table
     const { data: user, error } = await supabase
       .from("users")
       .select("id")
-      .eq("email", email)
+      .ilike("email", normalizedEmail)
       .maybeSingle();
 
     if (error) {
@@ -86,13 +89,14 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 
     const otp = generateOtp();
     const expiresAt = Date.now() + config.otp_ttl_ms;
-    otpStore.set(email, { otp, expiresAt });
+    otpStore.set(normalizedEmail, { otp, expiresAt });
 
-    const fromEmail = process.env.LEADS_EMAIL;
+    const fromEmail = getResolvedSmtpFromAddress();
     if (!fromEmail) {
-      return res
-        .status(500)
-        .json({ message: "Sender email is not configured." });
+      return res.status(500).json({
+        message:
+          "Sender email is not configured (set LEADS_EMAIL or SMTP_USERNAME).",
+      });
     }
 
     const minutes = Math.floor(config.otp_ttl_ms / 60000);
@@ -125,7 +129,7 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
       </div>
     `;
 
-    await sendEmail({ to: email, from: fromEmail, subject, text, html });
+    await sendEmail({ to: normalizedEmail, from: fromEmail, subject, text, html });
     return res
       .status(200)
       .json({ message: "OTP sent successfully.", expiresAt });

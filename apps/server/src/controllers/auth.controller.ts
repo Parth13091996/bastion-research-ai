@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../utils/config";
 import { supabase } from "../supabase";
 import crypto from "crypto";
-import sendEmail from "../utils/email";
+import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { sendWelcomeEmail } from "../services/emailNotification.service";
 import { validateEmailOtp } from "./otp.controller";
 import { incrementCouponUsage } from "./coupon.controller";
@@ -37,6 +37,8 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   return jwt.sign({ id, email }, secret, { expiresIn: expiresIn as any });
 };
 
+const normalizeEmail = (email: string): string => email.trim().toLowerCase();
+
 export const signIn = async (req: Request, res: Response) => {
   const { email, password, otp } = req.body as {
     email?: string;
@@ -49,19 +51,20 @@ export const signIn = async (req: Request, res: Response) => {
       .status(400)
       .json({ message: "Please provide email and password or email and OTP." });
   }
+  const normalizedEmail = normalizeEmail(email);
 
   try {
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
-      .eq("email", email)
+      .ilike("email", normalizedEmail)
       .single();
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
     // If OTP provided, validate it; otherwise fallback to password validation
     if (otp) {
-      const result = validateEmailOtp(email, otp);
+      const result = validateEmailOtp(normalizedEmail, otp);
       if (!result.valid) {
         const reasonToMessage: Record<string, string> = {
           not_found: "No OTP found. Please request one.",
@@ -129,11 +132,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
       .status(400)
       .json({ message: "Please provide an email address." });
   }
+  const normalizedEmail = normalizeEmail(email);
   try {
     const { data: user, error } = await supabase
       .from("users")
       .select("id, email, password")
-      .eq("email", email)
+      .ilike("email", normalizedEmail)
       .single();
 
     // Always respond success even if not found to prevent user enumeration
@@ -161,11 +165,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}`;
 
-    const resetSenderEmail = process.env.CONNECT_EMAIL;
+    const resetSenderEmail = getResolvedSmtpFromAddress();
     if (!resetSenderEmail) {
-      return res
-        .status(500)
-        .json({ error: "Welcome Sender email is missing from backend/envs." });
+      return res.status(500).json({
+        error:
+          "SMTP sender is not configured (set SMTP_USERNAME and matching CONNECT_EMAIL / SMTP_FROM).",
+      });
     }
     try {
       await sendEmail({
@@ -340,12 +345,14 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     let userId: string | null = null;
     const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
+    const normalizedEmail = normalizeEmail(email);
     const username =
-      email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
+      normalizedEmail.split("@")[0] +
+      `_${Math.random().toString(36).substring(2, 7)}`;
     const { data: inserted, error: insError } = await supabase
       .from("users")
       .insert({
-        email,
+        email: normalizedEmail,
         phone,
         password: hashedPassword,
         username,
@@ -393,7 +400,7 @@ export const onboardUser = async (req: Request, res: Response) => {
       welcomePlanName = planNameValue;
     }
     void sendWelcomeEmail({
-      to: email,
+      to: normalizedEmail,
       firstName,
       username,
       planName: welcomePlanName,
@@ -401,7 +408,7 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     // Issue a session cookie so subsequent steps are authenticated
     try {
-      const token = generateToken(userId as string, email);
+      const token = generateToken(userId as string, normalizedEmail);
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -412,7 +419,7 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: "Onboarding started. User saved.",
-      user: { id: userId, email, status },
+      user: { id: userId, email: normalizedEmail, status },
     });
   } catch (error: any) {
     return res

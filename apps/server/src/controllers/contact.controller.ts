@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import sendEmail from "../utils/email";
+import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { config } from "../utils/config";
 import { supabase } from "../supabase";
 
@@ -81,9 +81,18 @@ export const submitContact = async (req: Request, res: Response) => {
       console.error("Failed to store lead:", e);
     }
 
+    const toInbox = process.env.LEADS_EMAIL?.trim();
+    const fromAddress = getResolvedSmtpFromAddress();
+    if (!toInbox || !fromAddress) {
+      return res.status(500).json({
+        message:
+          "Contact email routing is not configured (set LEADS_EMAIL and SMTP_USERNAME).",
+      });
+    }
+
     await sendEmail({
-      to: process.env.LEADS_EMAIL!,
-      from: process.env.LEADS_EMAIL!,
+      to: toInbox,
+      from: fromAddress,
       subject,
       text,
       html,
