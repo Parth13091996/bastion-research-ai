@@ -1,75 +1,98 @@
+import crypto from 'crypto'
 import { supabase } from '../supabase'
 import { config } from '../utils/config'
 
-export const runOnboardingDropOffAssignment = async (
-  referenceDate: Date = new Date()
-) => {
-  const delayMs = config.onboarding_drop_off_delay_ms
-  const checkAfterMs = Number.isFinite(delayMs) ? delayMs : 3 * 60 * 60 * 1000
-  const cutoffIso = new Date(referenceDate.getTime() - checkAfterMs).toISOString()
-  const nowIso = referenceDate.toISOString()
+type TimeoutHandle = ReturnType<typeof setTimeout>
 
+const onboardingSessions = new Set<string>()
+const userDropOffTimers = new Map<string, TimeoutHandle>()
+
+const shouldMarkAsDropOff = (status: string | null | undefined) =>
+  status !== 'active' && status !== 'free'
+
+const runDropOffCheckForUser = async (userId: string) => {
   try {
-    const { data, error } = await supabase
+    const { data: user, error: fetchErr } = await supabase
       .from('users')
-      .update({
-        role: config.roles.drop_off,
-        updated_at: nowIso,
-      })
-      .neq('role', config.roles.drop_off)
-      // Completed onboarding users should never be marked as drop-off.
-      .neq('status', 'active')
-      .neq('status', 'free')
-      // Admin users should never be auto-flipped.
-      .neq('role', config.roles.admin)
-      // "Started onboarding" is represented by the time the user record was created.
-      .lt('created_at', cutoffIso)
-      .select('id')
+      .select('id, status, role')
+      .eq('id', userId)
+      .maybeSingle()
 
-    if (error) {
-      console.error('Onboarding drop-off assignment failed', error)
+    if (fetchErr || !user) {
+      if (fetchErr) {
+        console.error('Drop-off check failed to fetch user', fetchErr)
+      }
       return
     }
 
-    const updatedCount = Array.isArray(data) ? data.length : 0
-    if (updatedCount > 0) {
-      console.log(
-        `[drop-off] assigned ${updatedCount} user(s) (cutoff=${cutoffIso})`
-      )
+    if (user.role === config.roles.admin || user.role === config.roles.drop_off) {
+      return
     }
+    if (!shouldMarkAsDropOff(user.status)) {
+      return
+    }
+
+    const { error: updateErr } = await supabase
+      .from('users')
+      .update({
+        role: config.roles.drop_off,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId)
+
+    if (updateErr) {
+      console.error('Drop-off assignment failed', updateErr)
+      return
+    }
+
+    console.log(`[drop-off] assigned user ${userId}`)
   } catch (err) {
-    console.error('Onboarding drop-off assignment error', err)
+    console.error('Drop-off check error', err)
   }
 }
 
-let scheduled = false
-let isRunning = false
-
-export const startOnboardingDropOffJob = () => {
-  if (scheduled || process.env.NODE_ENV === 'test') return
-  scheduled = true
-
-  const intervalMs =
-    config.onboarding_drop_off_check_interval_ms ||
-    15 * 60 * 1000
-
-  const execute = async () => {
-    if (isRunning) return
-    isRunning = true
-    try {
-      await runOnboardingDropOffAssignment(new Date())
-    } finally {
-      isRunning = false
-    }
+const scheduleDropOffTimerForUser = (userId: string) => {
+  const existing = userDropOffTimers.get(userId)
+  if (existing) {
+    clearTimeout(existing)
+    userDropOffTimers.delete(userId)
   }
 
-  // Run immediately on server start so the job doesn't wait for the first interval.
-  void execute()
+  const delayMs =
+    config.onboarding_drop_off_delay_ms && config.onboarding_drop_off_delay_ms > 0
+      ? config.onboarding_drop_off_delay_ms
+      : 3 * 60 * 60 * 1000
 
-  setInterval(() => {
-    void execute().catch((e) => {
-      console.error('Onboarding drop-off job failed', e)
-    })
-  }, intervalMs)
+  const handle = setTimeout(() => {
+    userDropOffTimers.delete(userId)
+    void runDropOffCheckForUser(userId)
+  }, delayMs)
+
+  userDropOffTimers.set(userId, handle)
 }
 
+export const startOnboardingDropOffSession = (sessionId?: string) => {
+  const id = sessionId && sessionId.trim() ? sessionId.trim() : crypto.randomUUID()
+  onboardingSessions.add(id)
+  return id
+}
+
+export const armOnboardingDropOffForUser = (
+  userId: string,
+  onboardingSessionId?: string
+) => {
+  if (!userId) return
+  if (onboardingSessionId && !onboardingSessions.has(onboardingSessionId)) {
+    return
+  }
+  if (onboardingSessionId) onboardingSessions.delete(onboardingSessionId)
+  scheduleDropOffTimerForUser(userId)
+}
+
+export const clearOnboardingDropOffForUser = (userId?: string | null) => {
+  if (!userId) return
+  const existing = userDropOffTimers.get(userId)
+  if (!existing) return
+  clearTimeout(existing)
+  userDropOffTimers.delete(userId)
+}

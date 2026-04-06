@@ -5,6 +5,7 @@ export const endpoints = {
     logout: '/api/auth/logout',
     forgotPassword: '/api/auth/forgot-password',
     resetPassword: '/api/auth/reset-password',
+    onboardingDropOffStart: '/api/auth/onboarding-dropoff/start',
     onboard: '/api/auth/onboard',
     zeroAmountPayment: '/api/auth/zero-amount-payment',
   },

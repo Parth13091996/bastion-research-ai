@@ -262,7 +262,7 @@ export default function LandingPage() {
                               {
                                 text: "Portfolio choices:",
                                 sublist: [
-                                  "Asymetric Growth"
+                                  "Asymmetric Growth Fundamentals"
                                 ],
                               },
                             ]}

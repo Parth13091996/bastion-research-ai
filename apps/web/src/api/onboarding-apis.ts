@@ -44,6 +44,7 @@ export interface OnboardingPayload {
   status?: string;
   role?: string;
   plan_id?: string;
+  onboarding_session_id?: string;
 }
 
 // Types are kept broad where the components currently don't enforce strict shapes.
@@ -136,6 +137,20 @@ export async function createFreeAccount(payload: {
 export async function startOnboarding(payload: OnboardingPayload) {
   const { data } = await axiosInstance.post(endpoints.auth.onboard, payload);
   return data;
+}
+
+export async function startOnboardingDropOffTracking(payload?: {
+  onboarding_session_id?: string;
+  user_id?: string;
+}) {
+  const { data } = await axiosInstance.post(
+    endpoints.auth.onboardingDropOffStart,
+    payload || {}
+  );
+  return data as {
+    message: string;
+    onboarding_session_id: string;
+  };
 }
 
 // ---------- Digio E-sign ----------

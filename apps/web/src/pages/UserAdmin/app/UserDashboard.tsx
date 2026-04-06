@@ -4,10 +4,12 @@ import LatestUpdates from "./LatestUpdates";
 import RecentRecommendations from "./RecentRecommendations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useNavigate } from "react-router-dom";
 
 const UserDashboard = () => {
   const { user } = useAuth();
   const { data: subscription } = useSubscription();
+  const navigate = useNavigate();
 
   // 👤 User Profile
   // 👤 Check Push 20 Nov Late Night
@@ -147,6 +149,7 @@ const UserDashboard = () => {
                 {show && (
                   <button
                     className={`mt-1 sm:mt-2 px-3 py-1 ${color} text-white rounded-lg transition-colors text-sm sm:text-base inline-block text-center`}
+                    onClick={() => navigate("/user/app/account/subscription")}
                   >
                     {profile.is_premium ? "Renew Premium Plan" : "Renew Now"}
                   </button>

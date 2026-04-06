@@ -60,6 +60,15 @@ export const planFeatures: Record<string, string[]> = {
   ],
 };
 
+export const getRenewalAmountINR = (
+  planCode: string | null | undefined,
+  fallbackAmount: number
+) => {
+  if (planCode === "core_annual") return 15000;
+  if (planCode === "core") return 18750;
+  return fallbackAmount;
+};
+
 export const getFeatureKey = (plan: ApiPlan) => {
   if (plan.plan_code) return plan.plan_code;
   const normalized = plan.name.toLowerCase();

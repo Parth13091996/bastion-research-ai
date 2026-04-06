@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatINR, getFeatureKey, planFeatures } from "@/utils";
+import { formatINR, getFeatureKey, getRenewalAmountINR, planFeatures } from "@/utils";
 import { Check, Loader2 } from "lucide-react";
 
 const PlansGrid = ({
@@ -14,6 +14,7 @@ const PlansGrid = ({
   isPlansLoading,
   error,
   planMatchesCurrent,
+  renewalEligible,
   checkingOut,
   handleSubscribe,
 }: {
@@ -21,8 +22,9 @@ const PlansGrid = ({
   isPlansLoading: boolean;
   error: string | null;
   planMatchesCurrent: (planKey: string) => boolean;
+  renewalEligible: boolean;
   checkingOut: string | null;
-  handleSubscribe: (planCode: string) => void;
+  handleSubscribe: (planCode: string, amountOverride?: number) => void;
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -46,12 +48,21 @@ const PlansGrid = ({
           const popular =
             plan.plan_code === "core_annual" ||
             normalizedName.includes("annual");
-          const priceLabel = formatINR(plan.amount);
           const featureKey = getFeatureKey(plan);
+          const isCurrentPlan = planMatchesCurrent(featureKey);
+          const canRenewThisPlan = isCurrentPlan && renewalEligible;
+
+          const displayAmount = canRenewThisPlan
+            ? getRenewalAmountINR(plan.plan_code ?? featureKey, plan.amount)
+            : plan.amount;
+          const priceLabel = formatINR(displayAmount);
+
           const disabled =
-            planMatchesCurrent(featureKey) || checkingOut === plan.code;
-          const ctaLabel = planMatchesCurrent(featureKey)
-            ? "Current Plan"
+            (!canRenewThisPlan && isCurrentPlan) || checkingOut === plan.code;
+          const ctaLabel = isCurrentPlan
+            ? canRenewThisPlan
+              ? "Renew"
+              : "Current Plan"
             : "Subscribe";
 
           return (
@@ -91,7 +102,12 @@ const PlansGrid = ({
                       : "outline"
                   }
                   disabled={disabled}
-                  onClick={() => handleSubscribe(plan.code)}
+                  onClick={() =>
+                    handleSubscribe(
+                      plan.code,
+                      canRenewThisPlan ? displayAmount : undefined
+                    )
+                  }
                   size="sm"
                 >
                   {checkingOut === plan.code ? (

@@ -17,8 +17,8 @@ interface Plan {
 
 interface PlansStepProps {
   plans: Plan[];
-  formData: Record<string, unknown>;
-  updateFormData: (key: string, value: unknown) => void;
+  formData: OnboardingFormData;
+  updateFormData: (key: string, value: any) => void;
   onBack: () => void;
   onNext: () => void;
   isLoading: boolean;

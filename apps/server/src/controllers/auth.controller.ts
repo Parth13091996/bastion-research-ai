@@ -8,6 +8,11 @@ import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { sendWelcomeEmail } from "../services/emailNotification.service";
 import { validateEmailOtp } from "./otp.controller";
 import { incrementCouponUsage } from "./coupon.controller";
+import {
+  armOnboardingDropOffForUser,
+  clearOnboardingDropOffForUser,
+  startOnboardingDropOffSession,
+} from "../automations/onboardingDropOff.scheduler";
 type OnboardingUserData = {
   email: string;
   phone: string;
@@ -121,6 +126,30 @@ export const signIn = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Sign in error:", error);
     res.status(500).json({ message: "Server error during sign in." });
+  }
+};
+
+export const onboardingDropOffStart = async (req: Request, res: Response) => {
+  try {
+    const { onboarding_session_id, user_id } = req.body as {
+      onboarding_session_id?: string;
+      user_id?: string;
+    };
+
+    const sessionId = startOnboardingDropOffSession(onboarding_session_id);
+
+    if (user_id) {
+      armOnboardingDropOffForUser(user_id, sessionId);
+    }
+
+    return res.status(200).json({
+      message: "Onboarding drop-off tracking started.",
+      onboarding_session_id: sessionId,
+    });
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ message: error?.message || "Failed to start drop-off tracking" });
   }
 };
 
@@ -268,6 +297,7 @@ export const onboardUser = async (req: Request, res: Response) => {
       status,
       role,
       plan_id,
+      onboarding_session_id,
     }: OnboardingUserData = req.body || {};
 
     if (
@@ -373,6 +403,10 @@ export const onboardUser = async (req: Request, res: Response) => {
       return res.status(500).json({ message: insError.message });
     }
     userId = inserted?.id || null;
+
+    if (userId && status !== "active" && status !== "free") {
+      armOnboardingDropOffForUser(userId, onboarding_session_id);
+    }
 
     // Try to persist optional PAN verification metadata if columns exist
     try {
@@ -632,6 +666,8 @@ export const zeroAmountAccountCreation = async (
       if (error) {
         return res.status(500).json({ error: error.message });
       }
+
+      clearOnboardingDropOffForUser(user_id);
 
       // Mark coupon as used / expired (best-effort; do not block user activation)
       if (coupon?.coupon_id) {

@@ -173,6 +173,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
         panVerification: verification,
         status: "onboarded",
         role: formData.role,
+        onboarding_session_id: formData.onboardingSessionId,
       });
       setLoading(false);
       onNext();

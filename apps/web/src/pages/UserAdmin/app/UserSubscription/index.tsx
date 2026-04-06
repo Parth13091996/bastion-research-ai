@@ -89,6 +89,25 @@ const Subscription = () => {
     return plan === currentPlanCode;
   };
 
+  const renewalEligible = useMemo(() => {
+    const expiresAt =
+      subscription?.subscription?.expireNextRenewal ||
+      user?.subscription_end_date ||
+      null;
+    if (!expiresAt) return false;
+
+    const exp = new Date(expiresAt);
+    if (isNaN(exp.getTime())) return false;
+
+    const today = new Date();
+    const msLeft = exp.getTime() - today.getTime();
+    const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+    return daysLeft >= 0 && daysLeft <= 15;
+  }, [
+    subscription?.subscription?.expireNextRenewal,
+    user?.subscription_end_date,
+  ]);
+
   const availablePlans = useMemo(() => {
     if (!plans.length) return [];
     if (!hasSignedAgreement) return plans;
@@ -238,6 +257,7 @@ const Subscription = () => {
 
   const handleSubscribe = async (
     code: string,
+    amountOverride?: number,
     opts?: {
       bypassKyc?: boolean;
       panVerification?: PanVerificationSummary | null;
@@ -276,7 +296,8 @@ const Subscription = () => {
           customer_phone: user.phone,
           // Let the server compose return_url with order_id for reconciliation
           source: "subscription",
-          discount_amount: selectedPlan.amount,
+          discount_amount:
+            typeof amountOverride === "number" ? amountOverride : selectedPlan.amount,
           metadata: opts?.panVerification
             ? {
               panReference: opts?.panVerification?.referenceId || null,
@@ -344,6 +365,7 @@ const Subscription = () => {
           isPlansLoading={isPlansLoading}
           error={error}
           planMatchesCurrent={planMatchesCurrent}
+          renewalEligible={renewalEligible}
           checkingOut={checkingOut}
           handleSubscribe={handleSubscribe}
         />

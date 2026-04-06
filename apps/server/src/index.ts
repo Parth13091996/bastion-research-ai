@@ -24,7 +24,6 @@ import settingsRoutes from './routes/settings.routes'
 import scratchPadRoutes from './routes/scratchpad.routes'
 import zohoBooksRoutes from './routes/zoho-books.routes'
 import { startSubscriptionExpiryReminderJob } from './automations/subscriptionReminder.scheduler'
-import { startOnboardingDropOffJob } from './automations/onboardingDropOff.scheduler'
 import webinarRegistrationsRoutes from './routes/webinar-registrations.routes'
 import redFlagsRoutes from './routes/red-flags.routes'
 
@@ -96,6 +95,5 @@ app.listen(port, host, () => {
 })
 
 startSubscriptionExpiryReminderJob()
-startOnboardingDropOffJob()
 
 export default app

@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import { supabase } from '../supabase'
 import { createZohoInvoiceForPayment } from './zoho-books.service'
 import { config } from '../utils/config'
+import { clearOnboardingDropOffForUser } from '../automations/onboardingDropOff.scheduler'
 
 export const verifyWebhookSignature = (
   signature: string | undefined,
@@ -223,6 +224,7 @@ export const handlePaymentSuccess = async (payload: any) => {
   }
 
   await Promise.all([updateUserPromise, persistPaymentHistory()])
+  clearOnboardingDropOffForUser(customer_details?.customer_id)
 
   try {
     if (payment?.payment_status === 'SUCCESS') {
