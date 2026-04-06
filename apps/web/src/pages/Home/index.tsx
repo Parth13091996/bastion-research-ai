@@ -232,7 +232,7 @@ export default function LandingPage() {
                               "Regular company updates and quarterly reports",
                               "Access to our Scratchpad (near-miss ideas with reasons)",
                               "IPO notes on interesting listings",
-                              "Discounted access to Adaptive Quality portfolios",
+                              "Asymmetric Growth Fundamentals",
                             ]}
                           />
                         </motion.div>
@@ -262,7 +262,7 @@ export default function LandingPage() {
                               {
                                 text: "Portfolio choices:",
                                 sublist: [
-                                  "Asymmetric Growth Fundamentals"
+                                  "Asymmetric Growth"
                                 ],
                               },
                             ]}
