@@ -4,13 +4,13 @@ export const videoUrlWithEmbed = (url) =>
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const getUserInfoToShowInPdf = (formData: any) => {
-  const firstName = formData?.firstName || "";
-  const lastName = formData?.lastName || "";
-  const address1 = formData?.address1 || "";
-  const address2 = formData?.address2 || "";
+  const firstName = formData?.firstName || formData?.first_name || "";
+  const lastName = formData?.lastName || formData?.last_name || "";
+  const address1 = formData?.address1 || formData?.address_1  ||"";
+  const address2 = formData?.address2 || formData?.address_2|| "";
   const email = formData?.email || "";
   const phone = formData?.phone || "";
-  const pan = formData?.panCard || "";
+  const pan = formData?.panCard || formData?.pan_card_number || "";
 
   const fullName = `${firstName} ${lastName}`.trim();
   const address = [address1, address2].filter(Boolean).join("\n");

@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLoader } from "@/hooks/use-loader";
 import { useSubscription } from "@/hooks/use-subscription";
 import AgreementStep from "@/pages/Register/Steps/AgreementStep";
+import PaymentStep from "@/pages/Register/Steps/PaymentStep";
 import { PAN_REGEX } from "@/utils";
 import { Config } from "@/utils/config";
 import { load } from "@cashfreepayments/cashfree-js";
@@ -22,6 +23,7 @@ import PlansGrid from "./PlansGrid";
 
 const Subscription = () => {
   const { user, refetchUser, isAuthenticated, isLoading } = useAuth();
+  console.log({user})
   const {
     data: subscription,
     isLoading: isSubscriptionLoading,
@@ -46,15 +48,20 @@ const Subscription = () => {
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
 
   const [kycModalOpen, setKycModalOpen] = useState(false);
-  const [kycStep, setKycStep] = useState<"kyc" | "agreement">("kyc");
+  const [kycStep, setKycStep] = useState<"kyc" | "agreement" | "payment">("kyc");
   const [kycError, setKycError] = useState<string | null>(null);
   const [kycSubmitting, setKycSubmitting] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [kycVerification, setKycVerification] =
     useState<PanVerificationSummary | null>(null);
 
   const userPan = (user?.pan_card_number || "").toUpperCase();
   const hasSignedAgreement = user?.status === "agreement_signed";
+  const hasDigioDocuments = Array.isArray((user as any)?.digio_documents)
+    ? (user as any).digio_documents.length > 0
+    : false;
   const [upgradeForm, setUpgradeForm] = useState<UpgradeFormState>({
     panCard: userPan,
     agreeToTerms: false,
@@ -154,6 +161,8 @@ const Subscription = () => {
     setKycStep("kyc");
     setKycError(null);
     setKycSubmitting(false);
+    setPaymentError(null);
+    setPaymentLoading(false);
     setKycModalOpen(true);
   };
 
@@ -162,6 +171,8 @@ const Subscription = () => {
     setKycStep("kyc");
     setKycError(null);
     setKycSubmitting(false);
+    setPaymentError(null);
+    setPaymentLoading(false);
     setUpgradeForm((prev) => ({
       ...prev,
       agreeToTerms: false,
@@ -226,7 +237,7 @@ const Subscription = () => {
       });
       setUpgradeForm((prev) => ({ ...prev, panCard: pan }));
       await refetchUser();
-      setKycStep("agreement");
+      setKycStep(hasDigioDocuments ? "payment" : "agreement");
     } catch (err: any) {
       const message =
         err?.response?.data?.error || err?.message || "Failed to update PAN";
@@ -249,11 +260,21 @@ const Subscription = () => {
   };
 
   const handleAgreementComplete = () => {
-    const planToCheckout = pendingPlan;
-    const verification = kycVerification;
+    setKycStep("payment");
+    setKycError(null);
+  };
+
+  const handlePaymentBack = () => {
+    setPaymentError(null);
+    setKycStep(hasDigioDocuments ? "kyc" : "agreement");
+  };
+
+  const handlePaymentClose = () => {
     setKycModalOpen(false);
     setKycStep("kyc");
     setKycError(null);
+    setPaymentError(null);
+    setPaymentLoading(false);
     setUpgradeForm((prev) => ({
       ...prev,
       agreeToTerms: false,
@@ -263,17 +284,6 @@ const Subscription = () => {
     }));
     setPendingPlan(null);
     setKycVerification(null);
-
-    if (planToCheckout) {
-      // setTimeout(
-      //   () =>
-      //     handleSubscribe(planToCheckout.code, {
-      //       bypassKyc: true,
-      //       panVerification: verification,
-      //     }),
-      //   0
-      // );
-    }
   };
 
   const handleSubscribe = async (
@@ -293,10 +303,6 @@ const Subscription = () => {
       selectedPlan.amount > 0 && selectedPlan.plan_code !== "freemium";
 
     const upgradingFromFreeToPaid = onFreePlan && isPaidPlan;
-
-    // When upgrading from free to a paid plan, normally go through
-    // KYC + Agreement steps, unless the user has already signed
-    // the agreement in a previous onboarding flow.
     const shouldRunKycAndAgreementFlow =
       (upgradingFromFreeToPaid || (isPaidPlan && !hasKyc)) &&
       !opts?.bypassKyc &&
@@ -396,10 +402,16 @@ const Subscription = () => {
       <Modal
         open={kycModalOpen}
         onOpenChange={(open) => {
-          if (!open) handleKycModalClose();
+          if (!open) handlePaymentClose();
           else setKycModalOpen(true);
         }}
-        title={kycStep === "kyc" ? "Complete KYC to upgrade" : undefined}
+        title={
+          kycStep === "kyc"
+            ? "Complete KYC to upgrade"
+            : kycStep === "payment"
+              ? "Complete payment"
+              : undefined
+        }
         className={kycStep === "kyc" ? "sm:max-w-lg" : "sm:max-w-3xl"}
       >
         {kycStep === "kyc" ? (
@@ -414,7 +426,7 @@ const Subscription = () => {
             handleKycModalClose={handleKycModalClose}
             handleKycSubmit={handleKycSubmit}
           />
-        ) : (
+        ) : kycStep === "agreement" ? (
           <AgreementStep
             agreeToTerms={upgradeForm.agreeToTerms}
             formData={user}
@@ -423,6 +435,38 @@ const Subscription = () => {
             updateFormData={(field, value) =>
               setUpgradeForm((prev) => ({ ...prev, [field]: value }))
             }
+          />
+        ) : (
+          <PaymentStep
+            plans={availablePlans}
+            selectedPlan={pendingPlan?.code || ""}
+            isLoading={paymentLoading}
+            error={paymentError}
+            formData={{
+              email: user?.email || "",
+              phone: user?.phone || "",
+              password: "",
+              confirmPassword: "",
+              otp: [],
+              firstName: user?.first_name || "",
+              lastName: user?.last_name || "",
+              dateOfBirth: user?.date_of_birth || "",
+              address1: user?.address_1 || "",
+              address2: user?.address_2 || "",
+              state: user?.state || "",
+              city: user?.city || "",
+              pinCode: user?.pin_code || "",
+              company: user?.company || "",
+              panCard: upgradeForm.panCard,
+              panVerification: kycVerification,
+              agreeToTerms: upgradeForm.agreeToTerms,
+              selectedPlan: pendingPlan?.code || "",
+              role: user?.role,
+            }}
+            onBack={handlePaymentBack}
+            onClose={handlePaymentClose}
+            setError={setPaymentError as any}
+            setIsLoading={setPaymentLoading}
           />
         )}
       </Modal>
