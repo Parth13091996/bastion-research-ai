@@ -182,7 +182,6 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
     .select(
       `
       transaction_id,
-      zoho_invoice_id,
       payer_email,
       transaction_status,
       user_id,
@@ -210,7 +209,7 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
       null
     return {
       transaction_id: r.transaction_id,
-      invoice_id: r.zoho_invoice_id || r.transaction_id,
+      invoice_id: r.transaction_id,
       user_id: r.user_id,
       user_email: user.email || null,
       membership:
@@ -243,7 +242,6 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
       .select(
         `
         transaction_id,
-        zoho_invoice_id,
         payer_email,
         transaction_status,
         user_id,
@@ -272,7 +270,7 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
         null
       return {
         transaction_id: r.transaction_id,
-        invoice_id: r.zoho_invoice_id || r.transaction_id,
+        invoice_id: r.transaction_id,
         payment_gateway: 'Cashfree',
         payment_type: 'Subscription',
         payer_email: r.payer_email || null,
@@ -308,7 +306,6 @@ export const getInvoicePdfForPayment = async (req: Request, res: Response) => {
       .select(
         `
         transaction_id,
-        zoho_invoice_id,
         payer_email,
         user_id,
         plan_id,
@@ -361,7 +358,7 @@ export const getInvoicePdfForPayment = async (req: Request, res: Response) => {
     const plan = (data as any).membership_plans || {}
     const user = (data as any).users || {}
 
-    const invoiceNumber = data.zoho_invoice_id || data.transaction_id
+    const invoiceNumber = data.transaction_id
     const paymentDate = data.created_at ? new Date(data.created_at) : new Date()
     const invoiceDateStr = paymentDate.toISOString().split('T')[0]
 

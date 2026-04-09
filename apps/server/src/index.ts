@@ -22,7 +22,6 @@ import mailChimpRoutes from './routes/mailchimp.routes'
 import recommendationRoutes from './routes/recommendation.routes'
 import settingsRoutes from './routes/settings.routes'
 import scratchPadRoutes from './routes/scratchpad.routes'
-import zohoBooksRoutes from './routes/zoho-books.routes'
 import { startSubscriptionExpiryReminderJob } from './automations/subscriptionReminder.scheduler'
 import webinarRegistrationsRoutes from './routes/webinar-registrations.routes'
 import redFlagsRoutes from './routes/red-flags.routes'
@@ -76,7 +75,6 @@ app.use('/api/digio', digioRoutes)
 app.use('/api', recommendationRoutes)
 app.use('/api', settingsRoutes)
 app.use('/api', scratchPadRoutes)
-app.use('/api', zohoBooksRoutes)
 app.use('/api', webinarRegistrationsRoutes)
 app.use('/api', redFlagsRoutes)
 

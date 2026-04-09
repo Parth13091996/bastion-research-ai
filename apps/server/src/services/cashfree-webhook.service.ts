@@ -1,6 +1,5 @@
 import crypto from 'crypto'
 import { supabase } from '../supabase'
-import { createZohoInvoiceForPayment } from './zoho-books.service'
 import { config } from '../utils/config'
 import { clearOnboardingDropOffForUser } from '../automations/onboardingDropOff.scheduler'
 
@@ -225,14 +224,6 @@ export const handlePaymentSuccess = async (payload: any) => {
 
   await Promise.all([updateUserPromise, persistPaymentHistory()])
   clearOnboardingDropOffForUser(customer_details?.customer_id)
-
-  try {
-    if (payment?.payment_status === 'SUCCESS') {
-      await createZohoInvoiceForPayment(transactionId)
-    }
-  } catch (err) {
-    console.error('Failed to create Zoho invoice for payment:', err)
-  }
 }
 
 export const handlePaymentUserDropped = async (payload: any) => {
