@@ -69,6 +69,9 @@ export const getRenewalAmountINR = (
   return fallbackAmount;
 };
 
+export const CORE_ANNUAL_STANDARD_PRICE_INR = 18750;
+export const CORE_ANNUAL_DISCOUNTED_PRICE_INR = 15000;
+
 export const getFeatureKey = (plan: ApiPlan) => {
   if (plan.plan_code) return plan.plan_code;
   const normalized = plan.name.toLowerCase();

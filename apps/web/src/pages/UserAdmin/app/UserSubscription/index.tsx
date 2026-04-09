@@ -102,7 +102,28 @@ const Subscription = () => {
     const today = new Date();
     const msLeft = exp.getTime() - today.getTime();
     const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-    return daysLeft >= 0 && daysLeft <= 15;
+    // Allow renewal from 15 days before expiry up to 30 days after expiry.
+    // Discounted pricing is controlled separately.
+    return daysLeft <= 15 && daysLeft >= -30;
+  }, [
+    subscription?.subscription?.expireNextRenewal,
+    user?.subscription_end_date,
+  ]);
+
+  const discountRenewalEligible = useMemo(() => {
+    const expiresAt =
+      subscription?.subscription?.expireNextRenewal ||
+      user?.subscription_end_date ||
+      null;
+    if (!expiresAt) return false;
+
+    const exp = new Date(expiresAt);
+    if (isNaN(exp.getTime())) return false;
+
+    const today = new Date();
+    const msSinceExpiry = today.getTime() - exp.getTime();
+    const daysSinceExpiry = Math.floor(msSinceExpiry / (1000 * 60 * 60 * 24));
+    return daysSinceExpiry >= 0 && daysSinceExpiry <= 7;
   }, [
     subscription?.subscription?.expireNextRenewal,
     user?.subscription_end_date,
@@ -244,14 +265,14 @@ const Subscription = () => {
     setKycVerification(null);
 
     if (planToCheckout) {
-      setTimeout(
-        () =>
-          handleSubscribe(planToCheckout.code, {
-            bypassKyc: true,
-            panVerification: verification,
-          }),
-        0
-      );
+      // setTimeout(
+      //   () =>
+      //     handleSubscribe(planToCheckout.code, {
+      //       bypassKyc: true,
+      //       panVerification: verification,
+      //     }),
+      //   0
+      // );
     }
   };
 
@@ -366,6 +387,7 @@ const Subscription = () => {
           error={error}
           planMatchesCurrent={planMatchesCurrent}
           renewalEligible={renewalEligible}
+          discountRenewalEligible={discountRenewalEligible}
           checkingOut={checkingOut}
           handleSubscribe={handleSubscribe}
         />
