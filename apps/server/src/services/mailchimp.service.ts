@@ -114,3 +114,63 @@ function chooseDate(...candidates: (string | undefined)[]): string {
   }
   return new Date().toISOString();
 }
+
+export function getMailchimpErrorInfo(error: any): {
+  status?: number;
+  detail?: string;
+  title?: string;
+} {
+  const statusRaw = error?.response?.status ?? error?.status;
+  const status =
+    typeof statusRaw === "number" ? statusRaw : Number(statusRaw) || undefined;
+  let parsedText: any;
+  const rawText =
+    typeof error?.response?.text === "string" ? error.response.text : undefined;
+  if (rawText) {
+    try {
+      parsedText = JSON.parse(rawText);
+    } catch {
+      parsedText = undefined;
+    }
+  }
+  const detail =
+    typeof error?.response?.data?.detail === "string"
+      ? error.response.data.detail
+      : typeof error?.response?.body?.detail === "string"
+        ? error.response.body.detail
+        : typeof parsedText?.detail === "string"
+          ? parsedText.detail
+        : undefined;
+  const title =
+    typeof error?.response?.data?.title === "string"
+      ? error.response.data.title
+      : typeof error?.response?.body?.title === "string"
+        ? error.response.body.title
+        : typeof parsedText?.title === "string"
+          ? parsedText.title
+        : undefined;
+  return { status, detail, title };
+}
+
+export function isMailchimpAlreadySubscribed(error: any): boolean {
+  const { status, detail } = getMailchimpErrorInfo(error);
+  return (
+    status === 400 &&
+    typeof detail === "string" &&
+    detail.toLowerCase().includes("already a list member")
+  );
+}
+
+export function isMailchimpResubscribeRequired(error: any): boolean {
+  const { status, detail, title } = getMailchimpErrorInfo(error);
+  if (status !== 400) return false;
+  const haystack = `${detail || ""} ${title || ""}`.toLowerCase();
+  return (
+    haystack.includes("permanently deleted") ||
+    haystack.includes("cannot be re-imported") ||
+    haystack.includes("re-subscribe") ||
+    haystack.includes("resubscribe") ||
+    haystack.includes("compliance state") ||
+    haystack.includes("forgotten email not subscribed")
+  );
+}

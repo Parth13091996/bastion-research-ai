@@ -10,6 +10,16 @@ type Settings = {
   live_recommendation_sheet_url?: string; // Dashboard live recommendations
   agreement_file_url?: string;
   invoice_file_url?: string;
+  /** Portfolio webinar — AiSensy (2nd template var; replaces registrant email in the message). */
+  aisensy_webinar_name?: string;
+  aisensy_webinar_date?: string;
+  aisensy_webinar_time?: string;
+  aisensy_joining_link?: string;
+  /** Overrides env AISENSY_CAMPAIGN_NAME when set. */
+  aisensy_campaign_name?: string;
+  /** Stored as yyyy-MM-dd / HH:mm; applied on subscribe when env merge tags are set. */
+  mailchimp_webinar_date?: string;
+  mailchimp_webinar_time?: string;
 };
 
 const TABLE = "settings";
@@ -23,6 +33,8 @@ async function getRow() {
 async function upsert(settings: Partial<Settings>) {
   const row = await getRow();
   const merged = { ...(row.data as Settings), ...settings };
+  delete (merged as Record<string, unknown>).mailchimp_merge_tag_date;
+  delete (merged as Record<string, unknown>).mailchimp_merge_tag_time;
   const { error } = await supabase
     .from(TABLE)
     .upsert({ singleton: true, data: merged }, { onConflict: "singleton" });
@@ -42,6 +54,10 @@ export async function getPublicSettings(req: Request, res: Response) {
       allow_user_registrations: !!data.allow_user_registrations,
       agreement_file_url: data?.agreement_file_url,
       invoice_file_url: data?.invoice_file_url,
+      aisensy_webinar_date: data.aisensy_webinar_date,
+      aisensy_webinar_time: data.aisensy_webinar_time,
+      mailchimp_webinar_date: data.mailchimp_webinar_date,
+      mailchimp_webinar_time: data.mailchimp_webinar_time,
     };
     return res.status(200).json(pub);
   } catch (e: any) {
@@ -62,6 +78,12 @@ export async function getAdminSettings(req: Request, res: Response) {
       .status(500)
       .json({ message: e?.message || "Failed to load settings" });
   }
+}
+
+/** Merged site settings (for server-side use, e.g. AiSensy template params). */
+export async function getSettingsData(): Promise<Settings> {
+  const row = await getRow();
+  return (row.data || {}) as Settings;
 }
 
 export async function updateAdminSettings(req: Request, res: Response) {

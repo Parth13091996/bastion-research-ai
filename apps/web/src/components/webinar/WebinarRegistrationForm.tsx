@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createWebinarRegistration } from "@/api/webinar-registrations-api";
 import mailchimpNewsletterApi from "@/api/mailchimp-api";
+import { getPublicSettings } from "@/api/settings-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,12 +25,40 @@ export function WebinarRegistrationForm({
     phone: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [mailchimpTag, setMailchimpTag] = useState(() =>
+    Config.mailchimp_tags.portfolio_red_flags_landing(undefined)
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const pub = await getPublicSettings();
+        if (cancelled) return;
+        setMailchimpTag(
+          Config.mailchimp_tags.portfolio_red_flags_landing(
+            pub.mailchimp_webinar_date
+          )
+        );
+      } catch {
+        if (!cancelled) {
+          setMailchimpTag(
+            Config.mailchimp_tags.portfolio_red_flags_landing(undefined)
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const subscribeToMailchimp = async (email: string) => {
     try {
+      const normalizedTag = mailchimpTag?.trim();
       await mailchimpNewsletterApi.subscribe({
         email,
-        tags: [Config.mailchimp_tags.portfolio_red_flags_landing],
+        ...(normalizedTag ? { tags: [normalizedTag] } : {}),
       });
     } catch (error) {
       // Mailchimp failures should not block webinar registration
@@ -66,7 +95,7 @@ export function WebinarRegistrationForm({
         email: form.email.trim(),
         phone: form.phone.trim() || undefined,
         webinar_slug: webinarSlug,
-        source: "portfolio-red-flags-landing",
+        source: Config.aisensy_source,
         utm_source: params.get("utm_source"),
         utm_medium: params.get("utm_medium"),
         utm_campaign: params.get("utm_campaign"),
@@ -155,4 +184,3 @@ export function WebinarRegistrationForm({
     </form>
   );
 }
-

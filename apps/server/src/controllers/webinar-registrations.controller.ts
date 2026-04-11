@@ -1,6 +1,11 @@
 import { Request, Response } from 'express'
 import { supabase } from '../supabase'
 import { sendAiSensyCampaign } from '../services/aisensy.service'
+import { getSettingsData } from './settings.controller'
+import {
+  formatWebinarDateLabel,
+  formatWebinarTimeLabel,
+} from '../utils/webinar-copy-format'
 
 // Create a new webinar registration (public endpoint), avoid duplicate per (email, webinar_slug)
 export const createWebinarRegistration = async (
@@ -94,23 +99,42 @@ export const createWebinarRegistration = async (
 
     // Trigger WhatsApp notification via AiSensy (best-effort; never blocks registration)
     if (isPortfolioRedFlags && phone) {
-      void sendAiSensyCampaign({
-        destination: String(phone),
-        userName: String(name),
-        source: source ?? 'portfolio-red-flags-landing',
-        templateParams: [
-          String(name),
-          String(email),
-          String(phone),
-          String(webinar_slug || ''),
-        ],
-        attributes: {
-          ...(email ? { email: String(email) } : {}),
-          ...(webinar_slug ? { webinar_slug: String(webinar_slug) } : {}),
-        },
-      }).catch((e: any) => {
-        console.error('AiSensy campaign send failed:', e?.message || e)
-      })
+      const siteSettings = await getSettingsData()
+      const webinarDate = formatWebinarDateLabel(
+        siteSettings.aisensy_webinar_date
+      )
+      const webinarTime = formatWebinarTimeLabel(
+        siteSettings.aisensy_webinar_time
+      )
+      const joiningLink = String(siteSettings.aisensy_joining_link ?? '').trim()
+      const campaignName = String(
+        siteSettings.aisensy_campaign_name ?? ''
+      ).trim()
+      const webinarName = String(siteSettings.aisensy_webinar_name ?? '').trim()
+
+      try {
+        await sendAiSensyCampaign({
+          destination: String(phone),
+          userName: String(name),
+          ...(campaignName ? { campaignName } : {}),
+          source: source ?? 'portfolio-red-flags-landing',
+          templateParams: [
+            String(name),
+            webinarName,
+            webinarDate,
+            webinarTime,
+            joiningLink,
+          ],
+          attributes: {
+            ...(email ? { email: String(email) } : {}),
+            ...(webinar_slug ? { webinar_slug: String(webinar_slug) } : {}),
+            ...(joiningLink ? { joining_link: joiningLink } : {}),
+          },
+        });
+      } catch (e: any) {
+        console.error('AiSensy campaign send failed:', e?.message || e);
+      }
+ 
     }
 
     return res.status(201).json(data)

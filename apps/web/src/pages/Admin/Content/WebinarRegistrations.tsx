@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteWebinarRegistration, getWebinarRegistrations } from "@/api/webinar-registrations-api";
+import { getAdminSettings } from "@/api/settings-api";
 import {
   Table,
   TableBody,
@@ -9,7 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Trash2, Users, Download } from "lucide-react";
 import { queryKeys } from "@/api/queryKeys";
@@ -17,6 +24,35 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { confirmDelete } from "@/utils/confirm";
 import { formatDate } from "@/lib/utils";
+import { format, parseISO } from "date-fns";
+
+function formatIntegrationDate(s?: string | null) {
+  const t = s?.trim();
+  if (!t) return "—";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) {
+    try {
+      return format(parseISO(t), "PPP");
+    } catch {
+      return t;
+    }
+  }
+  return t;
+}
+
+function formatIntegrationTime(s?: string | null) {
+  const t = s?.trim();
+  if (!t) return "—";
+  if (/^\d{1,2}:\d{2}$/.test(t)) {
+    const [h, m] = t.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+  return t;
+}
 
 type WebinarRegistration = {
   id: string | number;
@@ -62,6 +98,11 @@ const WebinarRegistrationsPage: React.FC = () => {
   const { data, isLoading, error } = useQuery<WebinarRegistration[]>({
     queryKey: [queryKeys.webinar_registrations],
     queryFn: () => getWebinarRegistrations(),
+  });
+
+  const { data: integrationSettings } = useQuery({
+    queryKey: ["admin-settings", "webinar-integrations"],
+    queryFn: () => getAdminSettings(true),
   });
 
   const deleteMutation = useMutation({
@@ -130,6 +171,78 @@ const WebinarRegistrationsPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Integration copy (read-only)</CardTitle>
+          <CardDescription>
+            Configured in Settings. AiSensy template order: registrant name,
+            webinar name, date, time, joining link, phone, webinar slug.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              AiSensy — webinar name
+            </div>
+            <div className="font-medium break-words">
+              {integrationSettings?.aisensy_webinar_name?.trim() || "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              AiSensy — date
+            </div>
+            <div className="font-medium break-words">
+              {formatIntegrationDate(integrationSettings?.aisensy_webinar_date)}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              AiSensy — time
+            </div>
+            <div className="font-medium break-words">
+              {formatIntegrationTime(integrationSettings?.aisensy_webinar_time)}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              AiSensy — joining link
+            </div>
+            <div className="font-medium break-words truncate" title={integrationSettings?.aisensy_joining_link}>
+              {integrationSettings?.aisensy_joining_link?.trim() || "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              AiSensy — campaign
+            </div>
+            <div className="font-medium break-words">
+              {integrationSettings?.aisensy_campaign_name?.trim() || "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              Mailchimp — date
+            </div>
+            <div className="font-medium break-words">
+              {formatIntegrationDate(
+                integrationSettings?.mailchimp_webinar_date
+              )}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              Mailchimp — time
+            </div>
+            <div className="font-medium break-words">
+              {formatIntegrationTime(
+                integrationSettings?.mailchimp_webinar_time
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

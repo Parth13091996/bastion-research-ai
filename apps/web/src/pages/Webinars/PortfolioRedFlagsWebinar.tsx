@@ -37,6 +37,12 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { WebinarRegistrationForm } from "@/components/webinar/WebinarRegistrationForm";
+import { getPublicSettings } from "@/api/settings-api";
+import {
+  buildPortfolioWebinarSlug,
+  formatAisensyWebinarDate,
+  formatAisensyWebinarTime,
+} from "@/utils/webinar-schedule-display";
 import {
   webinarData,
   whatYoullLearn,
@@ -72,11 +78,14 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 const LOGO_URL =
   "https://customer-assets.emergentagent.com/job_join-webinar/artifacts/rihrnsgc_42bbb863-cf72-47f6-8380-aab233af000b.jpeg";
 
-const WEBINAR_SLUG = "portfolio-red-flags-2026-03-05";
-
 const PortfolioRedFlagsWebinar: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [aisensyDateLabel, setAisensyDateLabel] = useState<string | null>(null);
+  const [aisensyTimeLabel, setAisensyTimeLabel] = useState<string | null>(null);
+  const [webinarSlug, setWebinarSlug] = useState(() =>
+    buildPortfolioWebinarSlug(undefined, undefined)
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -85,6 +94,40 @@ const PortfolioRedFlagsWebinar: React.FC = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const pub = await getPublicSettings(true);
+        if (cancelled) return;
+        setAisensyDateLabel(formatAisensyWebinarDate(pub.aisensy_webinar_date));
+        setAisensyTimeLabel(formatAisensyWebinarTime(pub.aisensy_webinar_time));
+        setWebinarSlug(
+          buildPortfolioWebinarSlug(
+            pub.aisensy_webinar_date,
+            pub.aisensy_webinar_time
+          )
+        );
+      } catch {
+        if (!cancelled) {
+          setAisensyDateLabel("—");
+          setAisensyTimeLabel("—");
+          setWebinarSlug(buildPortfolioWebinarSlug(undefined, undefined));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const headerScheduleLine = (() => {
+    const d = aisensyDateLabel ?? "…";
+    const t = aisensyTimeLabel ?? "…";
+    if (d === "—" && t === "—") return "—";
+    return `${d} · ${t}`;
+  })();
 
   const scrollToForm = () => {
     setShowForm(true);
@@ -107,15 +150,7 @@ const PortfolioRedFlagsWebinar: React.FC = () => {
             <img src={LOGO_URL} alt="Bastion Research" className="h-8" />
             <Badge className="bg-[#C00000] text-white">LIVE WEBINAR</Badge>
             <span className="text-sm font-medium text-[#1C2852]">
-              {new Date().toLocaleString("en-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-                timeZone: "Asia/Kolkata",
-              })} IST
+              {headerScheduleLine}
             </span>
           </div>
           <Button
@@ -158,11 +193,11 @@ const PortfolioRedFlagsWebinar: React.FC = () => {
             <div className="flex flex-wrap justify-center gap-6 mb-10 text-lg">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-[#C4B696]" />
-                <span>{webinarData.date}</span>
+                <span>{aisensyDateLabel ?? "…"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-[#C4B696]" />
-                <span>{webinarData.time}</span>
+                <span>{aisensyTimeLabel ?? "…"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Video className="h-5 w-5 text-[#C4B696]" />
@@ -474,7 +509,7 @@ const PortfolioRedFlagsWebinar: React.FC = () => {
               </p>
             </div>
             <WebinarRegistrationForm
-              webinarSlug={WEBINAR_SLUG}
+              webinarSlug={webinarSlug}
               requirePhone
               onSuccess={() => setShowForm(false)}
             />

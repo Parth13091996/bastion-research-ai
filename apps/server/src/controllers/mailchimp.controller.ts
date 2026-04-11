@@ -4,8 +4,16 @@ import mailchimp from "@mailchimp/mailchimp_marketing";
 import {
   fetchMailchimpNewsletters,
   getMailchimpNewsletterById,
+  getMailchimpErrorInfo,
+  isMailchimpAlreadySubscribed,
+  isMailchimpResubscribeRequired,
 } from "../services/mailchimp.service";
 import { supabase } from "../supabase";
+import { getSettingsData } from "./settings.controller";
+import {
+  formatWebinarDateLabel,
+  formatWebinarTimeLabel,
+} from "../utils/webinar-copy-format";
 
 mailchimp.setConfig({
   apiKey: process.env.MAILCHIMP_API_KEY,
@@ -79,9 +87,24 @@ export async function getMailchimpNewsletter(req: Request, res: Response) {
   }
 }
 
+function normalizeMergeFields(
+  raw: unknown
+): Record<string, string> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    const key = String(k).trim().toUpperCase();
+    if (!key) continue;
+    const val = v == null ? "" : String(v).trim();
+    if (val) out[key] = val;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 export async function subscribeToNewsLetter(req: Request, res: Response) {
   try {
-    const { email, latitude, longitude, timestamp, tags } = req.body;
+    const { email, latitude, longitude, timestamp, tags, merge_fields } =
+      req.body;
 
     // Basic validation
     if (!email || !email.includes("@")) {
@@ -93,6 +116,37 @@ export async function subscribeToNewsLetter(req: Request, res: Response) {
       : typeof tags === "string" && tags.trim()
         ? [tags.trim()]
         : [];
+
+    let normalizedMerge = normalizeMergeFields(merge_fields);
+
+    const hasPortfolioWebinarTag = normalizedTags.some((t) =>
+      t.startsWith("Risk_webinar_")
+    );
+    if (hasPortfolioWebinarTag) {
+      const dateTag = process.env.MAILCHIMP_WEBINAR_DATE_MERGE_TAG?.trim();
+      const timeTag = process.env.MAILCHIMP_WEBINAR_TIME_MERGE_TAG?.trim();
+      if (dateTag || timeTag) {
+        try {
+          const site = await getSettingsData();
+          const extra: Record<string, string> = {
+            ...(normalizedMerge || {}),
+          };
+          if (dateTag && site.mailchimp_webinar_date?.trim()) {
+            extra[dateTag.toUpperCase()] = formatWebinarDateLabel(
+              site.mailchimp_webinar_date
+            );
+          }
+          if (timeTag && site.mailchimp_webinar_time?.trim()) {
+            extra[timeTag.toUpperCase()] = formatWebinarTimeLabel(
+              site.mailchimp_webinar_time
+            );
+          }
+          normalizedMerge = Object.keys(extra).length ? extra : normalizedMerge;
+        } catch (e) {
+          console.error("Mailchimp webinar settings merge:", e);
+        }
+      }
+    }
 
     const audienceId = process.env.MAILCHIMP_AUDIENCE_ID!;
     const subscriberHash = crypto
@@ -107,38 +161,61 @@ export async function subscribeToNewsLetter(req: Request, res: Response) {
       });
     };
 
+    const memberPayload: Parameters<
+      typeof mailchimp.lists.addListMember
+    >[1] = {
+      email_address: email,
+      status: "subscribed",
+      location: {
+        latitude,
+        longitude,
+      },
+      timestamp_signup: timestamp,
+      ...(normalizedMerge ? { merge_fields: normalizedMerge } : {}),
+    };
+
+    let resubscribeRequired = false;
+    let resubscribeDetail: string | undefined;
     try {
-      await mailchimp.lists.addListMember(
-        audienceId,
-        {
-          email_address: email,
-          status: "subscribed",
-          location: {
-            latitude,
-            longitude,
-          },
-          timestamp_signup: timestamp,
-        },
-        {
-          skipMergeValidation: true,
-        }
-      );
+      await mailchimp.lists.addListMember(audienceId, memberPayload, {
+        skipMergeValidation: true,
+      });
     } catch (error: any) {
-      const status = error?.response?.status;
-      const detail = error?.response?.data?.detail || "";
-      const alreadySubscribed =
-        status === 400 &&
-        typeof detail === "string" &&
-        detail.toLowerCase().includes("already a list member");
-      if (!alreadySubscribed) {
+      const info = getMailchimpErrorInfo(error);
+      const alreadySubscribed = isMailchimpAlreadySubscribed(error);
+      const needsResubscribe = isMailchimpResubscribeRequired(error);
+      if (!alreadySubscribed && !needsResubscribe) {
         throw error;
+      }
+      if (needsResubscribe) {
+        resubscribeRequired = true;
+        resubscribeDetail = info.detail || info.title;
+      } else if (normalizedMerge) {
+        try {
+          await mailchimp.lists.updateListMember(audienceId, subscriberHash, {
+            merge_fields: normalizedMerge,
+          });
+        } catch (mergeErr) {
+          console.error("Mailchimp merge field update error:", mergeErr);
+        }
       }
     }
 
-    try {
-      await applyTags();
-    } catch (e) {
-      console.error("Mailchimp tag update error:", e);
+    if (!resubscribeRequired) {
+      try {
+        await applyTags();
+      } catch (e) {
+        console.error("Mailchimp tag update error:", e);
+      }
+    }
+
+    if (resubscribeRequired) {
+      return res.status(200).json({
+        message:
+          resubscribeDetail ||
+          "Contact was previously deleted in Mailchimp and must re-subscribe to join the list.",
+        resubscribe_required: true,
+      });
     }
 
     res.json({ message: "Success! Already subscribed or now added." });

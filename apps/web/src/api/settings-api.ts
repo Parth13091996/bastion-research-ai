@@ -8,8 +8,15 @@ export type Settings = {
   allow_user_registrations?: boolean;
   recommendation_sheet_url?: string;
   live_recommendation_sheet_url?: string;
-   agreement_file_url?: string;
-   invoice_file_url?: string;
+  agreement_file_url?: string;
+  invoice_file_url?: string;
+  aisensy_webinar_name?: string;
+  aisensy_webinar_date?: string;
+  aisensy_webinar_time?: string;
+  aisensy_joining_link?: string;
+  aisensy_campaign_name?: string;
+  mailchimp_webinar_date?: string;
+  mailchimp_webinar_time?: string;
 };
 
 export type PublicSettings = {
@@ -18,6 +25,12 @@ export type PublicSettings = {
   allow_user_registrations?: boolean;
   agreement_file_url?: string;
   invoice_file_url?: string;
+  /** yyyy-MM-dd / HH:mm from Admin → Webinar — AiSensy */
+  aisensy_webinar_date?: string;
+  aisensy_webinar_time?: string;
+  /** yyyy-MM-dd / HH:mm from Admin → Webinar — Mailchimp */
+  mailchimp_webinar_date?: string;
+  mailchimp_webinar_time?: string;
 };
 
 let publicSettingsCache: PublicSettings | null = null;
@@ -60,6 +73,7 @@ export async function updateAdminSettings(
     );
     // Update local cache
     adminSettingsCache = data || {};
+    publicSettingsCache = null;
     return adminSettingsCache;
   } catch (error: any) {
     throw error;
