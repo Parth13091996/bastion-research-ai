@@ -88,6 +88,12 @@ const useConstants = () => {
       path: AppRoutes.scratch_pad_newsletter,
     },
     {
+      key: "effortless_investor",
+      name: "Effortless Investor",
+      icon: TrendingUp,
+      path: AppRoutes.effortlessInvestor,
+    },
+    {
       key: "my_account",
       name: "My Account",
       icon: User,

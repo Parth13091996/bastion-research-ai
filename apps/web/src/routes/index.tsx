@@ -61,6 +61,10 @@ const ScratchPadView = lazy(
   () => import("@/pages/UserAdmin/app/ScratchPadView")
 );
 const PdfViewerPage = lazy(() => import("@/pages/UserAdmin/app/PdfViewerPage"));
+const EffortlessInvestor = lazy(
+  () => import("@/pages/UserAdmin/app/EffortlessInvestor")
+);
+
 
 // Admin Pages
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
@@ -382,6 +386,10 @@ export const routes: RouteObject[] = [
           { path: "app/scratch-pad", element: <ScratchPadList /> },
           { path: "app/scratch-pad/:id", element: <ScratchPadView /> },
           { path: "app/pdf-viewer", element: <PdfViewerPage /> },
+          {
+            path: "app/effortless-investor",
+            element: <EffortlessInvestor />,
+          },
           {
             path: "app/account/edit-profile",
             element: <UserAdminEditProfile />,
