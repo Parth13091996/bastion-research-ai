@@ -60,6 +60,7 @@ type WebinarRegistration = {
   name: string;
   email: string;
   phone?: string | null;
+  utm_source?: string | null;
   webinar_slug?: string | null;
 };
 
@@ -269,6 +270,7 @@ const WebinarRegistrationsPage: React.FC = () => {
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Registered At</TableHead>
+                  <TableHead>Utm Source</TableHead>
                   <TableHead className="w-[120px] text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -282,13 +284,14 @@ const WebinarRegistrationsPage: React.FC = () => {
                       {item.created_at ? (
                         <div className="flex items-center text-sm text-gray-600">
                           <Calendar className="h-4 w-4 mr-1" />
-                          {/* {new Date(item.created_at).toLocaleString()} */}
                           {formatDate(item.created_at)}
                         </div>
                       ) : (
                         "-"
                       )}
                     </TableCell>
+                    <TableCell>{item.utm_source || "-"}</TableCell>
+
                     <TableCell className="text-center">
                       <Button
                         size="sm"
