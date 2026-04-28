@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { updateUserById } from "@/api/users-api";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -31,6 +32,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const Profile = () => {
   const { user, refetchUser, isLoading } = useAuth();
+  const { canEdit, isLoading: accessLoading } = useSectionEditAccess("ar_profile");
 
   const {
     register,
@@ -105,7 +107,7 @@ const Profile = () => {
     mutation.mutate(payload);
   };
 
-  if (isLoading && !user) {
+  if ((isLoading || accessLoading) && !user) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center gap-2 text-gray-600">
@@ -119,11 +121,17 @@ const Profile = () => {
     <div className="max-w-3xl mx-auto my-12">
       <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
 
+      {!canEdit && (
+        <div className="rounded-md border bg-yellow-50 text-yellow-900 px-4 py-3 text-sm">
+          View-only mode: you do not have edit access to this section.
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="first_name">First Name</Label>
-            <Input id="first_name" {...register("first_name")} />
+            <Input id="first_name" disabled={!canEdit} {...register("first_name")} />
             {errors.first_name && (
               <p className="text-red-600 text-sm mt-1">
                 {errors.first_name.message}
@@ -132,7 +140,7 @@ const Profile = () => {
           </div>
           <div>
             <Label htmlFor="last_name">Last Name</Label>
-            <Input id="last_name" {...register("last_name")} />
+            <Input id="last_name" disabled={!canEdit} {...register("last_name")} />
             {errors.last_name && (
               <p className="text-red-600 text-sm mt-1">
                 {errors.last_name.message}
@@ -141,7 +149,7 @@ const Profile = () => {
           </div>
           <div>
             <Label htmlFor="username">Username</Label>
-            <Input id="username" {...register("username")} />
+            <Input id="username" disabled={!canEdit} {...register("username")} />
             {errors.username && (
               <p className="text-red-600 text-sm mt-1">
                 {errors.username.message}
@@ -150,7 +158,7 @@ const Profile = () => {
           </div>
           <div>
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register("email")} />
+            <Input id="email" type="email" disabled={!canEdit} {...register("email")} />
             {errors.email && (
               <p className="text-red-600 text-sm mt-1">
                 {errors.email.message}
@@ -159,7 +167,7 @@ const Profile = () => {
           </div>
           <div>
             <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" {...register("phone")} />
+            <Input id="phone" disabled={!canEdit} {...register("phone")} />
             {errors.phone && (
               <p className="text-red-600 text-sm mt-1">
                 {errors.phone.message}
@@ -171,6 +179,7 @@ const Profile = () => {
             <Input
               id="date_of_birth"
               type="date"
+              disabled={!canEdit}
               {...register("date_of_birth")}
             />
           </div>
@@ -179,44 +188,45 @@ const Profile = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="pan_card_number">PAN Card Number</Label>
-            <Input id="pan_card_number" {...register("pan_card_number")} />
+            <Input id="pan_card_number" disabled={!canEdit} {...register("pan_card_number")} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="company">Company</Label>
-            <Input id="company" {...register("company")} />
+            <Input id="company" disabled={!canEdit} {...register("company")} />
           </div>
           <div>
             <Label htmlFor="address_1">Address Line 1</Label>
-            <Input id="address_1" {...register("address_1")} />
+            <Input id="address_1" disabled={!canEdit} {...register("address_1")} />
           </div>
           <div>
             <Label htmlFor="address_2">Address Line 2</Label>
-            <Input id="address_2" {...register("address_2")} />
+            <Input id="address_2" disabled={!canEdit} {...register("address_2")} />
           </div>
           <div>
             <Label htmlFor="state">State</Label>
-            <Input id="state" {...register("state")} />
+            <Input id="state" disabled={!canEdit} {...register("state")} />
           </div>
           <div>
             <Label htmlFor="city">City</Label>
-            <Input id="city" {...register("city")} />
+            <Input id="city" disabled={!canEdit} {...register("city")} />
           </div>
           <div>
             <Label htmlFor="pin_code">PIN Code</Label>
-            <Input id="pin_code" {...register("pin_code")} />
+            <Input id="pin_code" disabled={!canEdit} {...register("pin_code")} />
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button type="submit" disabled={!canEdit || mutation.isPending}>
             {"Save Changes"}
           </Button>
           <Button
             type="button"
             variant="outline"
+            disabled={!canEdit}
             onClick={() =>
               user &&
               reset({

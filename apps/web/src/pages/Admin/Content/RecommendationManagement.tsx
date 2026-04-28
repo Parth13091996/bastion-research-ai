@@ -18,6 +18,7 @@ import EditRecommendationModal from "@/components/core/common/Modals/EditRecomme
 import useSheetStocks from "@/hooks/use-sheets-stocks";
 import AddRecommendationModal from "@/components/core/common/Modals/AddRecommendationModal";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const toCsv = (rows: ExtendedRecommendation[]): string => {
   const headers = [
@@ -140,14 +141,20 @@ const RecommendationManagementHeader: React.FC<RecommendationManagementHeaderPro
 
 type RecommendationsCardHeaderProps = {
   onCreate: () => void;
+  canEdit: boolean;
 };
-const RecommendationsCardHeader: React.FC<RecommendationsCardHeaderProps> = ({ onCreate }) => (
+const RecommendationsCardHeader: React.FC<RecommendationsCardHeaderProps> = ({
+  onCreate,
+  canEdit,
+}) => (
   <CardHeader>
     <CardTitle className="flex justify-between items-center">
       <span>Recommendations</span>
-      <Button onClick={onCreate}>
-        <PlusIcon className="mr-2 h-4 w-4" /> Create Recommendation
-      </Button>
+      {canEdit && (
+        <Button onClick={onCreate}>
+          <PlusIcon className="mr-2 h-4 w-4" /> Create Recommendation
+        </Button>
+      )}
     </CardTitle>
   </CardHeader>
 );
@@ -190,9 +197,14 @@ const EmptyState: React.FC = () => (
 type RecommendationsTableProps = {
   recommendations: ExtendedRecommendation[];
   onEdit: (r: ExtendedRecommendation) => void;
+  canEdit: boolean;
 };
 
-const RecommendationsTable: React.FC<RecommendationsTableProps> = ({ recommendations, onEdit }) => (
+const RecommendationsTable: React.FC<RecommendationsTableProps> = ({
+  recommendations,
+  onEdit,
+  canEdit,
+}) => (
   <div className="overflow-x-auto">
     <Table>
       <TableHeader>
@@ -316,14 +328,16 @@ const RecommendationRow: React.FC<RecommendationRowProps> = ({ recommendation, o
             {recommendation.latestMcapCr ?? recommendation.marketCap}
           </TableCell>
           <TableCell className="text-center">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onEdit(recommendation)}
-              className="hover:bg-yellow-100 hover:text-yellow-600"
-            >
-              <Edit className="h-4 w-4 mr-1" /> Edit
-            </Button>
+            {canEdit && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onEdit(recommendation)}
+                className="hover:bg-yellow-100 hover:text-yellow-600"
+              >
+                <Edit className="h-4 w-4 mr-1" /> Edit
+              </Button>
+            )}
           </TableCell>
         </TableRow>
       </TooltipTrigger>
@@ -351,6 +365,7 @@ const RecommendationRow: React.FC<RecommendationRowProps> = ({ recommendation, o
 
 const RecommendationManagement: React.FC = () => {
   const { stocks, dbData, notInserterData, loading, error } = useSheetStocks();
+  const { canEdit } = useSectionEditAccess("content_recommendations");
 
   const [search, setSearch] = useState<string>("");
   const [editingRecommendation, setEditingRecommendation] =
@@ -396,12 +411,14 @@ const RecommendationManagement: React.FC = () => {
   };
 
   const handleEdit = (recommendation: ExtendedRecommendation) => {
+    if (!canEdit) return;
     setEditingRecommendation(recommendation);
     setIsEditModalOpen(true);
   };
 
 
   const handleSave = async (updatedData: any) => {
+    if (!canEdit) return;
     try {
       const formData =
         updatedData instanceof FormData ? updatedData : new FormData();
@@ -460,6 +477,7 @@ const RecommendationManagement: React.FC = () => {
   };
 
   const createRecommendationHandler = () => {
+    if (!canEdit) return;
     setIsCreateModalOpen(true);
   };
 
@@ -473,7 +491,10 @@ const RecommendationManagement: React.FC = () => {
         />
 
         <Card>
-          <RecommendationsCardHeader onCreate={createRecommendationHandler} />
+          <RecommendationsCardHeader
+            onCreate={createRecommendationHandler}
+            canEdit={canEdit}
+          />
           <CardContent>
             <RecommendationsFilters search={search} onSearch={setSearch} />
 
@@ -487,12 +508,13 @@ const RecommendationManagement: React.FC = () => {
               <RecommendationsTable
                 recommendations={filtered}
                 onEdit={handleEdit}
+                canEdit={canEdit}
               />
             )}
           </CardContent>
         </Card>
 
-        {editingRecommendation && (
+        {canEdit && editingRecommendation && (
           <EditRecommendationModal
             open={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
@@ -501,12 +523,14 @@ const RecommendationManagement: React.FC = () => {
           />
         )}
 
-        <AddRecommendationModal
-          open={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          sheetStocks={notInserterData as any}
-          onSave={handleSave as any}
-        />
+        {canEdit && (
+          <AddRecommendationModal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            sheetStocks={notInserterData as any}
+            onSave={handleSave as any}
+          />
+        )}
       </div>
     </TooltipProvider>
   );

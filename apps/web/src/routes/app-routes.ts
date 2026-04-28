@@ -34,6 +34,7 @@ export const AppRoutes = {
   adminManageSubscriptions: "/admin/ar/subscriptions",
   adminPaymentHistory: "/admin/ar/payments",
   adminCouponManagement: "/admin/ar/coupons",
+  adminArSettings: "/admin/ar/settings",
   adminJobOpenings: "/admin/jobs/openings",
   adminAddNewJob: "/admin/jobs/add",
   adminApplications: "/admin/jobs/applications",

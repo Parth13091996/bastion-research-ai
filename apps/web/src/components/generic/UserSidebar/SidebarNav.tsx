@@ -9,6 +9,7 @@ const SidebarNav = ({
   openMenus,
   setShowPricing,
   isAdmin,
+  isStaff,
   profile,
   navigate,
   setIsMobileOpen,
@@ -40,7 +41,7 @@ const SidebarNav = ({
             return null;
           }
 
-          if (!isAdmin && item.name === "Admin Panel") {
+          if (!isStaff && item.name === "Admin Panel") {
             return null;
           }
 

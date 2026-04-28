@@ -7,9 +7,11 @@ import { useModalStore } from "@/stores/modal-store";
 import { toast } from "sonner";
 import { DataTable } from "@/components/ui/data-table";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const JobOpenings = () => {
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("jobs_job_openings");
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: () => getJobs(),
@@ -138,6 +140,7 @@ const JobOpenings = () => {
 
   const handleEdit = (row: any) => {
     if (!row) return;
+    if (!canEdit) return;
 
     const transformed = {
       ...row,
@@ -161,6 +164,7 @@ const JobOpenings = () => {
   };
 
   const handleDelete = (row: any) => {
+    if (!canEdit) return;
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -183,6 +187,7 @@ const JobOpenings = () => {
   };
 
   const handleBulkDelete = (selected: any[]) => {
+    if (!canEdit) return;
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -255,9 +260,9 @@ const JobOpenings = () => {
         data={rowData || []}
         columns={columns}
         loading={isLoading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        bulkActions={bulkActions}
+        onEdit={canEdit ? handleEdit : undefined}
+        onDelete={canEdit ? handleDelete : undefined}
+        bulkActions={canEdit ? bulkActions : []}
         searchPlaceholder="Search jobs by title, team, or location..."
         title="Job Openings"
         description={`${rowData?.length || 0} active job openings`}

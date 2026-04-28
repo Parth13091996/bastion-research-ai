@@ -18,6 +18,9 @@ import { uploadFile } from "@/api/files-api";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import { WebinarDateField } from "@/components/admin/WebinarDateField";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
+import { AppRoutes } from "@/routes/app-routes";
 
 type AdminSettings = {
   site_name?: string;
@@ -38,6 +41,7 @@ type AdminSettings = {
 };
 
 const AdminSettings = () => {
+  const { isAdmin, isLoading } = useAuth();
   const [form, setForm] = useState<AdminSettings>({
     site_name: "Admin Dashboard",
     contact_recipient_email: "",
@@ -56,6 +60,18 @@ const AdminSettings = () => {
     mailchimp_webinar_time: "",
   });
   const [saving, setSaving] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to={AppRoutes.adminDashboard} replace />;
+  }
 
   // Upload states
   const [uploadingAgreement, setUploadingAgreement] = useState(false);

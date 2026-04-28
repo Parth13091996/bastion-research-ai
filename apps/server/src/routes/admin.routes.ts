@@ -28,7 +28,11 @@ import {
   updateAdminSettings,
   updateContactRecipientEmail,
 } from '../controllers/settings.controller'
-import { admin, protect } from '../middleware/auth.middleware'
+import { admin, protect, requireSectionEdit, staff } from '../middleware/auth.middleware'
+import {
+  listEmployeesSectionEditAccess,
+  setEmployeeSectionEditAccess,
+} from '../controllers/employeeSectionPermissions.controller'
 import {
   getUserActivitySummary,
   getUserPageVisits,
@@ -52,15 +56,15 @@ router.get('/dashboard', protect, admin, (req, res) => {
 })
 
 // Analytics summary for admin dashboard
-router.get('/analytics/summary', protect, admin, getAnalyticsSummary)
+router.get('/analytics/summary', protect, staff, getAnalyticsSummary)
 // User-level analytics for Manage Members
-router.get('/users/activity-summary', protect, admin, getUserActivitySummary)
+router.get('/users/activity-summary', protect, staff, getUserActivitySummary)
 // Detailed user activity - page visits and recommendation visits
-router.get('/users/:userId/page-visits', protect, admin, getUserPageVisits)
+router.get('/users/:userId/page-visits', protect, staff, getUserPageVisits)
 router.get(
   '/users/:userId/recommendation-visits',
   protect,
-  admin,
+  staff,
   getUserRecommendationVisits
 )
 
@@ -73,54 +77,142 @@ router.put(
   updateContactRecipientEmail
 )
 
-router.get('/mailchimp/newsletters', protect, admin, listMailchimpNewsletters)
-router.get('/mailchimp/newsletters/:id', protect, admin, getMailchimpNewsletter)
+router.get('/mailchimp/newsletters', protect, staff, listMailchimpNewsletters)
+router.get('/mailchimp/newsletters/:id', protect, staff, getMailchimpNewsletter)
 router.put(
   '/mailchimp/newsletters/:id/hide',
   protect,
-  admin,
+  staff,
+  requireSectionEdit('content_newsletter'),
   setMailchimpNewsletterHidden
 )
 
 // Content management - Manual Newsletters (CMS)
-router.get('/content/newsletters', protect, admin, listNewsletters)
-router.get('/content/newsletters/:id', protect, admin, getNewsletter)
-router.post('/content/newsletters', protect, admin, createNewsletter)
-router.put('/content/newsletters/:id', protect, admin, updateNewsletter)
-router.delete('/content/newsletters/:id', protect, admin, deleteNewsletter)
+router.get('/content/newsletters', protect, staff, listNewsletters)
+router.get('/content/newsletters/:id', protect, staff, getNewsletter)
+router.post(
+  '/content/newsletters',
+  protect,
+  staff,
+  requireSectionEdit('content_newsletter'),
+  createNewsletter
+)
+router.put(
+  '/content/newsletters/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_newsletter'),
+  updateNewsletter
+)
+router.delete(
+  '/content/newsletters/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_newsletter'),
+  deleteNewsletter
+)
 
 // Content management - Webinars
-router.get('/content/webinars', protect, admin, listWebinars)
-router.get('/content/webinars/:id', protect, admin, getWebinar)
-router.post('/content/webinars', protect, admin, createWebinar)
-router.put('/content/webinars/:id', protect, admin, updateWebinar)
-router.delete('/content/webinars/:id', protect, admin, deleteWebinar)
+router.get('/content/webinars', protect, staff, listWebinars)
+router.get('/content/webinars/:id', protect, staff, getWebinar)
+router.post(
+  '/content/webinars',
+  protect,
+  staff,
+  requireSectionEdit('content_webinars'),
+  createWebinar
+)
+router.put(
+  '/content/webinars/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_webinars'),
+  updateWebinar
+)
+router.delete(
+  '/content/webinars/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_webinars'),
+  deleteWebinar
+)
 
 // Content management - Podcasts
-router.get('/content/podcasts', protect, admin, listPodcasts)
-router.get('/content/podcasts/:id', protect, admin, getPodcast)
-router.post('/content/podcasts', protect, admin, createPodcast)
-router.put('/content/podcasts/:id', protect, admin, updatePodcast)
-router.delete('/content/podcasts/:id', protect, admin, deletePodcast)
+router.get('/content/podcasts', protect, staff, listPodcasts)
+router.get('/content/podcasts/:id', protect, staff, getPodcast)
+router.post(
+  '/content/podcasts',
+  protect,
+  staff,
+  requireSectionEdit('content_podcasts'),
+  createPodcast
+)
+router.put(
+  '/content/podcasts/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_podcasts'),
+  updatePodcast
+)
+router.delete(
+  '/content/podcasts/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_podcasts'),
+  deletePodcast
+)
 
 // Content management - Testimonials
-router.get('/content/testimonials', protect, admin, listTestimonials)
-router.get('/content/testimonials/:id', protect, admin, getTestimonial)
-router.post('/content/testimonials', protect, admin, createTestimonial)
-router.put('/content/testimonials/:id', protect, admin, updateTestimonial)
-router.delete('/content/testimonials/:id', protect, admin, deleteTestimonial)
+router.get('/content/testimonials', protect, staff, listTestimonials)
+router.get('/content/testimonials/:id', protect, staff, getTestimonial)
+router.post(
+  '/content/testimonials',
+  protect,
+  staff,
+  requireSectionEdit('content_testimonials'),
+  createTestimonial
+)
+router.put(
+  '/content/testimonials/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_testimonials'),
+  updateTestimonial
+)
+router.delete(
+  '/content/testimonials/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_testimonials'),
+  deleteTestimonial
+)
 
 // Webinar registrations (admin only)
-router.get('/webinar-registrations', protect, admin, listWebinarRegistrations)
+router.get('/webinar-registrations', protect, staff, listWebinarRegistrations)
 router.delete(
   '/webinar-registrations/:id',
   protect,
-  admin,
+  staff,
+  requireSectionEdit('content_webinar_registrations'),
   deleteWebinarRegistration
 )
 
 // Admin settings (full object)
 router.get('/settings', protect, admin, getAdminSettings)
 router.put('/settings', protect, admin, updateAdminSettings)
+
+// Staff section edit-access matrix (admin only)
+router.get(
+  '/staff/section-edit-access',
+  protect,
+  admin,
+  listEmployeesSectionEditAccess
+)
+router.put(
+  '/staff/section-edit-access',
+  protect,
+  admin,
+  setEmployeeSectionEditAccess
+)
 
 export default router

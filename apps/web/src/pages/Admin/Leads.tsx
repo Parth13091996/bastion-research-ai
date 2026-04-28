@@ -7,6 +7,7 @@ import { useState } from "react";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import ExpandableCell from "@/components/admin/ExpandableCell";
 import { formatDate } from "@/lib/utils";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 type Lead = {
   lead_id: number;
@@ -23,6 +24,7 @@ type Lead = {
 
 const LeadsPage = () => {
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("leads");
   const { data, isLoading, error } = useQuery({
     queryKey: [queryKeys.leads],
     queryFn: async () => getLeads(),
@@ -45,6 +47,7 @@ const LeadsPage = () => {
   const [editRow, setEditRow] = useState<Lead | null>(null);
 
   const openEdit = (row: Lead) => {
+    if (!canEdit) return;
     setEditRow(row);
     setEditOpen(true);
   };
@@ -78,7 +81,7 @@ const LeadsPage = () => {
       field: "comments",
       flex: 1.2,
       minWidth: 180,
-      editable: true,
+      editable: canEdit,
       cellRenderer: (params: any) => (
         <ExpandableCell value={params.value} limit={40} title="Comments" />
       ),
@@ -99,21 +102,25 @@ const LeadsPage = () => {
         columns={columns}
         loading={isLoading}
         error={(error as any)?.message}
-        onEdit={openEdit}
-        onDelete={handleDeleteLead}
-        singleClickEdit
-        onCellValueChanged={(e) => {
-          const row = e.data as Lead;
-          if (e.colDef.field === "comments" && row?.lead_id != null) {
-            const newVal = (e.newValue ?? "").toString();
-            if (newVal !== (e.oldValue ?? "")) {
-              updateMutation.mutate({
-                id: row.lead_id,
-                body: { comments: newVal },
-              });
-            }
-          }
-        }}
+        onEdit={canEdit ? openEdit : undefined}
+        onDelete={canEdit ? handleDeleteLead : undefined}
+        singleClickEdit={canEdit}
+        onCellValueChanged={
+          canEdit
+            ? (e) => {
+                const row = e.data as Lead;
+                if (e.colDef.field === "comments" && row?.lead_id != null) {
+                  const newVal = (e.newValue ?? "").toString();
+                  if (newVal !== (e.oldValue ?? "")) {
+                    updateMutation.mutate({
+                      id: row.lead_id,
+                      body: { comments: newVal },
+                    });
+                  }
+                }
+              }
+            : undefined
+        }
         searchPlaceholder="Search leads by name, email, phone, category..."
         title="Leads"
         description={`Inbound leads from the Contact form. ${data?.length || 0} total leads`}

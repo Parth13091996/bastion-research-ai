@@ -25,9 +25,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const ScratchPadManagement: React.FC = () => {
   const navigate = useNavigate();
+  const { canEdit } = useSectionEditAccess("content_scratch_pad");
   const [newsletters, setNewsletters] = useState<ScratchPadNewsletter[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +56,7 @@ const ScratchPadManagement: React.FC = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
+    if (!canEdit) return;
 
     try {
       await scratchPadApi.delete(deleteId);
@@ -66,6 +69,7 @@ const ScratchPadManagement: React.FC = () => {
   };
 
   const handleEdit = (id: string) => {
+    if (!canEdit) return;
     navigate(`/admin/content/scratch-pad/${id}/edit`);
   };
 
@@ -74,6 +78,7 @@ const ScratchPadManagement: React.FC = () => {
   };
 
   const handleCreate = () => {
+    if (!canEdit) return;
     navigate("/admin/content/scratch-pad/create");
   };
 
@@ -113,9 +118,11 @@ const ScratchPadManagement: React.FC = () => {
           >
             <RefreshCw className="mr-2 h-4 w-4 text-white" /> Refresh
           </Button>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" /> Create Newsletter
-          </Button>
+          {canEdit && (
+            <Button onClick={handleCreate}>
+              <Plus className="mr-2 h-4 w-4" /> Create Newsletter
+            </Button>
+          )}
         </div>
       </div>
 
@@ -146,7 +153,7 @@ const ScratchPadManagement: React.FC = () => {
                   ? "Try adjusting your search"
                   : "Get started by creating your first newsletter"}
               </p>
-              {!search && (
+              {!search && canEdit && (
                 <Button onClick={handleCreate}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Newsletter
@@ -231,24 +238,28 @@ const ScratchPadManagement: React.FC = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        title="Edit"
-                        className="hover:bg-yellow-100 hover:text-yellow-600"
-                        onClick={() => handleEdit(newsletter.id)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        title="Delete"
-                        className="hover:bg-red-600 hover:text-white"
-                        onClick={() => setDeleteId(newsletter.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title="Edit"
+                          className="hover:bg-yellow-100 hover:text-yellow-600"
+                          onClick={() => handleEdit(newsletter.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          title="Delete"
+                          className="hover:bg-red-600 hover:text-white"
+                          onClick={() => setDeleteId(newsletter.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

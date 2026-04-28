@@ -77,6 +77,9 @@ const PaymentHistory = lazy(() => import("../pages/Admin/AR/PaymentHistory"));
 const CouponManagement = lazy(
   () => import("../pages/Admin/AR/CouponManagement")
 );
+const SectionEditAccessSettings = lazy(
+  () => import("../pages/Admin/AR/SectionEditAccessSettings")
+);
 const JobOpenings = lazy(() => import("../pages/Admin/Jobs/JobOpenings"));
 const AddNewJob = lazy(() => import("../pages/Admin/Jobs/AddNewJob"));
 const Applications = lazy(() => import("../pages/Admin/Jobs/Applications"));
@@ -252,6 +255,10 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminCouponManagement,
         element: <CouponManagement />,
+      },
+      {
+        path: AppRoutes.adminArSettings,
+        element: <SectionEditAccessSettings />,
       },
       {
         path: AppRoutes.adminJobOpenings,

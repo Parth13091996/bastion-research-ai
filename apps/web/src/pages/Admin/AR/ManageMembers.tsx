@@ -17,6 +17,7 @@ import ViewMemberModal from "@/components/core/common/Modals/ViewMemberModal";
 import { differenceInDays } from "date-fns";
 import { confirm } from "@/utils/confirm";
 import { formatDate } from "@/lib/utils";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 interface MemberData {
   id: string;
@@ -123,6 +124,7 @@ const ActivityRenderer = (params: ICellRendererParams<MemberData>, activityMap: 
 const MemberManagementDashboard = () => {
   const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("ar_manage_members");
   const {
     data: rowData,
     isLoading: loading,
@@ -296,20 +298,24 @@ const MemberManagementDashboard = () => {
       >
         <Eye className="h-4 w-4" />
       </button>
-      <button
-        className="p-1 text-gray-600 hover:text-blue-600"
-        title="Edit"
-        onClick={() => params.data && handleEdit(params.data)}
-      >
-        <Edit className="h-4 w-4" />
-      </button>
-      <button
-        className="p-1 text-gray-600 hover:text-red-600"
-        title="Delete"
-        onClick={() => params.data && handleDelete(params.data)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-blue-600"
+          title="Edit"
+          onClick={() => params.data && handleEdit(params.data)}
+        >
+          <Edit className="h-4 w-4" />
+        </button>
+      )}
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-red-600"
+          title="Delete"
+          onClick={() => params.data && handleDelete(params.data)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </div>
   )
 
@@ -499,13 +505,15 @@ const MemberManagementDashboard = () => {
             Manage user accounts and permissions
           </p>
         </div>
-        <Button
-          onClick={() => setIsModalOpen("addMember", true)}
-          className="flex items-center space-x-2"
-        >
-          <UserPlus className="h-4 w-4" />
-          <span>Add Member</span>
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={() => setIsModalOpen("addMember", true)}
+            className="flex items-center space-x-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            <span>Add Member</span>
+          </Button>
+        )}
       </div>
 
       {/* Role Filters & Table Header */}
@@ -555,9 +563,15 @@ const MemberManagementDashboard = () => {
               <Button variant="outline" size="sm" onClick={handleBulkEmail}>
                 <Mail className="h-4 w-4 mr-2" /> Email
               </Button>
-              <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
-                <Trash2 className="h-4 w-4 mr-2" /> Delete
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                </Button>
+              )}
             </div>
           )}
         </div>

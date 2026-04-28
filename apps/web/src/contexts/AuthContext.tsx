@@ -70,6 +70,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     (user?.status === "active" && user?.role !== "free_subscriber") ||
     (user?.status === "free" && user?.role === "free_subscriber");
   const isAdmin = user?.role === Config.roles.admin;
+  const isEmployee = user?.role === Config.roles.employee;
+  const isStaff = isAdmin || isEmployee;
 
   return (
     <AuthContext.Provider
@@ -81,6 +83,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           refetchUser,
           isAuthenticated,
           isAdmin,
+          isEmployee,
+          isStaff,
           isLoading,
           refetchUserAfterAgreement,
         } as any

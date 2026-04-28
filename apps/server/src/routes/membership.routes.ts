@@ -10,13 +10,13 @@ import {
   getInvoicePdfForPayment,
   updateMembershipPlan,
 } from "../controllers/membership.controller";
-import { protect } from "../middleware/auth.middleware";
+import { protect, requireSectionEdit, staff } from "../middleware/auth.middleware";
 
 const router = Router();
 
 router.get("/membership-plans", getMembershipPlans);
-router.get("/subscriptions", getSubscriptions);
-router.get("/payment-history", getPaymentHistory);
+router.get("/subscriptions", protect, staff, getSubscriptions);
+router.get("/payment-history", protect, staff, getPaymentHistory);
 router.get("/payment-history/me", protect, getMyPaymentHistory);
 router.get(
   "/payment-history/:id/invoice-pdf",
@@ -24,10 +24,34 @@ router.get(
   getInvoicePdfForPayment
 );
 
-router.post("/membership-plans", createMembershipPlan);
-router.put("/membership-plans/:id", updateMembershipPlan);
-router.delete("/membership-plans/:id", deleteMembershipPlan);
+router.post(
+  "/membership-plans",
+  protect,
+  staff,
+  requireSectionEdit("ar_manage_plans"),
+  createMembershipPlan
+);
+router.put(
+  "/membership-plans/:id",
+  protect,
+  staff,
+  requireSectionEdit("ar_manage_plans"),
+  updateMembershipPlan
+);
+router.delete(
+  "/membership-plans/:id",
+  protect,
+  staff,
+  requireSectionEdit("ar_manage_plans"),
+  deleteMembershipPlan
+);
 
-router.delete("/payment-history/:id", deletePaymentHistory);
+router.delete(
+  "/payment-history/:id",
+  protect,
+  staff,
+  requireSectionEdit("ar_payment_history"),
+  deletePaymentHistory
+);
 
 export default router;

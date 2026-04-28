@@ -15,10 +15,12 @@ import { confirmDelete } from "@/utils/confirm";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import { queryKeys } from "@/api/queryKeys";
 import ExpandableCell from "@/components/admin/ExpandableCell";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const Applications = () => {
   const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("jobs_applications");
   const { data: rowData, isLoading } = useQuery({
     queryKey: [queryKeys.applications],
     queryFn: async () => {
@@ -84,12 +86,14 @@ const Applications = () => {
   const [editRow, setEditRow] = useState<any | null>(null);
 
   const openEdit = (row: any) => {
+    if (!canEdit) return;
     setEditRow(row);
     setEditOpen(true);
   };
 
   const saveEdit = (values: any) => {
     if (!editRow) return;
+    if (!canEdit) return;
     const body = {
       job_id: Number(values.job_id),
       applicant_name: values.applicant_name,
@@ -104,31 +108,36 @@ const Applications = () => {
   };
 
   const deleteApplication = async (id: number | string, label?: string) => {
+    if (!canEdit) return;
     const ok = await confirmDelete(label);
     if (ok) deleteMutation.mutate(id);
   };
 
   const ActionsRenderer = (params: any) => (
     <div className="flex gap-2">
-      <button
-        className="p-1 text-gray-600 hover:text-blue-600"
-        title="Edit"
-        onClick={() => params.context.openEdit(params.data)}
-      >
-        <Edit size={16} />
-      </button>
-      <button
-        className="p-1 text-gray-600 hover:text-red-600"
-        title="Delete"
-        onClick={() =>
-          params.context.deleteApplication(
-            params.data.application_id,
-            params.data.applicant_name
-          )
-        }
-      >
-        <Trash2 size={16} />
-      </button>
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-blue-600"
+          title="Edit"
+          onClick={() => params.context.openEdit(params.data)}
+        >
+          <Edit size={16} />
+        </button>
+      )}
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-red-600"
+          title="Delete"
+          onClick={() =>
+            params.context.deleteApplication(
+              params.data.application_id,
+              params.data.applicant_name
+            )
+          }
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
     </div>
   );
 
@@ -169,7 +178,7 @@ const Applications = () => {
     {
       headerName: "Comments",
       field: "comments",
-      editable: true,
+      editable: canEdit,
       cellRenderer: (params: any) => (
         <ExpandableCell value={params.value} limit={50} title="Comments" />
       ),
@@ -219,23 +228,30 @@ const Applications = () => {
             rowData={rowData}
             columnDefs={columnDefs}
             defaultColDef={{ sortable: true, filter: true, resizable: true }}
-            singleClickEdit={true}
-            onCellValueChanged={(e) => {
-              if (e.colDef.field === "comments") {
-                const row: any = e.data;
-                const newVal = (e.newValue ?? "").toString();
-                if (newVal !== (e.oldValue ?? "")) {
-                  updateMutation.mutate({
-                    id: row.application_id,
-                    body: { comments: newVal },
-                  });
-                }
-              }
-            }}
+            singleClickEdit={canEdit}
+            onCellValueChanged={
+              canEdit
+                ? (e) => {
+                    if (e.colDef.field === "comments") {
+                      const row: any = e.data;
+                      const newVal = (e.newValue ?? "").toString();
+                      if (newVal !== (e.oldValue ?? "")) {
+                        updateMutation.mutate({
+                          id: row.application_id,
+                          body: { comments: newVal },
+                        });
+                      }
+                    }
+                  }
+                : undefined
+            }
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[10, 25, 50, 100]}
-            context={{ openEdit, deleteApplication }}
+            context={{
+              openEdit: canEdit ? openEdit : undefined,
+              deleteApplication: canEdit ? deleteApplication : undefined,
+            }}
             enableCellTextSelection={true}
             ensureDomOrder={true}
             suppressRowClickSelection={true}

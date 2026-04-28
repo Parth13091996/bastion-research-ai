@@ -44,5 +44,7 @@ interface AuthContextType {
   refetchUserAfterAgreement: () => Promise<User>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isEmployee: boolean;
+  isStaff: boolean;
   isLoading: boolean;
 }

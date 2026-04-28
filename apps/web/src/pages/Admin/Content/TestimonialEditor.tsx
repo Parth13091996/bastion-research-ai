@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,14 @@ import { testimonialApi } from "@/api/content";
 import { Testimonial } from "@repo/types";
 import { toast } from "sonner";
 import { ArrowLeft, Save } from "lucide-react";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
+import { AppRoutes } from "@/routes/app-routes";
 
 const TestimonialEditor: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { canEdit, isLoading: accessLoading } =
+    useSectionEditAccess("content_testimonials");
   const [initialData, setInitialData] = useState<Testimonial | null>(null);
   const [isLoading, setIsLoading] = useState(!!id);
 
@@ -91,7 +95,7 @@ const TestimonialEditor: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (accessLoading || isLoading) {
     return (
       <div className="container mx-auto py-6">
         <div className="flex items-center justify-center h-64">
@@ -99,6 +103,10 @@ const TestimonialEditor: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (!canEdit) {
+    return <Navigate to={AppRoutes.adminTestimonialManagement} replace />;
   }
 
   const getTitle = () => {

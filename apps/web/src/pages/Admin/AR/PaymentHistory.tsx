@@ -9,6 +9,7 @@ import { AgGridReact } from "ag-grid-react";
 import { Eye, FileText, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const StatusBadge = ({ value }: { value: string }) => {
   const getStatusColor = (s: string) => {
@@ -35,9 +36,11 @@ const StatusBadge = ({ value }: { value: string }) => {
 const RowActions = ({
   data,
   onDelete,
+  canDelete,
 }: {
   data: any;
   onDelete: (id: string) => void;
+  canDelete: boolean;
 }) => (
   <div className="flex items-center space-x-2">
     <button
@@ -58,20 +61,23 @@ const RowActions = ({
     >
       <FileText size={16} />
     </button>
-    <button
-      className="text-red-600 hover:text-red-800 p-1"
-      onClick={async () => {
-        const ok = await confirmDelete(`transaction ${data.transaction_id}`);
-        if (ok) onDelete(data.transaction_id);
-      }}
-      title="Delete"
-    >
-      <Trash2 size={16} />
-    </button>
+    {canDelete && (
+      <button
+        className="text-red-600 hover:text-red-800 p-1"
+        onClick={async () => {
+          const ok = await confirmDelete(`transaction ${data.transaction_id}`);
+          if (ok) onDelete(data.transaction_id);
+        }}
+        title="Delete"
+      >
+        <Trash2 size={16} />
+      </button>
+    )}
   </div>
 );
 
 const PaymentHistory = () => {
+  const { canEdit } = useSectionEditAccess("ar_payment_history");
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     gateway: "All",
@@ -163,6 +169,7 @@ const PaymentHistory = () => {
         <RowActions
           data={params.data}
           onDelete={(id) => deleteMutation.mutate(id)}
+          canDelete={canEdit}
         />
       ),
     },

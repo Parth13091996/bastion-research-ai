@@ -26,6 +26,7 @@ import { confirmDelete } from "@/utils/confirm";
 import { formatDate } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { UTMSourcesManager } from "./UtmTable";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 function formatIntegrationDate(s?: string | null) {
   const t = s?.trim();
@@ -97,6 +98,7 @@ function downloadCSV(data: WebinarRegistration[]) {
 const WebinarRegistrationsPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("content_webinar_registrations");
   const { data, isLoading, error } = useQuery<WebinarRegistration[]>({
     queryKey: [queryKeys.webinar_registrations],
     queryFn: () => getWebinarRegistrations(),
@@ -120,6 +122,7 @@ const WebinarRegistrationsPage: React.FC = () => {
     },
   });
   const handleDelete = async (item: WebinarRegistration) => {
+    if (!canEdit) return;
     const label = item.email || item.name || `#${item.id}`;
     const ok = await confirmDelete(label);
     if (!ok) return;
@@ -299,16 +302,18 @@ const WebinarRegistrationsPage: React.FC = () => {
                     <TableCell>{item.utm_source || "-"}</TableCell>
 
                     <TableCell className="text-center">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        title="Delete"
-                        className="hover:bg-red-600 hover:text-white"
-                        onClick={() => handleDelete(item)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          title="Delete"
+                          className="hover:bg-red-600 hover:text-white"
+                          onClick={() => handleDelete(item)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -322,4 +327,3 @@ const WebinarRegistrationsPage: React.FC = () => {
 };
 
 export default WebinarRegistrationsPage;
-

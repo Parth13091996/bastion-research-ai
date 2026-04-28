@@ -25,6 +25,7 @@ import scratchPadRoutes from './routes/scratchpad.routes'
 import { startSubscriptionExpiryReminderJob } from './automations/subscriptionReminder.scheduler'
 import webinarRegistrationsRoutes from './routes/webinar-registrations.routes'
 import redFlagsRoutes from './routes/red-flags.routes'
+import staffRoutes from './routes/staff.routes'
 
 dotenv.config()
 
@@ -77,6 +78,7 @@ app.use('/api', settingsRoutes)
 app.use('/api', scratchPadRoutes)
 app.use('/api', webinarRegistrationsRoutes)
 app.use('/api', redFlagsRoutes)
+app.use('/api', staffRoutes)
 
 app.set('trust proxy', 1) // if you use secure cookies or rely on req.protocol
 

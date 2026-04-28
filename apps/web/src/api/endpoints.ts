@@ -171,6 +171,14 @@ export const endpoints = {
       clearStats: (id: string) => `/api/admin/red-flags/stats/${id}`,
     },
   },
+  staff: {
+    sectionEditAccess: "/api/staff/section-edit-access",
+  },
+  admin: {
+    staff: {
+      sectionEditAccess: "/api/admin/staff/section-edit-access",
+    },
+  },
 } as const
 
 export type Endpoints = typeof endpoints

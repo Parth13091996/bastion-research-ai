@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { RefreshCw, Plus, Trash2, Edit, X, Check, Search } from "lucide-react";
 import { RED_FLAG_QUESTIONS, type RedFlagQuestionKey } from "@/config/redFlagQuestions";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 // Remove unused ConfirmationModal and modal-store imports, matching WebinarManagement.tsx approach
 
 const getQuestionLabel = (key: string) =>
@@ -24,6 +25,7 @@ const getQuestionLabel = (key: string) =>
   ]?.name ?? key;
 
 const RedFlagAnalytics: React.FC = () => {
+  const { canEdit } = useSectionEditAccess("content_red_flag_analytics");
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<RedFlagCompanyStats[]>([]);
   const [newCompanyName, setNewCompanyName] = useState("");
@@ -60,6 +62,7 @@ const RedFlagAnalytics: React.FC = () => {
   const handleCreate = async () => {
     const name = newCompanyName.trim();
     if (!name) return;
+    if (!canEdit) return;
 
     // Duplicate check
     const exists = stats.some(s => s.company.name.toLowerCase() === name.toLowerCase());
@@ -83,6 +86,7 @@ const RedFlagAnalytics: React.FC = () => {
   const handleUpdate = async (id: string) => {
     const name = editingName.trim();
     if (!name) return;
+    if (!canEdit) return;
 
     // Duplicate check
     const exists = stats.some(s => s.company.id !== id && s.company.name.toLowerCase() === name.toLowerCase());
@@ -105,11 +109,13 @@ const RedFlagAnalytics: React.FC = () => {
   };
 
   const handleConfirmDelete = (id: string, name: string, mode: "delete-company" | "clear-stats" = "delete-company") => {
+    if (!canEdit) return;
     setConfirmState({ open: true, id, name, mode });
   };
 
   const handleDelete = async () => {
     if (!confirmState.id || !confirmState.name) return;
+    if (!canEdit) return;
     setDeletingId(confirmState.id);
     try {
       if (confirmState.mode === "delete-company") {
@@ -206,14 +212,16 @@ const RedFlagAnalytics: React.FC = () => {
           <div className="flex flex-col space-y-1.5 p-0">
             <CardTitle>Create Company</CardTitle>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowManageCompaniesModal(true)}
-            className="h-8"
-          >
-            <Search className="mr-2 h-4 w-4" /> Show Company List
-          </Button>
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowManageCompaniesModal(true)}
+              className="h-8"
+            >
+              <Search className="mr-2 h-4 w-4" /> Show Company List
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 max-w-xl">
@@ -225,12 +233,13 @@ const RedFlagAnalytics: React.FC = () => {
                   value={newCompanyName}
                   onChange={(e) => setNewCompanyName(e.target.value)}
                   placeholder="e.g. PB Fintech"
+                  disabled={!canEdit}
                 />
               </div>
               <Button
                 onClick={handleCreate}
                 disabled={
-                  !newCompanyName.trim() || loading
+                  !canEdit || !newCompanyName.trim() || loading
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />{" "}
@@ -350,7 +359,7 @@ const RedFlagAnalytics: React.FC = () => {
       </Card>
 
       {/* Manage Companies Modal (Admin version) */}
-      {showManageCompaniesModal && (
+      {canEdit && showManageCompaniesModal && (
         <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black bg-opacity-40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
             {/* Header */}

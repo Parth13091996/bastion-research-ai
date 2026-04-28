@@ -7,6 +7,7 @@ import axiosInstance from "@/api/axios";
 import { queryKeys } from "@/api/queryKeys";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import { confirmDelete } from "@/utils/confirm";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const ActionsRenderer = (params: any) => (
   <div className="flex items-center space-x-2">
@@ -45,6 +46,7 @@ const PlanTypeRenderer = (params: any) => {
 };
 
 const MembershipPlans = () => {
+  const { canEdit } = useSectionEditAccess("ar_manage_plans");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     plan_name: "",
@@ -75,6 +77,7 @@ const MembershipPlans = () => {
 
   const deletePlan = async (id: number | string) => {
     if (!id) return;
+    if (!canEdit) return;
     const ok = await confirmDelete("membership plan");
     if (ok) deleteMutation.mutate(id);
   };
@@ -84,12 +87,14 @@ const MembershipPlans = () => {
 
   const openEdit = (row: any) => {
     if (!row) return;
+    if (!canEdit) return;
     setEditRow(row);
     setEditOpen(true);
   };
 
   const saveEdit = (values: any) => {
     if (!editRow || !values) return;
+    if (!canEdit) return;
     updatePlan(editRow.plan_id, {
       plan_name: values.plan_name ?? "",
       plan_type: values.plan_type ?? "",
@@ -178,13 +183,15 @@ const MembershipPlans = () => {
           <h1 className="text-xl font-semibold text-gray-900 mb-4 sm:mb-0">
             Manage Membership Plans
           </h1>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <Plus size={16} />
-            Add New Plan
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Plus size={16} />
+              Add New Plan
+            </button>
+          )}
         </div>
 
         <div className="p-6 border-b border-gray-200">
@@ -201,7 +208,7 @@ const MembershipPlans = () => {
           </div>
         </div>
 
-        {showForm && (
+        {showForm && canEdit && (
           <div className="p-6 space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <input
@@ -289,7 +296,10 @@ const MembershipPlans = () => {
             paginationPageSize={10}
             paginationPageSizeSelector={[10, 25, 50, 100]}
             onGridReady={onGridReady}
-            context={{ openEdit, deletePlan }}
+            context={{
+              openEdit: canEdit ? openEdit : undefined,
+              deletePlan: canEdit ? deletePlan : undefined,
+            }}
           />
         </div>
         <EditRowModal

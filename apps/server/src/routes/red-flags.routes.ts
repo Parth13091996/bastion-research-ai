@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { protect, admin } from '../middleware/auth.middleware'
+import { protect, requireSectionEdit, staff } from '../middleware/auth.middleware'
 import {
   createRedFlagCompany,
   deleteRedFlagCompany,
@@ -20,26 +20,35 @@ router.post('/red-flags/submissions', submitRedFlagDecision)
 router.get('/red-flags/companies/:companyId/stats', getRedFlagCompanyStats)
 
 // Admin routes
-router.get('/admin/red-flags/companies', protect, admin, listRedFlagCompanies)
-router.post('/admin/red-flags/companies', protect, admin, createRedFlagCompany)
+router.get('/admin/red-flags/companies', protect, staff, listRedFlagCompanies)
+router.post(
+  '/admin/red-flags/companies',
+  protect,
+  staff,
+  requireSectionEdit('content_red_flag_analytics'),
+  createRedFlagCompany
+)
 router.delete(
   '/admin/red-flags/companies/:id',
   protect,
-  admin,
+  staff,
+  requireSectionEdit('content_red_flag_analytics'),
   deleteRedFlagCompany
 )
 router.patch(
   '/admin/red-flags/companies/:id',
   protect,
-  admin,
+  staff,
+  requireSectionEdit('content_red_flag_analytics'),
   updateRedFlagCompany
 )
 router.delete(
   '/admin/red-flags/stats/:id',
   protect,
-  admin,
+  staff,
+  requireSectionEdit('content_red_flag_analytics'),
   clearRedFlagSubmissions
 )
-router.get('/admin/red-flags/stats', protect, admin, getAllRedFlagCompanyStats)
+router.get('/admin/red-flags/stats', protect, staff, getAllRedFlagCompanyStats)
 
 export default router

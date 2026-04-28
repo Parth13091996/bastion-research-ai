@@ -5,6 +5,7 @@ import { Trash2, Mail, Shield, User } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { useModalStore } from "@/stores/modal-store";
 import { toast } from "sonner";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const RoleRenderer = (params: any) => {
   const role = params.value || "employee";
@@ -44,6 +45,7 @@ const EmailRenderer = (params: any) => (
 
 const AllUsers = () => {
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("ar_manage_members");
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: () => getUsers(),
@@ -158,6 +160,7 @@ const AllUsers = () => {
   };
 
   const handleDelete = (row: any) => {
+    if (!canEdit) return;
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -180,6 +183,7 @@ const AllUsers = () => {
   };
 
   const handleBulkDelete = (selected: any[]) => {
+    if (!canEdit) return;
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -232,9 +236,11 @@ const AllUsers = () => {
         data={rowData || []}
         columns={columns}
         loading={isLoading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        bulkActions={bulkActions}
+        onEdit={canEdit ? handleEdit : undefined}
+        onDelete={canEdit ? handleDelete : undefined}
+        bulkActions={
+          canEdit ? bulkActions : bulkActions.filter((a) => a.label === "Send Email")
+        }
         searchPlaceholder="Search users by name, email, or username..."
         title="Users"
         description={`${rowData?.length || 0} total users`}

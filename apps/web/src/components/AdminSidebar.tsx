@@ -22,6 +22,7 @@ import {
 import { useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { AppRoutes } from "../routes/app-routes";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   {
@@ -57,6 +58,11 @@ const navItems = [
         name: "Coupon Management",
         icon: Gift,
         path: AppRoutes.adminCouponManagement,
+      },
+      {
+        name: "Settings",
+        icon: Settings,
+        path: AppRoutes.adminArSettings,
       },
     ],
   },
@@ -133,6 +139,7 @@ const navItems = [
 
 // AdminSidebar now supports tooltips on collapsed mode like the user sidebar
 const AdminSidebar = () => {
+  const { isAdmin } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -144,6 +151,20 @@ const AdminSidebar = () => {
   });
 
   const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const effectiveNavItems = isAdmin
+    ? navItems
+    : navItems
+        .filter((item) => item.name !== "Settings")
+        .map((item) =>
+          item.name === "AR Members" && item.subItems
+            ? {
+                ...item,
+                subItems: item.subItems.filter(
+                  (s) => s.path !== AppRoutes.adminArSettings
+                ),
+              }
+            : item
+        );
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
   const toggleMobileMenu = () => setIsMobileOpen(!isMobileOpen);
@@ -210,7 +231,7 @@ const AdminSidebar = () => {
       </div>
 
       <nav className="flex-1 mt-8 space-y-2 px-2 pb-10 overflow-y-auto">
-        {navItems.map((item) => (
+        {effectiveNavItems.map((item) => (
           <div
             key={item.name}
             onMouseEnter={(e) => handleMouseEnter(item.name, e)}
@@ -296,7 +317,8 @@ const AdminSidebar = () => {
       {/* Fixed popup submenu */}
       {isCollapsed &&
         hoveredItem &&
-        navItems.find((item) => item.name === hoveredItem)?.subItems && (
+        effectiveNavItems.find((item) => item.name === hoveredItem)
+          ?.subItems && (
           <div
             className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 w-56 py-2"
             style={{
@@ -306,7 +328,7 @@ const AdminSidebar = () => {
             onMouseLeave={handleMouseLeave}
             onMouseEnter={() => setHoveredItem(hoveredItem)}
           >
-            {navItems
+            {effectiveNavItems
               .find((item) => item.name === hoveredItem)
               ?.subItems?.map((subItem) => (
                 <NavLink
