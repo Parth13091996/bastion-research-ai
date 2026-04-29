@@ -230,6 +230,7 @@ const RecommendationsTable: React.FC<RecommendationsTableProps> = ({
             key={(recommendation.companyName || recommendation.name) + index}
             recommendation={recommendation}
             onEdit={onEdit}
+            canEdit={canEdit}
           />
         ))}
       </TableBody>
@@ -240,9 +241,14 @@ const RecommendationsTable: React.FC<RecommendationsTableProps> = ({
 type RecommendationRowProps = {
   recommendation: ExtendedRecommendation;
   onEdit: (r: ExtendedRecommendation) => void;
+  canEdit: boolean;
 };
 // Only show exit warning popup+icon if it's exit AND incomplete (based on all fields)
-const RecommendationRow: React.FC<RecommendationRowProps> = ({ recommendation, onEdit }) => {
+const RecommendationRow: React.FC<RecommendationRowProps> = ({
+  recommendation,
+  onEdit,
+  canEdit,
+}) => {
   const isExit = isExitAction(recommendation);
   const exitComplete = isExitDetailsFilled(recommendation);
 
