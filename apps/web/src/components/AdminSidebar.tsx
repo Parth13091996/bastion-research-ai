@@ -19,12 +19,13 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { AppRoutes } from "../routes/app-routes";
 import { useAuth } from "@/contexts/AuthContext";
+import { adminListEmployeesSectionEditAccess, EmployeeEditAccessRow } from "@/api/section-edit-access-api";
 
-const navItems = [
+const DEFAULT_NAV_ITEMS = [
   {
     name: "Dashboard",
     icon: LayoutDashboard,
@@ -121,7 +122,11 @@ const navItems = [
         icon: ClipboardList,
         path: AppRoutes.adminJobOpenings,
       },
-      { name: "Add new Job", icon: UserPlus, path: AppRoutes.adminAddNewJob },
+      {
+        name: "Add new Job",
+        icon: UserPlus,
+        path: AppRoutes.adminAddNewJob,
+      },
       {
         name: "Applications",
         icon: FileText,
@@ -137,9 +142,97 @@ const navItems = [
   { name: "Settings", icon: Settings, path: AppRoutes.adminSettings },
 ];
 
-// AdminSidebar now supports tooltips on collapsed mode like the user sidebar
+// Helper: simple filter for subItems present in editable_sections
+function getUserSectionAccessForSidebar(employee, isAdmin) {
+  // Admin or no employee: show all
+  if (!employee || isAdmin) {
+    return DEFAULT_NAV_ITEMS;
+  }
+
+  // Get set for fast lookup
+  const editableSections = new Set(employee.editable_sections || []);
+
+  // Helper maps subItem name to key for each group
+  const subItemKeyByName = {
+    "Manage Members": "ar_manage_members",
+    "Profile": "ar_profile",
+    "Manage Plans": "ar_manage_plans",
+    "Payment History": "ar_payment_history",
+    "Coupon Management": "ar_coupon_management",
+    "Settings": "ar_settings",
+
+    "News Letter": "content_newsletter",
+    "Recommendations": "content_recommendations",
+    "Podcasts": "content_podcasts",
+    "Webinars": "content_webinars",
+    "Webinar Registrations": "content_webinar_registrations",
+    "Testimonials": "content_testimonials",
+    "Red Flag Analytics": "content_red_flag_analytics",
+    "Scratch Pad": "content_scratch_pad",
+
+    "Job Openings": "jobs_job_openings",
+    "Add new Job": "jobs_add_new_job",
+    "Applications": "jobs_applications",
+  };
+
+  // For each navItem, filter subItems by the employee.editable_sections
+  return DEFAULT_NAV_ITEMS.map((navItem) => {
+    // Only handle those with subItems
+    if (Array.isArray(navItem.subItems)) {
+      const filteredSubItems = navItem.subItems.filter((sub) => {
+        // Fetch the corresponding key for this sub-item
+        const key = subItemKeyByName[sub.name];
+        return !!editableSections.has(key);
+      });
+      // Only include group if there is at least one allowed sub-item
+      if (filteredSubItems.length > 0) {
+        return { ...navItem, subItems: filteredSubItems };
+      }
+      // Omit group if user has no access to any of its sub-items
+      return null;
+    } else {
+      // No subItems: skip unless it's "Dashboard"
+      if (
+        navItem.name === "Dashboard" ||
+        editableSections.has(navItem.name.toLowerCase().replace(/\s/g, "_"))
+      ) {
+        // Always show dashboard for clarity, remove other root links (like Leads/Settings) unless access applies
+        return navItem;
+      }
+      return null;
+    }
+  }).filter(Boolean); // Remove nulls
+}
+
+// AdminSidebar with per-employee section access
 const AdminSidebar = () => {
-  const { isAdmin } = useAuth();
+  const { user } = useAuth();
+  const [employeeRows, setEmployeeRows] = useState<EmployeeEditAccessRow[] | null>()
+
+  useEffect(() => {
+    (async () => {
+      const { employees: _employeeRows } =
+        await adminListEmployeesSectionEditAccess();
+      setEmployeeRows(_employeeRows as EmployeeEditAccessRow[]);
+    })();
+  }, []);
+  
+
+  // Find the row for current user if not admin
+  const currentEmployeeAccess = employeeRows && Array.isArray(employeeRows)
+      ? employeeRows.find((row) => row.id === user?.id)
+      : null;
+
+  const isAdmin = currentEmployeeAccess?.role === "admin";
+
+  // Memoize to minimize unnecessary filtering
+  console.log(currentEmployeeAccess, isAdmin, 'check admin')
+  const navItems = useMemo(
+    () => getUserSectionAccessForSidebar(currentEmployeeAccess, isAdmin),
+    [currentEmployeeAccess, isAdmin]
+  );
+
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -151,20 +244,6 @@ const AdminSidebar = () => {
   });
 
   const sidebarRef = useRef<HTMLDivElement | null>(null);
-  const effectiveNavItems = isAdmin
-    ? navItems
-    : navItems
-        .filter((item) => item.name !== "Settings")
-        .map((item) =>
-          item.name === "AR Members" && item.subItems
-            ? {
-                ...item,
-                subItems: item.subItems.filter(
-                  (s) => s.path !== AppRoutes.adminArSettings
-                ),
-              }
-            : item
-        );
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
   const toggleMobileMenu = () => setIsMobileOpen(!isMobileOpen);
@@ -184,7 +263,6 @@ const AdminSidebar = () => {
   };
 
   // Tooltip component for sidebar
-  // Absolutely positioned relative to parent, shown only if hoveredTooltip === tooltipId
   const SidebarTooltip = ({
     children,
     tooltipId,
@@ -231,7 +309,7 @@ const AdminSidebar = () => {
       </div>
 
       <nav className="flex-1 mt-8 space-y-2 px-2 pb-10 overflow-y-auto">
-        {effectiveNavItems.map((item) => (
+        {navItems.map((item) => (
           <div
             key={item.name}
             onMouseEnter={(e) => handleMouseEnter(item.name, e)}
@@ -248,8 +326,9 @@ const AdminSidebar = () => {
                 >
                   <div className="flex items-center">
                     <item.icon className="h-6 w-6" />
-                    {/* Show label only when not collapsed */}
-                    {!isCollapsed && <span className="ml-4">{item.name}</span>}
+                    {!isCollapsed && (
+                      <span className="ml-4">{item.name}</span>
+                    )}
                   </div>
                   {!isCollapsed && (
                     <ChevronDown
@@ -258,7 +337,6 @@ const AdminSidebar = () => {
                       }`}
                     />
                   )}
-                  {/* Tooltip for collapsed mode */}
                   {isCollapsed && (
                     <SidebarTooltip tooltipId={item.name}>
                       {item.name}
@@ -286,9 +364,7 @@ const AdminSidebar = () => {
                 )}
               </>
             ) : (
-              <div /* This div replaces the misplaced NavLink parent */
-                className={`relative`}
-              >
+              <div className={`relative`}>
                 <NavLink
                   to={item.path!}
                   className={({ isActive }) =>
@@ -301,7 +377,9 @@ const AdminSidebar = () => {
                   tabIndex={0}
                 >
                   <item.icon className="h-6 w-6" />
-                  {!isCollapsed && <span className="ml-4">{item.name}</span>}
+                  {!isCollapsed && (
+                    <span className="ml-4">{item.name}</span>
+                  )}
                 </NavLink>
                 {isCollapsed && (
                   <SidebarTooltip tooltipId={item.name}>
@@ -314,11 +392,10 @@ const AdminSidebar = () => {
         ))}
       </nav>
 
-      {/* Fixed popup submenu */}
+      {/* Fixed popup submenu for collapsed mode */}
       {isCollapsed &&
         hoveredItem &&
-        effectiveNavItems.find((item) => item.name === hoveredItem)
-          ?.subItems && (
+        navItems.find((item) => item.name === hoveredItem)?.subItems && (
           <div
             className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 w-56 py-2"
             style={{
@@ -328,7 +405,7 @@ const AdminSidebar = () => {
             onMouseLeave={handleMouseLeave}
             onMouseEnter={() => setHoveredItem(hoveredItem)}
           >
-            {effectiveNavItems
+            {navItems
               .find((item) => item.name === hoveredItem)
               ?.subItems?.map((subItem) => (
                 <NavLink

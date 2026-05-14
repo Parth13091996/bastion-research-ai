@@ -177,7 +177,7 @@ export const endpoints = {
   admin: {
     staff: {
       sectionEditAccess: "/api/admin/staff/section-edit-access",
-    },
+    }, 
   },
 } as const
 

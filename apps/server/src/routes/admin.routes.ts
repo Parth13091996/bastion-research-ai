@@ -204,8 +204,6 @@ router.put('/settings', protect, admin, updateAdminSettings)
 // Staff section edit-access matrix (admin only)
 router.get(
   '/staff/section-edit-access',
-  protect,
-  admin,
   listEmployeesSectionEditAccess
 )
 router.put(

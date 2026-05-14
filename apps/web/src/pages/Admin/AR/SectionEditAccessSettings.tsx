@@ -20,7 +20,7 @@ type Row = {
 } & Record<AdminEditSectionKey, boolean>;
 
 const SwitchRenderer = (
-  params: ICellRendererParams<Row, boolean, any, any, any>
+  params: any
 ) => {
   const { updateCell, isUpdating } = params.context as {
     updateCell: (args: {
