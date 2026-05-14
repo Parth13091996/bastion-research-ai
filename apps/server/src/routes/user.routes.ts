@@ -31,7 +31,7 @@ const requireUserUpdatePermission = async (
 router.get('/users', protect, staff, getUsers);
 router.get('/users/:id', protect, staff, getUserById);
 router.post('/users', protect, staff, requireSectionEdit('ar_manage_members'), createUser);
-router.put('/users/:id', protect, staff, requireUserUpdatePermission, updateUser);
+router.put('/users/:id', protect, updateUser);
 router.delete('/users/:id', protect, staff, requireSectionEdit('ar_manage_members'), deleteUser);
 
 export default router;
