@@ -6,6 +6,7 @@ import {
   BarChart3,
   CreditCard,
   LayoutDashboard,
+  MessageCircleQuestion,
   Newspaper,
   Play,
   Settings,
@@ -92,6 +93,12 @@ const useConstants = () => {
       name: "Subscribe to Smallcase",
       icon: TrendingUp,
       path: AppRoutes.effortlessInvestor,
+    },
+    {
+      key: "qna",
+      name: "QnA",
+      icon: MessageCircleQuestion,
+      path: AppRoutes.qna,
     },
     {
       key: "my_account",

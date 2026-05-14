@@ -14,6 +14,7 @@ export const ADMIN_SECTION_KEYS = [
   "content_testimonials",
   "content_red_flag_analytics",
   "content_scratch_pad",
+  "content_qna",
   "jobs_job_openings",
   "jobs_add_new_job",
   "jobs_applications",
@@ -75,4 +76,3 @@ export async function upsertEmployeeSectionPermission(params: {
   if (error) throw error;
   return data;
 }
-

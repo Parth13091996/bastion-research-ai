@@ -10,6 +10,7 @@ import {
   Gift,
   LayoutDashboard,
   Mail,
+  MessageCircleQuestion,
   Menu,
   Mic,
   Settings,
@@ -111,6 +112,11 @@ const DEFAULT_NAV_ITEMS = [
         icon: BookOpen,
         path: "/admin/content/scratch-pad",
       },
+      {
+        name: "QnA",
+        icon: MessageCircleQuestion,
+        path: AppRoutes.adminQnaManagement,
+      },
     ],
   },
   {
@@ -169,6 +175,7 @@ function getUserSectionAccessForSidebar(employee, isAdmin) {
     "Testimonials": "content_testimonials",
     "Red Flag Analytics": "content_red_flag_analytics",
     "Scratch Pad": "content_scratch_pad",
+    "QnA": "content_qna",
 
     "Job Openings": "jobs_job_openings",
     "Add new Job": "jobs_add_new_job",

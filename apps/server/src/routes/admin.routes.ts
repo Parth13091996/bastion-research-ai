@@ -47,6 +47,12 @@ import {
   deleteWebinarRegistration,
   listWebinarRegistrations,
 } from '../controllers/webinar-registrations.controller'
+import {
+  answerQnaQuestion,
+  clearQnaAnswer,
+  deleteQnaQuestion,
+  listQnaQuestions,
+} from '../controllers/qna.controller'
 
 const router = Router()
 
@@ -185,6 +191,30 @@ router.delete(
   staff,
   requireSectionEdit('content_testimonials'),
   deleteTestimonial
+)
+
+// QnA management
+router.get('/content/qna', protect, staff, listQnaQuestions)
+router.put(
+  '/content/qna/:id/answer',
+  protect,
+  staff,
+  requireSectionEdit('content_qna'),
+  answerQnaQuestion
+)
+router.delete(
+  '/content/qna/:id/answer',
+  protect,
+  staff,
+  requireSectionEdit('content_qna'),
+  clearQnaAnswer
+)
+router.delete(
+  '/content/qna/:id',
+  protect,
+  staff,
+  requireSectionEdit('content_qna'),
+  deleteQnaQuestion
 )
 
 // Webinar registrations (admin only)

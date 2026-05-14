@@ -26,6 +26,7 @@ import { startSubscriptionExpiryReminderJob } from './automations/subscriptionRe
 import webinarRegistrationsRoutes from './routes/webinar-registrations.routes'
 import redFlagsRoutes from './routes/red-flags.routes'
 import staffRoutes from './routes/staff.routes'
+import qnaRoutes from './routes/qna.routes'
 
 dotenv.config()
 
@@ -79,6 +80,7 @@ app.use('/api', scratchPadRoutes)
 app.use('/api', webinarRegistrationsRoutes)
 app.use('/api', redFlagsRoutes)
 app.use('/api', staffRoutes)
+app.use('/api', qnaRoutes)
 
 app.set('trust proxy', 1) // if you use secure cookies or rely on req.protocol
 

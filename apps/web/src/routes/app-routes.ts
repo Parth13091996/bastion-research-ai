@@ -67,6 +67,7 @@ export const AppRoutes = {
   adminRecommendationManagement: "/admin/content/recommendations",
   adminWebinarRegistrations: "/admin/content/webinar-registrations",
   adminRedFlagAnalytics: "/admin/content/red-flag-analytics",
+  adminQnaManagement: "/admin/content/qna",
   userRoute: "/user",
   premiumWebinars: "/user/app/premium-webinars",
   singlePremiumWebinar: "/user/app/premium-webinars/:id",
@@ -81,6 +82,7 @@ export const AppRoutes = {
   instaLanding2: "/newsletter",
   redFlagDecision: "/red-flag-decision",
   effortlessInvestor: "/user/app/effortless-investor",
+  qna: "/user/app/qna",
 } as const;
 
 export const AuthRoutes = [

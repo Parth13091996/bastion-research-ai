@@ -9,6 +9,7 @@ export const queryKeys = {
   research: "research",
   leads: "leads",
   webinar_registrations: "webinar-registrations",
+  qna: "qna",
   staff_section_edit_access: "staff-section-edit-access",
   admin_staff_section_edit_access: "admin-staff-section-edit-access",
 };

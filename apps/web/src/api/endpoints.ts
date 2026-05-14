@@ -33,6 +33,14 @@ export const endpoints = {
       byId: (id: string | number) => `/api/admin/webinar-registrations/${id}`,
     },
   },
+  qna: {
+    base: '/api/qna',
+    admin: {
+      base: '/api/admin/content/qna',
+      byId: (id: string | number) => `/api/admin/content/qna/${id}`,
+      answer: (id: string | number) => `/api/admin/content/qna/${id}/answer`,
+    },
+  },
   membershipPlans: {
     base: '/api/membership-plans',
     byId: (id: string | number) => `/api/membership-plans/${id}`,

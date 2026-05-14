@@ -64,6 +64,7 @@ const PdfViewerPage = lazy(() => import("@/pages/UserAdmin/app/PdfViewerPage"));
 const EffortlessInvestor = lazy(
   () => import("@/pages/UserAdmin/app/EffortlessInvestor")
 );
+const QnaSection = lazy(() => import("@/pages/UserAdmin/app/QnaSection"));
 
 
 // Admin Pages
@@ -126,6 +127,9 @@ const ScratchPadManagement = lazy(
 );
 const ScratchPadEditor = lazy(
   () => import("../pages/Admin/Content/ScratchPadEditor")
+);
+const QnaManagement = lazy(
+  () => import("../pages/Admin/Content/QnaManagement")
 );
 
 // Public Content Pages
@@ -305,6 +309,10 @@ export const routes: RouteObject[] = [
         element: <RedFlagAnalytics />,
       },
       {
+        path: AppRoutes.adminQnaManagement,
+        element: <QnaManagement />,
+      },
+      {
         path: AppRoutes.adminPodcastManagement,
         element: <PodcastManagement />,
       },
@@ -396,6 +404,10 @@ export const routes: RouteObject[] = [
           {
             path: "app/effortless-investor",
             element: <EffortlessInvestor />,
+          },
+          {
+            path: "app/qna",
+            element: <QnaSection />,
           },
           {
             path: "app/account/edit-profile",

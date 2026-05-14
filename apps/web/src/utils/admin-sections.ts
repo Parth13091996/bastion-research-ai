@@ -12,6 +12,7 @@ export const ADMIN_EDIT_SECTIONS = [
   { key: "content_testimonials", label: "Testimonials" },
   { key: "content_red_flag_analytics", label: "Red Flag Analytics" },
   { key: "content_scratch_pad", label: "Scratch Pad" },
+  { key: "content_qna", label: "QnA" },
   { key: "jobs_job_openings", label: "Job Openings" },
   { key: "jobs_add_new_job", label: "Add New Job" },
   { key: "jobs_applications", label: "Applications" },
@@ -19,4 +20,3 @@ export const ADMIN_EDIT_SECTIONS = [
 ] as const;
 
 export type AdminEditSectionKey = (typeof ADMIN_EDIT_SECTIONS)[number]["key"];
-
