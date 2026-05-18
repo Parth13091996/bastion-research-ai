@@ -233,7 +233,6 @@ const AdminSidebar = () => {
   const isAdmin = currentEmployeeAccess?.role === "admin";
 
   // Memoize to minimize unnecessary filtering
-  console.log(currentEmployeeAccess, isAdmin, 'check admin')
   const navItems = useMemo(
     () => getUserSectionAccessForSidebar(currentEmployeeAccess, isAdmin),
     [currentEmployeeAccess, isAdmin]

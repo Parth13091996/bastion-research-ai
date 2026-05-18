@@ -95,6 +95,7 @@ const Subscription = () => {
     return plan === currentPlanCode;
   };
 
+
   const renewalEligible = useMemo(() => {
     const expiresAt =
       subscription?.subscription?.expireNextRenewal ||
@@ -108,9 +109,7 @@ const Subscription = () => {
     const today = new Date();
     const msLeft = exp.getTime() - today.getTime();
     const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-    // Allow renewal from 15 days before expiry up to 30 days after expiry.
-    // Discounted pricing is controlled separately.
-    return daysLeft <= 15 && daysLeft >= -30;
+    return daysLeft <= 30;
   }, [
     subscription?.subscription?.expireNextRenewal,
     user?.subscription_end_date,

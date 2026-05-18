@@ -21,6 +21,7 @@ function mapQuestion(row: any) {
   return {
     id: row.id,
     question: row.question,
+    category: row.category ?? null,
     status,
     answer: row.answer ?? "",
     author: row.author_name ?? "User",
@@ -60,6 +61,7 @@ export async function listQnaQuestions(req: Request, res: Response) {
   try {
     const status = String(req.query.status || "").toLowerCase();
     const search = String(req.query.search || "").trim();
+    const category = String(req.query.category || "").trim();
 
     let query = supabase
       .from(QNA_TABLE)
@@ -78,6 +80,10 @@ export async function listQnaQuestions(req: Request, res: Response) {
       query = query.ilike("question", `%${search}%`);
     }
 
+    if (category) {
+      query = query.eq("category", category);
+    }
+
     const { data, error } = await query;
 
     if (error) return res.status(500).json({ error: error.message });
@@ -90,7 +96,7 @@ export async function listQnaQuestions(req: Request, res: Response) {
 
 export async function createQnaQuestion(req: AuthRequest, res: Response) {
   try {
-    const { question } = req.body as { question?: string };
+    const { question, category } = req.body as { question?: string; category?: string };
     const validationError = validateQuestion(question);
 
     if (validationError) return res.status(400).json({ error: validationError });
@@ -99,6 +105,7 @@ export async function createQnaQuestion(req: AuthRequest, res: Response) {
       .from(QNA_TABLE)
       .insert({
         question: question!.trim(),
+        category: category || null,
         author_name: getAuthorName(req.user),
         user_id: req.user?.id ?? null,
       })

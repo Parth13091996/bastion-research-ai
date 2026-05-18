@@ -58,6 +58,7 @@ const PlansGrid = ({
             plan.plan_code === "core_annual" ||
             normalizedName.includes("annual");
           const featureKey = getFeatureKey(plan);
+
           const isCurrentPlan = planMatchesCurrent(featureKey);
           const canRenewThisPlan = isCurrentPlan && renewalEligible;
           const isCoreAnnualPlan = (plan.plan_code || featureKey) === "core_annual";

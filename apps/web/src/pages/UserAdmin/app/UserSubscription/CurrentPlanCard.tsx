@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatINR } from "@/utils";
+import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 
 const CurrentPlanCard = ({
@@ -30,6 +31,8 @@ const CurrentPlanCard = ({
     expireNextRenewal &&
     new Date(expireNextRenewal).getTime() < new Date().setHours(0, 0, 0, 0);
 
+  const formatDate = (dateString: string) =>
+    format(new Date(dateString), "MMM dd, yyyy");
   return (
     <Card className="mb-6 sm:mb-8">
       <CardHeader className="pb-3 sm:pb-6">
@@ -98,9 +101,9 @@ const CurrentPlanCard = ({
                   <p>Amount: {formatINR(subscription.subscription.amount)}</p>
                   <p>
                     Started:{" "}
-                    {new Date(
+                    {formatDate(
                       subscription.subscription.startDate
-                    ).toLocaleDateString()}
+                    )}
                   </p>
                   {subscription.subscription.expireNextRenewal && (
                     <p>
@@ -108,9 +111,9 @@ const CurrentPlanCard = ({
                       <span
                         className={isExpired ? "text-red-600 font-semibold" : ""}
                       >
-                        {new Date(
+                        {formatDate(
                           subscription.subscription.expireNextRenewal
-                        ).toLocaleDateString()}
+                        )}
                         {isExpired && " (Expired)"}
                       </span>
                     </p>

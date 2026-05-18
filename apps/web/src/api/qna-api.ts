@@ -6,6 +6,7 @@ export type QnaStatus = "pending" | "answered";
 export type QnaQuestion = {
   id: string;
   question: string;
+  category?: string | null;
   status: QnaStatus;
   answer: string;
   author: string;
@@ -19,6 +20,7 @@ export type QnaQuestion = {
 export async function getQnaQuestions(params?: {
   status?: "all" | QnaStatus;
   search?: string;
+  category?: string;
 }) {
   const { data } = await axiosInstance.get<QnaQuestion[]>(endpoints.qna.base, {
     params,
@@ -26,10 +28,8 @@ export async function getQnaQuestions(params?: {
   return data;
 }
 
-export async function submitQnaQuestion(question: string) {
-  const { data } = await axiosInstance.post<QnaQuestion>(endpoints.qna.base, {
-    question,
-  });
+export async function submitQnaQuestion(payload: { question: string; category?: string }) {
+  const { data } = await axiosInstance.post<QnaQuestion>(endpoints.qna.base, payload);
   return data;
 }
 

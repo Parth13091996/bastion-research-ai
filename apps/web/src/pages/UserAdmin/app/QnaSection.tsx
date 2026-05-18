@@ -8,6 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MessageCircleQuestion, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import useSheetStocks from "@/hooks/use-sheets-stocks";
 
 function formatDate(value?: string | null) {
   if (!value) return "-";
@@ -39,10 +46,12 @@ function AskQuestionModal({
   isSubmitting,
 }: {
   onClose: () => void;
-  onSubmit: (question: string) => void;
+  onSubmit: (payload: { question: string; category?: string }) => void;
   isSubmitting: boolean;
 }) {
   const [text, setText] = useState("");
+  const [category, setCategory] = useState("");
+  const { stocks } = useSheetStocks();
 
   return (
     <div
@@ -68,6 +77,29 @@ function AskQuestionModal({
             <X className="h-5 w-5" />
           </button>
         </div>
+        <div className="mb-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full rounded-lg border border-gray-200 p-2 text-left text-sm">
+                {category || "Select company"}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-full">
+              {stocks?.map((stock: any) => {
+                const name = stock?.name || stock?.company || stock?.symbol;
+                return (
+                  <DropdownMenuItem
+                    key={name}
+                    onClick={() => setCategory(name)}
+                  >
+                    {name}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <textarea
           autoFocus
           rows={6}
@@ -81,7 +113,7 @@ function AskQuestionModal({
             Cancel
           </Button>
           <Button
-            onClick={() => onSubmit(text.trim())}
+            onClick={() => onSubmit({ question: text.trim(), category })}
             disabled={!text.trim() || isSubmitting}
           >
             Submit
@@ -97,6 +129,7 @@ export default function QnaSection() {
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const { data = [], isLoading } = useQuery({
     queryKey: [queryKeys.qna, "user"],
@@ -115,12 +148,20 @@ export default function QnaSection() {
     },
   });
 
+  // Add category to the client-side filter
   const filtered = useMemo(() => {
     const lower = search.trim().toLowerCase();
-    return data.filter((q) =>
-      [q.question, q.answer, q.author].join(" ").toLowerCase().includes(lower)
-    );
-  }, [data, search]);
+    return data.filter((q) => {
+      const matchesSearch = [q.question, q.answer, q.author]
+        .join(" ")
+        .toLowerCase()
+        .includes(lower);
+      const matchesCategory = !selectedCategory || q.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [data, search, selectedCategory]);
+
+  const categories = Array.from(new Set(data.map((q) => q.category).filter(Boolean)));
 
   const answeredCount = data.filter((q) => q.status === "answered").length;
 
@@ -152,66 +193,105 @@ export default function QnaSection() {
         />
       </div>
 
-      {isLoading ? (
-        <Card>
-          <CardContent className="py-14 text-center text-sm text-muted-foreground">
-            Loading questions...
-          </CardContent>
-        </Card>
-      ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="py-14 text-center text-sm text-muted-foreground">
-            No questions match your search.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((q) => {
-            const expanded = expandedId === q.id;
-            return (
-              <button
-                key={q.id}
-                type="button"
-                onClick={() => setExpandedId(expanded ? null : q.id)}
-                className="w-full rounded-xl border bg-white p-5 text-left shadow-sm transition hover:border-gray-300"
-              >
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-base font-medium leading-7 text-gray-900">
-                      {q.question}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <span>{q.author}</span>
-                      <span>•</span>
-                      <span>{formatDate(q.created_at)}</span>
-                    </div>
-                  </div>
-                  <StatusBadge status={q.status} />
-                </div>
+      <div className="flex gap-6">
+        <div className="w-56 shrink-0">
+          <div className="rounded-xl border bg-white p-2 shadow-sm">
+            <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Categories
+            </p>
 
-                {expanded && (
-                  <div className="mt-4 border-t pt-4">
-                    {q.status === "answered" ? (
-                      <p className="whitespace-pre-wrap text-sm leading-7 text-gray-700">
-                        {q.answer}
-                      </p>
-                    ) : (
-                      <p className="text-sm font-medium text-amber-700">
-                        Awaiting a response...
-                      </p>
-                    )}
-                  </div>
-                )}
+            <div className="space-y-1">
+              <button
+                className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${selectedCategory === null
+                  ? "bg-gray-100 font-medium text-gray-900"
+                  : "text-muted-foreground hover:bg-gray-50"
+                  }`}
+                onClick={() => setSelectedCategory(null)}
+              >
+                All
               </button>
-            );
-          })}
+              {categories.map((cat) => (
+                <button
+                  key={cat as string}
+                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${selectedCategory === cat
+                    ? "bg-gray-100 font-medium text-gray-900"
+                    : "text-muted-foreground hover:bg-gray-50"
+                    }`}
+                  onClick={() => setSelectedCategory(cat as string)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      )}
+
+        <div className="flex-1">
+          {isLoading ? (
+            <Card>
+              <CardContent className="py-14 text-center text-sm text-muted-foreground">
+                Loading questions...
+              </CardContent>
+            </Card>
+          ) : filtered.length === 0 ? (
+            <Card>
+              <CardContent className="py-14 text-center text-sm text-muted-foreground">
+                No questions match your search.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              <p className="mt-1 text-sm text-muted-foreground">
+                {filtered.length} questions · {filtered.filter((q) => q.status === "answered").length} answered
+              </p>
+              {filtered.map((q) => {
+                const expanded = expandedId === q.id;
+                return (
+                  <button
+                    key={q.id}
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : q.id)}
+                    className="w-full rounded-xl border bg-white p-5 text-left shadow-sm transition hover:border-gray-300"
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-medium leading-7 text-gray-900">
+                          {q.question}
+                        </p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span>{q.author}</span>
+                          <span>•</span>
+                          <span>{formatDate(q.created_at)}</span>
+                        </div>
+                      </div>
+                      <StatusBadge status={q.status} />
+                    </div>
+
+                    {expanded && (
+                      <div className="mt-4 border-t pt-4">
+                        {q.status === "answered" ? (
+                          <p className="whitespace-pre-wrap text-sm leading-7 text-gray-700">
+                            {q.answer}
+                          </p>
+                        ) : (
+                          <p className="text-sm font-medium text-amber-700">
+                            Awaiting a response...
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
 
       {showModal && (
         <AskQuestionModal
           onClose={() => setShowModal(false)}
-          onSubmit={(question) => submitMutation.mutate(question)}
+          onSubmit={(payload) => submitMutation.mutate(payload)}
           isSubmitting={submitMutation.isPending}
         />
       )}
