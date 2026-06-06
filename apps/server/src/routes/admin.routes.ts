@@ -56,10 +56,60 @@ import {
 
 const router = Router()
 
+// import { supabase } from '../supabase'
+// import { sendReminderForUser } from '../controllers/subscription-whatsapp.controller'
+
 // Example protected admin route
 router.get('/dashboard', protect, admin, (req, res) => {
   res.status(200).json({ message: 'Welcome to the admin dashboard' })
 })
+
+/* Test endpoint commented out for production
+router.post(
+  '/test-subscription-reminder',
+  protect,
+  admin,
+  async (req, res) => {
+    try {
+      const email = String(req.body?.email || '').trim()
+      const reminderType = String(req.body?.reminderType || '').trim()
+      const campaignName = String(req.body?.campaignName || '').trim()
+
+      if (!email || !reminderType || !campaignName) {
+        return res.status(400).json({ message: 'email, reminderType, and campaignName are required' })
+      }
+
+      const { data: user, error } = await supabase
+        .from('users')
+        .select(`
+          id,
+          email,
+          first_name,
+          last_name,
+          username,
+          phone,
+          subscription_end_date,
+          status,
+          membership_plans (
+            plan_name
+          )
+        `)
+        .eq('email', email)
+        .maybeSingle()
+
+      if (error || !user) {
+        return res.status(404).json({ message: `User not found for email ${email}` })
+      }
+
+      const result = await sendReminderForUser(user as any, reminderType as any, campaignName)
+      return res.status(200).json({ success: true, result })
+    } catch (err: any) {
+      console.error('Test subscription reminder failed:', err)
+      return res.status(500).json({ message: err?.message || 'Failed to send test reminder' })
+    }
+  }
+)
+*/
 
 // Analytics summary for admin dashboard
 router.get('/analytics/summary', protect, staff, getAnalyticsSummary)

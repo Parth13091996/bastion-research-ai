@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { useSubscriptionWhatsappReminder } from "@/hooks/use-subscription-whatsapp-reminder";
+// import { useSubscriptionWhatsappReminder } from "@/hooks/use-subscription-whatsapp-reminder";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -39,7 +39,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(sessionLoading);
   }, [data, sessionLoading]);
 
-  useSubscriptionWhatsappReminder(data?.user ?? null);
+  // Subscription reminders are automated on the backend scheduler; disabled client-side triggering
+  // useSubscriptionWhatsappReminder(data?.user ?? null);
 
   const refetchUser = async () => {
     await refetch();

@@ -10,6 +10,10 @@ export type AiSensyCampaignPayload = {
   templateParams?: string[];
   tags?: string[];
   attributes?: Record<string, string>;
+  media?: {
+    url: string;
+    filename: string;
+  };
 };
 
 function normalizeDestinationPhone(input: string) {
@@ -45,10 +49,12 @@ export async function sendAiSensyCampaign(payload: AiSensyCampaignPayload) {
         destination, 
         userName: "Bastion Research",
         source: payload.source,
-        templateParams: [...payload.templateParams!, "N/A", "N/A"],
+        templateParams: payload.templateParams && payload.templateParams.length > 0
+          ? [...payload.templateParams, "N/A", "N/A"]
+          : [],
         tags: payload.tags,
         attributes: payload.attributes,
-        media: {},
+        media: payload.media || {},
         buttons: [],
         carouselCards: [],
         location: {},

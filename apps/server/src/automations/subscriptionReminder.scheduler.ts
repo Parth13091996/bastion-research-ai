@@ -1,9 +1,13 @@
 import { supabase } from '../supabase'
 import {
   sendMonthlySubscriptionExpirySummaryEmail,
-  sendSubscriptionExpiryReminderEmail,
   sendDropOffSummaryEmail,
 } from '../services/emailNotification.service'
+import {
+  sendReminderForUser,
+  reminderConfigByType,
+  SubscriptionReminderType,
+} from '../controllers/subscription-whatsapp.controller'
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 const MONTHLY_SUMMARY_RECIPIENT =
@@ -17,63 +21,65 @@ type ExpiringUserRow = {
   email?: string | null
   first_name?: string | null
   last_name?: string | null
+  username?: string | null
+  phone?: string | null
   subscription_end_date?: string | null
   membership_plans?: {
     plan_name?: string | null
   } | null
 }
 
-const getTargetDateString = () => {
-  const target = new Date()
-  target.setDate(target.getDate() + 7)
-  return target.toISOString().split('T')[0]
-}
-
 export const runSubscriptionExpiryReminder = async () => {
-  const targetDate = getTargetDateString()
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select(
+    const today = new Date()
+
+    for (const [key, config] of Object.entries(reminderConfigByType)) {
+      const reminderType = key as SubscriptionReminderType
+      const target = new Date()
+      target.setDate(today.getDate() + config.dayDiff)
+      const targetDateStr = target.toISOString().split('T')[0]
+
+      const { data, error } = await supabase
+        .from('users')
+        .select(
+          `
+          id,
+          email,
+          first_name,
+          last_name,
+          username,
+          phone,
+          subscription_end_date,
+          membership_plans (
+            plan_name
+          )
         `
-        id,
-        email,
-        first_name,
-        subscription_end_date,
-        membership_plans (
-          plan_name
         )
-      `
-      )
-      .eq('subscription_end_date', targetDate)
-      .eq('status', 'active')
+        .eq('subscription_end_date', targetDateStr)
+        .eq('status', 'active')
 
-    if (error) {
-      console.error('Failed to fetch expiring subscriptions', error)
-      return
-    }
-
-    const rows = (data ?? []) as ExpiringUserRow[]
-    if (rows.length === 0) {
-      return
-    }
-
-    for (const user of rows) {
-      if (!user?.email || !user?.subscription_end_date) continue
-      const firstNameValue = user.first_name
-      const firstName =
-        typeof firstNameValue === 'string' ? firstNameValue : undefined
-      const planNameValue = user.membership_plans?.plan_name
-      let planName: string | undefined = undefined
-      if (typeof planNameValue === 'string') {
-        planName = planNameValue
+      if (error) {
+        console.error(`Failed to fetch expiring subscriptions for ${reminderType}`, error)
+        continue
       }
-      await sendSubscriptionExpiryReminderEmail({
-        to: user.email,
-        firstName,
-        planName,
-        subscriptionEndDate: user.subscription_end_date,
-      })
+
+      const rows = (data ?? []) as ExpiringUserRow[]
+      if (rows.length === 0) {
+        continue
+      }
+
+      console.log(`[subscription-reminder] Found ${rows.length} users for reminderType: ${reminderType} (date: ${targetDateStr})`)
+
+      for (const user of rows) {
+        try {
+          await sendReminderForUser(user as any, reminderType, config.campaignName)
+          console.log(`[subscription-reminder] Sent reminder (${reminderType}) to user: ${user.id}`)
+          // Wait 2 seconds between emails to prevent rate limiting (e.g. Mailtrap limits)
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+        } catch (err: any) {
+          console.error(`[subscription-reminder] Failed to send reminder (${reminderType}) to user ${user.id}:`, err?.message || err)
+        }
+      }
     }
   } catch (error) {
     console.error('Subscription reminder job failed', error)

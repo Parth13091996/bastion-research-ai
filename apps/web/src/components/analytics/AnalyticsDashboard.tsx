@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 import { AnalyticsCard } from "./AnalyticsCard";
 import { AnalyticsCharts } from "./AnalyticsCharts";
+// import axios from "@/api/axios";
 
 interface PageViewRow {
   path: string;
@@ -28,6 +29,32 @@ interface PageViewRow {
 
 export function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState(7);
+  /* Test panel state and handler commented out for production
+  const [testEmail, setTestEmail] = useState("nishumurmu017@gmail.com");
+  const [testStatus, setTestStatus] = useState<string | null>(null);
+  const [testingReminder, setTestingReminder] = useState(false);
+
+  const handleTestReminder = async (reminderType: string, campaignName: string) => {
+    setTestingReminder(true);
+    setTestStatus(`Sending ${reminderType}...`);
+    try {
+      const response = await axios.post("/api/admin/test-subscription-reminder", {
+        email: testEmail,
+        reminderType,
+        campaignName,
+      });
+      if (response.data?.success) {
+        setTestStatus(`Success! Reminder (${reminderType}) sent to ${testEmail}.`);
+      } else {
+        setTestStatus(`Failed to send reminder.`);
+      }
+    } catch (err: any) {
+      setTestStatus(`Error: ${err?.response?.data?.message || err?.message || "Something went wrong"}`);
+    } finally {
+      setTestingReminder(false);
+    }
+  };
+  */
 
   const {
     data: summary,
@@ -353,6 +380,69 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
       ) : null}
+
+      {/* Test Reminders Section commented out for production
+      <Card className="mt-6 border-dashed border-primary/50">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Subscription Reminder Test Panel</CardTitle>
+          <p className="text-sm text-red-500 font-semibold">
+            Note: Remember to comment or hide this test panel before committing to production.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Trigger a manual renewal notification (Email & WhatsApp) for a specific user to test template deliveries instantly.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col space-y-2 max-w-md">
+            <label className="text-sm font-medium">User Email to Test:</label>
+            <input
+              type="email"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Enter user email to test"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            <Button
+              variant="outline"
+              disabled={testingReminder}
+              onClick={() => handleTestReminder("one_week_before", "Bastion CORE Renewal Reminder #1")}
+            >
+              1 Week Before (#1)
+            </Button>
+            <Button
+              variant="outline"
+              disabled={testingReminder}
+              onClick={() => handleTestReminder("expiry_day", "Bastion CORE Renewal Reminder #2")}
+            >
+              Expiry Day (#2)
+            </Button>
+            <Button
+              variant="outline"
+              disabled={testingReminder}
+              onClick={() => handleTestReminder("one_week_after", "Bastion CORE Renewal Reminder #3")}
+            >
+              1 Week After (#3)
+            </Button>
+            <Button
+              variant="outline"
+              disabled={testingReminder}
+              onClick={() => handleTestReminder("fifteen_days_after", "Bastion CORE Renewal Reminder #4")}
+            >
+              15 Days After (#4)
+            </Button>
+          </div>
+
+          {testStatus && (
+            <div className={`p-3 rounded-md text-sm ${testStatus.startsWith("Success") ? "bg-green-500/10 text-green-500 border border-green-500/20" : testStatus.startsWith("Error") ? "bg-destructive/10 text-destructive border border-destructive/20" : "bg-muted text-muted-foreground"}`}>
+              {testStatus}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      */}
     </div>
   );
 }
