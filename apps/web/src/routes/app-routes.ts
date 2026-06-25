@@ -78,6 +78,7 @@ export const AppRoutes = {
   researchView: "/research/:id",
   scratchPadView: "/scratch-pad/:id",
   ipoLanding: "/ipo-landing",
+  reitLanding: "/reit",
   instaLanding: "/insta",
   instaLanding2: "/newsletter",
   redFlagDecision: "/red-flag-decision",
