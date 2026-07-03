@@ -83,7 +83,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
       // preserve that value.
       updateFormData(
         "role",
-        formData?.role === "drop_off" ? "drop_off" : "employee"
+        formData?.role === "drop_off" ? "drop_off" : "free_subscriber"
       );
       onNext();
     } catch (error) {

@@ -42,6 +42,12 @@ const DesktopNav = ({ setOpenSubmenu }) => {
             Newsletter Archive
           </Link>
           <Link
+            to={AppRoutes.sectorDeepDives}
+            className="block px-4 py-2 text-gray-700 hover:text-red-600"
+          >
+            Sector Deep Dives
+          </Link>
+          <Link
             to={AppRoutes.podcasts}
             className="block px-4 py-2 text-gray-700 hover:text-red-600"
           >

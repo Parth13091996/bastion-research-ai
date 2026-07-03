@@ -150,6 +150,9 @@ const PublicPodcastsPage = lazy(
 const NewsletterArchive = lazy(
   () => import("../pages/NewsLetter/NewsletterListPage")
 );
+const SectorDeepDives = lazy(
+  () => import("../pages/SectorDeepDives/SectorDeepDivesPage")
+);
 const Webinar = lazy(() => import("../pages/Webinars/WebinarsListPage"));
 const PortfolioRedFlagsWebinar = lazy(
   () => import("../pages/Webinars/PortfolioRedFlagsWebinar")
@@ -195,6 +198,7 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.spotlights, element: <SpotLights /> },
       { path: AppRoutes.podcasts, element: <PublicPodcastsPage /> },
       { path: AppRoutes.newsletter, element: <NewsletterArchive /> },
+      { path: AppRoutes.sectorDeepDives, element: <SectorDeepDives /> },
       { path: AppRoutes.webinar, element: <Webinar /> },
       { path: AppRoutes.smartFrameworks, element: <SmartFrameworks /> },
       { path: AppRoutes.newsletterView, element: <NewsletterView /> },
