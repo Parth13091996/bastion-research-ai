@@ -129,6 +129,12 @@ const Drawer = ({
                   >
                     Newsletter Archive
                   </Link>
+                  <Link
+                    to="/sector-deep-dives"
+                    onClick={() => setIsNavOpen(false)}
+                  >
+                    Sector Deep Dives
+                  </Link>
                   <Link to="/podcasts" onClick={() => setIsNavOpen(false)}>
                     Podcast (MADE IN INDIA)
                   </Link>

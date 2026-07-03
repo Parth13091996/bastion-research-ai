@@ -20,6 +20,7 @@ export const AppRoutes = {
   about: "/about",
   test: "/test",
   newsletter: "/newsletters-archive",
+  sectorDeepDives: "/sector-deep-dives",
   scratch_pad_newsletter: "/user/app/scratch-pad",
   webinar: "/webinars",
   webinarRedFlagsLanding: "/webinars/portfolio-red-flags",
