@@ -100,13 +100,26 @@ const AllUsers = () => {
     {
       headerName: "Premium",
       field: "is_premium",
+      valueGetter: (params) => {
+        const role = params.data?.role;
+        const subEndDate = params.data?.subscription_end_date;
+        if (role === "free_subscriber" || !subEndDate) return false;
+
+        const endDate = new Date(subEndDate);
+        if (isNaN(endDate.getTime())) return false;
+
+        const today = new Date();
+        const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        return end > todayDate;
+      },
       cellRenderer: (params: any) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            params.value
+          className={`px-2 py-1 rounded-full text-xs font-medium ${params.value
               ? "bg-green-100 text-green-800"
               : "bg-gray-100 text-gray-800"
-          }`}
+            }`}
         >
           {params.value ? "Premium" : "Free"}
         </span>
@@ -118,11 +131,10 @@ const AllUsers = () => {
       field: "cameFromOAuth",
       cellRenderer: (params: any) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            params.value
+          className={`px-2 py-1 rounded-full text-xs font-medium ${params.value
               ? "bg-blue-100 text-blue-800"
               : "bg-gray-100 text-gray-800"
-          }`}
+            }`}
         >
           {params.value ? "OAuth" : "Email"}
         </span>
@@ -170,7 +182,7 @@ const AllUsers = () => {
       confirmText: "Delete",
       cancelText: "Cancel",
       tone: "danger",
-          onConfirm: () => {
+      onConfirm: () => {
         deleteMutation.mutate(row.id);
         setModalOpen("confirm", false);
         setModalProps("confirm", undefined);

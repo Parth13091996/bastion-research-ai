@@ -18,7 +18,7 @@ const formatDateForEmail = (value?: string | null) => {
 
 const getSenderEmail = () => getResolvedSmtpFromAddress();
 
-const getAppUrl = () => (config.app_url || "https://app")?.replace(/\/$/, "");
+const getAppUrl = () => (config.app_url || "https://bastionresearch.in")?.replace(/\/$/, "");
 
 interface WelcomeEmailPayload {
   to: string;
