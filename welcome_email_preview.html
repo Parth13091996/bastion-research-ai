@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome Email Preview - Bastion Research</title>
+  <!-- Google Fonts for modern typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #151c2c;
+      --border-color: #243049;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #3b82f6;
+      --input-bg: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    header {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto 24px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border: 1px solid var(--border-color);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .badge {
+      background-color: rgba(37, 99, 235, 0.15);
+      color: #60a5fa;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 24px;
+      flex-grow: 1;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Settings Panel */
+    .settings-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: fit-content;
+    }
+
+    .settings-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      margin-bottom: 4px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Previewer Frame */
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .email-meta-header {
+      background-color: #101726;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      font-size: 14px;
+      align-items: baseline;
+    }
+
+    .meta-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .meta-value {
+      color: var(--text-main);
+      font-family: monospace;
+    }
+
+    .meta-subject {
+      font-weight: 600;
+      color: var(--text-main);
+      font-family: inherit;
+    }
+
+    /* The Email Render Canvas */
+    .email-render-canvas {
+      background-color: #f7f8fb;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .email-wrapper-preview {
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .copy-button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+    }
+
+    .copy-button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .copy-button:active {
+      transform: scale(0.98);
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-badge">BASTION RESEARCH</div>
+      <h1>Welcome Email Client Preview</h1>
+    </div>
+    <span class="badge">Interactive Template</span>
+  </header>
+
+  <div class="main-container">
+    <!-- Configuration Panel -->
+    <div class="settings-card">
+      <div class="settings-title">Configure Details</div>
+      
+      <div class="form-group">
+        <label for="input-client-name">Client First Name</label>
+        <input type="text" id="input-client-name" value="Alex" placeholder="e.g. Alex">
+      </div>
+
+      <div class="form-group">
+        <label for="input-plan-name">Subscription Plan</label>
+        <input type="text" id="input-plan-name" value="Elite Research Portfolio" placeholder="e.g. Elite Portfolio Plan">
+      </div>
+
+      <div class="form-group">
+        <label for="input-username">Username (Optional)</label>
+        <input type="text" id="input-username" value="alex_bastion" placeholder="Leave empty to hide username">
+      </div>
+
+      <div class="form-group">
+        <label for="input-app-url">Dashboard Login URL</label>
+        <input type="text" id="input-app-url" value="https://bastionresearch.in/">
+      </div>
+
+      <button class="copy-button" id="btn-copy">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+        </svg>
+        Copy HTML Code
+      </button>
+      
+      <div class="helper-text">
+        Double click or edit the inputs to update the live preview on the right.
+      </div>
+    </div>
+
+    <!-- Email Client Live Preview -->
+    <div class="preview-container">
+      <div class="email-meta-header">
+        <div class="meta-row">
+          <span class="meta-label">From:</span>
+          <span class="meta-value">Bastion Research &lt;no-reply@bastionresearch.in&gt;</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">To:</span>
+          <span class="meta-value" id="preview-to-email">client@example.com</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Subject:</span>
+          <span class="meta-subject">Welcome to Bastion Research!</span>
+        </div>
+      </div>
+
+      <div class="email-render-canvas">
+        <div class="email-wrapper-preview" id="email-body-target">
+          <!-- Live rendering injects email code here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const inputClientName = document.getElementById('input-client-name');
+    const inputPlanName = document.getElementById('input-plan-name');
+    const inputUsername = document.getElementById('input-username');
+    const inputAppUrl = document.getElementById('input-app-url');
+    const emailBodyTarget = document.getElementById('email-body-target');
+    const btnCopy = document.getElementById('btn-copy');
+
+    function renderEmail() {
+      const clientName = inputClientName.value.trim() || 'there';
+      const planName = inputPlanName.value.trim();
+      const username = inputUsername.value.trim();
+      const appUrl = inputAppUrl.value.trim() || 'https://bastionresearch.in/';
+
+      const planLine = planName 
+        ? `Thank you for joining the ${planName} plan.`
+        : '';
+
+      const usernameRow = username 
+        ? `<p><strong>Username:</strong> ${username}</p>` 
+        : '';
+
+      const emailHtml = `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7f8fb; padding: 32px 16px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);">
+          <div style="background: #000814; color: #fff; padding: 24px;">
+            <h1 style="margin: 0; font-size: 24px;">Welcome aboard, ${clientName}!</h1>
+            <p style="margin: 8px 0 0; font-size: 16px;">${planLine || "Your Bastion Research account is now active."}</p>
+          </div>
+          <div style="padding: 24px; color: #0f172a; font-size: 15px; line-height: 1.6;">
+            ${usernameRow}
+            <p>You can head to the dashboard anytime at <a href="${appUrl}" style="color: #1d4ed8;">${appUrl}</a> to explore insights, upload documents, and manage your plan.</p>
+            <p style="margin: 24px 0 0;">Best regards,<br/>The Bastion Research Team</p>
+          </div>
+        </div>
+      </div>
+      `;
+
+      emailBodyTarget.innerHTML = emailHtml;
+    }
+
+    // Trigger initial render
+    renderEmail();
+
+    // Event listeners for inputs
+    [inputClientName, inputPlanName, inputUsername, inputAppUrl].forEach(input => {
+      input.addEventListener('input', renderEmail);
+    });
+
+    // Copy to clipboard function
+    btnCopy.addEventListener('click', () => {
+      const emailCode = emailBodyTarget.innerHTML;
+      navigator.clipboard.writeText(emailCode.trim()).then(() => {
+        const originalText = btnCopy.innerHTML;
+        btnCopy.innerHTML = `
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Copied!
+        `;
+        setTimeout(() => {
+          btnCopy.innerHTML = originalText;
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        alert('Failed to copy to clipboard. You can view page source to get the structure.');
+      });
+    });
+  </script>
+</body>
+</html>

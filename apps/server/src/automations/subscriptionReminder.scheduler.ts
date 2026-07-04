@@ -35,8 +35,11 @@ export const runSubscriptionExpiryReminder = async () => {
 
     for (const [key, config] of Object.entries(reminderConfigByType)) {
       const reminderType = key as SubscriptionReminderType
-      const target = new Date()
-      target.setDate(today.getDate() + config.dayDiff)
+      const target = new Date(Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth(),
+        today.getUTCDate() + config.dayDiff
+      ))
       const targetDateStr = target.toISOString().split('T')[0]
 
       const { data, error } = await supabase
@@ -214,7 +217,7 @@ let scheduled = false
 let lastRunDay: string | null = null
 
 export const startSubscriptionExpiryReminderJob = () => {
-  if (scheduled || process.env.NODE_ENV === 'test') return
+  if (scheduled || process.env.NODE_ENV !== 'production') return
   scheduled = true
 
   const execute = async () => {
