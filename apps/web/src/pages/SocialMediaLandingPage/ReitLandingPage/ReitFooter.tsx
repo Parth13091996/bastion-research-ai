@@ -47,14 +47,7 @@ export default function ReitFooter(props: ReitFooterProps) {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <a
-                href="https://bastionresearch.smallcase.com/smallcase/BARENM_0001"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-base bg-[#B00914] text-white transition-all duration-150 hover:bg-[#C20A15] hover:scale-[1.02] shadow-[0_0_20px_rgba(176,9,20,0.4)] hover:shadow-[0_0_30px_rgba(176,9,20,0.6)]"
-              >
-                Open smallcase
-              </a>
+
               <a
                 href="https://wa.me/918780507966?text=Hi%20Bastion%20Research%2C%20I%20have%20a%20question%20about%20your%20REIT%20smallcase."
                 target="_blank"

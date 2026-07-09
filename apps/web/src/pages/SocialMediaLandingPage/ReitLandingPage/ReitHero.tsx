@@ -50,10 +50,10 @@ export default function ReitHero({ onScrollTo }: ReitHeroProps) {
                 Explore Prime Real Estate Income &rarr;
               </a>
               <a
-                href="https://api.whatsapp.com/send/?phone=918780507966&text=Hi+Bastion+Research%2C+I+have+a+question+about+the+Prime+Real+Estate+Income+REIT+smallcase.&type=phone_number&app_absent=0"
+                href="https://payments.cashfree.com/forms/REIT_bastionresearch"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center min-h-[50px] px-[32px] rounded-full bg-[#128C7E] text-white font-bold text-[0.95rem] hover:translate-y-[-2px] transition-all duration-200 shadow-[0_18px_35px_rgba(18,140,126,0.26)] hover:shadow-[0_22px_42px_rgba(18,140,126,0.36)] gap-[10px]"
+                className="w-full sm:w-auto inline-flex items-center justify-center min-h-[50px] px-[32px] rounded-full border-2 border-[#C6B68A] text-[#C6B68A] hover:bg-[#C6B68A] hover:text-[#0B1229] font-bold text-[0.95rem] hover:translate-y-[-2px] transition-all duration-200 shadow-[0_18px_35px_rgba(198,182,138,0.15)] hover:shadow-[0_22px_42px_rgba(198,182,138,0.25)] gap-[10px]"
               >
 
                 Understand REITs

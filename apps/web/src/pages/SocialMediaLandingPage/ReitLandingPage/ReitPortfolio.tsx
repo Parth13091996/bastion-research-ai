@@ -158,15 +158,17 @@ export default function ReitPortfolio() {
             transform: translateY(-2px);
             box-shadow: 0 16px 32px rgba(176, 9, 20, 0.3);
           }
-          #portfolio .btn-wa {
-            background: #128C7E;
-            color: #fff;
-            box-shadow: 0 12px 24px rgba(18, 140, 126, 0.2);
+          #portfolio .btn-gold-outline {
+            background: transparent;
+            color: #C6B68A;
+            border: 2px solid #C6B68A;
+            box-shadow: 0 12px 24px rgba(198, 182, 138, 0.15);
           }
-          #portfolio .btn-wa:hover {
-            background: #149F8F;
+          #portfolio .btn-gold-outline:hover {
+            background: #C6B68A;
+            color: #0B1229;
             transform: translateY(-2px);
-            box-shadow: 0 16px 32px rgba(18, 140, 126, 0.3);
+            box-shadow: 0 16px 32px rgba(198, 182, 138, 0.25);
           }
           #portfolio .wa-icon {
             width: 18px;
@@ -229,19 +231,13 @@ export default function ReitPortfolio() {
                 Open smallcase
               </a>
               <a
-                className="btn btn-wa"
-                href="https://wa.me/918780507966?text=Hi%20Bastion%20Research%2C%20I%20want%20to%20understand%20the%20Prime%20Real%20Estate%20Income%20REIT%20smallcase%20before%20investing."
+                className="btn btn-gold-outline"
+                href="https://payments.cashfree.com/forms/REIT_bastionresearch"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ marginTop: "12px" }}
               >
-                <svg className="wa-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-                  <path
-                    fill="currentColor"
-                    d="M16.01 3.2c-7.04 0-12.76 5.72-12.76 12.76 0 2.25.59 4.44 1.72 6.37L3.2 28.8l6.64-1.74a12.7 12.7 0 0 0 6.17 1.57h.01c7.04 0 12.76-5.72 12.76-12.76S23.05 3.2 16.01 3.2Zm0 23.25h-.01c-1.84 0-3.64-.49-5.21-1.42l-.37-.22-3.94 1.03 1.05-3.84-.24-.39a10.5 10.5 0 0 1-1.6-5.65c0-5.7 4.64-10.34 10.35-10.34 2.76 0 5.36 1.08 7.31 3.03a10.27 10.27 0 0 1 3.03 7.31c0 5.7-4.64 10.34-10.36 10.34Zm5.67-7.75c-.31-.16-1.84-.91-2.12-1.01-.29-.1-.5-.16-.71.16-.21.31-.81 1.01-.99 1.22-.18.21-.36.24-.67.08-.31-.16-1.31-.48-2.49-1.53-.92-.82-1.54-1.83-1.72-2.14-.18-.31-.02-.48.14-.64.14-.14.31-.36.47-.54.16-.18.21-.31.31-.52.1-.21.05-.39-.03-.54-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.54-.71-.55h-.61c-.21 0-.54.08-.83.39-.29.31-1.09 1.06-1.09 2.58 0 1.52 1.12 2.99 1.27 3.2.16.21 2.2 3.36 5.33 4.71.75.32 1.33.52 1.78.66.75.24 1.43.21 1.97.13.6-.09 1.84-.75 2.1-1.48.26-.73.26-1.35.18-1.48-.08-.13-.29-.21-.6-.36Z"
-                  />
-                </svg>
-                Have doubts? WhatsApp us
+                Understand REITs
               </a>
             </div>
           </div>
