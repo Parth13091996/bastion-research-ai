@@ -53,7 +53,7 @@ export default function ReitHero({ onScrollTo }: ReitHeroProps) {
                 href="https://payments.cashfree.com/forms/REIT_bastionresearch"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center min-h-[50px] px-[32px] rounded-full border-2 border-[#C6B68A] text-[#C6B68A] hover:bg-[#C6B68A] hover:text-[#0B1229] font-bold text-[0.95rem] hover:translate-y-[-2px] transition-all duration-200 shadow-[0_18px_35px_rgba(198,182,138,0.15)] hover:shadow-[0_22px_42px_rgba(198,182,138,0.25)] gap-[10px]"
+                className="w-full sm:w-auto inline-flex items-center justify-center min-h-[50px] px-[32px] rounded-full bg-[#C6B68A] text-[#0B1229] font-bold text-[0.95rem] hover:translate-y-[-2px] transition-all duration-200 shadow-[0_18px_35px_rgba(198,182,138,0.15)] hover:shadow-[0_22px_42px_rgba(198,182,138,0.25)] gap-[10px]"
               >
 
                 Understand REITs

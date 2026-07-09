@@ -158,15 +158,12 @@ export default function ReitPortfolio() {
             transform: translateY(-2px);
             box-shadow: 0 16px 32px rgba(176, 9, 20, 0.3);
           }
-          #portfolio .btn-gold-outline {
-            background: transparent;
-            color: #C6B68A;
-            border: 2px solid #C6B68A;
-            box-shadow: 0 12px 24px rgba(198, 182, 138, 0.15);
-          }
-          #portfolio .btn-gold-outline:hover {
+          #portfolio .btn-gold {
             background: #C6B68A;
             color: #0B1229;
+            box-shadow: 0 12px 24px rgba(198, 182, 138, 0.15);
+          }
+          #portfolio .btn-gold:hover {
             transform: translateY(-2px);
             box-shadow: 0 16px 32px rgba(198, 182, 138, 0.25);
           }
@@ -231,7 +228,7 @@ export default function ReitPortfolio() {
                 Open smallcase
               </a>
               <a
-                className="btn btn-gold-outline"
+                className="btn btn-gold"
                 href="https://payments.cashfree.com/forms/REIT_bastionresearch"
                 target="_blank"
                 rel="noopener noreferrer"
