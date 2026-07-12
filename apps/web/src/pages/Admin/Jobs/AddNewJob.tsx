@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createJob } from "@/api/jobs-api";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const addJobSchema = z.object({
   job_title: z.string().min(3, "Title is required"),
@@ -26,6 +27,7 @@ type AddJobFormValues = z.infer<typeof addJobSchema>;
 
 const AddNewJob = () => {
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("jobs_add_new_job");
   const {
     register,
     handleSubmit,
@@ -62,26 +64,32 @@ const AddNewJob = () => {
   });
 
   const onSubmit = (data: AddJobFormValues) => {
+    if (!canEdit) return;
     mutation.mutate(data);
   };
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Add New Job</h1>
+      {!canEdit && (
+        <div className="rounded-md border bg-yellow-50 text-yellow-900 px-4 py-3 text-sm mb-4">
+          View-only mode: you do not have edit access to this section.
+        </div>
+      )}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl"
       >
         <div>
           <label htmlFor="job_title">Job Title</label>
-          <Input id="job_title" {...register("job_title")} />
+          <Input id="job_title" disabled={!canEdit} {...register("job_title")} />
           {errors.job_title && (
             <p className="text-red-600">{errors.job_title.message}</p>
           )}
         </div>
         <div>
           <label htmlFor="author">Author</label>
-          <Input id="author" {...register("author")} />
+          <Input id="author" disabled={!canEdit} {...register("author")} />
           {errors.author && (
             <p className="text-red-600">{errors.author.message}</p>
           )}
@@ -91,6 +99,7 @@ const AddNewJob = () => {
           <Input
             id="team"
             placeholder="e.g. Core Research"
+            disabled={!canEdit}
             {...register("team")}
           />
         </div>
@@ -99,6 +108,7 @@ const AddNewJob = () => {
           <Input
             id="experience"
             placeholder="e.g. 0-1 year"
+            disabled={!canEdit}
             {...register("experience")}
           />
         </div>
@@ -107,6 +117,7 @@ const AddNewJob = () => {
           <Input
             id="commitment"
             placeholder="e.g. Full-time"
+            disabled={!canEdit}
             {...register("commitment")}
           />
         </div>
@@ -115,6 +126,7 @@ const AddNewJob = () => {
           <Input
             id="job_type"
             placeholder="Full Time / Part Time / Contract"
+            disabled={!canEdit}
             {...register("job_type")}
           />
         </div>
@@ -123,12 +135,13 @@ const AddNewJob = () => {
           <Input
             id="location"
             placeholder="Office / Hybrid / Work From Home"
+            disabled={!canEdit}
             {...register("location")}
           />
         </div>
         <div>
           <label htmlFor="expiry">Expiry Date</label>
-          <Input id="expiry" type="date" {...register("expiry")} />
+          <Input id="expiry" type="date" disabled={!canEdit} {...register("expiry")} />
         </div>
         <div className="md:col-span-2">
           <label htmlFor="description">Description</label>
@@ -136,6 +149,7 @@ const AddNewJob = () => {
             id="description"
             className="w-full p-2 border rounded"
             rows={4}
+            disabled={!canEdit}
             {...register("description")}
           />
         </div>
@@ -147,6 +161,7 @@ const AddNewJob = () => {
             id="responsibilities"
             className="w-full p-2 border rounded"
             rows={4}
+            disabled={!canEdit}
             {...register("responsibilities")}
           />
         </div>
@@ -158,6 +173,7 @@ const AddNewJob = () => {
             id="requirements"
             className="w-full p-2 border rounded"
             rows={4}
+            disabled={!canEdit}
             {...register("requirements")}
           />
         </div>
@@ -167,6 +183,7 @@ const AddNewJob = () => {
             id="good_to_have"
             className="w-full p-2 border rounded"
             rows={4}
+            disabled={!canEdit}
             {...register("good_to_have")}
           />
         </div>
@@ -176,12 +193,13 @@ const AddNewJob = () => {
             id="benefits"
             className="w-full p-2 border rounded"
             rows={4}
+            disabled={!canEdit}
             {...register("benefits")}
           />
         </div>
 
         <div className="md:col-span-2 mt-2">
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button type="submit" disabled={!canEdit || mutation.isPending}>
             {mutation.isPending ? "Adding Job..." : "Add Job"}
           </Button>
           {mutation.isError && (

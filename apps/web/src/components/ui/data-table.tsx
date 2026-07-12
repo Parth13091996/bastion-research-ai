@@ -262,7 +262,7 @@ export function DataTable<T = any>({
                     onClick={() => action.action(selectedRows)}
                     className={cn(
                       action.variant === "destructive" &&
-                        "text-red-600 focus:text-red-600"
+                      "text-red-600 focus:text-red-600"
                     )}
                   >
                     {action.icon && <span className="mr-2">{action.icon}</span>}
@@ -324,7 +324,8 @@ export function DataTable<T = any>({
               animateRows={true}
               enableRangeSelection={true}
               suppressRowClickSelection={true}
-              theme="legacy"
+              enableCellTextSelection={true}
+              ensureDomOrder={true}
             />
           </div>
         )}

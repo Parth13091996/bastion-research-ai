@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import ContentEditor from "@/components/admin/ContentEditor";
 import { podcastApi } from "@/api/content";
 import { toast } from "sonner";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
+import { AppRoutes } from "@/routes/app-routes";
 
 const PodcastEditor: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { canEdit, isLoading: accessLoading } =
+    useSectionEditAccess("content_podcasts");
   const [initialData, setInitialData] = useState<Podcast | null>(null);
   const [isLoading, setIsLoading] = useState(!!id);
 
@@ -37,7 +41,7 @@ const PodcastEditor: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (accessLoading || isLoading) {
     return (
       <div className="container mx-auto py-6">
         <div className="flex items-center justify-center h-64">
@@ -45,6 +49,10 @@ const PodcastEditor: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (!canEdit) {
+    return <Navigate to={AppRoutes.adminPodcastManagement} replace />;
   }
 
   return (

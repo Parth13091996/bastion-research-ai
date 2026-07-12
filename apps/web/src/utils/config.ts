@@ -1,31 +1,68 @@
+function formatMailchimpTagDate(dateYmd?: string | null): string {
+  const raw = dateYmd?.trim();
+  if (raw) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      return raw.replace(/-/g, "_");
+    }
+    if (/^\d{4}\/\d{2}\/\d{2}$/.test(raw)) {
+      return raw.replace(/\//g, "_");
+    }
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      const y = parsed.getFullYear();
+      const m = String(parsed.getMonth() + 1).padStart(2, "0");
+      const d = String(parsed.getDate()).padStart(2, "0");
+      return `${y}_${m}_${d}`;
+    }
+  }
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}_${m}_${d}`;
+}
+
 export const Config = {
-  app_name: "Bastion Research",
+  app_name: 'Bastion Research',
   digio_environment:
-    import.meta.env.MODE === "production"
-      ? "production"
-      : ("sandbox" as "production" | "sandbox"),
+    import.meta.env.MODE === 'production'
+      ? 'production'
+      : ('sandbox' as 'production' | 'sandbox'),
   cashfree_environment:
-    import.meta.env.MODE === "production"
-      ? "production"
-      : ("sandbox" as "production" | "sandbox"),
-  connect_url: "connect@bastionresearch.in",
+    import.meta.env.MODE === 'production'
+      ? 'production'
+      : ('sandbox' as 'production' | 'sandbox'),
+  connect_url: 'connect@bastionresearch.in',
   agreement_file_name: (formData) =>
-    `${formData.firstName}_${formData.lastName}_Agreement.pdf`,
+    `${formData.firstName || formData.first_name}_${formData.lastName || formData?.last_name}_Agreement.pdf`,
   social_links: {
-    twitter: "https://x.com/bastionresearch",
-    linkedin: "https://www.linkedin.com/company/bastion-research-house/",
-    instagram: "https://www.instagram.com/bastionresearch/#",
-    youtube: "https://www.youtube.com/@BastionResearch",
+    twitter: 'https://x.com/bastionresearch',
+    linkedin: 'https://www.linkedin.com/company/bastion-research-house/',
+    instagram: 'https://www.instagram.com/bastionresearch/#',
+    youtube: 'https://www.youtube.com/@BastionResearch',
     spotify:
-      "https://open.spotify.com/show/4tBUa0orTDn3C76Yr16o5s?si=iiEnjhIWTv-pvG-xdqFB6w&nd=1&dlsi=06ffb913e9ce43f8",
-    substack: "https://substack.com/@bastionresearch?utm_campaign=profile&utm_medium=profile-page",
+      'https://open.spotify.com/show/4tBUa0orTDn3C76Yr16o5s?si=iiEnjhIWTv-pvG-xdqFB6w&nd=1&dlsi=06ffb913e9ce43f8',
+    substack:
+      'https://substack.com/@bastionresearch?utm_campaign=profile&utm_medium=profile-page',
   },
-  logo: "https://dev.bastionresearch.in/media/header-logo.webp",
+  logo: 'https://dev.bastionresearch.in/media/header-logo.webp',
   roles: {
-    admin: "admin",
-    employee: "employee",
-    core_subscriber: "core_subscriber",
-    ipo_subscriber: "ipo_subscriber",
-    research_ally_subscriber: "research_ally_subscriber",
+    admin: 'admin',
+    employee: 'employee',
+    core_subscriber: 'core_subscriber',
+    ipo_subscriber: 'ipo_subscriber',
+    research_ally_subscriber: 'research_ally_subscriber',
   },
-};
+  mailchimp_tags: {
+    portfolio_red_flags_landing: (dateYmd?: string | null) =>
+      `Risk_webinar_${formatMailchimpTagDate(dateYmd)}`,
+    webinar_registration: 'webinar-registration',
+  },
+  campaignNames: {
+    subscription_one_week_before: "Bastion CORE Renewal Reminder #1",
+    subscription_expiry_day: "Bastion CORE Renewal Reminder #2",
+    subscription_one_week_after: "Bastion CORE Renewal Reminder #3",
+    subscription_fifteen_days_after: "Bastion CORE Renewal Reminder #4",
+  },
+  aisensy_source: "new-landing-page form"
+}

@@ -25,9 +25,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const NewsletterManagement: React.FC = () => {
   const navigate = useNavigate();
+  const { canEdit } = useSectionEditAccess("content_newsletter");
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +56,7 @@ const NewsletterManagement: React.FC = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
+    if (!canEdit) return;
 
     try {
       await newsletterApi.admin.delete(deleteId);
@@ -66,14 +69,16 @@ const NewsletterManagement: React.FC = () => {
   };
 
   const handleEdit = (id: string) => {
+    if (!canEdit) return;
     navigate(`/admin/content/newsletters/${id}/edit`);
   };
 
-  const handleView = (id: string) => {
-    navigate(`/newsletters/${id}`);
+  const handleView = (url: string) => {
+    window.open(url, "_self");
   };
 
   const handleCreate = () => {
+    if (!canEdit) return;
     navigate("/admin/content/newsletters/create");
   };
 
@@ -114,9 +119,11 @@ const NewsletterManagement: React.FC = () => {
           >
             <RefreshCw className="mr-2 h-4 w-4 text-white" /> Refresh
           </Button>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" /> Create Newsletter
-          </Button>
+          {canEdit && (
+            <Button onClick={handleCreate}>
+              <Plus className="mr-2 h-4 w-4" /> Create Newsletter
+            </Button>
+          )}
         </div>
       </div>
 
@@ -147,7 +154,7 @@ const NewsletterManagement: React.FC = () => {
                   ? "Try adjusting your search"
                   : "Get started by creating your first newsletter"}
               </p>
-              {!search && (
+              {!search && canEdit && (
                 <Button onClick={handleCreate}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Newsletter
@@ -162,6 +169,7 @@ const NewsletterManagement: React.FC = () => {
                   <TableHead>Category</TableHead>
                   <TableHead>Author</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>Publish Date</TableHead>
                   <TableHead className="w-[220px] text-center">
                     Actions
                   </TableHead>
@@ -194,34 +202,46 @@ const NewsletterManagement: React.FC = () => {
                         {formatDate(newsletter.created_at)}
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {newsletter.published_date
+                          ? formatDate(newsletter.published_date)
+                          : "-"}
+                      </div>
+                    </TableCell>
                     <TableCell className="flex justify-center space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
                         title="View"
                         className="hover:bg-blue-100 hover:text-blue-600"
-                        onClick={() => handleView(newsletter.id)}
+                        onClick={() => handleView(newsletter.link)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        title="Edit"
-                        className="hover:bg-yellow-100 hover:text-yellow-600"
-                        onClick={() => handleEdit(newsletter.id)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        title="Delete"
-                        className="hover:bg-red-600 hover:text-white"
-                        onClick={() => setDeleteId(newsletter.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title="Edit"
+                          className="hover:bg-yellow-100 hover:text-yellow-600"
+                          onClick={() => handleEdit(newsletter.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          title="Delete"
+                          className="hover:bg-red-600 hover:text-white"
+                          onClick={() => setDeleteId(newsletter.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -251,4 +271,3 @@ const NewsletterManagement: React.FC = () => {
 };
 
 export default NewsletterManagement;
-

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import sendEmail from "../utils/email";
+import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { supabase } from "../supabase";
 import { config } from "../utils/config";
 
@@ -46,6 +46,9 @@ export const getUsers = async (req: Request, res: Response) => {
       membership_plans (
         plan_code,
         plan_id
+      ),
+      digio_documents (
+        document_id
       )
     `);
     if (error) {
@@ -243,15 +246,25 @@ export const createUser = async (req: Request, res: Response) => {
       `);
 
     if (error) {
+      if (
+        (error as any)?.code === "23505" &&
+        typeof error.message === "string" &&
+        error.message.includes("users_pan_card_number_key")
+      ) {
+        return res.status(400).json({
+          error: "This PAN is already registered with another account.",
+        });
+      }
       return res.status(500).json({ error: error.message });
     }
 
     // Send signup email if requested
     if (sendSignupEmail && Boolean(sendSignupEmail) === true) {
-      const welcomeSenderEmail = process.env.CONNECT_EMAIL;
+      const welcomeSenderEmail = getResolvedSmtpFromAddress();
       if (!welcomeSenderEmail) {
         return res.status(500).json({
-          error: "Welcome Sender email is missing from backend/envs.",
+          error:
+            "SMTP sender is not configured (set SMTP_USERNAME and matching CONNECT_EMAIL / SMTP_FROM).",
         });
       }
 
@@ -436,6 +449,15 @@ export const updateUser = async (req: Request, res: Response) => {
       `);
 
     if (error) {
+      if (
+        (error as any)?.code === "23505" &&
+        typeof error.message === "string" &&
+        error.message.includes("users_pan_card_number_key")
+      ) {
+        return res.status(400).json({
+          error: "This PAN is already registered with another account.",
+        });
+      }
       return res.status(500).json({ error: error.message });
     }
     if (!data || data.length === 0) {

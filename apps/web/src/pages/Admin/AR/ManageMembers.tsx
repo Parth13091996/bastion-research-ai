@@ -2,48 +2,84 @@ import { deleteUserById, getUsers, updateUserById } from "@/api/users-api";
 import { queryKeys } from "@/api/queryKeys";
 import { UserActivityDropdown } from "@/components/admin/UserActivityDropdown";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
 import { useEditMemberStore } from "@/stores/edit-member-store";
+import { useViewMemberStore } from "@/stores/view-member-store";
 import { useModalStore } from "@/stores/modal-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColDef } from "ag-grid-community";
-import { Mail, Shield, Trash2, User, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { AgGridReact } from "ag-grid-react";
+import { Edit, Eye, Mail, Shield, Trash2, User, UserPlus } from "lucide-react";
+import { ICellRendererParams } from "ag-grid-community";
+import { useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import axiosInstance from "@/api/axios";
+import ViewMemberModal from "@/components/core/common/Modals/ViewMemberModal";
+import { differenceInDays } from "date-fns";
+import { confirm } from "@/utils/confirm";
+import { formatDate } from "@/lib/utils";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
+
+interface MemberData {
+  id: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  created_at?: string;
+  subscription_end_date?: string | null;
+  digio_documents?: { document_id: string }[];
+}
+
+interface UserActivity {
+  login_count: number;
+  pageviews_count: number;
+  recommendations_count: number;
+}
+
+interface RoleStyle {
+  color: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
 
 // Reuse UI patterns from All Users table
-const RoleRenderer = (params: any) => {
-  const role = params.value || "employee";
-  const roleConfig = {
+const RoleRenderer = (params: ICellRendererParams<MemberData>) => {
+  const role = (params.value as string) || "free_subscriber";
+  const roleConfig: Record<string, RoleStyle> = {
     admin: { color: "bg-red-100 text-red-800", icon: Shield },
     employee: { color: "bg-blue-100 text-blue-800", icon: User },
+    free_subscriber: { color: "bg-gray-100 text-gray-800", icon: User },
     core_subscriber: { color: "bg-green-100 text-green-800", icon: User },
     ipo_subscriber: { color: "bg-purple-100 text-purple-800", icon: User },
     research_ally_subscriber: {
       color: "bg-orange-100 text-orange-800",
       icon: User,
     },
-  } as const;
+    drop_off: {
+      color: "bg-red-50 text-red-700 border border-red-200",
+      icon: User,
+    },
+  };
 
-  const config = (roleConfig as any)[role] || roleConfig.employee;
-  const Icon = config.icon as any;
+  const config = roleConfig[role] || roleConfig.free_subscriber;
+  const Icon = config.icon;
 
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${config.color}`}
+      className={`px-2 py-1 rounded-full text-xs font-medium flex items-center w-fit ${config.color}`}
     >
       <Icon className="mr-1 h-3 w-3" />
-      {String(role)
+      {role
         .replace(/_/g, " ")
         .replace(/\b\w/g, (l) => l.toUpperCase())}
     </span>
   );
 };
 
-const EmailRenderer = (params: any) => (
+const EmailRenderer = (params: ICellRendererParams<MemberData>) => (
   <a
-    href={`mailto:${params.value}`}
+    href={`mailto:${String(params.value)}`}
     className="text-blue-600 hover:underline flex items-center"
   >
     <Mail className="mr-1 h-3 w-3" />
@@ -51,8 +87,26 @@ const EmailRenderer = (params: any) => (
   </a>
 );
 
-const ActivityRenderer = (params: any, activityMap: any) => {
-  const userId = params.data.id;
+const PhoneRenderer = (params: ICellRendererParams<MemberData>) => {
+  const phone = params.value as string;
+  if (!phone) return null;
+  // Try E.164, otherwise just pass phone as is
+  const telHref = `tel:${phone.replace(/[^+\d]/g, "")}`;
+  return (
+    <a
+      href={telHref}
+      className="text-blue-600 hover:underline flex items-center"
+      title={phone}
+    >
+      <UserPlus className="mr-1 h-3 w-3" />
+      {phone}
+    </a>
+  );
+};
+
+const ActivityRenderer = (params: ICellRendererParams<MemberData>, activityMap: Record<string, UserActivity>) => {
+  const userId = params.data?.id;
+  if (!userId) return null;
   const activity = activityMap[userId] || {
     pageviews_count: 0,
     recommendations_count: 0,
@@ -68,11 +122,12 @@ const ActivityRenderer = (params: any, activityMap: any) => {
 };
 
 const MemberManagementDashboard = () => {
+  const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("ar_manage_members");
   const {
     data: rowData,
     isLoading: loading,
-    error,
   } = useQuery({
     queryKey: [queryKeys.users],
     queryFn: () => getUsers(),
@@ -108,15 +163,53 @@ const MemberManagementDashboard = () => {
     >
   );
 
-  const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
-  const setIsModalOpen = useModalStore((s) => s.set);
+  // Rewritten downloadDigioDocument to handle file download properly as arrayBuffer/pdf
+  const downloadDigioDocument = async (documentId: string) => {
+    if (!documentId) return;
+    try {
+      const response = await axiosInstance.get(
+        `/api/digio/esign/${documentId}/download`,
+        { responseType: "blob" }
+      );
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${documentId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      toast.error("Failed to download Digio document.");
+    }
+  };
 
-  const updateMutation = useMutation({
-    mutationFn: (payload: { id: string; body: any }) =>
-      updateUserById(payload.id, payload.body),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [queryKeys.users] }),
-  });
+  const AgreementRenderer = (params: ICellRendererParams<MemberData>) => {
+    const documents = params.data?.digio_documents;
+    const documentId =
+      Array.isArray(documents) && documents.length > 0
+        ? documents[0]?.document_id
+        : null;
+
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!documentId}
+        onClick={() => documentId && downloadDigioDocument(documentId)}
+        className="h-8"
+      >
+        Download
+      </Button>
+    );
+  };
+
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const setIsModalOpen = useModalStore((s) => s.set);
+  const openEditMember = useEditMemberStore((s) => s.open);
+  const openViewMember = useViewMemberStore((s) => s.open);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteUserById(id),
@@ -124,88 +217,15 @@ const MemberManagementDashboard = () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.users] }),
   });
 
-  const columns: ColDef[] = [
-    {
-      headerName: "Username",
-      field: "username",
-      flex: 1,
-      minWidth: 150,
-    },
-    {
-      headerName: "Logins",
-      field: "id",
-      width: 100,
-      valueGetter: (params) => activityMap[params.data.id]?.login_count ?? 0,
-    },
-    {
-      headerName: "Recs Accessed",
-      field: "id",
-      width: 140,
-      valueGetter: (params) =>
-        activityMap[params.data.id]?.recommendations_count ?? 0,
-    },
-    {
-      headerName: "Analytics",
-      field: "id",
-      width: 140,
-      cellRenderer: (params: any) => ActivityRenderer(params, activityMap),
-      sortable: false,
-    },
-    {
-      headerName: "Email",
-      field: "email",
-      cellRenderer: EmailRenderer,
-      flex: 2,
-      minWidth: 200,
-    },
-    {
-      headerName: "Name",
-      field: "full_name",
-      valueGetter: (params) =>
-        `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
-      flex: 1,
-      minWidth: 150,
-    },
-    {
-      headerName: "Role",
-      field: "role",
-      cellRenderer: RoleRenderer,
-      flex: 1,
-      minWidth: 180,
-    },
-    {
-      headerName: "Created",
-      field: "created_at",
-      valueFormatter: (params) => {
-        if (!params.value) return "";
-        return new Date(params.value).toLocaleDateString();
-      },
-      flex: 1,
-      minWidth: 120,
-    },
-  ];
-
-  const bulkActions = [
-    {
-      label: "Delete Selected",
-      icon: <Trash2 className="h-4 w-4" />,
-      action: (selected: any[]) => handleBulkDelete(selected),
-      variant: "destructive" as const,
-    },
-    {
-      label: "Send Email",
-      icon: <Mail className="h-4 w-4" />,
-      action: (selected: any[]) => handleBulkEmail(selected),
-    },
-  ];
-
-  const openEditMember = useEditMemberStore((s) => s.open);
-
-  const handleEdit = (row: any) => {
+  const handleEdit = (row: MemberData) => {
     openEditMember(row);
   };
 
-  const handleDelete = (row: any) => {
+  const handleView = (row: MemberData) => {
+    openViewMember(row);
+  };
+
+  const handleDelete = (row: MemberData) => {
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -232,46 +252,251 @@ const MemberManagementDashboard = () => {
     setModalOpen("confirm", true);
   };
 
-  const handleBulkDelete = (selected: any[]) => {
-    const setModalOpen = useModalStore.getState().set;
-    const setModalProps = useModalStore.getState().setProps;
+  const handleBulkDelete = async () => {
+    const selectedNodes = gridRef.current?.api.getSelectedNodes() || [];
+    const selectedData = selectedNodes.map(node => node.data);
 
-    setModalProps("confirm", {
-      title: `Delete ${selected.length} members?`,
-      description:
-        "This action cannot be undone. This will permanently delete all selected members.",
+    if (selectedData.length === 0) return;
+
+    const ok = await confirm({
+      title: `Delete ${selectedData.length} members?`,
+      description: "This action cannot be undone. This will permanently delete all selected members.",
       confirmText: "Delete All",
-      cancelText: "Cancel",
       tone: "danger",
-      isLoading: deleteMutation.isPending,
-      onConfirm: async () => {
-        try {
-          await Promise.all(
-            selected.map((member) => deleteUserById(member.id))
-          );
-          queryClient.invalidateQueries({ queryKey: ["users"] });
-          toast.success(`${selected.length} members deleted successfully`);
-        } catch (error) {
-          toast.error("Failed to delete some members");
-        } finally {
-          setModalOpen("confirm", false);
-          setModalProps("confirm", undefined);
-        }
-      },
-      onCancel: () => {
-        setModalProps("confirm", undefined);
-      },
     });
-    setModalOpen("confirm", true);
+
+    if (!ok) return;
+
+    try {
+      await Promise.all(
+        selectedData.map((member) => deleteUserById(member.id))
+      );
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success(`${selectedData.length} members deleted successfully`);
+      gridRef.current?.api.deselectAll();
+    } catch (error) {
+      toast.error("Failed to delete some members");
+    }
   };
 
-  const handleBulkEmail = (selected: any[]) => {
-    const emails = selected.map((member) => member.email).join(", ");
+  const handleBulkEmail = () => {
+    const selectedNodes = gridRef.current?.api.getSelectedNodes() || [];
+    const selectedData = selectedNodes.map(node => node.data);
+
+    if (selectedData.length === 0) return;
+
+    const emails = selectedData.map((member) => member.email).join(", ");
     window.open(`mailto:${emails}`, "_blank");
   };
 
+  const ActionRenderer = (params: ICellRendererParams<MemberData>) => (
+    <div className="flex items-center space-x-1">
+      <button
+        className="p-1 text-gray-600 hover:text-blue-600"
+        title="View"
+        onClick={() => params.data && handleView(params.data)}
+      >
+        <Eye className="h-4 w-4" />
+      </button>
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-blue-600"
+          title="Edit"
+          onClick={() => params.data && handleEdit(params.data)}
+        >
+          <Edit className="h-4 w-4" />
+        </button>
+      )}
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-red-600"
+          title="Delete"
+          onClick={() => params.data && handleDelete(params.data)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  )
+
+  const columns: ColDef[] = [
+    {
+      checkboxSelection: true,
+      headerCheckboxSelection: true,
+      width: 50,
+      filter: false,
+      sortable: false,
+      pinned: 'left',
+    },
+    {
+      headerName: "Username",
+      field: "username",
+      minWidth: 150,
+    },
+    {
+      headerName: "Name",
+      field: "full_name",
+      valueGetter: (params) =>
+        `${params.data.first_name || ""} ${params.data.last_name || ""}`.trim(),
+      minWidth: 150,
+    },
+    {
+      headerName: "Role",
+      field: "role",
+      cellRenderer: RoleRenderer,
+      minWidth: 180,
+    },
+    {
+      headerName: "Email",
+      field: "email",
+      cellRenderer: EmailRenderer,
+      minWidth: 200,
+    },
+    {
+      headerName: "Phone Number",
+      field: "phone",
+      cellRenderer: PhoneRenderer,
+      minWidth: 200,
+    },
+    {
+      headerName: "Created",
+      field: "created_at",
+      valueFormatter: (params) => {
+        if (!params.value) return "";
+        return formatDate(params.value)
+        // return new Date(params.value).toLocaleDateString();
+      },
+      minWidth: 120,
+    },
+    {
+      headerName: "Expires In",
+      field: "subscription_end_date",
+      width: 140,
+      cellRenderer: (params: ICellRendererParams<MemberData>) => {
+        const endDate = params.value as string | null | undefined;
+        if (!endDate) return <span className="text-gray-400">-</span>;
+
+        const daysLeft = differenceInDays(new Date(endDate), new Date());
+
+        if (daysLeft < 0) {
+          return <span className="text-red-600 font-medium">Expired</span>;
+        }
+
+        if (daysLeft <= 7) {
+          return <span className="text-amber-600 font-medium">{daysLeft} days</span>;
+        }
+
+        return <span>{daysLeft} days</span>;
+      },
+    },
+    {
+      headerName: "Logins",
+      field: "id", // Using ID but displaying count from map
+      colId: "logins",
+      width: 100,
+      valueGetter: (params) => activityMap[params.data.id]?.login_count ?? 0,
+    },
+    {
+      headerName: "Recs Accessed",
+      field: "id", // Using ID but displaying count from map
+      colId: "recs_accessed",
+      width: 140,
+      valueGetter: (params) =>
+        activityMap[params.data.id]?.recommendations_count ?? 0,
+    },
+    {
+      headerName: "Analytics",
+      field: "id", // Using ID but displaying count from map
+      colId: "analytics",
+      width: 140,
+      cellRenderer: (params: ICellRendererParams<MemberData>) => ActivityRenderer(params, activityMap),
+      sortable: false,
+    },
+    {
+      headerName: "Agreement",
+      field: "digio_documents",
+      cellRenderer: AgreementRenderer,
+      sortable: false,
+      filter: false,
+      width: 150,
+    },
+    {
+      headerName: "Actions",
+      cellRenderer: ActionRenderer,
+      width: 120,
+      pinned: 'right',
+      sortable: false,
+      filter: false,
+    }
+  ];
+
+  // Logic for counts and filtering
+  const users = useMemo(() => rowData || [], [rowData]);
+
+  const roleCounts: Record<string, number> = useMemo(() => {
+    const counts = {
+      all: users.length,
+      admin: 0,
+      employee: 0,
+      free_subscriber: 0,
+      core_subscriber: 0,
+      ipo_subscriber: 0,
+      research_ally_subscriber: 0,
+      drop_off: 0,
+    };
+
+    users.forEach((u: MemberData) => {
+      let role = (u.role || "free_subscriber").toLowerCase().trim();
+      role = role.replace(/[\s-]/g, "_");
+
+      if (Object.prototype.hasOwnProperty.call(counts, role)) {
+        (counts as Record<string, number>)[role]++;
+      } else {
+        if (role.includes("core") && role.includes("sub")) counts.core_subscriber++;
+        else if (role.includes("ipo") && role.includes("sub")) counts.ipo_subscriber++;
+        else if (role.includes("research") && role.includes("ally")) counts.research_ally_subscriber++;
+        else if (role === "admin" || role === "administrator") counts.admin++;
+        else if (role === "employee") counts.employee++;
+        else counts.free_subscriber++;
+      }
+    });
+    return counts;
+  }, [users]);
+
+  const filteredData = useMemo(() => {
+    // 1. Filter by Role
+    let data = selectedRole
+      ? users.filter((u: MemberData) => (u.role || "free_subscriber") === selectedRole)
+      : users;
+
+    // 2. Filter by Search Query
+    if (searchQuery) {
+      const lowerQ = searchQuery.toLowerCase();
+      data = data.filter((u: MemberData) =>
+        u.username?.toLowerCase().includes(lowerQ) ||
+        u.email?.toLowerCase().includes(lowerQ) ||
+        (u.first_name && u.first_name.toLowerCase().includes(lowerQ)) ||
+        (u.last_name && u.last_name.toLowerCase().includes(lowerQ))
+      );
+    }
+    return data;
+  }, [selectedRole, searchQuery, users]);
+
+  const roleFilterButtons = [
+    { label: "All Users", value: null, count: roleCounts.all },
+    { label: "Free Subs", value: "free_subscriber", count: roleCounts.free_subscriber },
+    { label: "Core Subs", value: "core_subscriber", count: roleCounts.core_subscriber },
+    { label: "IPO Subs", value: "ipo_subscriber", count: roleCounts.ipo_subscriber },
+    { label: "Research Ally", value: "research_ally_subscriber", count: roleCounts.research_ally_subscriber },
+    { label: "Employees", value: "employee", count: roleCounts.employee },
+    { label: "Admins", value: "admin", count: roleCounts.admin },
+    { label: "Drop Off", value: "drop_off", count: roleCounts.drop_off },
+  ];
+
+  const [selectedCount, setSelectedCount] = useState(0);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -280,29 +505,108 @@ const MemberManagementDashboard = () => {
             Manage user accounts and permissions
           </p>
         </div>
-        <Button
-          onClick={() => setIsModalOpen("addMember", true)}
-          className="flex items-center space-x-2"
-        >
-          <UserPlus className="h-4 w-4" />
-          <span>Add Member</span>
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={() => setIsModalOpen("addMember", true)}
+            className="flex items-center space-x-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            <span>Add Member</span>
+          </Button>
+        )}
       </div>
 
-      {/* Data Table */}
-      <DataTable
-        data={rowData || []}
-        columns={columns}
-        loading={loading}
-        error={error?.message}
-        onSelectionChange={setSelectedMembers}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        bulkActions={bulkActions}
-        searchPlaceholder="Search members by name, email, or username..."
-        title="Members"
-        description={`${rowData?.length || 0} total users`}
-      />
+      {/* Role Filters & Table Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          {/* Can put additional summary stats here if needed */}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 p-1 bg-muted/50 rounded-lg border">
+        {roleFilterButtons.map((role) => {
+          const isSelected = selectedRole === role.value;
+          return (
+            <button
+              key={role.label}
+              onClick={() => setSelectedRole(role.value)}
+              className={`
+                  relative flex items-center px-3 py-1.5 text-sm font-medium transition-all rounded-md
+                  ${isSelected
+                  ? "bg-white text-foreground shadow-sm ring-1 ring-black/5"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }
+                `}
+            >
+              <span>{role.label}</span>
+              <span className={`ml-2 text-xs py-0.5 px-1.5 rounded-full ${isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                {role.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 max-w-sm p-2 border border-gray-300 rounded-lg"
+          />
+
+          {selectedCount > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">{selectedCount} selected</span>
+              <Button variant="outline" size="sm" onClick={handleBulkEmail}>
+                <Mail className="h-4 w-4 mr-2" /> Email
+              </Button>
+              {canEdit && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div
+          className="rounded-md border bg-white ag-theme-alpine"
+          style={{ height: 600, width: "100%" }}
+        >
+          <AgGridReact
+            ref={gridRef}
+            theme="legacy"
+            rowData={filteredData}
+            columnDefs={columns}
+            defaultColDef={{
+              sortable: true,
+              filter: true,
+              resizable: true,
+              flex: 1,
+            }}
+            rowSelection="multiple"
+            onSelectionChanged={() => {
+              const count = gridRef.current?.api.getSelectedNodes().length || 0;
+              setSelectedCount(count);
+            }}
+            pagination={true}
+            paginationPageSize={20}
+            paginationPageSizeSelector={[20, 50, 100]}
+            suppressCellFocus={true}
+            enableCellTextSelection={true}
+            ensureDomOrder={true}
+          />
+        </div>
+      </div>
+
+      <ViewMemberModal />
     </div>
   );
 };

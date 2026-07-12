@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { podcastApi } from "@/api/content";
 import { confirmDelete } from "@/utils/confirm";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 interface PodcastItem {
   id: string;
@@ -30,6 +31,7 @@ interface PodcastItem {
 
 const PodcastManagement: React.FC = () => {
   const navigate = useNavigate();
+  const { canEdit } = useSectionEditAccess("content_podcasts");
   const [items, setItems] = useState<PodcastItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<PodcastItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,6 +74,7 @@ const PodcastManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string, title: string) => {
+    if (!canEdit) return;
     const ok = await confirmDelete(title);
     if (!ok) return;
     try {
@@ -85,6 +88,7 @@ const PodcastManagement: React.FC = () => {
   };
 
   const handleEdit = (id: string) => {
+    if (!canEdit) return;
     navigate(`/admin/content/podcasts/${id}/edit`);
   };
 
@@ -93,6 +97,7 @@ const PodcastManagement: React.FC = () => {
   };
 
   const handleCreate = () => {
+    if (!canEdit) return;
     navigate("/admin/content/podcasts/create");
   };
 
@@ -118,13 +123,15 @@ const PodcastManagement: React.FC = () => {
           <h1 className="text-2xl font-bold">Podcast Management</h1>
           <Badge variant="secondary">{filteredItems.length} podcasts</Badge>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="bg-blue-500 hover:bg-blue-600 text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create Podcast
-        </Button>
+        {canEdit && (
+          <Button
+            onClick={handleCreate}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Podcast
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -157,7 +164,7 @@ const PodcastManagement: React.FC = () => {
                   ? "Try adjusting your search"
                   : "Get started by creating your first podcast"}
               </p>
-              {!searchQuery && (
+              {!searchQuery && canEdit && (
                 <Button
                   onClick={handleCreate}
                   className="bg-blue-500 hover:bg-blue-600 text-white"
@@ -214,24 +221,28 @@ const PodcastManagement: React.FC = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        title="Edit"
-                        className="hover:bg-yellow-100 hover:text-yellow-600"
-                        onClick={() => handleEdit(item.id)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        title="Delete"
-                        className="hover:bg-red-600 hover:text-white"
-                        onClick={() => handleDelete(item.id, item.title)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title="Edit"
+                          className="hover:bg-yellow-100 hover:text-yellow-600"
+                          onClick={() => handleEdit(item.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          title="Delete"
+                          className="hover:bg-red-600 hover:text-white"
+                          onClick={() => handleDelete(item.id, item.title)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

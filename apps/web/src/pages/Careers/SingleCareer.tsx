@@ -9,6 +9,7 @@ const SingleCareer = () => {
   const [careerData, setCareerData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ const SingleCareer = () => {
     phone: "",
     coverLetter: "",
     resume: null as File | null,
-    agreeToTerms: false,
+    // agreeToTerms: false, // Removed agreeToTerms from state
   });
 
   // Fetch dynamic job by ID from backend
@@ -46,12 +47,8 @@ const SingleCareer = () => {
   ) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement;
     const { name, value, type } = target;
-    if (type === "checkbox") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: (target as HTMLInputElement).checked,
-      }));
-    } else if (type === "file") {
+    // We don't have checkbox or agreeToTerms anymore
+    if (type === "file") {
       const files = (target as HTMLInputElement).files;
       setFormData((prev) => ({
         ...prev,
@@ -67,14 +64,14 @@ const SingleCareer = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.agreeToTerms) {
-      toast.error("You must agree to the terms.");
-      return;
-    }
+    if (isSubmitting) return;
+
     if (!formData.resume) {
       toast.error("Please upload your resume.");
       return;
     }
+
+    setIsSubmitting(true);
     try {
       const id = params.slug;
       const form = new FormData();
@@ -95,11 +92,15 @@ const SingleCareer = () => {
         phone: "",
         coverLetter: "",
         resume: null,
-        agreeToTerms: false,
       });
-    } catch (err) {
-      // Optionally log error
-      toast.error("Failed to submit application. Please try again.");
+    } catch (err: any) {
+      console.error(err);
+      const errorMessage =
+        err.response?.data?.error ||
+        "Failed to submit application. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -265,8 +266,8 @@ const SingleCareer = () => {
           {/* What We Offer */}
           {(Array.isArray(careerData.benefits) &&
             careerData.benefits.length > 0) ||
-          (Array.isArray(careerData.whatWeOffer) &&
-            careerData.whatWeOffer.length > 0) ? (
+            (Array.isArray(careerData.whatWeOffer) &&
+              careerData.whatWeOffer.length > 0) ? (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 What We Offer
@@ -438,34 +439,15 @@ const SingleCareer = () => {
                 </p>
               </div>
 
-              <div className="pt-2">
-                <p className="text-xs text-gray-600 mb-3">
-                  📋 By using this form you agree with the storage and handling
-                  of your data by this website. *
-                </p>
-                <div className="flex items-start">
-                  <input
-                    type="checkbox"
-                    id="agreeToTerms"
-                    name="agreeToTerms"
-                    required
-                    checked={formData.agreeToTerms}
-                    onChange={handleInputChange}
-                    className="mt-1 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                  />
-                  <div className="ml-2 text-xs">
-                    <div className="bg-gray-100 p-2 rounded text-gray-600">
-                      I'm not a robot
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Removed agree to terms and I am not a robot fields */}
 
               <button
                 type="submit"
-                className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 font-medium"
+                disabled={isSubmitting}
+                className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 font-medium text-white transition-colors duration-200
+                  ${isSubmitting ? "bg-red-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"}`}
               >
-                Submit
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </form>
           </div>

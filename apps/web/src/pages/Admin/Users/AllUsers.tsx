@@ -5,6 +5,7 @@ import { Trash2, Mail, Shield, User } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import { useModalStore } from "@/stores/modal-store";
 import { toast } from "sonner";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const RoleRenderer = (params: any) => {
   const role = params.value || "employee";
@@ -44,6 +45,7 @@ const EmailRenderer = (params: any) => (
 
 const AllUsers = () => {
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("ar_manage_members");
   const { data: rowData, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: () => getUsers(),
@@ -98,13 +100,26 @@ const AllUsers = () => {
     {
       headerName: "Premium",
       field: "is_premium",
+      valueGetter: (params) => {
+        const role = params.data?.role;
+        const subEndDate = params.data?.subscription_end_date;
+        if (role === "free_subscriber" || !subEndDate) return false;
+
+        const endDate = new Date(subEndDate);
+        if (isNaN(endDate.getTime())) return false;
+
+        const today = new Date();
+        const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        return end > todayDate;
+      },
       cellRenderer: (params: any) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            params.value
+          className={`px-2 py-1 rounded-full text-xs font-medium ${params.value
               ? "bg-green-100 text-green-800"
               : "bg-gray-100 text-gray-800"
-          }`}
+            }`}
         >
           {params.value ? "Premium" : "Free"}
         </span>
@@ -116,11 +131,10 @@ const AllUsers = () => {
       field: "cameFromOAuth",
       cellRenderer: (params: any) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            params.value
+          className={`px-2 py-1 rounded-full text-xs font-medium ${params.value
               ? "bg-blue-100 text-blue-800"
               : "bg-gray-100 text-gray-800"
-          }`}
+            }`}
         >
           {params.value ? "OAuth" : "Email"}
         </span>
@@ -158,6 +172,7 @@ const AllUsers = () => {
   };
 
   const handleDelete = (row: any) => {
+    if (!canEdit) return;
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -167,7 +182,7 @@ const AllUsers = () => {
       confirmText: "Delete",
       cancelText: "Cancel",
       tone: "danger",
-          onConfirm: () => {
+      onConfirm: () => {
         deleteMutation.mutate(row.id);
         setModalOpen("confirm", false);
         setModalProps("confirm", undefined);
@@ -180,6 +195,7 @@ const AllUsers = () => {
   };
 
   const handleBulkDelete = (selected: any[]) => {
+    if (!canEdit) return;
     const setModalOpen = useModalStore.getState().set;
     const setModalProps = useModalStore.getState().setProps;
 
@@ -232,9 +248,11 @@ const AllUsers = () => {
         data={rowData || []}
         columns={columns}
         loading={isLoading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        bulkActions={bulkActions}
+        onEdit={canEdit ? handleEdit : undefined}
+        onDelete={canEdit ? handleDelete : undefined}
+        bulkActions={
+          canEdit ? bulkActions : bulkActions.filter((a) => a.label === "Send Email")
+        }
         searchPlaceholder="Search users by name, email, or username..."
         title="Users"
         description={`${rowData?.length || 0} total users`}

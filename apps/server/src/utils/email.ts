@@ -1,6 +1,34 @@
 import nodemailer from "nodemailer";
 
-interface EmailOptions {
+/**
+ * Many SMTP providers (including Hostinger) require the From address to match the
+ * authenticated mailbox (SMTP_USERNAME). A mismatch yields errors like:
+ * "553 5.7.1 Sender address rejected: not owned by user ..."
+ */
+export function getResolvedSmtpFromAddress(): string | undefined {
+  const username = process.env.SMTP_USERNAME?.trim();
+  const explicit =
+    process.env.SMTP_FROM?.trim() ||
+    process.env.CONNECT_EMAIL?.trim() ||
+    process.env.LEADS_EMAIL?.trim();
+
+  if (!explicit && !username) {
+    return undefined;
+  }
+
+  if (explicit && username && explicit.toLowerCase() !== username.toLowerCase()) {
+    console.warn(
+      `[email] From address (${explicit}) does not match SMTP_USERNAME (${username}). ` +
+        "Using SMTP_USERNAME as the sender. Set CONNECT_EMAIL or SMTP_FROM to the same " +
+        "address as SMTP_USERNAME, or use SMTP credentials for the mailbox you want in From."
+    );
+    return username;
+  }
+
+  return explicit || username;
+}
+
+export interface EmailOptions {
   to: string;
   from: string;
   subject: string;

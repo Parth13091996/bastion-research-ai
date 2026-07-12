@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import ContentEditor from "@/components/admin/ContentEditor";
 import { webinarApi } from "@/api/content";
 import { toast } from "sonner";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
+import { AppRoutes } from "@/routes/app-routes";
 
 const WebinarEditor: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { canEdit, isLoading: accessLoading } =
+    useSectionEditAccess("content_webinars");
   const [initialData, setInitialData] = useState<Webinar | null>(null);
   const [isLoading, setIsLoading] = useState(!!id);
 
@@ -37,7 +41,7 @@ const WebinarEditor: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (accessLoading || isLoading) {
     return (
       <div className="container mx-auto py-6">
         <div className="flex items-center justify-center h-64">
@@ -45,6 +49,10 @@ const WebinarEditor: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (!canEdit) {
+    return <Navigate to={AppRoutes.adminWebinarManagement} replace />;
   }
 
   return (

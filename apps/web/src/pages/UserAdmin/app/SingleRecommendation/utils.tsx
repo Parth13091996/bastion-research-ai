@@ -1,4 +1,9 @@
 export const mapToStock = (sheetRow: any, apiRow: any) => {
+  const iteration =
+    Array.isArray(apiRow?.stock_performance_url) &&
+    apiRow.stock_performance_url.length > 0
+      ? apiRow.stock_performance_url[0]
+      : null;
   return {
     id: sheetRow?.id ?? apiRow?.id,
     name:
@@ -13,23 +18,30 @@ export const mapToStock = (sheetRow: any, apiRow: any) => {
     // Dates
     dateRecommended:
       sheetRow?.dateRecommended ||
+      iteration?.dateRecommended ||
       apiRow?.dateRecommended ||
       apiRow?.created_at,
     lastUpdated: apiRow?.updated_at || sheetRow?.updated_at || undefined,
-    dateExit: sheetRow?.dateExit || apiRow?.dateExit || undefined,
+    dateExit:
+      sheetRow?.dateExit || iteration?.dateExit || apiRow?.dateExit || undefined,
     holdingPeriod:
-      sheetRow?.holdingPeriod || apiRow?.holdingPeriod || undefined,
+      sheetRow?.holdingPeriod ||
+      iteration?.holdingPeriod ||
+      apiRow?.holdingPeriod ||
+      undefined,
 
     // Stock prices & targets
     entryPrice:
       sheetRow?.priceAtRecommendation ??
       sheetRow?.entryPrice ??
+      iteration?.priceAtRecommendation ??
       apiRow?.price_at_recommendation ??
       apiRow?.priceAtRecommendation ??
       undefined,
     cmp:
       sheetRow?.cmpOrExitPrice ??
       sheetRow?.cmp ??
+      iteration?.cmpOrExitPrice ??
       apiRow?.cmpOrExitPrice ??
       apiRow?.cmp ??
       undefined,
@@ -45,7 +57,8 @@ export const mapToStock = (sheetRow: any, apiRow: any) => {
         ? sheetRow?.percentReturn
         : typeof sheetRow?.percent_return !== "undefined"
           ? sheetRow?.percent_return
-          : (apiRow?.percentReturn ?? apiRow?.percent_return ?? undefined),
+          : iteration?.percentReturn ??
+            (apiRow?.percentReturn ?? apiRow?.percent_return ?? undefined),
     upside:
       // upsidePotential as percent integer, e.g. 0.47 = 47%
       typeof sheetRow?.upsidePotential !== "undefined"
@@ -60,19 +73,25 @@ export const mapToStock = (sheetRow: any, apiRow: any) => {
     band:
       sheetRow?.action ||
       sheetRow?.band ||
+      iteration?.action ||
       apiRow?.action ||
       apiRow?.band ||
       "BUY",
     latestMcapCr: sheetRow?.latestMcapCr ?? apiRow?.latestMcapCr ?? undefined,
 
     // Resources, communications, news...
-    business_note: apiRow?.business_note ?? undefined,
+    business_note: iteration?.business_note ?? apiRow?.business_note ?? undefined,
     stock_performance_url: apiRow?.stock_performance_url,
-    quick_bite: apiRow?.quick_bite ?? undefined,
-    video: apiRow?.video ?? undefined,
-    exit_rationale: apiRow?.exit_rationale ?? undefined,
-    quarterly_update: apiRow?.quarterly_update ?? [],
-    announcements_and_update: apiRow?.announcements_and_update ?? [],
+    quick_bite: iteration?.quick_bite ?? apiRow?.quick_bite ?? undefined,
+    video: iteration?.video ?? apiRow?.video ?? undefined,
+    exit_rationale:
+      iteration?.exit_rationale ?? apiRow?.exit_rationale ?? undefined,
+    quarterly_update:
+      iteration?.quarterly_update ?? apiRow?.quarterly_update ?? [],
+    announcements_and_update:
+      apiRow?.announcements_and_update ??
+      iteration?.announcements_and_update ??
+      [],
     // fallback: allow performance_series, if any, or static below
     performance_series:
       sheetRow?.performance_series ?? apiRow?.performance_series,

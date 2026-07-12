@@ -16,6 +16,13 @@ function formatDateToYMD(d: Date | string): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getPrimaryIteration(row: any) {
+  return Array.isArray(row?.stock_performance_url) &&
+    row.stock_performance_url.length > 0
+    ? row.stock_performance_url[0]
+    : null;
+}
+
 // Transform a single sheet row to StockData (sheet-only, not merged)
 function transformSheetRowToStockData(sheetRow: any, idx: number): StockData {
   return {
@@ -42,6 +49,7 @@ function transformSheetRowToStockData(sheetRow: any, idx: number): StockData {
 
 // Merges a row from sheet with a possible db row, mapping all available fields
 function mergeSheetAndDbRow(sheetRow: any, dbRow: any, idx: number): StockData {
+  const primaryIteration = getPrimaryIteration(dbRow);
   return {
     id: dbRow?.id ?? `${idx}-${sheetRow.nseSymbol || sheetRow.companyName}`,
     name: sheetRow.companyName,
@@ -55,14 +63,18 @@ function mergeSheetAndDbRow(sheetRow: any, dbRow: any, idx: number): StockData {
     band: (sheetRow.action?.toUpperCase() as any) || "BUY",
     lastUpdated: dbRow?.updated_at || null,
     logo: dbRow?.logo,
-    business_note: dbRow?.business_note,
+    business_note: primaryIteration?.business_note,
     stock_performance_url: dbRow?.stock_performance_url ?? undefined,
     tags: dbRow?.tags || "",
-    quick_bite: dbRow?.quick_bite,
-    video: dbRow?.video,
-    exit_rationale: dbRow?.exit_rationale,
-    quarterly_update: dbRow?.quarterly_update || [],
-    announcements_and_update: dbRow?.announcements_and_update || [],
+    quick_bite: primaryIteration?.quick_bite,
+    video: primaryIteration?.video,
+    exit_rationale: primaryIteration?.exit_rationale,
+    quarterly_update:
+      primaryIteration?.quarterly_update ?? dbRow?.quarterly_update ?? [],
+    announcements_and_update:
+      dbRow?.announcements_and_update ??
+      primaryIteration?.announcements_and_update ??
+      [],
     percentReturn: sheetRow.percentReturn,
     dateRecommended: (sheetRow.dateRecommended || "").toString(),
   } as StockData;

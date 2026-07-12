@@ -1,4 +1,0 @@
-- [ ] Add incrementCouponUsage function in coupon.controller.ts
-- [ ] Call incrementCouponUsage in auth.controller.ts (zeroAmountAccountCreation)
-- [ ] Call incrementCouponUsage in cashfree-plans-orders.service.ts (createOrderForPlanService for free tiers)
-- [ ] Test the implementation

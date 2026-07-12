@@ -8,6 +8,8 @@ import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { Eye, FileText, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const StatusBadge = ({ value }: { value: string }) => {
   const getStatusColor = (s: string) => {
@@ -34,37 +36,48 @@ const StatusBadge = ({ value }: { value: string }) => {
 const RowActions = ({
   data,
   onDelete,
+  canDelete,
 }: {
   data: any;
   onDelete: (id: string) => void;
+  canDelete: boolean;
 }) => (
   <div className="flex items-center space-x-2">
     <button
       className="text-blue-600 hover:text-blue-800 p-1"
       title="View Invoice"
+      onClick={() => {
+        const transactionId = data?.transaction_id;
+        const planCode = (data?.plan_code || "").toLowerCase();
+        const isFree =
+          planCode === "freemium" ||
+          (data?.amount != null && Number(data.amount) === 0 && !planCode);
+        if (!transactionId || isFree) return;
+        const url = `${import.meta.env.VITE_API_BASE_URL}/api/payment-history/${encodeURIComponent(
+          transactionId
+        )}/invoice-pdf`;
+        window.open(url, "_blank", "noopener,noreferrer");
+      }}
     >
       <FileText size={16} />
     </button>
-    <button
-      className="text-blue-600 hover:text-blue-800 p-1"
-      title="View Details"
-    >
-      <Eye size={16} />
-    </button>
-    <button
-      className="text-red-600 hover:text-red-800 p-1"
-      onClick={async () => {
-        const ok = await confirmDelete(`transaction ${data.transaction_id}`);
-        if (ok) onDelete(data.transaction_id);
-      }}
-      title="Delete"
-    >
-      <Trash2 size={16} />
-    </button>
+    {canDelete && (
+      <button
+        className="text-red-600 hover:text-red-800 p-1"
+        onClick={async () => {
+          const ok = await confirmDelete(`transaction ${data.transaction_id}`);
+          if (ok) onDelete(data.transaction_id);
+        }}
+        title="Delete"
+      >
+        <Trash2 size={16} />
+      </button>
+    )}
   </div>
 );
 
 const PaymentHistory = () => {
+  const { canEdit } = useSectionEditAccess("ar_payment_history");
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     gateway: "All",
@@ -106,28 +119,46 @@ const PaymentHistory = () => {
   }, [searchQuery, filters, data]);
 
   const colDefs: ColDef[] = [
-    { headerName: "Transaction ID", field: "transaction_id" },
-    { headerName: "Invoice ID", field: "invoice_id" },
     { headerName: "User", field: "user_id" },
     { headerName: "Email", field: "user_email" },
     { headerName: "Membership", field: "membership" },
     { headerName: "Gateway", field: "payment_gateway" },
     { headerName: "Type", field: "payment_type" },
     { headerName: "Payer Email", field: "payer_email" },
+    { headerName: "Coupon", field: "coupon_code" },
     {
       headerName: "Status",
       field: "transaction_status",
       cellRenderer: StatusBadge,
     },
-    { headerName: "Date", field: "payment_date" },
+    {
+      headerName: "Date",
+      field: "payment_date",
+      minWidth: 280,
+      headerClass: "[&_.ag-header-cell-label]:!justify-center",
+      cellRenderer: (params: any) => {
+        if (!params.value) return "";
+        try {
+          const date = new Date(params.value);
+          return (
+            <span>
+              {format(date, "EEEE, MMMM d, yyyy")}
+              <span className="ml-6">{format(date, "hh:mm:ss a")}</span>
+            </span>
+          );
+        } catch (e) {
+          return params.value;
+        }
+      },
+    },
     {
       headerName: "Amount",
       field: "amount",
       valueFormatter: (params) =>
         typeof params.value === "number"
           ? new Intl.NumberFormat("en-IN", {
-              maximumFractionDigits: 2,
-            }).format(params.value)
+            maximumFractionDigits: 2,
+          }).format(params.value)
           : params.value,
     },
     {
@@ -138,6 +169,7 @@ const PaymentHistory = () => {
         <RowActions
           data={params.data}
           onDelete={(id) => deleteMutation.mutate(id)}
+          canDelete={canEdit}
         />
       ),
     },
@@ -183,6 +215,8 @@ const PaymentHistory = () => {
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[10, 25, 50, 100]}
+            enableCellTextSelection={true}
+            ensureDomOrder={true}
           />
         </div>
       </div>

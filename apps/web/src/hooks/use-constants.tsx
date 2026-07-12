@@ -6,6 +6,7 @@ import {
   BarChart3,
   CreditCard,
   LayoutDashboard,
+  MessageCircleQuestion,
   Newspaper,
   Play,
   Settings,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { SiSubstack } from "react-icons/si";
+import axiosInstance from "@/api/axios";
 
 const useConstants = () => {
   const formatDate = (v?: string | null) => {
@@ -93,6 +95,18 @@ const useConstants = () => {
       path: AppRoutes.scratch_pad_newsletter,
     },
     {
+      key: "effortless_investor",
+      name: "Subscribe to Smallcase",
+      icon: TrendingUp,
+      path: AppRoutes.effortlessInvestor,
+    },
+    {
+      key: "qna",
+      name: "QnA",
+      icon: MessageCircleQuestion,
+      path: AppRoutes.qna,
+    },
+    {
       key: "my_account",
       name: "My Account",
       icon: User,
@@ -170,6 +184,7 @@ const useConstants = () => {
       type: "Type",
       status: "Status",
       amount: "Amount",
+      coupon: "Coupon",
     },
     currency: {
       locale: "en-IN",
@@ -199,6 +214,33 @@ const useConstants = () => {
       field: "invoice_id",
       minWidth: 100,
       maxWidth: 150,
+      cellRenderer: (params: any) => {
+        const row = params.data as PaymentRow;
+        const transactionId = row?.transaction_id;
+        const planCode = (row?.plan_code || "").toLowerCase();
+        const isFree =
+          planCode === "freemium" ||
+          (row?.amount != null &&
+            Number(row.amount) === 0 &&
+            !planCode);
+        if (!transactionId || isFree) {
+          return params.value || "";
+        }
+        const href = `${import.meta.env.VITE_API_BASE_URL}/api/payment-history/${encodeURIComponent(
+          transactionId
+        )}/invoice-pdf`;
+        const label = params.value || "Download";
+        return (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
+            {label}
+          </a>
+        );
+      },
     },
     {
       headerName: TransactionHistoryConstants.columns.transaction,
@@ -241,6 +283,12 @@ const useConstants = () => {
         ),
       minWidth: 100,
       maxWidth: 120,
+    },
+    {
+      headerName: TransactionHistoryConstants.columns.coupon,
+      field: "coupon_code",
+      minWidth: 100,
+      maxWidth: 140,
     },
   ];
 

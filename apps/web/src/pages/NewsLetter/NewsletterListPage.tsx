@@ -11,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { toast } from "sonner";
 import { Newsletter } from "@repo/types";
-import mailchimpNewsletterApi from "@/api/mailchimp-api.ts";
 import { newsletterApi } from "@/api/content";
 
 const COLORS = {
@@ -32,6 +31,8 @@ const NewsletterArchive = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [publishDate, setPublishDate] = useState("");
+
 
   useEffect(() => {
     loadNewsletters();
@@ -40,31 +41,8 @@ const NewsletterArchive = () => {
   const loadNewsletters = async () => {
     try {
       setIsLoading(true);
-      const [mailchimpData, manualData] = await Promise.all([
-        mailchimpNewsletterApi.getAll(),
-        newsletterApi.getAll().catch(() => []),
-      ]);
-
-      const merged: Newsletter[] = [
-        // Manual CMS newsletters
-        ...(manualData as any[]).map((item) => ({
-          id: item.id,
-          title: item.title,
-          sub_title: item.sub_title,
-          headline_image_url: item.headline_image_url,
-          created_at: item.created_at,
-          category: item.category,
-          hidden: item.hidden,
-          link: item.link,
-          author: item.author,
-          plain_text: item.plain_text,
-          source: item.source ?? "cms",
-        })),
-        // Mailchimp newsletters
-        ...(mailchimpData as Newsletter[]),
-      ];
-
-      const sorted = merged.sort(
+      const mailchimpData = await newsletterApi.getAll().catch(() => []);
+      const sorted = mailchimpData.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -79,6 +57,15 @@ const NewsletterArchive = () => {
 
   const filteredNewsletters = useMemo(() => {
     let filtered = newsletters;
+
+    if (publishDate) {
+      filtered = filtered.filter((newsletter) => {
+        if (!newsletter.published_date) return false;
+        // Compare just the date part YYYY-MM-DD
+        const nDate = new Date(newsletter.published_date).toISOString().slice(0, 10);
+        return nDate === publishDate;
+      });
+    }
 
     if (searchQuery) {
       const term = searchQuery.toLowerCase();
@@ -100,7 +87,7 @@ const NewsletterArchive = () => {
     }
 
     return filtered;
-  }, [newsletters, searchQuery, activeFilter]);
+  }, [newsletters, searchQuery, activeFilter, publishDate]);
 
   const totalPages = Math.ceil(filteredNewsletters.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -136,8 +123,9 @@ const NewsletterArchive = () => {
   };
 
   const handleViewNewsletter = (item: Newsletter) => {
+    // CHANGE 1: Make card click open the newsletter (link/card clickable)
     if (item.source === "cms" && item.link) {
-      navigate("/user/app/pdf-viewer", { state: { url: item.link } });
+      window.location.href = item.link;
       return;
     }
     navigate(`/newsletters/${item.id}`);
@@ -153,6 +141,7 @@ const NewsletterArchive = () => {
     });
   };
 
+  // UPDATED FILTERS: Add "Scratch Pad"
   const filters = useMemo(() => {
     const categoryCounts = newsletters.reduce(
       (acc, newsletter) => {
@@ -171,6 +160,11 @@ const NewsletterArchive = () => {
         count: categoryCounts["learning-of-the-week"] || 0,
       },
       {
+        id: "scratch-pad",
+        label: "Scratch Pad",
+        count: categoryCounts["scratch-pad"] || 0,
+      },
+      {
         id: "topical-update",
         label: "Topical Update",
         count: categoryCounts["topical-update"] || 0,
@@ -179,8 +173,59 @@ const NewsletterArchive = () => {
   }, [newsletters]);
 
   const getSubtitle = (newsletter: Newsletter) =>
-    //@ts-ignore
+
     newsletter.sub_title || newsletter.plain_text || "";
+
+
+  function renderCategoryTag(category?: string) {
+    if (!category) return null;
+    let label = "";
+    let color = "";
+    switch (category) {
+      case "learning-of-the-week":
+        label = "Learning of the Week";
+        color = COLORS.red;
+        break;
+      case "scratch-pad":
+        label = "Scratch Pad";
+        color = "#FECE56";
+        break;
+      case "topical-update":
+        label = "Topical Update";
+        color = COLORS.blue;
+        break;
+      default:
+        label = category;
+        color = COLORS.gray;
+    }
+    return (
+      <span
+        className="inline-flex w-fit rounded-full px-3 py-2 text-xs font-medium leading-none"
+        style={{
+          backgroundColor: color,
+          color: category === "scratch-pad" ? COLORS.black : COLORS.white,
+        }}
+      >
+        {label}
+      </span>
+    );
+  }
+
+  function renderDate(dateString?: string) {
+    if (!dateString) return null;
+    return (
+      <span className="text-sm text-gray-500 whitespace-nowrap">
+        {new Date(dateString).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })}
+      </span>
+    );
+  }
+
+
+
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -227,11 +272,10 @@ const NewsletterArchive = () => {
               <button
                 key={filter.id}
                 onClick={() => handleFilterChange(filter.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform-gpu ${
-                  activeFilter === filter.id
-                    ? "text-white shadow-md scale-105"
-                    : "text-gray-700 hover:bg-gray-100 border border-gray-300"
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform-gpu ${activeFilter === filter.id
+                  ? "text-white shadow-md scale-105"
+                  : "text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  }`}
                 style={{
                   backgroundColor:
                     activeFilter === filter.id ? COLORS.red : COLORS.white,
@@ -240,6 +284,19 @@ const NewsletterArchive = () => {
                 {filter.label} ({filter.count})
               </button>
             ))}
+
+            <div className="flex flex-col gap-1 ml-2">
+              <label className="block text-sm font-medium mb-1 sr-only">
+                Publish Date
+              </label>
+              <input
+                type="date"
+                value={publishDate}
+                onChange={(e) => setPublishDate(e.target.value)}
+                className="border rounded px-2 py-1 text-sm w-fit"
+                placeholder="Publish Date"
+              />
+            </div>
           </div>
         </div>
 
@@ -253,10 +310,20 @@ const NewsletterArchive = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {currentNewsletters.map((newsletter) => {
                 const summary = getSubtitle(newsletter);
+                // Make entire card clickable and accessible
                 return (
                   <div
                     key={newsletter.id}
-                    className="group rounded-2xl shadow-sm overflow-hidden bg-[#F9FAFB] flex flex-col border border-gray-200 transform transition-all hover:shadow-lg hover:-translate-y-1"
+                    className="group rounded-2xl shadow-sm overflow-hidden bg-[#F9FAFB] flex flex-col border border-gray-200 transform transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer focus:outline-none"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Read newsletter: ${newsletter.title}`}
+                    onClick={() => handleViewNewsletter(newsletter)}
+                    onKeyPress={e => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        handleViewNewsletter(newsletter);
+                      }
+                    }}
                   >
                     {/* Image */}
                     <div className="relative aspect-video overflow-hidden">
@@ -274,7 +341,13 @@ const NewsletterArchive = () => {
                     </div>
 
                     {/* Card Body */}
-                    <div className="flex flex-col flex-grow px-4 py-3">
+                    <div className="flex flex-col item-center gap-2 flex-grow px-4 py-3">
+                      {/* CATEGORY TAG and Date moved above */}
+                      <div className="flex items-center justify-between gap-2">
+                        {renderCategoryTag(newsletter.category)}
+                        {renderDate(newsletter.published_date)}
+                      </div>
+
                       <h3
                         className="text-[#1C2852] text-base font-semibold mb-2 line-clamp-2 group-hover:text-[#C00000] transition-colors"
                         style={{
@@ -295,16 +368,24 @@ const NewsletterArchive = () => {
 
                       <div className="flex items-center justify-between text-gray-600 text-sm mt-auto mb-2">
                         <button
-                          onClick={() => handleViewNewsletter(newsletter)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleViewNewsletter(newsletter);
+                          }}
                           className="flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors"
+                          tabIndex={-1}
                         >
                           <Play className="w-4 h-4 flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors" />
                           <span>Read Now</span>
                         </button>
 
                         <button
-                          onClick={() => handleShare(newsletter)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleShare(newsletter);
+                          }}
                           className="flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors"
+                          tabIndex={-1}
                         >
                           <Share2 className="w-4 h-4 flex items-center gap-2 cursor-pointer hover:text-[#C00000] transition-colors" />
                           <span>Share</span>
@@ -390,11 +471,10 @@ const NewsletterArchive = () => {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page as number)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        isActive
-                          ? "text-white shadow-md"
-                          : "text-gray-700 hover:bg-gray-100 border border-gray-300"
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${isActive
+                        ? "text-white shadow-md"
+                        : "text-gray-700 hover:bg-gray-100 border border-gray-300"
+                        }`}
                       style={{
                         backgroundColor: isActive ? COLORS.red : COLORS.white,
                       }}

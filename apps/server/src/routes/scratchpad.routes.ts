@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { protect, admin } from "../middleware/auth.middleware";
+import { protect, requireSectionEdit, staff } from "../middleware/auth.middleware";
 import {
   getScratchPadNewsletters,
   getScratchPadNewsletterById,
@@ -20,19 +20,22 @@ router.get("/scratch-pad-newsletters/slug/:slug", getScratchPadNewsletterBySlug)
 router.post(
   "/admin/scratch-pad-newsletters",
   protect,
-  admin,
+  staff,
+  requireSectionEdit("content_scratch_pad"),
   createScratchPadNewsletter
 );
 router.put(
   "/admin/scratch-pad-newsletters/:id",
   protect,
-  admin,
+  staff,
+  requireSectionEdit("content_scratch_pad"),
   updateScratchPadNewsletter
 );
 router.delete(
   "/admin/scratch-pad-newsletters/:id",
   protect,
-  admin,
+  staff,
+  requireSectionEdit("content_scratch_pad"),
   deleteScratchPadNewsletter
 );
 

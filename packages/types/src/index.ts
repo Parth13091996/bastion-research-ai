@@ -10,6 +10,7 @@ export interface Newsletter {
    author?: string;
    plain_text?: string;
    source?: "mailchimp" | "cms";
+   published_date?: string;
 }
 
 export interface User {

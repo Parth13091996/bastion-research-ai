@@ -31,7 +31,7 @@ const BastionPrivacyPolicy = () => {
 
         {/* Effective Date */}
         <p className="text-gray-600 mb-12 text-lg">
-          Effective Date: 1st August 2023
+          Effective Date: 9th September 2025
         </p>
 
         {/* Content */}

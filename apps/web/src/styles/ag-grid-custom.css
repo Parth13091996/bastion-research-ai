@@ -1,6 +1,6 @@
-/* ================================
+/*
    Compact AG-Grid Filter Styling
-   ================================ */
+*/
 
 /* Compact filter menu popup */
 .ag-theme-alpine .ag-filter-toolpanel,
@@ -79,4 +79,21 @@
   justify-content: flex-start;
   text-align: left;
 }
+
+/* Handle overflow and selection */
+.ag-theme-alpine .ag-cell,
+.ag-theme-alpine .ag-cell-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
+/* Ensure focus outline doesn't look weird with selection */
+.ag-theme-alpine .ag-cell:focus {
+  border: none !important;
+  outline: none !important;
+}
+
 

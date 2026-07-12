@@ -6,6 +6,7 @@ import {
   getUserSession,
   logout,
   onboardUser,
+  onboardingDropOffStart,
   zeroAmountAccountCreation,
 } from "../controllers/auth.controller";
 
@@ -15,6 +16,7 @@ const router = Router();
 router.post("/signin", signIn);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.post("/onboarding-dropoff/start", onboardingDropOffStart);
 router.post("/onboard", onboardUser);
 router.post("/zero-amount-payment", zeroAmountAccountCreation);
 

@@ -167,7 +167,7 @@ const ScratchPadView: React.FC = () => {
           </div>
 
           <Card>
-            <CardContent className="prose prose-slate dark:prose-invert max-w-none p-8">
+            <CardContent className="prose prose-slate dark:prose-invert max-w-none p-8 tiptap ProseMirror simple-editor">
               <div
                 dangerouslySetInnerHTML={{
                   __html: (newsletter.content || ("" as any)).replace(

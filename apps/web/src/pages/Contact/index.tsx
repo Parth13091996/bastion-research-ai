@@ -1,5 +1,5 @@
 import { sendContactMessage } from "@/api/contact-api";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { toast } from "sonner";
 
 import BackgroundShapes from "@/components/generic/framer-motion";
@@ -96,8 +96,10 @@ export default function ContactPage() {
           <InfoCard
             icon={<Phone className="w-6 h-6" />}
             title="Phone number"
-            lines={["+91 98765 43210"]}
+            lines={["+91 8780507966"]}
+            info={"For client and business enquiries only."}
           />
+
         </div>
       </section>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-14">
@@ -165,7 +167,7 @@ export default function ContactPage() {
                     value={form.phone}
                     onChange={onChange}
                     className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                    placeholder="e.g., +91 98765 43210"
+                    placeholder="e.g., +91 8780507966"
                   />
                 }
               />
@@ -285,7 +287,7 @@ export default function ContactPage() {
   );
 }
 
-function InfoCard({ icon, title, lines }) {
+function InfoCard({ icon, title, lines, info }: { icon: ReactNode, title: string, lines: string[], info?: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -305,6 +307,7 @@ function InfoCard({ icon, title, lines }) {
               <p key={i}>{l}</p>
             ))}
           </div>
+          <small>{info}</small>
         </div>
       </div>
     </motion.div>

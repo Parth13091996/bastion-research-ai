@@ -12,6 +12,9 @@ interface Newsletter {
   author?: string;
   plain_text?: string;
   source?: "mailchimp" | "cms";
+  category?: string;
+  hidden?: boolean;
+  published_date?: string;
 }
 
 interface Podcast {
@@ -47,4 +50,6 @@ interface PaymentRow {
   payment_date?: string | null;
   amount?: number | string | null;
   membership?: string | null;
+  plan_code?: string | null;
+  coupon_code?: string | null;
 }

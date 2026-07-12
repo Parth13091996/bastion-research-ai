@@ -138,8 +138,14 @@ const KYCStep: React.FC<KYCStepProps> = ({
     setError(null);
 
     // Validate mandatory fields
-    if (!formData.panCard.trim()) {
+    const pan = (formData.panCard || "").trim().toUpperCase();
+    if (!pan) {
       setError("Please enter PAN card.");
+      return;
+    }
+
+    if (!PAN_REGEX.test(pan)) {
+      setError("Please enter a valid PAN (e.g. ABCDE1234F)");
       return;
     }
 
@@ -167,6 +173,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
         panVerification: verification,
         status: "onboarded",
         role: formData.role,
+        onboarding_session_id: formData.onboardingSessionId,
       });
       setLoading(false);
       onNext();

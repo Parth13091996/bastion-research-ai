@@ -7,6 +7,7 @@ interface Newsletter {
   footer_content?: string;
   created_at: string;
   contents?: string;
+  category?: string,
   link?: string;
   guid?: string;
   author?: string;

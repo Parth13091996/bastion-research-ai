@@ -36,7 +36,7 @@ function SidebarOverlay({ isMobileOpen, toggleMobileMenu }) {
 }
 
 const UserSidebar = () => {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, isStaff, logout } = useAuth();
   const { data: subscription } = useSubscription();
   const [showPricing, setShowPricing] = useState(false);
   const { navItems, BrandColors } = useConstants();
@@ -149,6 +149,7 @@ const UserSidebar = () => {
       />
       <SidebarNav
         isAdmin={isAdmin}
+        isStaff={isStaff}
         profile={profile}
         navItems={effectiveNavItems}
         openMenus={openMenus}

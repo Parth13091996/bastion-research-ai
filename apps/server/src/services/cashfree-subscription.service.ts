@@ -8,7 +8,6 @@ export const getUserSubscriptionService = async (userId: string) => {
         `
         id,
         plan_id,
-        plan_code,
         status,
         subscription_start_date,
         subscription_end_date,
@@ -57,10 +56,14 @@ export const getUserSubscriptionService = async (userId: string) => {
   const effectivePlan =
     user?.membership_plans || lastPayment?.membership_plans || null;
 
-  const isPremium = Boolean(user?.plan_id || user?.plan_code);
+  const isPremium = Boolean(
+    user?.plan_id ||
+      effectivePlan?.plan_code ||
+      effectivePlan?.plan_id ||
+      lastPayment?.plan_id
+  );
 
   const currentPlan: string | null =
-    user?.plan_code ||
     effectivePlan?.plan_code ||
     (effectivePlan?.plan_id != null
       ? String(effectivePlan.plan_id)

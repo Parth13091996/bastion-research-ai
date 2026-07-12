@@ -1,8 +1,7 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, AnimatePresenceProps } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import SignUpForm from "../Register/SignupForm.tsx";
-// import ComingSoon from "@/components/ComingSoon.tsx";
 
 const NAVY = "#1C2852";
 const MAROON = "#C00000";
@@ -11,9 +10,7 @@ const tabs = [
   { key: "qualified", label: "Fund Manager / Family Office" },
   { key: "diy", label: "DIY Individual Investor" },
   { key: "non_diy", label: "Effortless Investor" },
-  //  { key: "ipo", label: "IPO Investor" },
 ] as const;
-
 
 type TabKey = (typeof tabs)[number]["key"];
 
@@ -28,7 +25,6 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (paused) return;
-
     intervalRef.current = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -39,7 +35,6 @@ export default function LandingPage() {
         return prev + 100 / (4 * 20);
       });
     }, 50);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -51,7 +46,6 @@ export default function LandingPage() {
 
   // pdf download functionality
   const PDF_URL = "/media/Research-Ally-Product-Note-BRH.pdf";
-
   const downloadPdf = async (filename = "Research-Ally-Product-Note-BRH.pdf") => {
     try {
       const res = await fetch(PDF_URL, { cache: "no-cache" });
@@ -69,22 +63,6 @@ export default function LandingPage() {
       window.open(PDF_URL, "_blank");
     }
   };
-
-  // Function to open popup browser
-  const openPopup = (url: string) => {
-    const width = 800;
-    const height = 500;
-    // const left = window.screen.width / 2 - width / 2;
-    const left = 20;
-    // const top = window.screen.height / 2 - height / 2;
-    const top = 10;
-
-    window.open(
-      url,
-      "PopupWindow",
-      `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`
-    );
-  }
 
   return (
     <>
@@ -195,7 +173,7 @@ export default function LandingPage() {
                   </div>
 
                   {/* Content area */}
-                  <div className="flex-1 p-5 md:p-8 overflow-hidden">
+                  <div className="flex-1 p-5 md:p-8 overflow-hidden flex flex-col justify-center relative">
                     <AnimatePresence mode="wait">
                       {active === "qualified" && (
                         <motion.div
@@ -254,7 +232,7 @@ export default function LandingPage() {
                               "Regular company updates and quarterly reports",
                               "Access to our Scratchpad (near-miss ideas with reasons)",
                               "IPO notes on interesting listings",
-                              "Discounted access to Adaptive Quality portfolios",
+                              "Asymmetric Growth Fundamentals",
                             ]}
                           />
                         </motion.div>
@@ -267,7 +245,7 @@ export default function LandingPage() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.25 }}
-                          className="h-full flex flex-col md:flex-row gap-6 blur-sm"
+                          className={`h-full flex flex-col md:flex-row gap-6`}
                         >
                           <Panel
                             title="Product Suitability"
@@ -284,9 +262,7 @@ export default function LandingPage() {
                               {
                                 text: "Portfolio choices:",
                                 sublist: [
-                                  "Adaptive Quality (Techno-Funda)",
-                                  "Triple Edge (Quant-based)",
-                                  "ETF Optimiser (Smart ETF investing)",
+                                  "Asymmetric Growth"
                                 ],
                               },
                             ]}
@@ -383,47 +359,49 @@ export default function LandingPage() {
 
 
                   {active === "non_diy" && (
-                    <div className="blur-sm pointer-events-none">
-                    <motion.div
-                      className="p-5 text-center border-t flex justify-center gap-4 flex-wrap"
-                      style={{ borderColor: "rgba(28,40,82,0.12)" }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <motion.button
-                        className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
-                        style={{
-                          background: `linear-gradient(135deg, ${MAROON}, ${MAROON}dd)`,
-                          color: "white",
-                          borderColor: MAROON,
-                        }}
-                        whileHover={{
-                          scale: 1.05,
-                          boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
-                        }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => openPopup("/coming-soon")}
+                    <div>
+                      <motion.div
+                        className="p-5 text-center border-t flex justify-center gap-4 flex-wrap"
+                        style={{ borderColor: "rgba(28,40,82,0.12)" }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
                       >
-                        View Product Page
-                      </motion.button>
-                      <motion.button
-                        className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
-                        style={{
-                          background: `linear-gradient(135deg, ${MAROON}, ${MAROON}dd)`,
-                          color: "white",
-                          borderColor: MAROON,
-                        }}
-                        whileHover={{
-                          scale: 1.05,
-                          boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
-                        }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => openPopup("/coming-soon")}
-                      >
-                        Subscribe Portfolio
-                      </motion.button>
-                    </motion.div>
+                        <motion.button
+                          className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                          style={{
+                            background: `linear-gradient(135deg, ${MAROON}, ${MAROON}dd)`,
+                            color: "white",
+                            borderColor: MAROON,
+                          }}
+                          whileHover={{
+                            scale: 1.05,
+                            boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                          // onClick={() => openPopup("/coming-soon")}
+                          onClick={() => open("http://bastionresearch.smallcase.com/")}
+                        >
+                          View Product Page
+                        </motion.button>
+                        <motion.button
+                          className="px-5 py-2.5 rounded-xl font-medium shadow-sm border"
+                          style={{
+                            background: `linear-gradient(135deg, ${MAROON}, ${MAROON}dd)`,
+                            color: "white",
+                            borderColor: MAROON,
+                          }}
+                          whileHover={{
+                            scale: 1.05,
+                            boxShadow: "0 10px 25px rgba(192,0,0,0.3)",
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                          // onClick={() => openPopup("/coming-soon")}
+                          onClick={() => open("http://bastionresearch.smallcase.com/")}
+                        >
+                          Subscribe Portfolio
+                        </motion.button>
+                      </motion.div>
                     </div>
                   )}
                 </div>

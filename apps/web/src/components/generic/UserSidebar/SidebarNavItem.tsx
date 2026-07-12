@@ -13,7 +13,8 @@ const SidebarNavItem = ({
         if (
           profile?.currentPlan === "freemium" &&
           (item.name === "Premium Webinars" ||
-            item.name === "Scratch Pad Newsletter")
+            item.name === "Scratch Pad Newsletter" ||
+            item.name === "Subscribe to Smallcase")
         ) {
           setShowPricing(true);
           return;

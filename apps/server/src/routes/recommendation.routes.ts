@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { protect, admin } from "../middleware/auth.middleware";
+import { protect, requireSectionEdit, staff } from "../middleware/auth.middleware";
 import {
   deleteRecommendation,
   getRecommendations,
@@ -31,7 +31,8 @@ router.get(
 router.put(
   "/recommendations/company/:companySymbol",
   protect,
-  admin,
+  staff,
+  requireSectionEdit("content_recommendations"),
   upload.fields([
     { name: "logo", maxCount: 1 },
     { name: "business_note", maxCount: 1 },
@@ -40,6 +41,12 @@ router.put(
   ]),
   upsertRecommendationByCompany
 );
-router.delete("/recommendations/:id", protect, admin, deleteRecommendation);
+router.delete(
+  "/recommendations/:id",
+  protect,
+  staff,
+  requireSectionEdit("content_recommendations"),
+  deleteRecommendation
+);
 
 export default router;

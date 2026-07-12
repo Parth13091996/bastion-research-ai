@@ -1,4 +1,5 @@
 import { getRecommendationByCompanySymbol } from "@/api/recommendations-apis";
+import dayjs from "dayjs"
 import { useIsMobile } from "@/hooks/use-mobile";
 import useSheetStocks from "@/hooks/use-sheets-stocks";
 import { useEffect, useState } from "react";
@@ -34,6 +35,65 @@ const SingleRecommendation = () => {
     useState<number>(0);
   const isMobile = useIsMobile();
 
+  const performanceArray =
+    Array.isArray(stock?.stock_performance_url) && stock.stock_performance_url
+      ? stock.stock_performance_url
+      : stock?.stock_performance_url
+        ? [
+            {
+              date: stock.dateRecommended || "",
+              title: "Initial recommendation",
+              stock_recommendation_url: stock.stock_performance_url,
+            },
+          ]
+        : [];
+
+  const selectedPerformanceItem =
+    performanceArray.length > 0
+      ? performanceArray[
+          Math.min(selectedPerformanceIndex, performanceArray.length - 1)
+        ]
+      : null;
+
+  const effectiveStock =
+    stock && typeof stock === "object"
+      ? {
+          ...stock,
+          business_note:
+            selectedPerformanceItem?.business_note ?? stock.business_note,
+          quick_bite: selectedPerformanceItem?.quick_bite ?? stock.quick_bite,
+          video: selectedPerformanceItem?.video ?? stock.video,
+          exit_rationale:
+            selectedPerformanceItem?.exit_rationale ?? stock.exit_rationale,
+          quarterly_update:
+            selectedPerformanceItem?.quarterly_update ?? stock.quarterly_update,
+          announcements_and_update:
+            selectedPerformanceItem?.announcements_and_update ??
+            stock.announcements_and_update,
+          dateRecommended:
+            selectedPerformanceItem?.dateRecommended ?? stock.dateRecommended,
+          priceAtRecommendation:
+            selectedPerformanceItem?.priceAtRecommendation ??
+            stock.priceAtRecommendation,
+          dateExit:
+            selectedPerformanceItem?.dateExit ?? stock.dateExit ?? "",
+          holdingPeriod:
+            selectedPerformanceItem?.holdingPeriod ?? stock.holdingPeriod,
+          cmpOrExitPrice:
+            selectedPerformanceItem?.cmpOrExitPrice ?? stock.cmpOrExitPrice,
+          percentReturn:
+            selectedPerformanceItem?.percentReturn ?? stock.percentReturn,
+          action: selectedPerformanceItem?.action ?? stock.action,
+          targetPrice:
+            selectedPerformanceItem?.targetPrice ?? stock.targetPrice,
+          upsidePotential:
+            selectedPerformanceItem?.upsidePotential ?? stock.upsidePotential,
+          latestMcapCr:
+            selectedPerformanceItem?.latestMcapCr ?? stock.latestMcapCr,
+        }
+      : stock;
+
+
   useEffect(() => {
     if (!symbol) {
       setFetchError("Invalid recommendation symbol.");
@@ -60,18 +120,6 @@ const SingleRecommendation = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const performanceArray = Array.isArray(stock?.stock_performance_url)
-      ? stock.stock_performance_url
-      : stock?.stock_performance_url
-        ? [
-            {
-              date: stock.dateRecommended || "",
-              title: "Initial recommendation",
-              stock_recommendation_url: stock.stock_performance_url,
-            },
-          ]
-        : [];
-
     const currentItem =
       performanceArray.length > 0
         ? performanceArray[
@@ -102,8 +150,10 @@ const SingleRecommendation = () => {
     selectedPerformanceIndex,
   ]);
 
-  const announcements = Array.isArray(stock?.announcements_and_update)
-    ? stock.announcements_and_update.map((item: any, idx: number) => ({
+  const announcements = Array.isArray(
+    effectiveStock?.announcements_and_update
+  )
+    ? effectiveStock.announcements_and_update.map((item: any, idx: number) => ({
         id: idx,
         date: formatMonthYear(item?.date ?? ""),
         heading: item?.title ?? "",
@@ -127,13 +177,13 @@ const SingleRecommendation = () => {
         </div>
       ) : (
         <>
-          <Header stock={stock} />
+          <Header stock={stock} selectedPerformanceIndex={selectedPerformanceIndex}/>
           <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-4">
                 {/* Performance URL selector */}
-                {Array.isArray(stock?.stock_performance_url) &&
-                  stock.stock_performance_url.length > 0 && (
+                {Array.isArray(performanceArray) &&
+                  performanceArray.length > 0 && (
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-medium">
                         Select Performance Date
@@ -145,39 +195,20 @@ const SingleRecommendation = () => {
                             setSelectedPerformanceIndex(parseInt(v, 10))
                           }
                         >
-                          <SelectTrigger className="w-full max-w-xs">
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select date" />
                           </SelectTrigger>
                           <SelectContent>
-                            {stock.stock_performance_url.map(
+                            {performanceArray.map(
                               (item: any, index: number) => (
-                                <SelectItem
-                                  key={index}
-                                  value={String(index)}
-                                >
-                                  {item.date || "Unknown date"}{" "}
+                                <SelectItem key={index} value={String(index)}>
+                                  {dayjs(item.date).format("DD MMM YYYY") || "Unknown date"}{" "}
                                   {item.title ? `- ${item.title}` : ""}
                                 </SelectItem>
                               )
                             )}
                           </SelectContent>
                         </Select>
-                        {stock.stock_performance_url[
-                          selectedPerformanceIndex
-                        ]?.stock_recommendation_url && (
-                          <a
-                            href={
-                              stock.stock_performance_url[
-                                selectedPerformanceIndex
-                              ].stock_recommendation_url
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 underline"
-                          >
-                            Open selected performance URL
-                          </a>
-                        )}
                       </div>
                     </div>
                   )}
@@ -191,7 +222,7 @@ const SingleRecommendation = () => {
                 />
               </div>
               <ResourcesQuarterly
-                stock={stock}
+                stock={effectiveStock}
                 setSelectedUpdate={setSelectedUpdate}
               />
             </div>

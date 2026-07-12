@@ -2,63 +2,45 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, ArrowUp, User } from "lucide-react";
 import MonthEndingTitle from "../../components/MonthEndingTitle";
 
-// 🧩 Helper: Generate FY months up to previous month
 function getFinancialYearMonths() {
   const today = new Date();
   const currentYear = today.getFullYear();
-  const currentDay = today.getDate();
+  const currentMonth = today.getMonth(); // 0–11
 
-  let currentMonth = today.getMonth() + 1; // 1–12 format
-
-  // Adjust month based on Day
-  if (currentDay <= 9) {
-    currentMonth -= 5;
-  } else {
-    currentMonth -= 4;
-  }
-
-  // Wrap negative months
-  while (currentMonth <= 0) currentMonth += 12;
-
-  // FY start year
-  const fyStartYear = currentMonth >= 4 ? currentYear : currentYear - 1;
+  const fyStartYear = currentMonth >= 3 ? currentYear : currentYear - 1;
 
   const months = [
-    { name: "Apr", year: fyStartYear },
-    { name: "May", year: fyStartYear },
-    { name: "Jun", year: fyStartYear },
-    { name: "Jul", year: fyStartYear },
-    { name: "Aug", year: fyStartYear },
-    { name: "Sep", year: fyStartYear },
-    { name: "Oct", year: fyStartYear },
-    { name: "Nov", year: fyStartYear },
-    { name: "Dec", year: fyStartYear },
-    { name: "Jan", year: fyStartYear + 1 },
-    { name: "Feb", year: fyStartYear + 1 },
-    { name: "Mar", year: fyStartYear + 1 },
+    { name: "Apr", index: 3 },
+    { name: "May", index: 4 },
+    { name: "Jun", index: 5 },
+    { name: "Jul", index: 6 },
+    { name: "Aug", index: 7 },
+    { name: "Sep", index: 8 },
+    { name: "Oct", index: 9 },
+    { name: "Nov", index: 10 },
+    { name: "Dec", index: 11 },
+    { name: "Jan", index: 0 },
+    { name: "Feb", index: 1 },
+    { name: "Mar", index: 2 },
   ];
 
-  // Previous month (after adjustment)
-  const prevMonthIndex = currentMonth - 1; // 0-based for array
+  const result = [];
 
-  // Slice months from FY start up to prevMonthIndex
-  let startIndex = 0;
-  let endIndex = prevMonthIndex + 1; // slice is non-inclusive at end
+  months.forEach((m) => {
+    const year = m.index >= 3 ? fyStartYear : fyStartYear + 1;
+    const monthDate = new Date(year, m.index, 1);
 
-  // Handle wrap-around (for Jan–Mar case)
-  if (prevMonthIndex < 3) {
-    // months Jan(10), Feb(11), Mar(12)
-    endIndex = prevMonthIndex + 9 + 1; // shift to correct FY slice
-  }
+    if (monthDate <= today) {
+      result.push({
+        month: `${m.name}'${String(year).slice(-2)}`,
+      });
+    }
+  });
 
-  const filtered = months.slice(0, endIndex);
-
-  return filtered
-    .map((m, index) => ({
-      num: index + 1,
-      month: `${m.name}'${String(m.year).slice(-2)}`,
-    }))
-    .reverse();
+  return result.map((item, index) => ({
+    num: index + 1,
+    ...item,
+  }));
 }
 
 export default function Complaince() {
@@ -70,17 +52,23 @@ export default function Complaince() {
       : `${currentYear - 1}-${currentYear.toString().slice(-2)}`;
 
   // Starting financial year (first entry in your table)
-  const startFY = "2022-21";
+  const startFY = "2021-20";
 
   // Generate all financial years up to current year automatically
   const fyList = [];
   let start = parseInt(startFY.split("-")[0]);
   const end = parseInt(currentFY.split("-")[0]);
 
-  for (let year = end; year >= start; year--) {
-    const fy = `${year - 1}-${year.toString().slice(-2)}`;
-    fyList.push(fy);
+  let srNo = 1;
+
+  for (let year = start + 1; year <= end; year++) {
+    fyList.push({
+      srNo,
+      fy: `${year - 1}-${year.toString().slice(-2)}`,
+    });
+    srNo++;
   }
+
 
   const rows = getFinancialYearMonths();
 
@@ -148,7 +136,7 @@ export default function Complaince() {
                   You may also approach Partner/RA - Mr. Parth L Agarwal, Email
                   ID:{" "}
                   <span className="text-red-600">
-                    parth@bastionresearch.in
+                    subscription@bastionresearch.in
                   </span>{" "}
                   and Phone No.-{" "}
                   <span className="font-semibold">+91 8866358747</span>.
@@ -601,9 +589,7 @@ export default function Complaince() {
           </p>
 
           <p className="text-lg font-semibold text-gray-800 mb-4">
-            Data for the Month Ending{" "}
-            <span>
-              <MonthEndingTitle format="MMM yyyy" />
+            Data for the Month Ending <span><MonthEndingTitle format="MMM yyyy" />
             </span>
           </p>
 
@@ -793,16 +779,16 @@ export default function Complaince() {
                       {row.month}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      0
+                      NA
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      0
+                      NA
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      0
+                      NA
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      0
+                      NA
                     </td>
                   </tr>
                 ))}
@@ -816,16 +802,16 @@ export default function Complaince() {
                     Grand Total
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                 </tr>
               </tbody>
@@ -870,25 +856,23 @@ export default function Complaince() {
                 </tr>
               </thead>
               <tbody>
-                {fyList.map((fy, index) => (
-                  <tr key={fy}>
+                {fyList.map((row) => (
+                  <tr key={row.fy}>
+                    <td className="border border-gray-300 px-4 py-3 text-center" >{row.srNo}</td>
+                    <td className="border border-gray-300 px-4 py-3 text-center">{row.fy}</td>
+
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      {index + 1}
+
+                      NA
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      {fy}
+                      NA
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      {fy === "2022-23" ? "NA" : "0"}
+                      NA
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      {fy === "2022-23" ? "NA" : "0"}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-center">
-                      {fy === "2022-23" ? "NA" : "0"}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-center">
-                      {fy === "2022-23" ? "NA" : "0"}
+                      NA
                     </td>
                   </tr>
                 ))}
@@ -901,16 +885,16 @@ export default function Complaince() {
                     Grand Total
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                   <td className="border border-gray-300 px-4 py-3 text-center">
-                    0
+                    NA
                   </td>
                 </tr>
               </tbody>
@@ -987,13 +971,13 @@ export default function Complaince() {
                       Head of Customer Care
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      -
+                      Parth Agrawal
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      +91 8866358747
+                      +91 8780507966
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      parth@bastionresearch.in
+                      subscription@bastionresearch.in
                     </td>
                   </tr>
                   <tr>
@@ -1001,7 +985,7 @@ export default function Complaince() {
                       Compliance Officer
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center ">
-                      -
+                      Navid Virani
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center ">
                       +91 7874205366
@@ -1029,19 +1013,91 @@ export default function Complaince() {
                       Principal Officer
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      -
+                      Parth Agrawal
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
                       +91 8866358747
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-center">
-                      parth@bastionresearch.in
+                      subscription@bastionresearch.in
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
+          {/*-------------------- Compliance Audit Status -------------------*/}
+          <div className="mt-12">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              Compliance Audit Status
+            </h2>
+
+            <p className="text-gray-700 mb-4">
+              As communicated by BSE to all Research Analysts (RAs), compliance audit
+              status is required to be displayed on the website. The same has been
+              added below for disclosure.
+            </p>
+
+            <p className="text-gray-700 mb-6 italic">
+              "Disclosure with respect to compliance with Annual compliance audit
+              requirement under Regulation 25(3) of SEBI (Research Analyst)
+              Regulations, 2014 for last financial years are as under:
+            </p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300 bg-white shadow-sm">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                      Sr. No
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                      Financial Year
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                      Compliance Audit Status
+                    </th>
+                    <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                      Remarks, If any
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      1
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      FY 2023-24
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      Not Conducted
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      Audit was not applicable as LLP got registered as RA in FY 25-26
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      2
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      FY 2024-25
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      Not Conducted
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-center">
+                      Audit was not applicable as LLP got registered as RA in FY 25-26
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </main>
     </div>

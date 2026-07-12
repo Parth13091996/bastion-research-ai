@@ -10,11 +10,12 @@ import {
   getPanVerificationStatus,
 } from "../controllers/cashfree.controller";
 import { protect } from "../middleware/auth.middleware";
+import optionalAuth from "../middleware/optionalAuth.middleware";
 
 const router = Router();
 
 // Verification APIs
-router.post("/verification/pan", verifyPan);
+router.post("/verification/pan", optionalAuth, verifyPan);
 router.get("/verification/pan/:referenceId", getPanVerificationStatus);
 
 // Plans

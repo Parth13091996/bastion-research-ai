@@ -215,6 +215,7 @@ function mapManualNewsletter(row: any) {
     link: row.link,
     author: row.author ?? undefined,
     plain_text: row.plain_text ?? undefined,
+    published_date: row.published_date ?? undefined,
     hidden: Boolean(row.hidden),
     source: "cms" as const,
   };
@@ -296,7 +297,9 @@ export async function createNewsletter(req: Request, res: Response) {
         link,
         sub_title: sub_title ?? null,
         headline_image_url: headline_image_url ?? null,
+
         author: author ?? null,
+        published_date: req.body.published_date ?? null,
       })
       .select("*")
       .single();
@@ -322,7 +325,9 @@ export async function updateNewsletter(req: Request, res: Response) {
       sub_title,
       headline_image_url,
       author,
+
       hidden,
+      published_date,
     } = req.body;
 
     const updateData: any = {};
@@ -333,6 +338,7 @@ export async function updateNewsletter(req: Request, res: Response) {
     if (headline_image_url !== undefined)
       updateData.headline_image_url = headline_image_url;
     if (author !== undefined) updateData.author = author;
+    if (published_date !== undefined) updateData.published_date = published_date;
     if (hidden !== undefined) updateData.hidden = !!hidden;
 
     const { data, error } = await supabase

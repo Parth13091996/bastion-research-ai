@@ -5,9 +5,9 @@ import { AppRoutes } from "@/routes/app-routes";
 import { Navigate, Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
-  const { isAuthenticated, isAdmin, isLoading } = useAuth();
+  const { isAuthenticated, isStaff, isLoading } = useAuth();
 
-  if ((!isAuthenticated || !isAdmin) && !isLoading) {
+  if ((!isAuthenticated || !isStaff) && !isLoading) {
     return <Navigate to={AppRoutes.login} replace />;
   }
 

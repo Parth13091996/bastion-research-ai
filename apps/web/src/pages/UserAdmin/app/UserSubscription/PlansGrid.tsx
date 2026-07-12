@@ -6,7 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatINR, getFeatureKey, planFeatures } from "@/utils";
+import {
+  CORE_ANNUAL_DISCOUNTED_PRICE_INR,
+  CORE_ANNUAL_STANDARD_PRICE_INR,
+  formatINR,
+  getFeatureKey,
+  getRenewalAmountINR,
+  planFeatures,
+} from "@/utils";
 import { Check, Loader2 } from "lucide-react";
 
 const PlansGrid = ({
@@ -14,6 +21,8 @@ const PlansGrid = ({
   isPlansLoading,
   error,
   planMatchesCurrent,
+  renewalEligible,
+  discountRenewalEligible,
   checkingOut,
   handleSubscribe,
 }: {
@@ -21,8 +30,10 @@ const PlansGrid = ({
   isPlansLoading: boolean;
   error: string | null;
   planMatchesCurrent: (planKey: string) => boolean;
+  renewalEligible: boolean;
+  discountRenewalEligible: boolean;
   checkingOut: string | null;
-  handleSubscribe: (planCode: string) => void;
+  handleSubscribe: (planCode: string, amountOverride?: number) => void;
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -46,12 +57,29 @@ const PlansGrid = ({
           const popular =
             plan.plan_code === "core_annual" ||
             normalizedName.includes("annual");
-          const priceLabel = formatINR(plan.amount);
           const featureKey = getFeatureKey(plan);
+
+          const isCurrentPlan = planMatchesCurrent(featureKey);
+          const canRenewThisPlan = isCurrentPlan && renewalEligible;
+          const isCoreAnnualPlan = (plan.plan_code || featureKey) === "core_annual";
+          const showDiscountedRenewal =
+            canRenewThisPlan && isCoreAnnualPlan && discountRenewalEligible;
+
+          const displayAmount = showDiscountedRenewal
+            ? CORE_ANNUAL_DISCOUNTED_PRICE_INR
+            : canRenewThisPlan && isCoreAnnualPlan
+            ? CORE_ANNUAL_STANDARD_PRICE_INR
+            : canRenewThisPlan
+            ? getRenewalAmountINR(plan.plan_code ?? featureKey, plan.amount)
+            : plan.amount;
+          const priceLabel = formatINR(displayAmount);
+
           const disabled =
-            planMatchesCurrent(featureKey) || checkingOut === plan.code;
-          const ctaLabel = planMatchesCurrent(featureKey)
-            ? "Current Plan"
+            (!canRenewThisPlan && isCurrentPlan) || checkingOut === plan.code;
+          const ctaLabel = isCurrentPlan
+            ? canRenewThisPlan
+              ? "Renew"
+              : "Current Plan"
             : "Subscribe";
 
           return (
@@ -69,9 +97,31 @@ const PlansGrid = ({
                     : "Flexible membership"}
                 </CardDescription>
                 <div className="mt-3 sm:mt-4">
-                  <span className="text-2xl sm:text-3xl font-bold">
-                    {priceLabel}
-                  </span>
+                  {showDiscountedRenewal ? (
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground line-through">
+                        {formatINR(CORE_ANNUAL_STANDARD_PRICE_INR)}
+                      </p>
+                      <p className="text-2xl sm:text-3xl font-bold">
+                        ₹15k
+                        <span className="ml-2 text-sm font-normal text-muted-foreground">
+                          ({priceLabel})
+                        </span>
+                      </p>
+                      <p className="text-xs text-amber-700">
+                        Discounted renewal rate valid for next 1 week only. Renew
+                        now to lock this price.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        If not renewed within 1 month, price reverts to{" "}
+                        {formatINR(CORE_ANNUAL_STANDARD_PRICE_INR)}.
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-2xl sm:text-3xl font-bold">
+                      {priceLabel}
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4">
@@ -91,7 +141,12 @@ const PlansGrid = ({
                       : "outline"
                   }
                   disabled={disabled}
-                  onClick={() => handleSubscribe(plan.code)}
+                  onClick={() =>
+                    handleSubscribe(
+                      plan.code,
+                      canRenewThisPlan ? displayAmount : undefined
+                    )
+                  }
                   size="sm"
                 >
                   {checkingOut === plan.code ? (

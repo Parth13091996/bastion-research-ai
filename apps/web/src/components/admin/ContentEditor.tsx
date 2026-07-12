@@ -37,6 +37,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     title: "",
     sub_title: "",
     headline_image_url: "",
+    link: "",
     contents: "",
     footer_content: "",
     video_url: "",
@@ -57,6 +58,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
   const [isPreview, setIsPreview] = useState(false);
   const [uploading, setUploading] = useState<Record<string, boolean>>({
     featured_image: false,
+    headline_image: false,
   });
 
   const handleFileUpload = async (
@@ -85,6 +87,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
         title: initialData.title || "",
         sub_title: initialData.sub_title || "",
         headline_image_url: initialData.headline_image_url || "",
+        link: initialData.link || "",
         contents: initialData.contents || "",
         footer_content: initialData.footer_content || "",
         video_url: initialData.video_url || "",
@@ -128,7 +131,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
 
     setIsLoading(true);
     try {
-      const editorContent = editorStore.editor.getHTML();
+      let editorContent = editorStore.editor.getHTML();
+      editorContent = editorContent.replaceAll(/<img[^>]*src="attachment:[^"]*"[^>]*\/?>/gi, "");
       let dataToSave: any = { ...formData };
 
       // For scratch pad, map to correct database fields
@@ -201,15 +205,68 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
     // Headline image (newsletter only)
     if (type === "newsletters") {
       fields.push(
-        <div key="headline_image_url" className="space-y-2">
-          <Label htmlFor="headline_image_url">Headline Image URL</Label>
+        <div key="headline_image_block" className="space-y-4">
+          <div className="space-y-2">
+            <Label>Headline Image</Label>
+            <div className="flex gap-2 items-center">
+              <label className="cursor-pointer">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading.headline_image}
+                  asChild
+                >
+                  <span className="flex items-center">
+                    <Upload className="h-4 w-4 mr-1" />
+                    {uploading.headline_image ? "Uploading..." : "Upload File"}
+                  </span>
+                </Button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file)
+                      handleFileUpload("headline_image", file, (url: string) => {
+                        handleInputChange("headline_image_url", url);
+                      });
+                  }}
+                />
+              </label>
+              {formData.headline_image_url && (
+                <span className="text-sm text-gray-500 max-w-xs truncate">
+                  {formData.headline_image_url}
+                </span>
+              )}
+            </div>
+          </div>
+          <div key="headline_image_url" className="space-y-2">
+            <Label htmlFor="headline_image_url">Headline Image URL</Label>
+            <Input
+              id="headline_image_url"
+              value={formData.headline_image_url}
+              onChange={(e) =>
+                handleInputChange("headline_image_url", e.target.value)
+              }
+              placeholder="Enter image URL"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // External URL link (newsletter only)
+    if (type === "newsletters") {
+      fields.push(
+        <div key="link" className="space-y-2">
+          <Label htmlFor="link">URL Link</Label>
           <Input
-            id="headline_image_url"
-            value={formData.headline_image_url}
-            onChange={(e) =>
-              handleInputChange("headline_image_url", e.target.value)
-            }
-            placeholder="Enter image URL"
+            id="link"
+            value={formData.link}
+            onChange={(e) => handleInputChange("link", e.target.value)}
+            placeholder="Enter external newsletter URL (Substack/Mailchimp)"
           />
         </div>
       );
@@ -247,6 +304,25 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
               </div>
             ))}
           </div>
+        </div>
+      );
+
+      // Published Date
+      fields.push(
+        <div key="published_date" className="space-y-2">
+          <Label htmlFor="published_date">Publish Date</Label>
+          <Input
+            id="published_date"
+            type="date"
+            value={
+              formData.published_date
+                ? new Date(formData.published_date).toISOString().slice(0, 10)
+                : ""
+            }
+            onChange={(e) =>
+              handleInputChange("published_date", e.target.value)
+            }
+          />
         </div>
       );
     }
@@ -318,12 +394,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={uploading.logo}
+                disabled={uploading.featured_image}
                 asChild
               >
                 <span>
                   <Upload className="h-4 w-4 mr-1" />
-                  {uploading.logo ? "Uploading..." : "Upload"}
+                  {uploading.featured_image ? "Uploading..." : "Upload"}
                 </span>
               </Button>
               <input
@@ -435,6 +511,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
             onClick={() => {
               let editorContent = editorStore.editor.getHTML();
               editorContent = editorContent.replace(/<p[^>]*><\/p>/g, "<br>");
+              editorContent = editorContent.replaceAll(/<img[^>]*src="attachment:[^"]*"[^>]*\/?>/gi, "");
               setFormData((prev) => ({
                 ...prev,
                 html_content: editorContent,
@@ -519,9 +596,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({
                           type === "scratch-pad"
                             ? formData.content.replace(/<p[^>]*><\/p>/g, "<br>")
                             : formData.contents.replace(
-                                /<p[^>]*><\/p>/g,
-                                "<br>"
-                              ),
+                              /<p[^>]*><\/p>/g,
+                              "<br>"
+                            ),
                       }}
                     />
                   </div>

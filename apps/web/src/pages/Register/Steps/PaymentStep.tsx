@@ -117,6 +117,12 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           navigate("/user/app/dashboard");
         }
       } else {
+        if (!user?.id) {
+          setError(
+            "We couldn't identify your account for payment. Please refresh and try again."
+          );
+          return;
+        }
         if (!formData?.panVerification?.valid) {
           setError(
             "Please complete PAN verification before proceeding to payment."
@@ -125,7 +131,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         }
         const orderResponse = await createCashfreeOrder({
           plan: formData.selectedPlan,
-          customer_id: user?.id || formData.firstName + "_" + formData.lastName,
+          customer_id: user.id,
           customer_email: formData.email,
           customer_phone: formData.phone,
           source: "register",

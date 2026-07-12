@@ -3,7 +3,7 @@ import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createApplication,
-  deleteApplication,
+  deleteApplication as deleteApplicationApi,
   getApplications,
   updateApplication,
 } from "@/api/applications-api";
@@ -14,10 +14,13 @@ import { Edit, Trash2, Plus } from "lucide-react";
 import { confirmDelete } from "@/utils/confirm";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import { queryKeys } from "@/api/queryKeys";
+import ExpandableCell from "@/components/admin/ExpandableCell";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 const Applications = () => {
   const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
+  const { canEdit } = useSectionEditAccess("jobs_applications");
   const { data: rowData, isLoading } = useQuery({
     queryKey: [queryKeys.applications],
     queryFn: async () => {
@@ -52,7 +55,7 @@ const Applications = () => {
         status: form.status,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.applications] });
       setForm({
         job_id: "",
         job_title: "",
@@ -70,25 +73,27 @@ const Applications = () => {
     mutationFn: (payload: any) =>
       updateApplication(payload.id, payload.body),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["applications"] }),
+      queryClient.invalidateQueries({ queryKey: [queryKeys.applications] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number | string) => deleteApplication(id),
+    mutationFn: (id: number | string) => deleteApplicationApi(id),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["applications"] }),
+      queryClient.invalidateQueries({ queryKey: [queryKeys.applications] }),
   });
 
   const [editOpen, setEditOpen] = useState(false);
   const [editRow, setEditRow] = useState<any | null>(null);
 
   const openEdit = (row: any) => {
+    if (!canEdit) return;
     setEditRow(row);
     setEditOpen(true);
   };
 
   const saveEdit = (values: any) => {
     if (!editRow) return;
+    if (!canEdit) return;
     const body = {
       job_id: Number(values.job_id),
       applicant_name: values.applicant_name,
@@ -103,31 +108,36 @@ const Applications = () => {
   };
 
   const deleteApplication = async (id: number | string, label?: string) => {
+    if (!canEdit) return;
     const ok = await confirmDelete(label);
     if (ok) deleteMutation.mutate(id);
   };
 
   const ActionsRenderer = (params: any) => (
     <div className="flex gap-2">
-      <button
-        className="p-1 text-gray-600 hover:text-blue-600"
-        title="Edit"
-        onClick={() => params.context.openEdit(params.data)}
-      >
-        <Edit size={16} />
-      </button>
-      <button
-        className="p-1 text-gray-600 hover:text-red-600"
-        title="Delete"
-        onClick={() =>
-          params.context.deleteApplication(
-            params.data.application_id,
-            params.data.applicant_name
-          )
-        }
-      >
-        <Trash2 size={16} />
-      </button>
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-blue-600"
+          title="Edit"
+          onClick={() => params.context.openEdit(params.data)}
+        >
+          <Edit size={16} />
+        </button>
+      )}
+      {canEdit && (
+        <button
+          className="p-1 text-gray-600 hover:text-red-600"
+          title="Delete"
+          onClick={() =>
+            params.context.deleteApplication(
+              params.data.application_id,
+              params.data.applicant_name
+            )
+          }
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
     </div>
   );
 
@@ -156,7 +166,23 @@ const Applications = () => {
       },
       minWidth: 110,
     },
-    { headerName: "Comments", field: "comments", editable: true },
+    {
+      headerName: "Cover Letter",
+      field: "cover_letter",
+      flex: 2,
+      minWidth: 240,
+      cellRenderer: (params: any) => (
+        <ExpandableCell value={params.value} limit={120} title="Cover Letter" />
+      ),
+    },
+    {
+      headerName: "Comments",
+      field: "comments",
+      editable: canEdit,
+      cellRenderer: (params: any) => (
+        <ExpandableCell value={params.value} limit={50} title="Comments" />
+      ),
+    },
     { headerName: "Date Applied", field: "date_applied" },
     { headerName: "Status", field: "status" },
     {
@@ -177,8 +203,8 @@ const Applications = () => {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Applications</h1>
         <div className="flex items-center gap-2">
           <Button
@@ -193,102 +219,44 @@ const Applications = () => {
           </Button>
         </div>
       </div>
-      {/* <div className="bg-white p-4 rounded shadow mb-4 flex items-end gap-2">
-        <div className="flex gap-2 items-end flex-wrap">
-          <div>
-            <label className="block text-sm mb-1">Job ID</label>
-            <Input
-              value={form.job_id}
-              onChange={(e) => setForm({ ...form, job_id: e.target.value })}
-              placeholder="e.g. 1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Applicant Name</label>
-            <Input
-              value={form.applicant_name}
-              onChange={(e) =>
-                setForm({ ...form, applicant_name: e.target.value })
-              }
-              placeholder="John Doe"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Email</label>
-            <Input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="john@example.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Phone</label>
-            <Input
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="9999999999"
-            />
-          </div>
-          <div className="min-w-[280px]">
-            <label className="block text-sm mb-1">Cover Letter</label>
-            <Input
-              value={form.cover_letter}
-              onChange={(e) =>
-                setForm({ ...form, cover_letter: e.target.value })
-              }
-              placeholder="Optional"
-            />
-          </div>
-          <div className="min-w-[240px]">
-            <label className="block text-sm mb-1">Comments</label>
-            <Input
-              value={form.comments}
-              onChange={(e) => setForm({ ...form, comments: e.target.value })}
-              placeholder="Internal note"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Status</label>
-            <Input
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              placeholder="Pending"
-            />
-          </div>
-        </div>
-        <Button
-          className="ml-auto"
-          onClick={() => createMutation.mutate()}
-          disabled={createMutation.isPending}
-        >
-          <Plus className="mr-1" size={16} /> Add Application
-        </Button>
-      </div> */}
-      <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
-        <AgGridReact
-          ref={gridRef as any}
-          theme="legacy"
-          rowData={rowData}
-          columnDefs={columnDefs}
-          defaultColDef={{ sortable: true, filter: true, resizable: true }}
-          singleClickEdit={true}
-          onCellValueChanged={(e) => {
-            if (e.colDef.field === "comments") {
-              const row: any = e.data;
-              const newVal = (e.newValue ?? "").toString();
-              if (newVal !== (e.oldValue ?? "")) {
-                updateMutation.mutate({
-                  id: row.application_id,
-                  body: { comments: newVal },
-                });
-              }
+
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
+          <AgGridReact
+            ref={gridRef as any}
+            theme="legacy"
+            rowData={rowData}
+            columnDefs={columnDefs}
+            defaultColDef={{ sortable: true, filter: true, resizable: true }}
+            singleClickEdit={canEdit}
+            onCellValueChanged={
+              canEdit
+                ? (e) => {
+                    if (e.colDef.field === "comments") {
+                      const row: any = e.data;
+                      const newVal = (e.newValue ?? "").toString();
+                      if (newVal !== (e.oldValue ?? "")) {
+                        updateMutation.mutate({
+                          id: row.application_id,
+                          body: { comments: newVal },
+                        });
+                      }
+                    }
+                  }
+                : undefined
             }
-          }}
-          pagination={true}
-          paginationPageSize={10}
-          paginationPageSizeSelector={[10, 25, 50, 100]}
-          context={{ openEdit, deleteApplication }}
-        />
+            pagination={true}
+            paginationPageSize={10}
+            paginationPageSizeSelector={[10, 25, 50, 100]}
+            context={{
+              openEdit: canEdit ? openEdit : undefined,
+              deleteApplication: canEdit ? deleteApplication : undefined,
+            }}
+            enableCellTextSelection={true}
+            ensureDomOrder={true}
+            suppressRowClickSelection={true}
+          />
+        </div>
       </div>
       <EditRowModal
         open={editOpen}
@@ -298,8 +266,18 @@ const Applications = () => {
           { name: "applicant_name", label: "Applicant Name" },
           { name: "email", label: "Email", type: "email" },
           { name: "phone", label: "Phone", type: "tel" },
-          { name: "cover_letter", label: "Cover Letter" },
-          { name: "comments", label: "Comments" },
+          {
+            name: "cover_letter",
+            label: "Cover Letter",
+            multiline: true,
+            rows: 6,
+          },
+          {
+            name: "comments",
+            label: "Comments",
+            multiline: true,
+            rows: 4,
+          },
           { name: "status", label: "Status" },
         ]}
         initialValues={editRow}

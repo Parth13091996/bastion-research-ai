@@ -4,9 +4,18 @@ import jwt from "jsonwebtoken";
 import { config } from "../utils/config";
 import { supabase } from "../supabase";
 import crypto from "crypto";
-import sendEmail from "../utils/email";
+import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
+import {
+  sendWelcomeEmail,
+  sendWelcomeEmailForUser,
+} from "../services/emailNotification.service";
 import { validateEmailOtp } from "./otp.controller";
 import { incrementCouponUsage } from "./coupon.controller";
+import {
+  armOnboardingDropOffForUser,
+  clearOnboardingDropOffForUser,
+  startOnboardingDropOffSession,
+} from "../automations/onboardingDropOff.scheduler";
 type OnboardingUserData = {
   email: string;
   phone: string;
@@ -36,6 +45,8 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
   return jwt.sign({ id, email }, secret, { expiresIn: expiresIn as any });
 };
 
+const normalizeEmail = (email: string): string => email.trim().toLowerCase();
+
 export const signIn = async (req: Request, res: Response) => {
   const { email, password, otp } = req.body as {
     email?: string;
@@ -48,19 +59,20 @@ export const signIn = async (req: Request, res: Response) => {
       .status(400)
       .json({ message: "Please provide email and password or email and OTP." });
   }
+  const normalizedEmail = normalizeEmail(email);
 
   try {
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
-      .eq("email", email)
+      .ilike("email", normalizedEmail)
       .single();
     if (error || !user) {
       return res.status(404).json({ message: "User not found." });
     }
     // If OTP provided, validate it; otherwise fallback to password validation
     if (otp) {
-      const result = validateEmailOtp(email, otp);
+      const result = validateEmailOtp(normalizedEmail, otp);
       if (!result.valid) {
         const reasonToMessage: Record<string, string> = {
           not_found: "No OTP found. Please request one.",
@@ -120,6 +132,30 @@ export const signIn = async (req: Request, res: Response) => {
   }
 };
 
+export const onboardingDropOffStart = async (req: Request, res: Response) => {
+  try {
+    const { onboarding_session_id, user_id } = req.body as {
+      onboarding_session_id?: string;
+      user_id?: string;
+    };
+
+    const sessionId = startOnboardingDropOffSession(onboarding_session_id);
+
+    if (user_id) {
+      armOnboardingDropOffForUser(user_id, sessionId);
+    }
+
+    return res.status(200).json({
+      message: "Onboarding drop-off tracking started.",
+      onboarding_session_id: sessionId,
+    });
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ message: error?.message || "Failed to start drop-off tracking" });
+  }
+};
+
 export const forgotPassword = async (req: Request, res: Response) => {
   const { email } = req.body;
 
@@ -128,11 +164,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
       .status(400)
       .json({ message: "Please provide an email address." });
   }
+  const normalizedEmail = normalizeEmail(email);
   try {
     const { data: user, error } = await supabase
       .from("users")
       .select("id, email, password")
-      .eq("email", email)
+      .ilike("email", normalizedEmail)
       .single();
 
     // Always respond success even if not found to prevent user enumeration
@@ -160,11 +197,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}`;
 
-    const resetSenderEmail = process.env.CONNECT_EMAIL;
+    const resetSenderEmail = getResolvedSmtpFromAddress();
     if (!resetSenderEmail) {
-      return res
-        .status(500)
-        .json({ error: "Welcome Sender email is missing from backend/envs." });
+      return res.status(500).json({
+        error:
+          "SMTP sender is not configured (set SMTP_USERNAME and matching CONNECT_EMAIL / SMTP_FROM).",
+      });
     }
     try {
       await sendEmail({
@@ -262,6 +300,7 @@ export const onboardUser = async (req: Request, res: Response) => {
       status,
       role,
       plan_id,
+      onboarding_session_id,
     }: OnboardingUserData = req.body || {};
 
     if (
@@ -304,6 +343,7 @@ export const onboardUser = async (req: Request, res: Response) => {
       role: role,
       plan_id,
     };
+    let planDetails: { plan_name?: string | null } | null = null;
 
     // If a plan is attached at onboarding (e.g. free tier),
     // pre-compute subscription start and expiry dates based on plan duration.
@@ -311,11 +351,12 @@ export const onboardUser = async (req: Request, res: Response) => {
       try {
         const { data: planRow, error: planError } = await supabase
           .from("membership_plans")
-          .select("duration_months")
+          .select("duration_months, plan_name")
           .eq("plan_id", plan_id as any)
           .maybeSingle();
 
         if (!planError && planRow) {
+          planDetails = planRow as { plan_name?: string | null };
           const start = new Date();
           const startDateStr = start.toISOString().split("T")[0];
           let endDateStr: string | null = null;
@@ -337,12 +378,14 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     let userId: string | null = null;
     const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
+    const normalizedEmail = normalizeEmail(email);
     const username =
-      email.split("@")[0] + `_${Math.random().toString(36).substring(2, 7)}`;
+      normalizedEmail.split("@")[0] +
+      `_${Math.random().toString(36).substring(2, 7)}`;
     const { data: inserted, error: insError } = await supabase
       .from("users")
       .insert({
-        email,
+        email: normalizedEmail,
         phone,
         password: hashedPassword,
         username,
@@ -351,9 +394,22 @@ export const onboardUser = async (req: Request, res: Response) => {
       .select("id, email")
       .single();
     if (insError) {
+      if (
+        (insError as any)?.code === "23505" &&
+        typeof insError.message === "string" &&
+        insError.message.includes("users_pan_card_number_key")
+      ) {
+        return res.status(400).json({
+          message: "This PAN is already registered with another account.",
+        });
+      }
       return res.status(500).json({ message: insError.message });
     }
     userId = inserted?.id || null;
+
+    if (userId && status !== "active" && status !== "free") {
+      armOnboardingDropOffForUser(userId, onboarding_session_id);
+    }
 
     // Try to persist optional PAN verification metadata if columns exist
     try {
@@ -375,9 +431,23 @@ export const onboardUser = async (req: Request, res: Response) => {
       // ignore schema errors as optional
     }
 
+    const planNameValue = planDetails?.plan_name;
+    let welcomePlanName: string | undefined = undefined;
+    if (typeof planNameValue === "string") {
+      welcomePlanName = planNameValue;
+    }
+    if (status === "free") {
+      void sendWelcomeEmail({
+        to: normalizedEmail,
+        firstName,
+        username,
+        planName: welcomePlanName,
+      });
+    }
+
     // Issue a session cookie so subsequent steps are authenticated
     try {
-      const token = generateToken(userId as string, email);
+      const token = generateToken(userId as string, normalizedEmail);
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -388,7 +458,7 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: "Onboarding started. User saved.",
-      user: { id: userId, email, status },
+      user: { id: userId, email: normalizedEmail, status },
     });
   } catch (error: any) {
     return res
@@ -464,23 +534,48 @@ export const zeroAmountAccountCreation = async (
     const startDate = new Date();
 
     try {
+      const transactionId = crypto.randomUUID();
+      const paymentInsertBase: any = {
+        transaction_status: "SUCCESS",
+        plan_id: plan_id,
+        user_id: user_id,
+        payer_email: payer_email,
+        transaction_id: transactionId,
+        coupon_applied: coupon?.coupon_id,
+        coupon_code: coupon?.coupon_code || coupon_code || null,
+        discounted_amount: 0,
+        created_at: startDate.toISOString(),
+      };
+
       const { error: paymentError } = await supabase
         .from("payment_history")
-        .insert({
-          transaction_status: "SUCCESS",
-          plan_id: plan_id,
-          user_id: user_id,
-          payer_email: payer_email,
-          transaction_id: crypto.randomUUID(),
-          coupon_applied: coupon?.coupon_id,
-          created_at: startDate.toISOString(),
-        })
+        .insert(paymentInsertBase)
         .maybeSingle();
 
       if (paymentError) {
-        return res.status(500).json({
-          error: paymentError.message || "Error saving payment history",
-        });
+        if (paymentError?.message?.toLowerCase?.().includes("column")) {
+          const { error: fallbackError } = await supabase
+            .from("payment_history")
+            .insert({
+              transaction_status: "SUCCESS",
+              plan_id: plan_id,
+              user_id: user_id,
+              payer_email: payer_email,
+              transaction_id: transactionId,
+              coupon_applied: coupon?.coupon_id,
+              created_at: startDate.toISOString(),
+            })
+            .maybeSingle();
+          if (fallbackError) {
+            return res.status(500).json({
+              error: fallbackError.message || "Error saving payment history",
+            });
+          }
+        } else {
+          return res.status(500).json({
+            error: paymentError.message || "Error saving payment history",
+          });
+        }
       }
     } catch (e: any) {
       return res
@@ -491,20 +586,35 @@ export const zeroAmountAccountCreation = async (
     // Compute subscription window based on plan duration
     let subscriptionStartDate: string | null = null;
     let subscriptionEndDate: string | null = null;
+    let roleAfterActivation: string | null = null;
     try {
       const { data: planRow, error: planError } = await supabase
         .from("membership_plans")
-        .select("duration_months")
+        .select("duration_months, plan_code")
         .eq("plan_id", plan_id as any)
         .maybeSingle();
 
       if (!planError && planRow) {
         subscriptionStartDate = startDate.toISOString().split("T")[0];
         const durationMonths = (planRow as any).duration_months;
+        const planCode = (planRow as any).plan_code;
+
         if (typeof durationMonths === "number" && durationMonths > 0) {
           const end = new Date(startDate);
           end.setMonth(end.getMonth() + durationMonths);
           subscriptionEndDate = end.toISOString().split("T")[0];
+        }
+
+        // Keep role aligned with payment_success webhook behavior.
+        // - research_hub -> research_ally_subscriber
+        // - freemium -> free_subscriber
+        // - everything else -> core_subscriber
+        if (planCode === "research_hub") {
+          roleAfterActivation = config.roles.research_ally_subscriber;
+        } else if (planCode === "freemium") {
+          roleAfterActivation = "free_subscriber";
+        } else {
+          roleAfterActivation = config.roles.core_subscriber;
         }
       }
     } catch (e: any) {
@@ -516,6 +626,8 @@ export const zeroAmountAccountCreation = async (
       const userUpdate: any = {
         plan_id,
         status: "active",
+        role: roleAfterActivation || config.roles.core_subscriber,
+        updated_at: new Date().toISOString(),
       };
 
       if (subscriptionStartDate) {
@@ -560,6 +672,8 @@ export const zeroAmountAccountCreation = async (
         return res.status(500).json({ error: error.message });
       }
 
+      clearOnboardingDropOffForUser(user_id);
+
       // Mark coupon as used / expired (best-effort; do not block user activation)
       if (coupon?.coupon_id) {
         try {
@@ -585,6 +699,8 @@ export const zeroAmountAccountCreation = async (
         console.error("Failed to increment coupon usage:", e);
         // Do not fail the request if coupon increment fails
       }
+
+      void sendWelcomeEmailForUser(user_id);
 
       return res.status(200).json({ user: data });
     } catch (e: any) {

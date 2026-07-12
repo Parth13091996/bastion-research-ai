@@ -2,6 +2,14 @@ import axiosInstance from "./axios";
 import { endpoints } from "./endpoints";
 
 const mailchimpNewsletterApi = {
+  subscribe: (payload: {
+    email: string;
+    tags?: string[];
+    merge_fields?: Record<string, string>;
+  }) =>
+    axiosInstance
+      .post(endpoints.content.mailchimp.subscribe, payload)
+      .then((res) => res.data),
   getAll: (): Promise<Newsletter[]> =>
     axiosInstance
       .get(endpoints.content.mailchimp.newsletters.base)

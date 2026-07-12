@@ -64,6 +64,11 @@ const ScratchPadView = lazy(
   () => import("@/pages/UserAdmin/app/ScratchPadView")
 );
 const PdfViewerPage = lazy(() => import("@/pages/UserAdmin/app/PdfViewerPage"));
+const EffortlessInvestor = lazy(
+  () => import("@/pages/UserAdmin/app/EffortlessInvestor")
+);
+const QnaSection = lazy(() => import("@/pages/UserAdmin/app/QnaSection"));
+
 
 // Admin Pages
 const AdminDashboard = lazy(() => import("../pages/Admin/Dashboard"));
@@ -75,6 +80,9 @@ const ManageSubscriptions = lazy(
 const PaymentHistory = lazy(() => import("../pages/Admin/AR/PaymentHistory"));
 const CouponManagement = lazy(
   () => import("../pages/Admin/AR/CouponManagement")
+);
+const SectionEditAccessSettings = lazy(
+  () => import("../pages/Admin/AR/SectionEditAccessSettings")
 );
 const JobOpenings = lazy(() => import("../pages/Admin/Jobs/JobOpenings"));
 const AddNewJob = lazy(() => import("../pages/Admin/Jobs/AddNewJob"));
@@ -89,6 +97,12 @@ const NewsletterManagement = lazy(
 );
 const WebinarManagement = lazy(
   () => import("../pages/Admin/Content/WebinarManagement")
+);
+const WebinarRegistrations = lazy(
+  () => import("../pages/Admin/Content/WebinarRegistrations")
+);
+const RedFlagAnalytics = lazy(
+  () => import("../pages/Admin/Content/RedFlagAnalytics")
 );
 const PodcastManagement = lazy(
   () => import("../pages/Admin/Content/PodcastManagement")
@@ -120,6 +134,9 @@ const ScratchPadManagement = lazy(
 const ScratchPadEditor = lazy(
   () => import("../pages/Admin/Content/ScratchPadEditor")
 );
+const QnaManagement = lazy(
+  () => import("../pages/Admin/Content/QnaManagement")
+);
 
 // Public Content Pages
 const NewsletterView = lazy(
@@ -139,12 +156,30 @@ const PublicPodcastsPage = lazy(
 const NewsletterArchive = lazy(
   () => import("../pages/NewsLetter/NewsletterListPage")
 );
+const SectorDeepDives = lazy(
+  () => import("../pages/SectorDeepDives/SectorDeepDivesPage")
+);
 const Webinar = lazy(() => import("../pages/Webinars/WebinarsListPage"));
+const PortfolioRedFlagsWebinar = lazy(
+  () => import("../pages/Webinars/PortfolioRedFlagsWebinar")
+);
 const SmartFrameworks = lazy(
   () => import("../components/generic/SmartFrameworks")
 );
 const ComingSoon = lazy(() => import("../components/ComingSoon"));
 const IpoLandingPage = lazy(() => import("../pages/IpoLandingPage"));
+const InstaLandingPage = lazy(
+  () => import("../pages/SocialMediaLandingPage/InstaLandingPage")
+);
+const InstaLandingPage2 = lazy(
+  () => import("../pages/SocialMediaLandingPage/InstaLandingPage2")
+);
+const ReitLandingPage = lazy(
+  () => import("../pages/SocialMediaLandingPage/ReitLandingPage/index")
+);
+const RedFlagDecision = lazy(
+  () => import("../pages/SocialMediaLandingPage/RedFlagDecision")
+);
 const IpoUserDashboardPage = lazy(
   () => import("../pages/IpoUserDashboardPage/components/IpoUserDashboard")
 );
@@ -169,6 +204,7 @@ export const routes: RouteObject[] = [
       { path: AppRoutes.spotlights, element: <SpotLights /> },
       { path: AppRoutes.podcasts, element: <PublicPodcastsPage /> },
       { path: AppRoutes.newsletter, element: <NewsletterArchive /> },
+      { path: AppRoutes.sectorDeepDives, element: <SectorDeepDives /> },
       { path: AppRoutes.webinar, element: <Webinar /> },
       { path: AppRoutes.smartFrameworks, element: <SmartFrameworks /> },
       { path: AppRoutes.newsletterView, element: <NewsletterView /> },
@@ -186,8 +222,28 @@ export const routes: RouteObject[] = [
     element: <ComingSoon />,
   },
   {
+    path: AppRoutes.webinarRedFlagsLanding,
+    element: <PortfolioRedFlagsWebinar />,
+  },
+  {
     path: AppRoutes.ipoLanding,
     element: <IpoLandingPage />,
+  },
+  {
+    path: AppRoutes.reitLanding,
+    element: <ReitLandingPage />,
+  },
+  {
+    path: AppRoutes.instaLanding,
+    element: <InstaLandingPage />,
+  },
+  {
+    path: AppRoutes.instaLanding2,
+    element: <InstaLandingPage2 />,
+  },
+  {
+    path: AppRoutes.redFlagDecision,
+    element: <RedFlagDecision />,
   },
   {
     element: <AdminLayout />,
@@ -220,6 +276,10 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminCouponManagement,
         element: <CouponManagement />,
+      },
+      {
+        path: AppRoutes.adminArSettings,
+        element: <SectionEditAccessSettings />,
       },
       {
         path: AppRoutes.adminJobOpenings,
@@ -256,6 +316,18 @@ export const routes: RouteObject[] = [
       {
         path: AppRoutes.adminWebinarManagement,
         element: <WebinarManagement />,
+      },
+      {
+        path: AppRoutes.adminWebinarRegistrations,
+        element: <WebinarRegistrations />,
+      },
+      {
+        path: AppRoutes.adminRedFlagAnalytics,
+        element: <RedFlagAnalytics />,
+      },
+      {
+        path: AppRoutes.adminQnaManagement,
+        element: <QnaManagement />,
       },
       {
         path: AppRoutes.adminPodcastManagement,
@@ -351,6 +423,14 @@ export const routes: RouteObject[] = [
           { path: "app/scratch-pad", element: <ScratchPadList /> },
           { path: "app/scratch-pad/:id", element: <ScratchPadView /> },
           { path: "app/pdf-viewer", element: <PdfViewerPage /> },
+          {
+            path: "app/effortless-investor",
+            element: <EffortlessInvestor />,
+          },
+          {
+            path: "app/qna",
+            element: <QnaSection />,
+          },
           {
             path: "app/account/edit-profile",
             element: <UserAdminEditProfile />,

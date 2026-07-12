@@ -11,6 +11,8 @@ import {
 } from "@/api/coupons-api";
 import { confirm, confirmDelete } from "@/utils/confirm";
 import Modal from "@/components/core/Modal";
+import { formatDate } from "@/lib/utils";
+import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 type ApiCoupon = {
   coupon_id: number;
@@ -44,12 +46,13 @@ const fmtDiscount = (t: string, n: number) =>
   t === "percentage"
     ? `${Number(n).toFixed(2)}%`
     : new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 2,
-      }).format(Number(n));
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+    }).format(Number(n));
 
 const CouponsManagement = () => {
+  const { canEdit } = useSectionEditAccess("ar_coupon_management");
   const [rows, setRows] = useState<RowCoupon[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
@@ -119,6 +122,7 @@ const CouponsManagement = () => {
   }, [rows, searchTerm, activeFilter, validityFilter]);
 
   const onAdd = () => {
+    if (!canEdit) return;
     setEditing(null);
     setForm({
       coupon_code: "",
@@ -131,6 +135,7 @@ const CouponsManagement = () => {
     setModalOpen(true);
   };
   const onEdit = (r: RowCoupon) => {
+    if (!canEdit) return;
     setEditing(r._raw);
     setForm({
       coupon_code: r._raw.coupon_code,
@@ -143,6 +148,7 @@ const CouponsManagement = () => {
     setModalOpen(true);
   };
   const save = async () => {
+    if (!canEdit) return;
     const payload = {
       coupon_code: form.coupon_code?.trim(),
       discount_type: form.discount_type,
@@ -163,6 +169,7 @@ const CouponsManagement = () => {
     await load();
   };
   const onDelete = async (r: RowCoupon) => {
+    if (!canEdit) return;
     const ok = await confirmDelete(r.code);
     if (!ok) return;
     await deleteCoupon(r.id);
@@ -203,25 +210,34 @@ const CouponsManagement = () => {
     if (!p.value) return <span>Unlimited</span>;
     const expired = isExpired(p.value);
     return (
-      <span className={expired ? "text-red-600" : ""}>{fmtDate(p.value)}</span>
+      <span className={expired ? "text-red-600" : ""}>{formatDate(p.value)}</span>
+    );
+  };
+  const StateDateRenderer = (p: any) => {
+    return (
+      <span >{formatDate(p.value)}</span>
     );
   };
   const ActionsRenderer = (p: any) => (
     <div className="flex items-center space-x-1">
-      <button
-        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
-        title="Edit"
-        onClick={() => onEdit(p.data)}
-      >
-        <Edit className="h-4 w-4" />
-      </button>
-      <button
-        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-        title="Delete"
-        onClick={() => onDelete(p.data)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+      {canEdit && (
+        <button
+          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
+          title="Edit"
+          onClick={() => onEdit(p.data)}
+        >
+          <Edit className="h-4 w-4" />
+        </button>
+      )}
+      {canEdit && (
+        <button
+          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+          title="Delete"
+          onClick={() => onDelete(p.data)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 
@@ -236,7 +252,7 @@ const CouponsManagement = () => {
     },
     { headerName: "Code", field: "code", cellRenderer: CodeRenderer },
     { headerName: "Discount", field: "discount" },
-    { headerName: "Start Date", field: "startDate" },
+    { headerName: "Start Date", field: "startDate", cellRenderer: StateDateRenderer },
     {
       headerName: "Expire Date",
       field: "expireDate",
@@ -259,6 +275,7 @@ const CouponsManagement = () => {
   ];
 
   const handleBulk = async (action: "activate" | "deactivate" | "delete") => {
+    if (!canEdit) return;
     if (selectedIds.length === 0) return;
     if (action === "delete") {
       const ok = await confirm({
@@ -284,11 +301,13 @@ const CouponsManagement = () => {
   };
 
   const onBulkAdd = () => {
+    if (!canEdit) return;
     setBulkText("");
     setBulkModalOpen(true);
   };
 
   const handleBulkCreateCoupons = async () => {
+    if (!canEdit) return;
     const codes = Array.from(
       new Set(
         bulkText
@@ -313,22 +332,24 @@ const CouponsManagement = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Coupon Management</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={onBulkAdd}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
-          >
-            <Plus size={20} className="mr-2" />
-            Bulk PAN Coupons
-          </button>
-          <button
-            onClick={onAdd}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
-          >
-            <Plus size={20} className="mr-2" />
-            Add Coupon
-          </button>
-        </div>
+        {canEdit && (
+          <div className="flex gap-2">
+            <button
+              onClick={onBulkAdd}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+            >
+              <Plus size={20} className="mr-2" />
+              Bulk PAN Coupons
+            </button>
+            <button
+              onClick={onAdd}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+            >
+              <Plus size={20} className="mr-2" />
+              Add Coupon
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
@@ -376,17 +397,19 @@ const CouponsManagement = () => {
             <span className="text-sm text-gray-600">
               {selectedIds.length} selected
             </span>
-            <select
-              onChange={(e) =>
-                e.target.value && handleBulk(e.target.value as any)
-              }
-              className="px-3 py-1 border border-gray-300 rounded text-sm"
-            >
-              <option value="">Bulk Actions</option>
-              <option value="activate">Activate</option>
-              <option value="deactivate">Deactivate</option>
-              <option value="delete">Delete</option>
-            </select>
+            {canEdit && (
+              <select
+                onChange={(e) =>
+                  e.target.value && handleBulk(e.target.value as any)
+                }
+                className="px-3 py-1 border border-gray-300 rounded text-sm"
+              >
+                <option value="">Bulk Actions</option>
+                <option value="activate">Activate</option>
+                <option value="deactivate">Deactivate</option>
+                <option value="delete">Delete</option>
+              </select>
+            )}
           </div>
         )}
       </div>
@@ -410,6 +433,8 @@ const CouponsManagement = () => {
             paginationPageSize={20}
             paginationPageSizeSelector={[10, 20, 50, 100]}
             suppressCellFocus={true}
+            enableCellTextSelection={true}
+            ensureDomOrder={true}
           />
         </div>
       </div>

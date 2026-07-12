@@ -75,6 +75,23 @@ export const createOrderForPlanService = async (params: {
 }) => {
   const planRow = await resolvePlanById(params.planId);
   const transactionId = crypto.randomUUID();
+  const normalizedCouponCode =
+    typeof params.coupon_code === "string" && params.coupon_code.trim()
+      ? params.coupon_code.trim().toUpperCase()
+      : null;
+
+  const couponIdForCode = async (): Promise<number | null> => {
+    if (!normalizedCouponCode) return null;
+    const { data, error } = await supabase
+      .from("coupons")
+      .select("coupon_id")
+      .eq("coupon_code", normalizedCouponCode)
+      .maybeSingle();
+    if (error) return null;
+    return typeof (data as any)?.coupon_id === "number"
+      ? (data as any).coupon_id
+      : null;
+  };
 
   const selected: PublicPlan = {
     code: String(planRow.plan_id),
@@ -104,26 +121,42 @@ export const createOrderForPlanService = async (params: {
       .update({
         status: "active",
         plan_id: planRow.plan_id,
-        plan_code: planRow.plan_code || null,
         subscription_start_date: startDateStr,
         subscription_end_date: endDateStr,
       })
       .eq("id", params.customer_id);
 
     // Record in payment history as FREE or COUPON_APPLIED
-    await supabase.from("payment_history").insert({
+    const freePaymentBase: any = {
       payer_email: params.customer_email || null,
-      transaction_status: params.coupon_code ? "COUPON_APPLIED" : "FREE",
+      transaction_status: normalizedCouponCode ? "COUPON_APPLIED" : "FREE",
       user_id: params.customer_id,
       plan_id: planRow.plan_id,
       transaction_id: transactionId,
       created_at: startDate.toISOString(),
-    });
+      discounted_amount: 0,
+      coupon_code: normalizedCouponCode,
+      coupon_applied: await couponIdForCode(),
+    };
+
+    const { error: freeInsertErr } = await supabase
+      .from("payment_history")
+      .insert(freePaymentBase);
+    if (freeInsertErr?.message?.toLowerCase?.().includes("column")) {
+      await supabase.from("payment_history").insert({
+        payer_email: params.customer_email || null,
+        transaction_status: normalizedCouponCode ? "COUPON_APPLIED" : "FREE",
+        user_id: params.customer_id,
+        plan_id: planRow.plan_id,
+        transaction_id: transactionId,
+        created_at: startDate.toISOString(),
+      });
+    }
 
     // Increment coupon usage if coupon was used
-    if (params.coupon_code) {
+    if (normalizedCouponCode) {
       try {
-        await incrementCouponUsage(params.coupon_code);
+        await incrementCouponUsage(normalizedCouponCode);
       } catch (e: any) {
         console.error("Failed to increment coupon usage:", e);
         // Do not fail the request if coupon increment fails
@@ -156,6 +189,7 @@ export const createOrderForPlanService = async (params: {
       plan_id: String(planRow.plan_id),
       plan_code: String(planRow.plan_code || ""),
       transaction_id: transactionId,
+      coupon_code: normalizedCouponCode || "",
     },
     customer_details: {
       customer_id: params.customer_id,
@@ -168,14 +202,31 @@ export const createOrderForPlanService = async (params: {
   };
 
   const response = await pgCreateOrder(request);
-  await supabase.from("payment_history").upsert({
+  const pendingPaymentBase: any = {
     payer_email: params.customer_email || null,
     transaction_status: "PENDING",
     user_id: params.customer_id,
     plan_id: planRow.plan_id,
     transaction_id: transactionId,
     created_at: new Date().toISOString(),
-  });
+    discounted_amount: selected.amount,
+    coupon_code: normalizedCouponCode,
+    coupon_applied: await couponIdForCode(),
+  };
+
+  const { error: pendingUpsertErr } = await supabase
+    .from("payment_history")
+    .upsert(pendingPaymentBase);
+  if (pendingUpsertErr?.message?.toLowerCase?.().includes("column")) {
+    await supabase.from("payment_history").upsert({
+      payer_email: params.customer_email || null,
+      transaction_status: "PENDING",
+      user_id: params.customer_id,
+      plan_id: planRow.plan_id,
+      transaction_id: transactionId,
+      created_at: new Date().toISOString(),
+    });
+  }
 
   return { selected, order: response?.data || response };
 };

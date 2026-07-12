@@ -14,7 +14,7 @@ export const getApplications = async (req: Request, res: Response) => {
 
 export const createApplication = async (req: Request, res: Response) => {
   try {
-    const {
+    let {
       job_id,
       applicant_name,
       email,
@@ -23,6 +23,9 @@ export const createApplication = async (req: Request, res: Response) => {
       status = "Pending",
       comments,
     } = req.body ?? {};
+    
+    email = email?.trim();
+    phone = phone?.trim();
 
     // Get the uploaded file from multer
     const file = (req as any).file;
@@ -44,11 +47,35 @@ export const createApplication = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "resume file is required" });
     }
 
-    // Unified uploader handles validation and storage
+    // Check if the user has already applied for this job with the same email
+    const { data: existingEmailApp } = await supabase
+      .from("applications")
+      .select("application_id")
+      .eq("job_id", parseInt(job_id))
+      .eq("email", email)
+      .limit(1);
+
+    if (existingEmailApp && existingEmailApp.length > 0) {
+      return res.status(400).json({ error: "An application with this email already exists for this position." });
+    }
+
+    // Check if the user has already applied for this job with the same phone
+    const { data: existingPhoneApp } = await supabase
+      .from("applications")
+      .select("application_id")
+      .eq("job_id", parseInt(job_id))
+      .eq("phone", phone)
+      .limit(1);
+
+    if (existingPhoneApp && existingPhoneApp.length > 0) {
+      return res.status(400).json({ error: "An application with this phone number already exists for this position." });
+    }
+
     const { url: resume_url } = await uploadToSupabase({
       file,
-      category: "resume",
+      category: "pdf",
       dir: "resumes",
+      upsert: true,
     });
 
     const { data, error } = await supabase

@@ -7,7 +7,10 @@ import PaymentStep from "./Steps/PaymentStep";
 import PlansStep from "./Steps/PlansStep";
 import RegisterStep from "./Steps/RegisterStep";
 import VerifyStep from "./Steps/VerifyStep";
-import { fetchPlans } from "@/api/onboarding-apis";
+import {
+  fetchPlans,
+  startOnboardingDropOffTracking,
+} from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
 import favicon from "../../../../server/public/favicon.webp";
 
@@ -39,6 +42,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     agreementSignatureUrl: "",
     agreementSignaturePath: "",
     agreementSignedAt: "",
+    onboardingSessionId: "",
   });
 
   const stepsValues = [
@@ -160,6 +164,23 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     };
     loadPlans();
   }, [currentStep, isAgreementSignedUser]);
+
+  useEffect(() => {
+    const startTracking = async () => {
+      if (!isOpen || formData.onboardingSessionId) return;
+      try {
+        const response = await startOnboardingDropOffTracking(
+          user?.id ? { user_id: user.id } : {}
+        );
+        if (response?.onboarding_session_id) {
+          updateFormData("onboardingSessionId", response.onboarding_session_id);
+        }
+      } catch {
+        // Best effort: onboarding should still work even if tracking call fails.
+      }
+    };
+    void startTracking();
+  }, [isOpen, formData.onboardingSessionId, user?.id]);
 
   // ? Auto-scroll mobile step bar when step changes
   useEffect(() => {

@@ -1,0 +1,89 @@
+/* PDF-specific overrides to ensure clean rendering */
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+.pdf-capture-container {
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+.pdf-capture-container * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Ensure Bebas Neue works in PDF */
+.pdf-capture-container h1, 
+.pdf-capture-container h2, 
+.pdf-capture-container .bebas-font {
+  font-family: 'Bebas Neue', sans-serif !important;
+}
+
+/* Ensure DM Mono works in PDF */
+.pdf-capture-container .mono-font {
+  font-family: 'DM Mono', monospace !important;
+}
+
+/* Specific Vertical Centering for PDF only */
+.pdf-capture-container .pdf-score-container {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+/* Separate CSS for Score Label and Value */
+.pdf-capture-container .pdf-score-label {
+  margin-bottom: 1px !important;
+  line-height: 1.2 !important;
+}
+
+.pdf-capture-container .pdf-score-value {
+  font-size: 35px !important; /* User specified 35px */
+  line-height: 2 !important; /* Adjust this freely */
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 40px !important; /* Fixed height prevents container from bloating the whole page */
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Hide the progress track line in PDF only */
+.pdf-capture-container .progress-track {
+  display: none !important;
+}
+
+/* Remove box-styling from flag checks in PDF only (keep text only) */
+.pdf-capture-container .pdf-flag-check {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin-top: 4px !important;
+  min-height: 0 !important;
+}
+/* PDF-only result section - Hidden by default, shown during capture */
+.pdf-results-only {
+  display: none !important;
+}
+
+.pdf-capture-container .pdf-results-only {
+  display: block !important;
+}
+
+/* Page Break Avoidance Controls */
+.pdf-page-break-avoid {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  -webkit-column-break-inside: avoid !important;
+  /* Added to reinforce avoidance in canvas/printing engines */
+}
+
+/* Ensure individual cards and their contents don't break */
+.flag-card-grid {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
