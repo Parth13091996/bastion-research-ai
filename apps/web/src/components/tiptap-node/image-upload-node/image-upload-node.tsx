@@ -457,16 +457,14 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
       const pos = props.getPos()
 
       if (isValidPosition(pos)) {
-        const imageNodes = urls.map((url, index) => {
-          const filename =
-            files[index]?.name.replace(/\.[^/.]+$/, "") || "unknown"
+        const imageNodes = urls.map((url) => {
           return {
             type: extension.options.type,
             attrs: {
               ...extension.options,
               src: url,
-              alt: filename,
-              title: filename,
+              alt: "",
+              title: null,
             },
           }
         })
