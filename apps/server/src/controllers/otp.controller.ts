@@ -76,6 +76,8 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
       .ilike("email", normalizedEmail)
       .maybeSingle();
 
+      console.log({user})
+
     if (error) {
       console.error("Supabase error while checking email existence:", error);
       return res
@@ -128,6 +130,8 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
         </table>
       </div>
     `;
+
+    console.log({normalizedEmail, fromEmail, subject })
 
     await sendEmail({ to: normalizedEmail, from: fromEmail, subject, text, html });
     return res

@@ -27,7 +27,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, isLoading, user } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [useOtp, setUseOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -67,8 +67,8 @@ const Login = () => {
 
   const sendOtpMutation = useMutation({
     mutationFn: (email: string) => sendEmailOtp(email),
-    onSuccess: () => {
-      toast.success("");
+    onSuccess: (response) => {
+      toast.success(response?.message || "");
       setOtpSent(true);
     },
     onError: (error: any) => {
