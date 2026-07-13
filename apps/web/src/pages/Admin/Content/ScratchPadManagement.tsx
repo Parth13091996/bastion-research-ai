@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { formatAdminDate } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,14 +90,7 @@ const ScratchPadManagement: React.FC = () => {
       .includes(search.toLowerCase())
   );
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Not published";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const formatDate = (dateString: string | null) => formatAdminDate(dateString);
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,5 @@
 import { ColDef } from "ag-grid-community";
+import { formatAdminDate } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteUserById, getUsers, updateUserById } from "@/api/users-api";
 import { Trash2, Mail, Shield, User } from "lucide-react";
@@ -146,7 +147,7 @@ const AllUsers = () => {
       field: "created_at",
       valueFormatter: (params) => {
         if (!params.value) return "";
-        return new Date(params.value).toLocaleDateString();
+        return formatAdminDate(params.value);
       },
       flex: 1,
       minWidth: 120,

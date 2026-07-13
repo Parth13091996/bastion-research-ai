@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatAdminDate } from "@/lib/utils";
 import { ColDef } from "ag-grid-community";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteJob, getJobs, updateJob } from "@/api/jobs-api";
@@ -57,7 +58,7 @@ const JobOpenings = () => {
     if (!value) return <span>—</span>;
     const d = new Date(value);
     const isValid = !isNaN(d.getTime());
-    return <span>{isValid ? d.toLocaleDateString() : "—"}</span>;
+    return <span>{isValid ? formatAdminDate(value) : "—"}</span>;
   };
 
   const columns: ColDef[] = [

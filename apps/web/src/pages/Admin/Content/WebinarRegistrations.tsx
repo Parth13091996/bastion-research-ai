@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { formatAdminDate } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteWebinarRegistration, getWebinarRegistrations } from "@/api/webinar-registrations-api";
 import { getAdminSettings } from "@/api/settings-api";
@@ -29,16 +30,7 @@ import { UTMSourcesManager } from "./UtmTable";
 import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 function formatIntegrationDate(s?: string | null) {
-  const t = s?.trim();
-  if (!t) return "—";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) {
-    try {
-      return format(parseISO(t), "PPP");
-    } catch {
-      return t;
-    }
-  }
-  return t;
+  return formatAdminDate(s);
 }
 
 function formatIntegrationTime(s?: string | null) {
