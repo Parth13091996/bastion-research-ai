@@ -1,5 +1,6 @@
-import { AnimatePresence, motion, AnimatePresenceProps } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { Wrench, Mail, X } from "lucide-react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import SignUpForm from "../Register/SignupForm.tsx";
 
@@ -19,6 +20,9 @@ export default function LandingPage() {
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(() => {
+    return sessionStorage.getItem("maintenance_popup_closed") !== "true";
+  });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const activeIndex = tabs.findIndex((t) => t.key === active);
@@ -427,6 +431,95 @@ export default function LandingPage() {
           onClose={() => setIsSignUpOpen(false)}
         />
       )}
+      <AnimatePresence>
+        {isMaintenanceOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#1C2852]/75 backdrop-blur-md flex items-center justify-center p-4 z-[999999]"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-100 max-w-lg w-full overflow-hidden relative"
+            >
+              {/* Top accent bar */}
+              <div className="h-2 w-full bg-gradient-to-r from-[#C00000] via-[#1C2852] to-[#C00000]" />
+
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setIsMaintenanceOpen(false);
+                  sessionStorage.setItem("maintenance_popup_closed", "true");
+                }}
+                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 cursor-pointer"
+                aria-label="Close"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="p-8 flex flex-col items-center text-center">
+                {/* Glowing Badge/Icon Container */}
+                <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-6 relative">
+                  <div className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-pulse" />
+                  <Wrench className="w-8 h-8 text-amber-600 relative z-10" />
+                </div>
+
+                {/* Heading */}
+                <h2 className="text-2xl font-bold text-[#1C2852] mb-3">
+                  Under Scheduled Maintenance
+                </h2>
+
+                {/* Subtitle / explanation */}
+                <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-6">
+                  We are currently performing routine upgrades and optimizations to enhance your browsing experience.
+                  <span className="block mt-2 font-medium text-amber-600">
+                    Bastion Research will be fully back online shortly.
+                  </span>
+                  Thank you for your patience and support!
+                </p>
+
+                {/* Info Card */}
+                <div className="bg-slate-50 rounded-xl p-4 w-full border border-gray-100 mb-6 flex flex-col gap-3 text-left">
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-5 h-5 text-[#1C2852] shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-800">Support & Inquiries</h4>
+                      <p className="text-xs text-gray-500 leading-snug">
+                        For any inquiries during this maintenance window, please feel free to contact us at{" "}
+                        <a href="mailto:connect@bastionresearch.in" className="text-[#C00000] font-medium hover:underline">
+                          connect@bastionresearch.in
+                        </a>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Action button */}
+                <div className="flex gap-4 w-full">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setIsMaintenanceOpen(false);
+                      sessionStorage.setItem("maintenance_popup_closed", "true");
+                    }}
+                    className="flex-1 py-3 px-5 rounded-xl text-white font-medium text-sm transition-all shadow-md shadow-red-900/10 cursor-pointer"
+                    style={{
+                      background: "linear-gradient(135deg, #C00000, #a00000)",
+                    }}
+                  >
+                    Got It, Continue to Site
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
