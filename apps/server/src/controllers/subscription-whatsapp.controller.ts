@@ -73,16 +73,15 @@ export type ReminderUserRow = {
   } | null
 }
 
-const getDateOnly = (value: Date) =>
-  new Date(value.getFullYear(), value.getMonth(), value.getDate())
-
 const getDayDiffFromToday = (dateValue: string) => {
   const date = new Date(dateValue)
   if (Number.isNaN(date.getTime())) return null
 
-  const today = getDateOnly(new Date())
-  const target = getDateOnly(date)
-  return Math.round((target.getTime() - today.getTime()) / DAY_MS)
+  const targetUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  const now = new Date()
+  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+
+  return Math.round((targetUtc - todayUtc) / DAY_MS)
 }
 
 const isSubscriptionReminderType = (
@@ -94,15 +93,35 @@ export const sendReminderForUser = async (
   reminderType: SubscriptionReminderType,
   campaignName: string
 ) => {
-  const phone = String(user?.phone || '').trim()
+  let phone = String(user?.phone || '').trim()
   const name =
     [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() ||
     user?.username ||
     'User'
-  const subscriptionEndDate = String(user?.subscription_end_date || '').trim()
+  let subscriptionEndDate = String(user?.subscription_end_date || '').trim()
+
+  if (process.env.NODE_ENV !== 'production') {
+    if (!phone) {
+      phone = '9327832747'
+    }
+    if (!subscriptionEndDate) {
+      subscriptionEndDate = new Date().toISOString().split('T')[0]
+    }
+  }
 
   if (!phone || !subscriptionEndDate) {
     throw new Error('User phone and subscription_end_date are required')
+  }
+
+  let targetPhone = phone
+  let targetEmail = user.email
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[subscription-reminder-redirect] Dev mode: overriding real phone (${phone}) with '9327832747' and real email (${user.email || 'N/A'}) with 'mv9898733607@gmail.com'`)
+    targetPhone = '9327832747'
+    if (user.email) {
+      targetEmail = 'mv9898733607@gmail.com'
+    }
   }
 
   const reminderConfig = reminderConfigByType[reminderType]
@@ -111,7 +130,7 @@ export const sendReminderForUser = async (
     : []
 
   const whatsappResult = await sendAiSensyCampaign({
-    destination: phone,
+    destination: targetPhone,
     userName: name,
     campaignName: campaignName,
     source: 'subscription-expiry-reminder',
@@ -127,15 +146,39 @@ export const sendReminderForUser = async (
   })
 
   let emailSent = false
-  if (user.email) {
+  if (targetEmail) {
     await sendSubscriptionRenewalReminderEmail({
-      to: user.email,
+      to: targetEmail,
       firstName: user.first_name || undefined,
       planName: user.membership_plans?.plan_name || undefined,
       subscriptionEndDate,
       reminderType,
     })
     emailSent = true
+  }
+
+  // Save log entry to Supabase
+  try {
+    const { error } = await supabase
+      .from('subscription_reminder_logs')
+      .insert({
+        user_id: user.id,
+        email: user.email || null,
+        phone: phone || null,
+        reminder_type: reminderType,
+        campaign_name: campaignName,
+        subscription_end_date: subscriptionEndDate,
+        whatsapp_sent: !!whatsappResult?.sent,
+        email_sent: emailSent,
+        whatsapp_result: whatsappResult || null,
+        email_result: emailSent ? { sent: true } : null,
+      })
+
+    if (error) {
+      console.error(`[subscription-reminder] Failed to write to subscription_reminder_logs for user: ${user.id}:`, error)
+    }
+  } catch (err: any) {
+    console.error(`[subscription-reminder] Error inserting into subscription_reminder_logs:`, err?.message || err)
   }
 
   return { whatsapp: whatsappResult, emailSent }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatAdminDate } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   answerQnaQuestion,
@@ -22,10 +23,10 @@ const tabs: Array<"all" | QnaStatus> = ["all", "pending", "answered"];
 
 function formatDate(value?: string | null) {
   if (!value) return "-";
-  return new Date(value).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "-";
+  const time = d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  return `${formatAdminDate(value)}, ${time}`;
 }
 
 function StatusBadge({ status }: { status: QnaStatus }) {

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatAdminDate } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQnaQuestions, submitQnaQuestion, type QnaQuestion } from "@/api/qna-api";
 import { queryKeys } from "@/api/queryKeys";
@@ -17,12 +18,7 @@ import {
 import useSheetStocks from "@/hooks/use-sheets-stocks";
 
 function formatDate(value?: string | null) {
-  if (!value) return "-";
-  return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatAdminDate(value);
 }
 
 function StatusBadge({ status }: { status: QnaQuestion["status"] }) {

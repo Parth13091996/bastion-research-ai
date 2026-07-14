@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { formatAdminDate } from "@/lib/utils";
 import { Search, Plus, Eye, FileText, Trash2, X, Edit } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
@@ -200,12 +201,8 @@ const ManageSubscriptions = () => {
         planMap[String(r.membership_id)] || r.name || String(r.membership_id),
       user: r.user_id,
       name: r.name || "",
-      startDate: r.start_date
-        ? new Date(r.start_date).toLocaleDateString()
-        : "",
-      expiryNextRenewal: r.expire_next_renewal
-        ? new Date(r.expire_next_renewal).toLocaleDateString()
-        : "",
+      startDate: r.start_date ? formatAdminDate(r.start_date) : "",
+      expiryNextRenewal: r.expire_next_renewal ? formatAdminDate(r.expire_next_renewal) : "",
       amount:
         typeof r.amount === "number"
           ? new Intl.NumberFormat("en-IN", {
@@ -228,9 +225,9 @@ const ManageSubscriptions = () => {
       username: r.user_email || r.payer_email || r.user_id || "",
       name: r.payer_email || "",
       paymentDate: r.payment_date
-        ? new Date(r.payment_date).toLocaleDateString()
+        ? formatAdminDate(r.payment_date)
         : r.created_at
-          ? new Date(r.created_at).toLocaleDateString()
+          ? formatAdminDate(r.created_at)
           : "",
       amount:
         typeof r.amount === "number"

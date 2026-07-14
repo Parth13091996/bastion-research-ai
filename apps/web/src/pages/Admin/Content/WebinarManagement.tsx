@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Search, Eye, Edit, Trash2, Calendar, Video } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatAdminDate } from "@/lib/utils";
 import { webinarApi } from "@/api/content";
 import { confirmDelete } from "@/utils/confirm";
 import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
@@ -103,8 +103,7 @@ const WebinarManagement: React.FC = () => {
     navigate("/admin/content/webinars/create");
   };
 
-  const formatDate = (dateString: string) =>
-    format(new Date(dateString), "MMM dd, yyyy");
+  const formatDate = (dateString: string) => formatAdminDate(dateString);
 
   if (isLoading) {
     return (

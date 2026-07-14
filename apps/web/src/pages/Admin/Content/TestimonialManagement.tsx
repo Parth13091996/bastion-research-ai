@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Search, Eye, Edit, Trash2, Calendar, Star } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatAdminDate } from "@/lib/utils";
 import { testimonialApi } from "@/api/content";
 import { confirmDelete } from "@/utils/confirm";
 import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
@@ -99,8 +99,7 @@ const TestimonialManagement: React.FC = () => {
     navigate("/admin/content/testimonials/create");
   };
 
-  const formatDate = (dateString: string) =>
-    format(new Date(dateString), "MMM dd, yyyy");
+  const formatDate = (dateString: string) => formatAdminDate(dateString);
 
   if (isLoading) {
     return (

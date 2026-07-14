@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { formatAdminDate, formatDate } from "@/lib/utils";
 import { Search, Edit, Trash2, Plus } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
@@ -11,7 +12,6 @@ import {
 } from "@/api/coupons-api";
 import { confirm, confirmDelete } from "@/utils/confirm";
 import Modal from "@/components/core/Modal";
-import { formatDate } from "@/lib/utils";
 import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
 
 type ApiCoupon = {
@@ -40,8 +40,7 @@ type RowCoupon = {
   _raw: ApiCoupon;
 };
 
-const fmtDate = (v?: string | null) =>
-  !v ? "" : new Date(v).toLocaleDateString();
+const fmtDate = (v?: string | null) => formatAdminDate(v);
 const fmtDiscount = (t: string, n: number) =>
   t === "percentage"
     ? `${Number(n).toFixed(2)}%`

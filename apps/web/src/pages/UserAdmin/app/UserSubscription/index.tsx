@@ -126,9 +126,9 @@ const Subscription = () => {
     if (isNaN(exp.getTime())) return false;
 
     const today = new Date();
-    const msSinceExpiry = today.getTime() - exp.getTime();
-    const daysSinceExpiry = Math.floor(msSinceExpiry / (1000 * 60 * 60 * 24));
-    return daysSinceExpiry >= 0 && daysSinceExpiry <= 7;
+    const msLeft = exp.getTime() - today.getTime();
+    const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+    return daysLeft <= 7 && daysLeft >= -30;
   }, [
     subscription?.subscription?.expireNextRenewal,
     user?.subscription_end_date,

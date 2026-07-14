@@ -4,6 +4,7 @@ import { Toaster } from "./components/ui/sonner";
 import { routes } from "./routes";
 import ModalsLayout from "./layouts/ModalsLayout";
 import RouteAnalytics from "./components/RouteAnalytics";
+import SiteProtector from "./components/siteProtector";
 
 const AppRoutes = () => {
   const element = useRoutes(routes);
@@ -13,6 +14,7 @@ const AppRoutes = () => {
 function App() {
   return (
     <Router>
+      <SiteProtector />
       <RouteAnalytics />
       <Suspense
         fallback={

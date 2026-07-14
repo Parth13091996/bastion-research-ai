@@ -147,18 +147,20 @@ const UserSidebar = () => {
         onLogout={handleLogout}
         onExploreWebsite={handleExploreWebsite}
       />
-      <SidebarNav
-        isAdmin={isAdmin}
-        isStaff={isStaff}
-        profile={profile}
-        navItems={effectiveNavItems}
-        openMenus={openMenus}
-        isCollapsed={isCollapsed}
-        navigate={navigate}
-        toggleSubMenu={toggleSubMenu}
-        setShowPricing={setShowPricing}
-        setIsMobileOpen={setIsMobileOpen}
-      />
+      <div className="flex-grow overflow-y-auto no-scrollbar">
+        <SidebarNav
+          isAdmin={isAdmin}
+          isStaff={isStaff}
+          profile={profile}
+          navItems={effectiveNavItems}
+          openMenus={openMenus}
+          isCollapsed={isCollapsed}
+          navigate={navigate}
+          toggleSubMenu={toggleSubMenu}
+          setShowPricing={setShowPricing}
+          setIsMobileOpen={setIsMobileOpen}
+        />
+      </div>
       <SidebarFloatingSubMenu
         navItems={navItems}
         openMenus={openMenus}

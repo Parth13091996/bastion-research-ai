@@ -1,4 +1,5 @@
 import { fetchAnalyticsSummary } from "@/api/analytics-api";
+import { formatAdminDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,10 +73,7 @@ export function AnalyticsDashboard() {
   const visitsData = {
     labels:
       summary?.visitsByDay.map((v) =>
-        new Date(v.date).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })
+        formatAdminDate(v.date)
       ) || [],
     datasets: [
       {
@@ -100,10 +98,7 @@ export function AnalyticsDashboard() {
   const usersData = {
     labels:
       summary?.usersByDay.map((v) =>
-        new Date(v.date).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })
+        formatAdminDate(v.date)
       ) || [],
     datasets: [
       {
@@ -372,7 +367,7 @@ export function AnalyticsDashboard() {
                     {s.email || s.userId} • {s.planCode || s.membershipId}
                   </div>
                   <Badge variant="secondary">
-                    {new Date(s.expiresAt).toLocaleDateString()}
+                    {formatAdminDate(s.expiresAt)}
                   </Badge>
                 </div>
               ))}

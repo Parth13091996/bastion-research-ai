@@ -75,6 +75,24 @@ export const runSubscriptionExpiryReminder = async () => {
 
       for (const user of rows) {
         try {
+          // Check if log already exists for this cycle to prevent duplicates
+          const { data: existingLog, error: logError } = await supabase
+            .from('subscription_reminder_logs')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('reminder_type', reminderType)
+            .eq('subscription_end_date', targetDateStr)
+            .maybeSingle()
+
+          if (logError) {
+            console.error(`[subscription-reminder] Failed to check logs for user ${user.id}:`, logError)
+          }
+
+          if (existingLog) {
+            console.log(`[subscription-reminder] Skipping user ${user.id} - reminder (${reminderType}) already sent for expiry ${targetDateStr}`)
+            continue
+          }
+
           await sendReminderForUser(user as any, reminderType, config.campaignName)
           console.log(`[subscription-reminder] Sent reminder (${reminderType}) to user: ${user.id}`)
           // Wait 2 seconds between emails to prevent rate limiting (e.g. Mailtrap limits)
@@ -217,7 +235,11 @@ let scheduled = false
 let lastRunDay: string | null = null
 
 export const startSubscriptionExpiryReminderJob = () => {
-  if (scheduled || process.env.NODE_ENV !== 'production') return
+  const enableScheduler =
+    process.env.ENABLE_REMINDER_SCHEDULER === 'true' ||
+    process.env.NODE_ENV === 'production'
+
+  if (scheduled || !enableScheduler) return
   scheduled = true
 
   const execute = async () => {
