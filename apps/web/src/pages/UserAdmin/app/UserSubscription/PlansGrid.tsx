@@ -109,12 +109,7 @@ const PlansGrid = ({
                         </span>
                       </p>
                       <p className="text-xs text-amber-700">
-                        Discounted renewal rate valid for next 1 week only. Renew
-                        now to lock this price.
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        If not renewed within 1 month, price reverts to{" "}
-                        {formatINR(CORE_ANNUAL_STANDARD_PRICE_INR)}.
+                        Discounted renewal rate valid until 30 days after expiry.
                       </p>
                     </div>
                   ) : (
