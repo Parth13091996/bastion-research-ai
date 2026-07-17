@@ -34,10 +34,25 @@ dotenv.config()
 const app: Express = express()
 const port = Number(process.env.PORT) || 3001
 
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean)
+
 // Middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(origin.replace(/\/$/, ''))
+      ) {
+        return callback(null, true)
+      }
+
+      return callback(new Error('Not allowed by CORS'))
+    },
     credentials: true,
     optionsSuccessStatus: 200, // For legacy browser support
   })

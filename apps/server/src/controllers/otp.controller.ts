@@ -3,6 +3,7 @@ import twilio from "twilio";
 import { config } from "../utils/config";
 import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { supabase } from "../supabase";
+import { saveOtp, validateOtp } from "../services/otpStore.service";
 
 // Initialize Twilio Client
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -14,10 +15,6 @@ if (!accountSid || !authToken || !twilioFromNumber) {
 }
 
 const twilioClient = twilio(accountSid, authToken);
-
-// In-memory OTP store keyed by identifier (phone number or email)
-// Note: For production, prefer a persistent store (e.g., Redis) or Twilio Verify
-const otpStore = new Map<string, { otp: string; expiresAt: number }>();
 
 const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -41,7 +38,7 @@ export const sendOtp = async (req: Request, res: Response) => {
   try {
     const otp = generateOtp();
     const expiresAt = Date.now() + config.otp_ttl_ms;
-    otpStore.set(phone, { otp, expiresAt });
+    await saveOtp({ identifier: phone, type: "phone", otp, expiresAt });
     try {
       await twilioClient.messages.create({
         body: `Bastion Research Onboarding: Your verification code is: ${otp}`,
@@ -76,8 +73,6 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
       .ilike("email", normalizedEmail)
       .maybeSingle();
 
-      console.log({user})
-
     if (error) {
       console.error("Supabase error while checking email existence:", error);
       return res
@@ -91,7 +86,12 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 
     const otp = generateOtp();
     const expiresAt = Date.now() + config.otp_ttl_ms;
-    otpStore.set(normalizedEmail, { otp, expiresAt });
+    await saveOtp({
+      identifier: normalizedEmail,
+      type: "email",
+      otp,
+      expiresAt,
+    });
 
     const fromEmail = getResolvedSmtpFromAddress();
     if (!fromEmail) {
@@ -131,9 +131,13 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
       </div>
     `;
 
-    console.log({normalizedEmail, fromEmail, subject })
-
-    await sendEmail({ to: normalizedEmail, from: fromEmail, subject, text, html });
+    await sendEmail({
+      to: normalizedEmail,
+      from: fromEmail,
+      subject,
+      text,
+      html,
+    });
     return res
       .status(200)
       .json({ message: "OTP sent successfully.", expiresAt });
@@ -155,29 +159,20 @@ export const verifyOtp = async (req: Request, res: Response) => {
   }
 
   try {
-    const entry = otpStore.get(phone);
+    const result = await validateOtp(phone, "phone", otp);
 
-    if (!entry) {
+    if (!result.valid) {
+      const reasonToMessage: Record<string, string> = {
+        not_found: "No OTP found. Please request one.",
+        mismatch: "Invalid OTP.",
+        expired: "OTP has expired. Please request a new one.",
+        store_error: "Server error while verifying OTP.",
+      };
+      const status = result.reason === "store_error" ? 500 : 400;
       return res
-        .status(400)
-        .json({ message: "No OTP found. Please request one." });
+        .status(status)
+        .json({ message: reasonToMessage[result.reason || "mismatch"] });
     }
-
-    const { otp: storedOtp, expiresAt } = entry;
-
-    if (storedOtp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP." });
-    }
-
-    if (Date.now() > expiresAt) {
-      otpStore.delete(phone);
-      return res
-        .status(400)
-        .json({ message: "OTP has expired. Please request a new one." });
-    }
-
-    // 3. Clear OTP for this phone after successful verification
-    otpStore.delete(phone);
 
     return res.status(200).json({ message: "OTP verified successfully." });
   } catch (error) {
@@ -188,21 +183,5 @@ export const verifyOtp = async (req: Request, res: Response) => {
   }
 };
 
-export const validateEmailOtp = (
-  key: string,
-  otp: string
-): {
-  valid: boolean;
-  reason?: string;
-} => {
-  const entry = otpStore.get(key);
-  if (!entry) return { valid: false, reason: "not_found" };
-  const { otp: storedOtp, expiresAt } = entry;
-  if (storedOtp !== otp) return { valid: false, reason: "mismatch" };
-  if (Date.now() > expiresAt) {
-    otpStore.delete(key);
-    return { valid: false, reason: "expired" };
-  }
-  otpStore.delete(key);
-  return { valid: true };
-};
+export const validateEmailOtp = (key: string, otp: string) =>
+  validateOtp(key, "email", otp);
