@@ -34,10 +34,72 @@ dotenv.config()
 const app: Express = express()
 const port = Number(process.env.PORT) || 3001
 
+const normalizeOrigin = (origin: string) => origin.trim().replace(/\/$/, '')
+
+const withWwwVariant = (origin: string) => {
+  try {
+    const parsed = new URL(origin)
+    if (parsed.hostname.startsWith('www.')) {
+      parsed.hostname = parsed.hostname.replace(/^www\./, '')
+    } else {
+      parsed.hostname = `www.${parsed.hostname}`
+    }
+    return normalizeOrigin(parsed.origin)
+  } catch {
+    return null
+  }
+}
+
+const configuredOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(normalizeOrigin)
+  .filter(Boolean)
+
+const allowedOrigins = new Set(
+  configuredOrigins.flatMap((origin) => {
+    const wwwVariant = withWwwVariant(origin)
+    return wwwVariant ? [origin, wwwVariant] : [origin]
+  })
+)
+
+const isBastionOrigin = (origin: string) => {
+  try {
+    const { protocol, hostname } = new URL(origin)
+    return protocol === 'https:' && /(^|\.)bastionresearch\.in$/.test(hostname)
+  } catch {
+    return false
+  }
+}
+
+const isLocalDevOrigin = (origin: string) => {
+  try {
+    const { hostname } = new URL(origin)
+    return ['localhost', '127.0.0.1'].includes(hostname)
+  } catch {
+    return false
+  }
+}
+
 // Middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true)
+
+      const normalizedOrigin = normalizeOrigin(origin)
+      if (
+        allowedOrigins.has(normalizedOrigin) ||
+        isBastionOrigin(normalizedOrigin) ||
+        (process.env.NODE_ENV !== 'production' &&
+          isLocalDevOrigin(normalizedOrigin))
+      ) {
+        return callback(null, true)
+      }
+
+      // Do not throw from CORS middleware: throwing converts otherwise healthy
+      // public API requests into 500 responses without CORS headers.
+      return callback(null, false)
+    },
     credentials: true,
     optionsSuccessStatus: 200, // For legacy browser support
   })

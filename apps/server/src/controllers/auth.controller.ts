@@ -47,6 +47,14 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
+const getAuthCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite:
+    process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
+  maxAge: 24 * 60 * 60 * 1000,
+});
+
 export const signIn = async (req: Request, res: Response) => {
   const { email, password, otp } = req.body as {
     email?: string;
@@ -72,15 +80,17 @@ export const signIn = async (req: Request, res: Response) => {
     }
     // If OTP provided, validate it; otherwise fallback to password validation
     if (otp) {
-      const result = validateEmailOtp(normalizedEmail, otp);
+      const result = await validateEmailOtp(normalizedEmail, otp);
       if (!result.valid) {
         const reasonToMessage: Record<string, string> = {
           not_found: "No OTP found. Please request one.",
           mismatch: "Invalid OTP.",
           expired: "OTP has expired. Please request a new one.",
+          store_error: "Server error while verifying OTP.",
         };
+        const status = result.reason === "store_error" ? 500 : 400;
         return res
-          .status(400)
+          .status(status)
           .json({ message: reasonToMessage[result.reason || "mismatch"] });
       }
     } else {
@@ -92,12 +102,7 @@ export const signIn = async (req: Request, res: Response) => {
 
     const token = generateToken(user.id, user.email);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Set to true in production
-      sameSite: "strict", // Or 'lax'
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
+    res.cookie("token", token, getAuthCookieOptions());
 
     // Fire-and-forget: record a login activity (do not block sign-in)
     try {
@@ -448,12 +453,7 @@ export const onboardUser = async (req: Request, res: Response) => {
     // Issue a session cookie so subsequent steps are authenticated
     try {
       const token = generateToken(userId as string, normalizedEmail);
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 24 * 60 * 60 * 1000,
-      });
+      res.cookie("token", token, getAuthCookieOptions());
     } catch {}
 
     return res.status(200).json({
@@ -775,8 +775,9 @@ export const getUserSession = async (req: Request, res: Response) => {
 
 export const logout = (req: Request, res: Response) => {
   res.cookie("token", "", {
-    httpOnly: true,
+    ...getAuthCookieOptions(),
     expires: new Date(0),
+    maxAge: 0,
   });
   res.status(200).json({ message: "Logged out successfully" });
 };
