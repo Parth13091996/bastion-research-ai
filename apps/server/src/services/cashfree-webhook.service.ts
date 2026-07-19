@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { config } from '../utils/config'
 import { clearOnboardingDropOffForUser } from '../automations/onboardingDropOff.scheduler'
 import { sendWelcomeEmailForUser } from './emailNotification.service'
+import { syncOnboardedUserToMailchimp } from './mailchimpAudience.service'
 
 export const verifyWebhookSignature = (
   signature: string | undefined,
@@ -228,6 +229,22 @@ export const handlePaymentSuccess = async (payload: any) => {
   await Promise.all([updateUserPromise, persistPaymentHistory()])
   if (resolvedUserId && !wasAlreadySuccessful) {
     void sendWelcomeEmailForUser(resolvedUserId, currentPlan?.plan_name)
+    void (async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('email, first_name, last_name, phone')
+        .eq('id', resolvedUserId)
+        .maybeSingle()
+      await syncOnboardedUserToMailchimp({
+        email: (data as any)?.email || customer_details?.customer_email,
+        firstName: (data as any)?.first_name,
+        lastName: (data as any)?.last_name,
+        phone: (data as any)?.phone || customer_details?.customer_phone,
+        plan: currentPlan,
+      })
+    })().catch((e: any) =>
+      console.error('Mailchimp paid onboarding sync failed', e)
+    )
   }
   clearOnboardingDropOffForUser(customer_details?.customer_id)
 }

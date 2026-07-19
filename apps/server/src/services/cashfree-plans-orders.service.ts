@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import { pgCreateOrder } from "./cashfree-pg.service";
 import { getFrontendBaseUrl } from "./cashfree-config";
 import { incrementCouponUsage } from "../controllers/coupon.controller";
+import { syncOnboardedUserToMailchimp } from "./mailchimpAudience.service";
 export type PublicPlan = {
   code: string;
   name: string;
@@ -125,6 +126,11 @@ export const createOrderForPlanService = async (params: {
         subscription_end_date: endDateStr,
       })
       .eq("id", params.customer_id);
+    void syncOnboardedUserToMailchimp({
+      email: params.customer_email,
+      phone: params.customer_phone,
+      plan: planRow,
+    }).catch((e) => console.error("Mailchimp free plan sync failed", e));
 
     // Record in payment history as FREE or COUPON_APPLIED
     const freePaymentBase: any = {

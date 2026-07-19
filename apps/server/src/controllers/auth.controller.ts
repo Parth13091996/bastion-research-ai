@@ -16,6 +16,7 @@ import {
   clearOnboardingDropOffForUser,
   startOnboardingDropOffSession,
 } from "../automations/onboardingDropOff.scheduler";
+import { syncOnboardedUserToMailchimp } from "../services/mailchimpAudience.service";
 type OnboardingUserData = {
   email: string;
   phone: string;
@@ -356,7 +357,7 @@ export const onboardUser = async (req: Request, res: Response) => {
       try {
         const { data: planRow, error: planError } = await supabase
           .from("membership_plans")
-          .select("duration_months, plan_name")
+          .select("duration_months, plan_name, plan_code, price_amount")
           .eq("plan_id", plan_id as any)
           .maybeSingle();
 
@@ -448,6 +449,13 @@ export const onboardUser = async (req: Request, res: Response) => {
         username,
         planName: welcomePlanName,
       });
+      void syncOnboardedUserToMailchimp({
+        email: normalizedEmail,
+        firstName,
+        lastName,
+        phone,
+        plan: planDetails,
+      }).catch((e) => console.error("Mailchimp free onboarding sync failed", e));
     }
 
     // Issue a session cookie so subsequent steps are authenticated
@@ -590,7 +598,7 @@ export const zeroAmountAccountCreation = async (
     try {
       const { data: planRow, error: planError } = await supabase
         .from("membership_plans")
-        .select("duration_months, plan_code")
+        .select("duration_months, plan_code, plan_name, price_amount")
         .eq("plan_id", plan_id as any)
         .maybeSingle();
 
@@ -701,6 +709,13 @@ export const zeroAmountAccountCreation = async (
       }
 
       void sendWelcomeEmailForUser(user_id);
+      void syncOnboardedUserToMailchimp({
+        email: (data as any)?.email || payer_email,
+        firstName: (data as any)?.first_name,
+        lastName: (data as any)?.last_name,
+        phone: (data as any)?.phone,
+        plan: (data as any)?.membership_plans || undefined,
+      }).catch((e) => console.error("Mailchimp zero-amount sync failed", e));
 
       return res.status(200).json({ user: data });
     } catch (e: any) {
