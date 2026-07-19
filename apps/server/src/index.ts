@@ -80,6 +80,26 @@ const isLocalDevOrigin = (origin: string) => {
   }
 }
 
+const healthcheckPayload = () => ({
+  status: 'ok',
+  message: 'Server is healthy',
+  uptime: process.uptime(),
+  timestamp: new Date().toISOString(),
+})
+
+// Keep the healthcheck dependency-free and ahead of heavier middleware so
+// uptime monitors can distinguish app health from CORS/body-parser issues.
+app.get('/healthcheck', (req: Request, res: Response) => {
+  res
+    .status(200)
+    .set('Cache-Control', 'no-store')
+    .json(healthcheckPayload())
+})
+
+app.head('/healthcheck', (req: Request, res: Response) => {
+  res.status(200).set('Cache-Control', 'no-store').end()
+})
+
 // Middleware
 app.use(
   cors({
@@ -114,11 +134,6 @@ app.use(
 )
 app.use(express.urlencoded({ limit: '50mb', extended: true }))
 app.use(cookieParser())
-
-// Healthcheck endpoint
-app.get('/healthcheck', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'ok', message: 'Server is healthy' })
-})
 
 // API Routes
 app.use('/api/auth', authRoutes)
