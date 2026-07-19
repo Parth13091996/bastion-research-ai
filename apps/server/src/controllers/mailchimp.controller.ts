@@ -14,6 +14,7 @@ import {
   formatWebinarDateLabel,
   formatWebinarTimeLabel,
 } from "../utils/webinar-copy-format";
+import { filterAllowedMailchimpTags } from "../services/mailchimpAudience.service";
 
 mailchimp.setConfig({
   apiKey: process.env.MAILCHIMP_API_KEY,
@@ -103,7 +104,7 @@ function normalizeMergeFields(
 
 export async function subscribeToNewsLetter(req: Request, res: Response) {
   try {
-    const { email, latitude, longitude, timestamp, tags, merge_fields } =
+    const { email, phone, latitude, longitude, timestamp, tags, merge_fields } =
       req.body;
 
     // Basic validation
@@ -111,13 +112,17 @@ export async function subscribeToNewsLetter(req: Request, res: Response) {
       return res.status(400).json({ message: "Valid email required" });
     }
 
-    const normalizedTags = Array.isArray(tags)
+    const requestedTags = Array.isArray(tags)
       ? tags.map((t: any) => String(t).trim()).filter(Boolean)
       : typeof tags === "string" && tags.trim()
         ? [tags.trim()]
         : [];
+    const normalizedTags = filterAllowedMailchimpTags(requestedTags);
 
     let normalizedMerge = normalizeMergeFields(merge_fields);
+    if (typeof phone === "string" && phone.trim()) {
+      normalizedMerge = { ...(normalizedMerge || {}), PHONE: phone.trim() };
+    }
 
     const hasPortfolioWebinarTag = normalizedTags.some((t) =>
       t.startsWith("Risk_webinar_")

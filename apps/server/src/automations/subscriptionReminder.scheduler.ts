@@ -8,6 +8,7 @@ import {
   reminderConfigByType,
   SubscriptionReminderType,
 } from '../controllers/subscription-whatsapp.controller'
+import { syncExpiredPremiumUserToMailchimp } from '../services/mailchimpAudience.service'
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 const MONTHLY_SUMMARY_RECIPIENT =
@@ -26,6 +27,7 @@ type ExpiringUserRow = {
   subscription_end_date?: string | null
   membership_plans?: {
     plan_name?: string | null
+    plan_code?: string | null
   } | null
 }
 
@@ -231,6 +233,54 @@ export const runDropOffSummary = async (referenceDate: Date = new Date()) => {
   }
 }
 
+export const runExpiredPremiumMailchimpSync = async (
+  referenceDate: Date = new Date()
+) => {
+  const today = referenceDate.toISOString().split('T')[0]
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select(
+        `
+        id,
+        email,
+        first_name,
+        last_name,
+        phone,
+        subscription_end_date,
+        membership_plans (
+          plan_name,
+          plan_code
+        )
+      `
+      )
+      .lt('subscription_end_date', today)
+      .eq('status', 'active')
+      .in('role', ['core_subscriber', 'research_ally_subscriber'])
+
+    if (error) {
+      console.error('Failed to fetch expired premium users for Mailchimp sync', error)
+      return
+    }
+
+    for (const user of ((data ?? []) as ExpiringUserRow[])) {
+      try {
+        await syncExpiredPremiumUserToMailchimp({
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          phone: user.phone,
+          plan: user.membership_plans,
+        })
+      } catch (error) {
+        console.error(`Mailchimp expired premium sync failed for user ${user.id}`, error)
+      }
+    }
+  } catch (error) {
+    console.error('Expired premium Mailchimp sync job failed', error)
+  }
+}
+
 let scheduled = false
 let lastRunDay: string | null = null
 
@@ -249,6 +299,7 @@ export const startSubscriptionExpiryReminderJob = () => {
       return
     }
     lastRunDay = today
+    await runExpiredPremiumMailchimpSync(now)
     await runSubscriptionExpiryReminder()
     await runDropOffSummary(now)
 

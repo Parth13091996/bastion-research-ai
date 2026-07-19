@@ -1,5 +1,4 @@
 import { createFreeAccount } from "@/api/onboarding-apis";
-import mailchimpNewsletterApi from "@/api/mailchimp-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatINR, sleep } from "@/utils";
 import { ArrowLeft, Check, Info, Sparkles } from "lucide-react";
@@ -38,31 +37,11 @@ const PlansStep: React.FC<PlansStepProps> = ({
 }) => {
   const navigate = useNavigate();
   const { refetchUser } = useAuth();
-  const getOnboardTag = (plan?: Plan) => {
-    const code = plan?.plan_code?.toLowerCase().trim();
-    const name = (plan?.name || "").toLowerCase();
-    const isFree =
-      String(plan?.amount ?? "") === "0" || code === "freemium";
-    if (code === "core") return "onboard_onetime";
-    if (code === "core_annual") return "onboard_premium";
-    if (isFree) return "onboard_free";
-    if (name.includes("annual")) return "onboard_premium";
-    if (name.includes("freemium")) return "onboard_free";
-    return "onboard_onetime";
-  };
   const plansStepNextHandler = async () => {
     try {
       setIsLoading(true);
       const selectedPlan = formData.selectedPlan as string;
       const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
-      if (formData.email) {
-        const tag = getOnboardTag(selectedPlanDetails);
-        if (tag) {
-          void mailchimpNewsletterApi
-            .subscribe({ email: formData.email as string, tags: [tag] })
-            .catch(() => null);
-        }
-      }
       const isFree = selectedPlanDetails?.plan_code === "freemium";
       if (isFree) {
         const response = await createFreeAccount({

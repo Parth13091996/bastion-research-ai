@@ -4,6 +4,7 @@ import { endpoints } from "./endpoints";
 const mailchimpNewsletterApi = {
   subscribe: (payload: {
     email: string;
+    phone?: string;
     tags?: string[];
     merge_fields?: Record<string, string>;
   }) =>
