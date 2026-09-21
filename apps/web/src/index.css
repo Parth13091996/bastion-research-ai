@@ -1,0 +1,359 @@
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-alpine.css";
+@import "./styles/ag-grid-custom.css";
+@import "./styles/_variables.scss";
+@import "./styles/_keyframe-animations.scss";
+@import "./styles/tiptap.scss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --highlight: oklch(0.852 0.199 91.936);
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 210 40% 98%;
+    --highlight: oklch(0.852 0.199 91.936);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+::selection {
+  background-color: rgba(255, 0, 0, 0.336);
+}
+
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+
+/* tiptap image config */
+/* Basic editor styles */
+.tiptap {
+  :first-child {
+    margin-top: 0;
+  }
+
+  img {
+    display: block;
+  }
+
+  [data-resize-handle] {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    z-index: 10;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    /* Corner handles */
+    &[data-resize-handle='top-left'],
+    &[data-resize-handle='top-right'],
+    &[data-resize-handle='bottom-left'],
+    &[data-resize-handle='bottom-right'] {
+      width: 8px;
+      height: 8px;
+    }
+
+    &[data-resize-handle='top-left'] {
+      top: -4px;
+      left: -4px;
+      cursor: nwse-resize;
+    }
+
+    &[data-resize-handle='top-right'] {
+      top: -4px;
+      right: -4px;
+      cursor: nesw-resize;
+    }
+
+    &[data-resize-handle='bottom-left'] {
+      bottom: -4px;
+      left: -4px;
+      cursor: nesw-resize;
+    }
+
+    &[data-resize-handle='bottom-right'] {
+      bottom: -4px;
+      right: -4px;
+      cursor: nwse-resize;
+    }
+
+    /* Edge handles */
+    &[data-resize-handle='top'],
+    &[data-resize-handle='bottom'] {
+      height: 6px;
+      left: 8px;
+      right: 8px;
+    }
+
+    &[data-resize-handle='top'] {
+      top: -3px;
+      cursor: ns-resize;
+    }
+
+    &[data-resize-handle='bottom'] {
+      bottom: -3px;
+      cursor: ns-resize;
+    }
+
+    &[data-resize-handle='left'],
+    &[data-resize-handle='right'] {
+      width: 6px;
+      top: 8px;
+      bottom: 8px;
+    }
+
+    &[data-resize-handle='left'] {
+      left: -3px;
+      cursor: ew-resize;
+    }
+
+    &[data-resize-handle='right'] {
+      right: -3px;
+      cursor: ew-resize;
+    }
+  }
+
+  [data-resize-state="true"] [data-resize-wrapper] {
+    outline: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 0.125rem;
+  }
+}
+
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+/* Table font and padding */
+.ag-theme-alpine .ag-cell {
+  font-size: 14px;
+}
+
+/* Header font */
+.ag-theme-alpine .ag-header-cell-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Hover effect for rows */
+.ag-theme-alpine .ag-row-hover {
+  background-color: #f9fafb !important;
+}
+
+/* Make table full width */
+.ag-theme-alpine {
+  width: 100% !important;
+}
+
+/* Responsive fix for small screens */
+@media (max-width: 768px) {
+  .ag-theme-alpine .ag-cell {
+    font-size: 13px;
+  }
+}
+
+/* Animation styles for the userAdmin myAccount's Sub-tabs */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+
+/* recommendation page progress bar sparkle */
+
+@keyframes sparkle {
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s infinite ease-in-out;
+}
+
+/* Tiptap padding override */
+.simple-editor-content .bodyCell {
+  padding: 0 !important;
+}
+
+@media only screen and (max-width: 480px) {
+  .simple-editor-content td,
+  .simple-editor-content [id^="b"] .mceTextBlockContainer {
+    padding: 12px 0 !important;
+  }
+}
+
+
+
+@media (min-width: 1000px) and (max-width: 1500px) {
+  .responsive-container {
+    transform: scale(0.85);
+    transform-origin: top center;
+    width: 117.65%;
+    /* 100/0.85 = 117.65% to maintain original width */
+    margin-left: -8.825%;
+    /* Compensate for the width increase */
+  }
+
+  .responsive-heading {
+    font-size: 1.75rem;
+  }
+
+  .responsive-subheading {
+    font-size: 0.875rem;
+  }
+
+  .responsive-panel {
+    padding: 1rem;
+  }
+
+  .responsive-panel-title {
+    font-size: 1.125rem;
+  }
+
+  .responsive-metric-card {
+    padding: 0.75rem;
+  }
+
+  .responsive-metric-value {
+    font-size: 1.75rem;
+  }
+
+  .responsive-summary-card {
+    padding: 0.75rem;
+  }
+
+  .responsive-text {
+    font-size: 0.75rem;
+  }
+
+  .responsive-value {
+    font-size: 0.875rem;
+  }
+
+  .responsive-total-value {
+    font-size: 1.5rem;
+  }
+
+  .responsive-card {
+    padding: 0.75rem;
+  }
+
+  .responsive-bar {
+    height: 1.25rem;
+  }
+
+  .responsive-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .responsive-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .responsive-link {
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 1500px) {
+  .responsive-container {
+    transform: scale(1);
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 2000px) {
+  .plan-wrapper {
+    flex-direction: column;
+    gap: 10px; /* optional spacing */
+  }
+}
