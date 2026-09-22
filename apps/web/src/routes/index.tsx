@@ -68,6 +68,7 @@ const EffortlessInvestor = lazy(
   () => import("@/pages/UserAdmin/app/EffortlessInvestor")
 );
 const QnaSection = lazy(() => import("@/pages/UserAdmin/app/QnaSection"));
+const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
 
 
 // Admin Pages
@@ -244,6 +245,10 @@ export const routes: RouteObject[] = [
   {
     path: AppRoutes.redFlagDecision,
     element: <RedFlagDecision />,
+  },
+  {
+    path: AppRoutes.paymentSuccess,
+    element: <PaymentSuccess />,
   },
   {
     element: <AdminLayout />,

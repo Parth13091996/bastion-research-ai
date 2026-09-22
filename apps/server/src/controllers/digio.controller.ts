@@ -25,8 +25,8 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
       anyReq.file ||
       (Array.isArray(anyReq.files)
         ? anyReq.files.find(
-            (f: any) => f.fieldname === "file" || f.fieldname === "pdf"
-          )
+          (f: any) => f.fieldname === "file" || f.fieldname === "pdf"
+        )
         : undefined);
 
     if (file) {
@@ -137,7 +137,7 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
           .insert([{ document_id, status: doc_status, user_id }])
           .select();
       }
-    } catch (dbError) {}
+    } catch (dbError) { }
 
     return res.status(201).json({
       success: true,

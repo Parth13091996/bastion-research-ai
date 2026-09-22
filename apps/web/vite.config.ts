@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import viteCompression from "vite-plugin-compression";
 import path from "path";
 
-export default defineConfig(() => ({
+export default defineConfig({
   plugins: [react(), viteCompression()].filter(Boolean),
   build: {
     outDir: "dist",
@@ -15,9 +15,14 @@ export default defineConfig(() => ({
       },
     },
   },
+  server: {
+    host: true,
+    allowedHosts: true,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  }
-}));
+  },
+});
+

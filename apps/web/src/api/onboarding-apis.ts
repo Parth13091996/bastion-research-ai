@@ -86,6 +86,11 @@ export async function createCashfreeOrder(payload: CashfreeOrderPayload) {
   return data;
 }
 
+export async function getCashfreeOrder(orderId: string) {
+  const { data } = await axiosInstance.get(endpoints.cashfree.orderById(orderId));
+  return data;
+}
+
 export async function zeroAmountPayment(payload: ZeroAmountPaymentPayload) {
   const { data } = await axiosInstance.post(
     endpoints.auth.zeroAmountPayment,
