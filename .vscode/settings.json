@@ -1,0 +1,8 @@
+{
+  "remote.autoForwardPorts": false,
+  "remote.portsAttributes": {
+    "5173": {
+      "onAutoForward": "silent"
+    }
+  }
+}
