@@ -78,10 +78,7 @@ export async function sendEmailOtp(email: string) {
 
 export async function fetchPlans(): Promise<Plan[]> {
   const { data } = await axiosInstance.get(endpoints.cashfree.plans);
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.plans)) return data.plans;
-  if (Array.isArray(data?.data)) return data.data;
-  return [];
+  return data.plans || [];
 }
 
 export async function createCashfreeOrder(payload: CashfreeOrderPayload) {

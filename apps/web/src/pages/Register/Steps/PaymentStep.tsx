@@ -3,7 +3,6 @@ import {
   createCashfreeOrder,
   zeroAmountPayment,
 } from "@/api/onboarding-apis";
-import { getSession } from "@/api/auth-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
@@ -22,9 +21,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   setError,
   setIsLoading,
 }) => {
-  const selectedPlanDetails = Array.isArray(plans)
-    ? plans.find((p) => p.code === selectedPlan)
-    : undefined;
+  const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
   const { user, refetchUser } = useAuth();
   const navigate = useNavigate();
 
@@ -105,25 +102,14 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
     setIsLoading(true);
     try {
-      // Refresh session first to ensure latest authenticated user state exists
-      let currentUser = user;
-      try {
-        const sessionRes = await getSession();
-        if (sessionRes?.user) {
-          currentUser = sessionRes.user;
-        }
-      } catch (sessionErr) {
-        console.warn("Session fetch before payment error:", sessionErr);
-      }
-
       const finalAmount = getFinalAmount();
       const couponToUse = appliedCoupon?.coupon_code;
       if (isFreeOrZero) {
         const result = await zeroAmountPayment({
           plan_id: Number(selectedPlanDetails?.code),
-          payer_email: formData.email || currentUser?.email,
+          payer_email: formData.email || user?.email,
           coupon_code: couponToUse,
-          user_id: currentUser?.id,
+          user_id: user?.id,
           role: formData?.role,
         });
         if (result?.user?.status === "active") {
@@ -131,44 +117,23 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           navigate("/user/app/dashboard");
         }
       } else {
-        const customerId = currentUser?.id;
-        if (!customerId) {
+        if (!user?.id) {
           setError(
             "We couldn't identify your account for payment. Please refresh and try again."
           );
           return;
         }
-        if (!formData?.panVerification?.valid && !currentUser?.pan_card_number) {
+        if (!formData?.panVerification?.valid) {
           setError(
             "Please complete PAN verification before proceeding to payment."
           );
           return;
         }
-        const customerPhone = (
-          formData?.phone ||
-          currentUser?.phone ||
-          user?.phone ||
-          ""
-        ).trim();
-        const customerEmail = (
-          formData?.email ||
-          currentUser?.email ||
-          user?.email ||
-          ""
-        ).trim();
-
-        if (!customerPhone) {
-          setError(
-            "Phone number is required for payment. Please make sure your phone number is provided."
-          );
-          return;
-        }
-
         const orderResponse = await createCashfreeOrder({
           plan: formData.selectedPlan,
-          customer_id: customerId,
-          customer_email: customerEmail,
-          customer_phone: customerPhone,
+          customer_id: user.id,
+          customer_email: formData.email || user.email,
+          customer_phone: formData.phone || user.phone,
           source: "register",
           coupon_code: appliedCoupon?.coupon_code || null,
           discount_amount: finalAmount,

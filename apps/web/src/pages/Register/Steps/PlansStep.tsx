@@ -37,12 +37,11 @@ const PlansStep: React.FC<PlansStepProps> = ({
 }) => {
   const navigate = useNavigate();
   const { refetchUser } = useAuth();
-  const plansList = Array.isArray(plans) ? plans : [];
   const plansStepNextHandler = async () => {
     try {
       setIsLoading(true);
       const selectedPlan = formData.selectedPlan as string;
-      const selectedPlanDetails = plansList.find((p) => p.code === selectedPlan);
+      const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
       const isFree = selectedPlanDetails?.plan_code === "freemium";
       if (isFree) {
         const response = await createFreeAccount({
@@ -96,7 +95,7 @@ const PlansStep: React.FC<PlansStepProps> = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[...plansList]
+          {plans
             .sort((a, b) =>
               (a.plan_code || "").localeCompare(
                 b.plan_code || ""

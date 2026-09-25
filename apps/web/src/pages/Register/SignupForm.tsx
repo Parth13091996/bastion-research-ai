@@ -140,7 +140,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     setSteps(isAgreementSignedUser ? agreementSignedStepsValues : stepsValues);
-  }, [Array.isArray(plans) ? plans.length : 0, isAgreementSignedUser]);
+  }, [plans.length, isAgreementSignedUser]);
 
   useEffect(() => {
     const loadPlans = async () => {
@@ -154,8 +154,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
         } catch (err: any) {
           setError(
             err?.response?.data?.message ||
-              err?.message ||
-              "Failed to fetch plans."
+            err?.message ||
+            "Failed to fetch plans."
           );
         } finally {
           setIsLoading(false);
@@ -222,8 +222,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     // Lean flow for users who already signed the agreement:
     // only Plans (no free plan) and Payment.
     if (isAgreementSignedUser) {
-      const validPlans = Array.isArray(plans) ? plans : [];
-      const paidPlans = validPlans.filter((plan) => {
+      const paidPlans = plans.filter((plan) => {
         const planCode = (plan as any)?.plan_code as string | undefined;
         const isFree =
           String(plan.amount) === "0" ||
@@ -394,22 +393,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             {steps.map((step) => (
               <div
                 key={step.id}
-                className={`flex items-center p-3 rounded-lg transition-colors text-base ${
-                  currentStep === step.id
+                className={`flex items-center p-3 rounded-lg transition-colors text-base ${currentStep === step.id
                     ? "bg-red-100 text-red-700 border-l-4 border-red-500"
                     : currentStep > step.id
                       ? "bg-green-50 text-green-700"
                       : "text-gray-500"
-                }`}
+                  }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${
-                    currentStep === step.id
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentStep === step.id
                       ? "bg-red-500 text-white"
                       : currentStep > step.id
                         ? "bg-green-500 text-white"
                         : "bg-gray-300 text-gray-600"
-                  }`}
+                    }`}
                 >
                   {currentStep > step.id ? <Check size={12} /> : step.id}
                 </div>
@@ -441,22 +438,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
                 <div
                   key={step.id}
                   id={`step-${step.id}`}
-                  className={`flex flex-col items-center flex-shrink-0 px-3 py-2 rounded-lg transition-colors text-xs ${
-                    currentStep === step.id
+                  className={`flex flex-col items-center flex-shrink-0 px-3 py-2 rounded-lg transition-colors text-xs ${currentStep === step.id
                       ? "bg-red-100 text-red-700"
                       : currentStep > step.id
                         ? "bg-green-50 text-green-700"
                         : "text-gray-500"
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${
-                      currentStep === step.id
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${currentStep === step.id
                         ? "bg-red-500 text-white"
                         : currentStep > step.id
                           ? "bg-green-500 text-white"
                           : "bg-gray-300 text-gray-600"
-                    }`}
+                      }`}
                   >
                     {currentStep > step.id ? <Check size={10} /> : step.id}
                   </div>

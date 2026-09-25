@@ -68,9 +68,9 @@ const Subscription = () => {
     agreementSignedAt: undefined,
   });
 
-  
+
   const currentPlanCode =
-  subscription?.subscription?.plan_code || "freemium"
+    subscription?.subscription?.plan_code || "freemium"
   useEffect(() => {
     const loadPlans = async () => {
       setIsPlansLoading(true);
@@ -135,7 +135,7 @@ const Subscription = () => {
   ]);
 
   const availablePlans = useMemo(() => {
-    if (!Array.isArray(plans) || !plans.length) return [];
+    if (!plans.length) return [];
     return plans.filter((plan) => {
       const planCode = (plan.plan_code || "").toLowerCase();
       const isFree = String(plan.amount) === "0" || planCode === "freemium";
@@ -144,7 +144,7 @@ const Subscription = () => {
       if (featureKey === "core" && currentPlanCode === "core_annual") {
         return false;
       }
-      
+
       return true;
     });
   }, [plans, hasSignedAgreement, currentPlanCode, user]);
