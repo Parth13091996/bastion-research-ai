@@ -22,7 +22,9 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   setError,
   setIsLoading,
 }) => {
-  const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
+  const selectedPlanDetails = Array.isArray(plans)
+    ? plans.find((p) => p.code === selectedPlan)
+    : undefined;
   const { user, refetchUser } = useAuth();
   const navigate = useNavigate();
 
@@ -154,6 +156,13 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           user?.email ||
           ""
         ).trim();
+
+        if (!customerPhone) {
+          setError(
+            "Phone number is required for payment. Please make sure your phone number is provided."
+          );
+          return;
+        }
 
         const orderResponse = await createCashfreeOrder({
           plan: formData.selectedPlan,

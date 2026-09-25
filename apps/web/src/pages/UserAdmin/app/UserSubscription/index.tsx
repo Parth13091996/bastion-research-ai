@@ -135,7 +135,7 @@ const Subscription = () => {
   ]);
 
   const availablePlans = useMemo(() => {
-    if (!plans.length) return [];
+    if (!Array.isArray(plans) || !plans.length) return [];
     return plans.filter((plan) => {
       const planCode = (plan.plan_code || "").toLowerCase();
       const isFree = String(plan.amount) === "0" || planCode === "freemium";

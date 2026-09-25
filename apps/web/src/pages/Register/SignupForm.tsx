@@ -140,7 +140,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     setSteps(isAgreementSignedUser ? agreementSignedStepsValues : stepsValues);
-  }, [plans.length, isAgreementSignedUser]);
+  }, [Array.isArray(plans) ? plans.length : 0, isAgreementSignedUser]);
 
   useEffect(() => {
     const loadPlans = async () => {
@@ -222,7 +222,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     // Lean flow for users who already signed the agreement:
     // only Plans (no free plan) and Payment.
     if (isAgreementSignedUser) {
-      const paidPlans = plans.filter((plan) => {
+      const validPlans = Array.isArray(plans) ? plans : [];
+      const paidPlans = validPlans.filter((plan) => {
         const planCode = (plan as any)?.plan_code as string | undefined;
         const isFree =
           String(plan.amount) === "0" ||
