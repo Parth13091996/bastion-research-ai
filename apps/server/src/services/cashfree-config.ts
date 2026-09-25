@@ -1,16 +1,19 @@
 import { Cashfree } from "cashfree-pg";
 
-const CF_APP_ID = process.env.CASHFREE_APP_ID;
-const CF_SECRET = process.env.CASHFREE_SECRET;
-const CF_ENV = (process.env.CASHFREE_ENV || "SANDBOX").toUpperCase() as
+const cleanEnv = (val?: string) =>
+  (val || "").trim().replace(/^["']|["']$/g, "");
+
+const CF_APP_ID = cleanEnv(process.env.CASHFREE_APP_ID);
+const CF_SECRET = cleanEnv(process.env.CASHFREE_SECRET);
+const CF_ENV = (cleanEnv(process.env.CASHFREE_ENV) || "SANDBOX").toUpperCase() as
   | "SANDBOX"
   | "PRODUCTION";
 export const CF_API_VERSION = "2023-08-01";
 
 const CF_VERIFICATION_CLIENT_ID =
-  process.env.CASHFREE_VERIFICATION_CLIENT_ID || CF_APP_ID;
+  cleanEnv(process.env.CASHFREE_VERIFICATION_CLIENT_ID) || CF_APP_ID;
 const CF_VERIFICATION_CLIENT_SECRET =
-  process.env.CASHFREE_VERIFICATION_CLIENT_SECRET || CF_SECRET;
+  cleanEnv(process.env.CASHFREE_VERIFICATION_CLIENT_SECRET) || CF_SECRET;
 
 export const getBaseUrl = () =>
   CF_ENV === "PRODUCTION"
@@ -26,12 +29,15 @@ export const ensureCashfreeConfigured = () => {
   if (!CF_APP_ID || !CF_SECRET) {
     throw new Error("CASHFREE_APP_ID/CASHFREE_SECRET not configured");
   }
-  const envConst =
-    CF_ENV === "PRODUCTION"
-      ? (Cashfree as any).PRODUCTION
-      : (Cashfree as any).SANDBOX;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _cf = new (Cashfree as any)(envConst, CF_APP_ID, CF_SECRET);
+  const anyCF = Cashfree as any;
+  if (anyCF.XClientId !== undefined) {
+    anyCF.XClientId = CF_APP_ID;
+    anyCF.XClientSecret = CF_SECRET;
+    anyCF.XEnvironment =
+      CF_ENV === "PRODUCTION"
+        ? anyCF.Environment?.PRODUCTION || "PRODUCTION"
+        : anyCF.Environment?.SANDBOX || "SANDBOX";
+  }
 };
 
 export const getVerificationHeaders = () => {
