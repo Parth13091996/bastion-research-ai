@@ -26,11 +26,11 @@ export const Config = {
   app_name: 'Bastion Research',
   digio_environment:
     import.meta.env.MODE === 'production'
-      ? 'production'
+      ? ('sandbox' as 'production' | 'sandbox')
       : ('sandbox' as 'production' | 'sandbox'),
   cashfree_environment:
     import.meta.env.MODE === 'production'
-      ? 'production'
+      ? ('sandbox' as 'production' | 'sandbox')
       : ('sandbox' as 'production' | 'sandbox'),
   connect_url: 'connect@bastionresearch.in',
   agreement_file_name: (formData) =>

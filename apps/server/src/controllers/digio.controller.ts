@@ -145,7 +145,17 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error: any) {
-    console.error("Error message:", error.message);
+    console.error("Error in initiateSignatureJSON:", error?.response?.data || error.message);
+    const status = error?.response?.status || 500;
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to initiate document signature";
+    return res.status(status).json({
+      success: false,
+      message,
+      error: error?.response?.data || error?.message,
+    });
   }
 };
 
