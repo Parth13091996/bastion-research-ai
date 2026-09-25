@@ -14,12 +14,14 @@ const CF_VERIFICATION_CLIENT_SECRET =
 
 export const getBaseUrl = () =>
   CF_ENV === "PRODUCTION"
-    ? "https://api.cashfree.com/pg"
+    // ? "https://api.cashfree.com/pg"
+    ? "https://sandbox.cashfree.com/pg"
     : "https://sandbox.cashfree.com/pg";
 
 export const getVerificationBaseUrl = () =>
   CF_ENV === "PRODUCTION"
-    ? "https://api.cashfree.com/verification"
+    // ? "https://api.cashfree.com/verification"
+    ? "https://sandbox.cashfree.com/verification"
     : "https://sandbox.cashfree.com/verification";
 
 export const ensureCashfreeConfigured = () => {
@@ -28,7 +30,7 @@ export const ensureCashfreeConfigured = () => {
   }
   const envConst =
     CF_ENV === "PRODUCTION"
-      ? (Cashfree as any).PRODUCTION
+      ? (Cashfree as any).SANDBOX
       : (Cashfree as any).SANDBOX;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _cf = new (Cashfree as any)(envConst, CF_APP_ID, CF_SECRET);
