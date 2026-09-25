@@ -114,8 +114,8 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
     if (!plan) return res.status(400).json({ message: 'plan is required' })
     if (!customer_id)
       return res.status(400).json({ message: 'customer_id is required' })
-    if (!customer_phone)
-      return res.status(400).json({ message: 'customer_phone is required' })
+    // if (!customer_phone)
+    //   return res.status(400).json({ message: 'customer_phone is required' })
 
     const planId = Number(plan)
     if (Number.isNaN(planId)) {
