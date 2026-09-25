@@ -3,6 +3,7 @@ import {
   createCashfreeOrder,
   zeroAmountPayment,
 } from "@/api/onboarding-apis";
+import { getSession } from "@/api/auth-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppRoutes } from "@/routes/app-routes";
 import { Config } from "@/utils/config";
@@ -102,14 +103,25 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
     setIsLoading(true);
     try {
+      // Refresh session first to ensure latest authenticated user state exists
+      let currentUser = user;
+      try {
+        const sessionRes = await getSession();
+        if (sessionRes?.user) {
+          currentUser = sessionRes.user;
+        }
+      } catch (sessionErr) {
+        console.warn("Session fetch before payment error:", sessionErr);
+      }
+
       const finalAmount = getFinalAmount();
       const couponToUse = appliedCoupon?.coupon_code;
       if (isFreeOrZero) {
         const result = await zeroAmountPayment({
           plan_id: Number(selectedPlanDetails?.code),
-          payer_email: formData.email,
+          payer_email: formData.email || currentUser?.email,
           coupon_code: couponToUse,
-          user_id: user?.id,
+          user_id: currentUser?.id,
           role: formData?.role,
         });
         if (result?.user?.status === "active") {
@@ -117,13 +129,14 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           navigate("/user/app/dashboard");
         }
       } else {
-        if (!user?.id) {
+        const customerId = currentUser?.id;
+        if (!customerId) {
           setError(
             "We couldn't identify your account for payment. Please refresh and try again."
           );
           return;
         }
-        if (!formData?.panVerification?.valid) {
+        if (!formData?.panVerification?.valid && !currentUser?.pan_card_number) {
           setError(
             "Please complete PAN verification before proceeding to payment."
           );
@@ -131,9 +144,9 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         }
         const orderResponse = await createCashfreeOrder({
           plan: formData.selectedPlan,
-          customer_id: user.id,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
+          customer_id: customerId,
+          customer_email: formData.email || currentUser?.email,
+          customer_phone: formData.phone || currentUser?.phone,
           source: "register",
           coupon_code: appliedCoupon?.coupon_code || null,
           discount_amount: finalAmount,
