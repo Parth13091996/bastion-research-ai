@@ -122,6 +122,17 @@ app.use(
       return callback(null, false)
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+      'Cookie',
+      'Set-Cookie',
+    ],
+    exposedHeaders: ['Set-Cookie'],
     optionsSuccessStatus: 200, // For legacy browser support
   })
 )
@@ -176,10 +187,10 @@ const host = '0.0.0.0'
 app.listen(port, host, () => {
   console.log(`[server]: Server is running at http://${host}:${port}`)
   console.log("AUTH CONFIG:", {
-  NODE_ENV: process.env.NODE_ENV,
-  COOKIE_SECURE: process.env.COOKIE_SECURE,
-  FRONTEND_URL: process.env.FRONTEND_URL,
-});
+    NODE_ENV: process.env.NODE_ENV,
+    COOKIE_SECURE: process.env.COOKIE_SECURE,
+    FRONTEND_URL: process.env.FRONTEND_URL,
+  });
 })
 
 startSubscriptionExpiryReminderJob()
