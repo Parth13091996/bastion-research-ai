@@ -142,11 +142,24 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           );
           return;
         }
+        const customerPhone = (
+          formData?.phone ||
+          currentUser?.phone ||
+          user?.phone ||
+          ""
+        ).trim();
+        const customerEmail = (
+          formData?.email ||
+          currentUser?.email ||
+          user?.email ||
+          ""
+        ).trim();
+
         const orderResponse = await createCashfreeOrder({
           plan: formData.selectedPlan,
           customer_id: customerId,
-          customer_email: formData.email || currentUser?.email,
-          customer_phone: formData.phone || currentUser?.phone,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
           source: "register",
           coupon_code: appliedCoupon?.coupon_code || null,
           discount_amount: finalAmount,
