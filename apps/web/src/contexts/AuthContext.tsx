@@ -52,7 +52,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return data?.user;
   };
 
-  const login = (newUser: User) => {
+  const login = (newUser: User, token?: string) => {
+    if (token && typeof window !== "undefined") {
+      try {
+        localStorage.setItem("token", token);
+      } catch {}
+    }
     setUser(newUser);
     // Force a refetch to ensure session is properly established
     refetch();
@@ -66,6 +71,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("token");
+        } catch {}
+      }
       setUser(null);
     }
   };

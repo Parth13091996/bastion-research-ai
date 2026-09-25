@@ -31,7 +31,7 @@ type OnboardingUserData = {
   city?: string;
   pinCode?: string;
   company?: string;
-  panVerification: { valid: boolean; [key: string]: any };
+  panVerification: { valid: boolean;[key: string]: any };
   agreementSignatureUrl: string;
   agreementSignaturePath?: string;
   agreementSignedAt?: string;
@@ -57,7 +57,10 @@ const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 // });
 
 const getAuthCookieOptions = () => {
-  const isSecure = process.env.COOKIE_SECURE === "true";
+  const isSecure =
+    process.env.COOKIE_SECURE === "true" ||
+    process.env.NODE_ENV === "production" ||
+    true;
 
   return {
     httpOnly: true,
@@ -136,6 +139,7 @@ export const signIn = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message: "Signed in successfully",
+      token,
       user: {
         id: user.id,
         username: user.username,
@@ -474,7 +478,7 @@ export const onboardUser = async (req: Request, res: Response) => {
     try {
       const token = generateToken(userId as string, normalizedEmail);
       res.cookie("token", token, getAuthCookieOptions());
-    } catch {}
+    } catch { }
 
     return res.status(200).json({
       message: "Onboarding started. User saved.",
@@ -744,7 +748,9 @@ export const zeroAmountAccountCreation = async (
 
 export const getUserSession = async (req: Request, res: Response) => {
   try {
-    const token = req.cookies.token;
+    const token =
+      req.cookies?.token ||
+      req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
     if (!token) {
       return res.status(401).json({ message: "Not authenticated" });

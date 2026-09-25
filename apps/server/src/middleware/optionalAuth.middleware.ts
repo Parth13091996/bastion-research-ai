@@ -13,7 +13,9 @@ export const optionalAuth = async (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies?.token;
+    const token =
+      req.cookies?.token ||
+      req.headers.authorization?.replace(/^Bearer\s+/i, "");
     if (token) {
       const secret = process.env.JWT_SECRET;
       if (secret) {

@@ -16,7 +16,9 @@ export const protect = async (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.cookies.token;
+  const token =
+    req.cookies?.token ||
+    req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
   if (!token) {
     return res.status(401).json({ message: "Not authorized, no token" });
