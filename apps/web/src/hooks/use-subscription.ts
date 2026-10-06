@@ -27,25 +27,54 @@ const isSubscriptionExpired = (subscriptionEndDate?: string | null) => {
 export const useSubscription = () => {
   const { isAuthenticated, user } = useAuth();
 
+  const membershipPlan = Array.isArray(user?.membership_plans)
+    ? user?.membership_plans[0]
+    : user?.membership_plans;
+
   return useQuery<SubscriptionData | null>({
     queryKey: [
       queryKeys.subscription,
       isAuthenticated,
       user?.id,
-      user?.membership_plans?.plan_code,
+      user?.role,
+      user?.status,
+      membershipPlan?.plan_code,
       user?.subscription_start_date ?? null,
       user?.subscription_end_date ?? null,
     ],
     queryFn: async () => {
       if (!isAuthenticated || !user) return null;
 
-      const rawPlanCode = user.membership_plans?.plan_code ?? "freemium";
+      const isRoleSubscriber =
+        user.role === "core_subscriber" ||
+        user.role === "research_ally_subscriber" ||
+        user.role === "ipo_subscriber";
+
+      const fallbackPlanCode =
+        user.role === "research_ally_subscriber"
+          ? "research_hub"
+          : user.role === "ipo_subscriber"
+          ? "ipo"
+          : "core";
+
+      const rawPlanCode =
+        membershipPlan?.plan_code ?? (isRoleSubscriber ? fallbackPlanCode : "freemium");
+
       const expired = isSubscriptionExpired(user.subscription_end_date);
-      const isPremiumPlan = rawPlanCode !== "freemium" && !expired;
+
+      // A user is premium if:
+      // 1. Their attached plan is not freemium and not expired, OR
+      // 2. Their role is an active subscriber and not expired.
+      const isPremiumPlan =
+        (rawPlanCode !== "freemium" && !expired) ||
+        (isRoleSubscriber && user.status === "active" && !expired);
+
       const currentPlan = isPremiumPlan ? rawPlanCode : "freemium";
 
       const hasSubscriptionWindow =
-        !!user.subscription_start_date || !!user.subscription_end_date;
+        !!user.subscription_start_date ||
+        !!user.subscription_end_date ||
+        isRoleSubscriber;
 
       const subscriptionDetails: SubscriptionData["subscription"] =
         hasSubscriptionWindow
@@ -53,9 +82,13 @@ export const useSubscription = () => {
               name:
                 rawPlanCode && rawPlanCode !== "freemium"
                   ? rawPlanCode.toUpperCase()
+                  : isRoleSubscriber
+                  ? "CORE"
                   : "FREEMIUM",
               startDate:
-                user.subscription_start_date ?? user.created_at ?? new Date().toISOString(),
+                user.subscription_start_date ??
+                user.created_at ??
+                new Date().toISOString(),
               expireNextRenewal: user.subscription_end_date ?? null,
               amount: 0,
               transactionId: "",
@@ -74,8 +107,8 @@ export const useSubscription = () => {
       return data;
     },
     enabled: isAuthenticated,
-    staleTime: Infinity,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: 0,

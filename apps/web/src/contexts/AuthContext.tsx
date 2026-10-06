@@ -2,7 +2,7 @@ import { getSession, logoutUser } from "@/api/auth-api";
 import { queryKeys } from "@/api/queryKeys";
 import { Config } from "@/utils/config";
 import { User } from "@repo/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   ReactNode,
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | undefined>(undefined);
   // Start in loading state to avoid premature redirects on refresh
   const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch {}
     }
     setUser(newUser);
+    queryClient.setQueryData([queryKeys.auth_session], { user: newUser });
+    queryClient.invalidateQueries({ queryKey: [queryKeys.subscription] });
     // Force a refetch to ensure session is properly established
     refetch();
   };
@@ -66,6 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       const response = await logoutUser();
+      queryClient.setQueryData([queryKeys.auth_session], null);
+      queryClient.invalidateQueries({ queryKey: [queryKeys.subscription] });
       await refetch();
       toast.success(response?.data?.message || "Logged out successfully");
     } catch (error) {
@@ -76,6 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           localStorage.removeItem("token");
         } catch {}
       }
+      queryClient.setQueryData([queryKeys.auth_session], null);
+      queryClient.invalidateQueries({ queryKey: [queryKeys.subscription] });
       setUser(null);
     }
   };
