@@ -197,7 +197,40 @@ export const getOrder = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params
     const response = await pgFetchOrder(orderId)
-    return res.status(200).json(response?.data || response)
+    const orderData = response?.data || response
+
+    // Auto-reconcile payment on callback if order is PAID and webhook hasn't updated yet
+    if (orderData?.order_status === 'PAID') {
+      try {
+        const transactionId = orderData.order_tags?.transaction_id
+        if (transactionId) {
+          const { data: existingPayment } = await supabase
+            .from('payment_history')
+            .select('transaction_status')
+            .eq('transaction_id', transactionId)
+            .maybeSingle()
+
+          if (existingPayment?.transaction_status !== 'SUCCESS') {
+            await handlePaymentSuccess({
+              data: {
+                payment: {
+                  payment_status: 'SUCCESS',
+                  payment_amount: orderData.order_amount,
+                  payment_time:
+                    orderData.order_created_at || new Date().toISOString(),
+                  order_tags: orderData.order_tags,
+                },
+                customer_details: orderData.customer_details,
+              },
+            })
+          }
+        }
+      } catch (reconError) {
+        console.error('Error auto-reconciling payment in getOrder:', reconError)
+      }
+    }
+
+    return res.status(200).json(orderData)
   } catch (error: any) {
     const status = error?.response?.status || 500
     const payload = error?.response?.data || {

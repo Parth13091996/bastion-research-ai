@@ -79,7 +79,7 @@ export default function PaymentSuccess() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate(AppRoutes.home);
+          navigate("/user/app/dashboard");
           return 0;
         }
         return prev - 1;
