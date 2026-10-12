@@ -32,7 +32,7 @@ export default function ReitFooter(props: ReitFooterProps) {
             <div className="space-y-1.5 text-sm md:text-base text-white font-light leading-relaxed">
               <p>SEBI Registered Research Analyst</p>
               <p>
-                SEBI Reg. No: INA000023199 &middot; BSE Enlistment No: 6747
+                SEBI Reg. No: INH000023199 &middot; BSE Enlistment No: 6747
               </p>
             </div>
           </div>
