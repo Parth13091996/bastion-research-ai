@@ -38,7 +38,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     panCard: "",
     panVerification: null,
     agreeToTerms: false,
-    selectedPlan: "",
+    selectedPlan: (typeof window !== "undefined" ? localStorage.getItem("selectedPlan") : null) || "",
     agreementSignatureUrl: "",
     agreementSignaturePath: "",
     agreementSignedAt: "",
@@ -79,6 +79,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     // Prefill common user details when resuming.
     if (shouldResumeOnboarding || agreementSigned) {
       setFormData((prev) => ({
+        selectedPlan:
+          prev.selectedPlan ||
+          (typeof window !== "undefined" ? localStorage.getItem("selectedPlan") : null) ||
+          (user?.plan_id ? String(user.plan_id) : "") ||
+          "",
         ...prev,
         firstName: user?.first_name || "",
         lastName: user?.last_name || "",
@@ -107,6 +112,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   }, [user]);
 
   const updateFormData = (field: string, value: any) => {
+    if (field === "selectedPlan" && typeof window !== "undefined") {
+      try {
+        localStorage.setItem("selectedPlan", String(value));
+      } catch {}
+    }
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as OnboardingFormData;
       if (

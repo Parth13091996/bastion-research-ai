@@ -21,7 +21,22 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   setError,
   setIsLoading,
 }) => {
-  const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
+  const activePlanCode =
+    selectedPlan ||
+    formData?.selectedPlan ||
+    (typeof window !== "undefined" ? localStorage.getItem("selectedPlan") : null) ||
+    (user?.plan_id ? String(user.plan_id) : null);
+
+  const selectedPlanDetails =
+    plans.find(
+      (p) =>
+        p.code === activePlanCode ||
+        p.plan_code === activePlanCode ||
+        String(p.code) === String(activePlanCode)
+    ) ||
+    plans.find((p) => p.plan_code === "core_annual") ||
+    plans.find((p) => p.code === "3") ||
+    plans.find((p) => Number(p.amount) > 0);
   const { user, refetchUser } = useAuth();
   const navigate = useNavigate();
 
@@ -130,7 +145,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           return;
         }
         const orderResponse = await createCashfreeOrder({
-          plan: formData.selectedPlan,
+          plan: selectedPlanDetails?.code || formData.selectedPlan || "3",
           customer_id: user.id,
           customer_email: formData.email || user.email,
           customer_phone: formData.phone || user.phone,
