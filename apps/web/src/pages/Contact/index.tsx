@@ -91,7 +91,7 @@ export default function ContactPage() {
           <InfoCard
             icon={<Mail className="w-6 h-6" />}
             title="Email us"
-            lines={["connect@bastionresearch.in"]}
+            lines={["kaushalfyit307@gmail.com"]}
           />
           <InfoCard
             icon={<Phone className="w-6 h-6" />}
