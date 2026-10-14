@@ -1,3 +1,4 @@
+import React, { useRef } from "react";
 import { sendOtp } from "@/api/onboarding-apis";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -12,7 +13,10 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
   setError,
   nextStep,
 }) => {
+  const isSubmittingRef = useRef(false);
+
   const handleRegister = async () => {
+    if (isSubmittingRef.current || isLoading) return;
     setError(null);
 
     // Validate mandatory fields
@@ -37,10 +41,11 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
     try {
-      // Data is already updated in the session via useEffect
-      await sendOtp("+91" + formData.phone);
+      const cleanPhone = formData.phone.trim().replace(/^(\+91|91|0)/, "");
+      await sendOtp("+91" + cleanPhone);
       nextStep();
     } catch (err: any) {
       const errorMessage =
@@ -51,6 +56,7 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
       console.error(err);
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
   return (

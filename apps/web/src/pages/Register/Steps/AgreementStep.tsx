@@ -86,7 +86,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
         file_name: Config.agreement_file_name(formData),
         will_self_sign: false,
         include_authentication_url: true,
-        signature_type: "electronic", // Use email OTP signing (not Aadhaar) in sandbox
+        signature_type: "aadhaar",
         signers: [
           {
             identifier,
@@ -94,7 +94,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
               `${formData?.firstName || ""}${formData?.lastName ? " " + formData.lastName : ""}`.trim() ||
               formData?.email ||
               "User",
-            sign_type: "electronic",
+            sign_type: "aadhaar",
           },
         ],
       });

@@ -1,6 +1,6 @@
 import { sendOtp, verifyOtp } from "@/api/onboarding-apis";
 import { ArrowLeft, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import OTPInput from "react-otp-input";
 import { toast } from "sonner";
 
@@ -18,17 +18,22 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
 }) => {
   const [startOtpTimer, setStartOtpTimer] = useState(false);
   const [otpTimer, setOtpTimer] = useState<number>(600);
+  const isSubmittingRef = useRef(false);
+
   const handleVerifyOtp = async () => {
+    if (isSubmittingRef.current || isLoading) return;
     if (!formData || !formData.otp || !formData.phone) {
       setError && setError("Missing OTP or phone number.");
       return;
     }
     setError && setError(null);
+    isSubmittingRef.current = true;
     setIsLoading && setIsLoading(true);
     setStartOtpTimer(true);
     const otp = Array.isArray(formData.otp) ? formData.otp.join("") : "";
     try {
-      const response = await verifyOtp("+91" + formData.phone, otp);
+      const cleanPhone = formData.phone.trim().replace(/^(\+91|91|0)/, "");
+      const response = await verifyOtp("+91" + cleanPhone, otp);
       toast.success(response?.message || "OTP verified");
       nextStep && nextStep();
     } catch (err: any) {
@@ -40,21 +45,25 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       console.error(err);
     } finally {
       setIsLoading && setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
   const handleResendOtp = async () => {
+    if (isSubmittingRef.current || isLoading) return;
     if (!formData || !formData.phone) {
       setError && setError("Missing phone number.");
       return;
     }
+    isSubmittingRef.current = true;
     updateFormData("otp", null);
     setError && setError(null);
     setIsLoading && setIsLoading(true);
     setStartOtpTimer(true);
 
     try {
-      await sendOtp("+91" + formData.phone);
+      const cleanPhone = formData.phone.trim().replace(/^(\+91|91|0)/, "");
+      await sendOtp("+91" + cleanPhone);
       setOtpTimer(600); // Reset timer to 10 minutes
     } catch (err: any) {
       const errorMessage =
@@ -65,6 +74,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       console.error(err);
     } finally {
       setIsLoading && setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
