@@ -52,20 +52,6 @@ export const verifyPan = async (req: Request, res: Response) => {
       console.error('PAN uniqueness check failed:', e)
     }
 
-    // --- DEV MOCK: skip Cashfree IP-whitelisted call in development ---
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[DEV] PAN verification mocked for:', normalizedPan)
-      return res.status(200).json({
-        valid: true,
-        status: 'VALID',
-        message: 'PAN verified successfully (dev mock)',
-        checkedAt: new Date().toISOString(),
-        referenceId: Math.floor(Math.random() * 9000000) + 1000000,
-        registeredName: name.toUpperCase(),
-      })
-    }
-    // -----------------------------------------------------------------------
-
     const data = await verifyPanRequest(normalizedPan, name)
     return res.status(200).json({ ...data })
   } catch (error: any) {
