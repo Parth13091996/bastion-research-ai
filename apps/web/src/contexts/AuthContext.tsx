@@ -88,8 +88,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isAuthenticated =
-    (user?.status === "active" && user?.role !== "free_subscriber") ||
-    (user?.status === "free" && user?.role === "free_subscriber");
+    Boolean(user) &&
+    ((user?.status === "active" && user?.role !== "free_subscriber") ||
+      (user?.status === "free" && user?.role === "free_subscriber") ||
+      user?.status === "agreement_signed" ||
+      user?.role === Config.roles.admin ||
+      user?.role === Config.roles.employee);
   const isAdmin = user?.role === Config.roles.admin;
   const isEmployee = user?.role === Config.roles.employee;
   const isStaff = isAdmin || isEmployee;

@@ -6,6 +6,11 @@ const getAppId = () => (process.env.CASHFREE_APP_ID || "").trim();
 const getSecret = () => (process.env.CASHFREE_SECRET || "").trim();
 const getEnv = () => ((process.env.CASHFREE_ENV || "SANDBOX").trim().toUpperCase() as "SANDBOX" | "PRODUCTION");
 
+const getVerificationEnv = () =>
+  ((process.env.CASHFREE_VERIFICATION_ENV || process.env.CASHFREE_ENV || "SANDBOX")
+    .trim()
+    .toUpperCase() as "SANDBOX" | "PRODUCTION");
+
 const getVerificationClientId = () => (process.env.CASHFREE_VERIFICATION_CLIENT_ID || getAppId()).trim();
 const getVerificationClientSecret = () => (process.env.CASHFREE_VERIFICATION_CLIENT_SECRET || getSecret()).trim();
 
@@ -15,7 +20,7 @@ export const getBaseUrl = () =>
     : "https://sandbox.cashfree.com/pg";
 
 export const getVerificationBaseUrl = () =>
-  getEnv() === "PRODUCTION"
+  getVerificationEnv() === "PRODUCTION"
     ? "https://api.cashfree.com/verification"
     : "https://sandbox.cashfree.com/verification";
 

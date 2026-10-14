@@ -173,6 +173,11 @@ const KYCStep: React.FC<KYCStepProps> = ({
         panVerification: verification,
         status: "onboarded",
         role: formData.role,
+        plan_id: formData.selectedPlan
+          ? Number(formData.selectedPlan)
+          : (typeof window !== "undefined" && localStorage.getItem("selectedPlan")
+              ? Number(localStorage.getItem("selectedPlan"))
+              : undefined),
         onboarding_session_id: formData.onboardingSessionId,
       });
       setLoading(false);

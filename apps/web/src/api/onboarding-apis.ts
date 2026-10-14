@@ -165,9 +165,11 @@ export async function uploadDigioEsignJson(payload: {
   file_name: string;
   will_self_sign: boolean;
   include_authentication_url: boolean;
+  signature_type?: string;
   signers: {
     identifier: string;
     name: string;
+    sign_type?: string;
   }[];
 }) {
   const { data } = await axiosInstance.post(

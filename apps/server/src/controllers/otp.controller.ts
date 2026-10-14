@@ -25,12 +25,22 @@ const generateOtp = (): string => {
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
-export const sendOtp = async (req: Request, res: Response) => {
-  const { phone } = req.body as { phone?: string };
+const normalizePhone = (input?: string): string => {
+  const raw = (input || "").trim().replace(/\s+/g, "");
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length > 10 && !raw.startsWith("+")) return `+${digits}`;
+  return raw;
+};
 
-  if (!phone) {
+export const sendOtp = async (req: Request, res: Response) => {
+  const { phone: rawPhone } = req.body as { phone?: string };
+
+  if (!rawPhone) {
     return res.status(400).json({ message: "phone is required." });
   }
+
+  const phone = normalizePhone(rawPhone);
 
   if (!twilioClient) {
     return res
@@ -39,6 +49,26 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 
   try {
+    // Check if an unconsumed OTP was dispatched in the last 30 seconds (prevents double SMS from duplicate clicks)
+    const { data: existingEntry } = await supabase
+      .from("otp_codes")
+      .select("updated_at, expires_at, consumed_at")
+      .eq("identifier", phone)
+      .eq("type", "phone")
+      .is("consumed_at", null)
+      .maybeSingle();
+
+    if (existingEntry && existingEntry.updated_at) {
+      const msSinceLast = Date.now() - new Date(existingEntry.updated_at).getTime();
+      if (msSinceLast < 30000) {
+        console.log(`[sendOtp] Throttled duplicate OTP request for ${phone} (${msSinceLast}ms ago)`);
+        return res.status(200).json({
+          message: "OTP sent successfully.",
+          expiresAt: new Date(existingEntry.expires_at).getTime(),
+        });
+      }
+    }
+
     const otp = generateOtp();
     const expiresAt = Date.now() + config.otp_ttl_ms;
     await saveOtp({ identifier: phone, type: "phone", otp, expiresAt });
@@ -151,15 +181,17 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 };
 
 export const verifyOtp = async (req: Request, res: Response) => {
-  const { phone, otp } = req.body as {
+  const { phone: rawPhone, otp } = req.body as {
     phone?: string;
     otp?: string;
     email?: string;
   };
 
-  if (!phone || !otp) {
+  if (!rawPhone || !otp) {
     return res.status(400).json({ message: "phone and otp are required." });
   }
+
+  const phone = normalizePhone(rawPhone);
 
   try {
     const result = await validateOtp(phone, "phone", otp);
