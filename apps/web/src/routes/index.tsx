@@ -215,7 +215,7 @@ export const routes: RouteObject[] = [
       },
       { path: AppRoutes.podcastView, element: <SinglePodcastPage /> },
       { path: AppRoutes.scratchPadView, element: <ScratchPadView /> },
-      { path: AppRoutes.dashboard, element: <Dashboard /> },
+      { path: "/dashboard", element: <Dashboard /> },
     ],
   },
   {

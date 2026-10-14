@@ -47,7 +47,10 @@ const Login = () => {
     onSuccess: (data) => {
       login(data.user, data.token);
       const shouldResumeOnboarding =
-        data?.user?.status !== "active" && data?.user?.status !== "free";
+        data?.user?.role !== "admin" &&
+        data?.user?.status !== "active" &&
+        data?.user?.status !== "free" &&
+        data?.user?.status !== "agreement_signed";
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
         setTimeout(() => {
@@ -55,9 +58,7 @@ const Login = () => {
         }, 100);
       } else {
         toast.success("Login successful! Redirecting to dashboard...");
-        setTimeout(() => {
-          navigate(AppRoutes.dashboard, { replace: true });
-        }, 100);
+        navigate("/user/app/dashboard", { replace: true });
       }
     },
     onError(error: any) {
@@ -97,7 +98,7 @@ const Login = () => {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate(AppRoutes.dashboard, {
+      navigate("/user/app/dashboard", {
         replace: true,
       });
     }
