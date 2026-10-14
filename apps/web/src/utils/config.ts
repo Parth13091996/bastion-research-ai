@@ -24,10 +24,7 @@ function formatMailchimpTagDate(dateYmd?: string | null): string {
 
 export const Config = {
   app_name: 'Bastion Research',
-  digio_environment:
-    import.meta.env.MODE === 'production'
-      ? 'production'
-      : ('sandbox' as 'production' | 'sandbox'),
+  digio_environment: (import.meta.env.VITE_DIGIO_ENVIRONMENT as 'production' | 'sandbox') || 'production',
   cashfree_environment:
     import.meta.env.MODE === 'production'
       ? 'production'

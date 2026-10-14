@@ -414,35 +414,90 @@ export const onboardUser = async (req: Request, res: Response) => {
     }
 
     let userId: string | null = null;
+    let username: string = "";
     const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
     const normalizedEmail = normalizeEmail(email);
-    const username =
-      normalizedEmail.split("@")[0] +
-      `_${Math.random().toString(36).substring(2, 7)}`;
-    const { data: inserted, error: insError } = await supabase
+
+    // Check if user already exists
+    const { data: existingUser } = await supabase
       .from("users")
-      .insert({
-        email: normalizedEmail,
-        phone,
-        password: hashedPassword,
-        username,
-        ...baseUpdate,
-      })
-      .select("id, email")
-      .single();
-    if (insError) {
+      .select("id, status, username")
+      .ilike("email", normalizedEmail)
+      .maybeSingle();
+
+    if (existingUser) {
+      username = (existingUser as any).username || normalizedEmail.split("@")[0];
+      // If user is re-attempting or resuming onboarding, update existing record
       if (
-        (insError as any)?.code === "23505" &&
-        typeof insError.message === "string" &&
-        insError.message.includes("users_pan_card_number_key")
+        existingUser.status === "onboarded" ||
+        existingUser.status === "pending" ||
+        !existingUser.status
       ) {
+        const { data: updated, error: updError } = await supabase
+          .from("users")
+          .update({
+            phone,
+            password: hashedPassword,
+            ...baseUpdate,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingUser.id)
+          .select("id, email")
+          .single();
+
+        if (updError) {
+          if (
+            (updError as any)?.code === "23505" &&
+            typeof updError.message === "string" &&
+            updError.message.includes("users_pan_card_number_key")
+          ) {
+            return res.status(400).json({
+              message: "This PAN is already registered with another account.",
+            });
+          }
+          return res.status(500).json({ message: updError.message });
+        }
+        userId = updated?.id || existingUser.id;
+      } else {
         return res.status(400).json({
-          message: "This PAN is already registered with another account.",
+          message: "An account with this email already exists. Please log in.",
         });
       }
-      return res.status(500).json({ message: insError.message });
+    } else {
+      username =
+        normalizedEmail.split("@")[0] +
+        `_${Math.random().toString(36).substring(2, 7)}`;
+      const { data: inserted, error: insError } = await supabase
+        .from("users")
+        .insert({
+          email: normalizedEmail,
+          phone,
+          password: hashedPassword,
+          username,
+          ...baseUpdate,
+        })
+        .select("id, email")
+        .single();
+      if (insError) {
+        if (
+          (insError as any)?.code === "23505" &&
+          typeof insError.message === "string"
+        ) {
+          if (insError.message.includes("users_pan_card_number_key")) {
+            return res.status(400).json({
+              message: "This PAN is already registered with another account.",
+            });
+          }
+          if (insError.message.includes("users_email_key")) {
+            return res.status(400).json({
+              message: "An account with this email already exists. Please log in.",
+            });
+          }
+        }
+        return res.status(500).json({ message: insError.message });
+      }
+      userId = inserted?.id || null;
     }
-    userId = inserted?.id || null;
 
     if (userId && status !== "active" && status !== "free") {
       armOnboardingDropOffForUser(userId, onboarding_session_id);

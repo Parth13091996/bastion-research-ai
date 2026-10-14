@@ -30,7 +30,7 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
   const { init: initDigio, submit: submitDigio } = useDigioSdk({
     environment: Config.digio_environment,
-    is_iframe: true,
+    is_iframe: false,
     callback: (response: any) => {
       if (
         response &&
@@ -84,12 +84,17 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
       const resp = await uploadDigioEsignJson({
         file_data: pdfUrlWithAddress,
         file_name: Config.agreement_file_name(formData),
-        will_self_sign: true,
+        will_self_sign: false,
         include_authentication_url: true,
+        signature_type: "electronic", // Use email OTP signing (not Aadhaar) in sandbox
         signers: [
           {
             identifier,
-            name: formData?.email || formData?.phone || "User",
+            name:
+              `${formData?.firstName || ""}${formData?.lastName ? " " + formData.lastName : ""}`.trim() ||
+              formData?.email ||
+              "User",
+            sign_type: "electronic",
           },
         ],
       });
