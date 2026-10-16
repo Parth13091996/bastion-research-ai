@@ -182,8 +182,9 @@ export const createOrderForPlanService = async (params: {
   // Normal paid flow
   const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
   const frontendUrl = getFrontendBaseUrl();
-  const returnUrl =
-    params.return_url || `${frontendUrl}/payment/success?order_id=${orderId}`;
+  const returnUrl = (
+    params.return_url || `${frontendUrl}/payment/success?order_id=${orderId}`
+  ).replace("{order_id}", orderId);
 
   const request = {
     order_id: orderId,

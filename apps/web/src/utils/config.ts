@@ -25,10 +25,19 @@ function formatMailchimpTagDate(dateYmd?: string | null): string {
 export const Config = {
   app_name: 'Bastion Research',
   digio_environment: (import.meta.env.VITE_DIGIO_ENVIRONMENT as 'production' | 'sandbox') || 'production',
-  cashfree_environment:
-    import.meta.env.MODE === 'production'
-      ? 'production'
-      : ('sandbox' as 'production' | 'sandbox'),
+  cashfree_environment: (() => {
+    const envVar = import.meta.env.VITE_CASHFREE_ENVIRONMENT;
+    if (envVar) {
+      return (envVar as string).toLowerCase() === 'production'
+        ? 'production'
+        : 'sandbox';
+    }
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || '';
+    if (apiUrl.includes('dev') || apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1')) {
+      return 'sandbox';
+    }
+    return import.meta.env.MODE === 'production' ? 'production' : 'sandbox';
+  })() as 'production' | 'sandbox',
   connect_url: 'connect@bastionresearch.in',
   agreement_file_name: (formData) =>
     `${formData.firstName || formData.first_name}_${formData.lastName || formData?.last_name}_Agreement.pdf`,

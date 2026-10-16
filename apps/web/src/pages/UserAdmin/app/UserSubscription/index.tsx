@@ -323,6 +323,7 @@ const Subscription = () => {
           customer_id: String(user.id),
           customer_email: user.email,
           customer_phone: user.phone,
+          return_url: `${window.location.origin}/payment/success?order_id={order_id}`,
           // Let the server compose return_url with order_id for reconciliation
           source: "subscription",
           discount_amount:

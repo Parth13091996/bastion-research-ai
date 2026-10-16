@@ -6,6 +6,7 @@ export interface CashfreeOrderPayload {
   customer_id: string;
   customer_email: string;
   customer_phone: string;
+  return_url?: string;
   source: "register" | "subscription" | string;
   is_free?: boolean;
   coupon_code?: string | null;
