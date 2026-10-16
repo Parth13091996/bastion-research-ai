@@ -1,3 +1,10 @@
+
+// Auto-reload on stale chunk errors when a new deployment is published
+window.addEventListener("vite:preloadError", (event) => {
+  console.warn("New version detected or chunk failed to load, reloading...", event);
+  window.location.reload();
+});
+
 import React from "react";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import ReactDOM from "react-dom/client";

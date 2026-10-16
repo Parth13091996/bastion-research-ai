@@ -145,7 +145,33 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error: any) {
-    console.error("Error message:", error.message);
+    // Sanitized diagnostic — no credentials, Aadhaar numbers, OTPs, or doc content logged.
+    const upstreamStatus: number | undefined = error?.response?.status;
+    const correlationId: string =
+      (req.headers["x-request-id"] as string) ||
+      (req.headers["x-correlation-id"] as string) ||
+      "n/a";
+    console.error(
+      `[digio] initiateSignatureJSON failed — upstreamStatus=${upstreamStatus ?? "no-response"} correlationId=${correlationId} message=${error.message}`
+    );
+
+    // Map upstream status to an appropriate client-facing status.
+    // 400 → bad request we sent; 401/403 → credentials issue; 429 → rate limit;
+    // 5xx or network error → treat as 502 Bad Gateway.
+    const clientStatus =
+      upstreamStatus === 400
+        ? 400
+        : upstreamStatus === 401 || upstreamStatus === 403
+          ? 502
+          : upstreamStatus === 429
+            ? 429
+            : 502;
+
+    // Safe, opaque message — never forward raw Digio payloads to the browser.
+    return res.status(clientStatus).json({
+      message:
+        "Failed to initiate e-signing. Please try again or contact support.",
+    });
   }
 };
 

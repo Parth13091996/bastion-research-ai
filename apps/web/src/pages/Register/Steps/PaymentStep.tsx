@@ -149,6 +149,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           customer_id: user.id,
           customer_email: formData.email || user.email,
           customer_phone: formData.phone || user.phone,
+          return_url: `${window.location.origin}/payment/success?order_id={order_id}`,
           source: "register",
           coupon_code: appliedCoupon?.coupon_code || null,
           discount_amount: finalAmount,

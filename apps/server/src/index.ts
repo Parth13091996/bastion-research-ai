@@ -66,7 +66,12 @@ const allowedOrigins = new Set(
 const isBastionOrigin = (origin: string) => {
   try {
     const { protocol, hostname } = new URL(origin)
-    return protocol === 'https:' && /(^|\.)bastionresearch\.in$/.test(hostname)
+    return (
+      protocol === 'https:' &&
+      (/(^|\.)bastionresearch\.in$/.test(hostname) ||
+        /(^|\.)web\.app$/.test(hostname) ||
+        /(^|\.)firebaseapp\.com$/.test(hostname))
+    )
   } catch {
     return false
   }

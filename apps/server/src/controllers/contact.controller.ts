@@ -83,10 +83,16 @@ export const submitContact = async (req: Request, res: Response) => {
 
     const toInbox = process.env.LEADS_EMAIL?.trim();
     const fromAddress = getResolvedSmtpFromAddress();
-    if (!toInbox || !fromAddress) {
-      return res.status(500).json({
-        message:
-          "Contact email routing is not configured (set LEADS_EMAIL and SMTP_USERNAME).",
+    const smtpHost = process.env.SMTP_HOST?.trim();
+    const smtpUser = process.env.SMTP_USERNAME?.trim();
+    const smtpPass = process.env.SMTP_PASSWORD?.trim();
+
+    if (!toInbox || !fromAddress || !smtpHost || !smtpUser || !smtpPass) {
+      console.warn(
+        "Contact form: Lead stored in database, but SMTP is not fully configured (SMTP_HOST/USERNAME/PASSWORD). Skipping email delivery."
+      );
+      return res.status(200).json({
+        message: "Message received! We will get back to you shortly.",
       });
     }
 
