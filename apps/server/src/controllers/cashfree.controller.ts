@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { pgFetchOrder } from '../services/cashfree-pg.service'
+import { pgFetchOrder, pgFetchOrderPayments } from '../services/cashfree-pg.service'
 import {
   createOrderForPlanService,
   fetchPlans,
@@ -195,50 +195,134 @@ export const testCashfreeWebhook = async (_: Request, res: Response) => {
 
 export const getOrder = async (req: Request, res: Response) => {
   try {
-    const { orderId } = req.params
-    const response = await pgFetchOrder(orderId)
-    const orderData = response?.data || response
+    const { orderId } = req.params;
+    const response = await pgFetchOrder(orderId);
+    const orderData = response?.data || response;
 
-    // Auto-reconcile payment on callback if order is PAID and webhook hasn't updated yet
-    if (orderData?.order_status === 'PAID') {
+    let payments: any[] = [];
+    try {
+      const paymentsResp = await pgFetchOrderPayments(orderId);
+      payments = Array.isArray(paymentsResp?.data) ? paymentsResp.data : [];
+    } catch (payErr: any) {
+      console.warn('Could not fetch payments for order:', orderId, payErr?.message);
+    }
+
+    // Determine the authoritative payment status
+    // Cashfree order_status: 'PAID' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+    // Cashfree payment_status: 'SUCCESS' | 'PENDING' | 'USER_DROPPED' | 'CANCELLED' | 'FAILED'
+    const hasSuccessfulPayment =
+      orderData?.order_status === 'PAID' ||
+      payments.some((p: any) => p?.payment_status === 'SUCCESS');
+
+    let paymentStatus: string = 'NOT_ATTEMPTED';
+    let latestPayment: any = null;
+
+    if (hasSuccessfulPayment) {
+      paymentStatus = 'SUCCESS';
+      latestPayment =
+        payments.find((p: any) => p?.payment_status === 'SUCCESS') ||
+        payments[payments.length - 1] ||
+        null;
+    } else if (payments.length > 0) {
+      latestPayment = payments[payments.length - 1];
+      paymentStatus = latestPayment?.payment_status || 'PENDING';
+    } else if (orderData?.order_status === 'EXPIRED') {
+      paymentStatus = 'EXPIRED';
+    } else if (orderData?.order_status === 'ACTIVE') {
+      paymentStatus = 'NOT_ATTEMPTED';
+    } else {
+      paymentStatus = orderData?.order_status || 'UNKNOWN';
+    }
+
+    const isPaid = paymentStatus === 'SUCCESS';
+
+    // Auto-reconcile payment on callback if order or payment is SUCCESS
+    const transactionId = orderData?.order_tags?.transaction_id;
+    if (transactionId) {
       try {
-        const transactionId = orderData.order_tags?.transaction_id
-        if (transactionId) {
-          const { data: existingPayment } = await supabase
-            .from('payment_history')
-            .select('transaction_status')
-            .eq('transaction_id', transactionId)
-            .maybeSingle()
+        const { data: existingPayment } = await supabase
+          .from('payment_history')
+          .select('transaction_status, user_id')
+          .eq('transaction_id', transactionId)
+          .maybeSingle();
 
+        if (isPaid) {
           if (existingPayment?.transaction_status !== 'SUCCESS') {
             await handlePaymentSuccess({
               data: {
                 payment: {
                   payment_status: 'SUCCESS',
-                  payment_amount: orderData.order_amount,
+                  payment_amount:
+                    latestPayment?.payment_amount || orderData.order_amount,
                   payment_time:
-                    orderData.order_created_at || new Date().toISOString(),
+                    latestPayment?.payment_time ||
+                    orderData.order_created_at ||
+                    new Date().toISOString(),
                   order_tags: orderData.order_tags,
                 },
                 customer_details: orderData.customer_details,
               },
-            })
+            });
+          }
+        } else {
+          // If NOT paid, update payment_history from PENDING to actual attempt status (USER_DROPPED, CANCELLED, FAILED)
+          // NEVER overwrite an existing SUCCESS transaction!
+          if (
+            existingPayment &&
+            existingPayment.transaction_status === 'PENDING' &&
+            ['USER_DROPPED', 'CANCELLED', 'FAILED'].includes(paymentStatus)
+          ) {
+            await supabase
+              .from('payment_history')
+              .update({ transaction_status: paymentStatus })
+              .eq('transaction_id', transactionId);
           }
         }
       } catch (reconError) {
-        console.error('Error auto-reconciling payment in getOrder:', reconError)
+        console.error('Error auto-reconciling payment in getOrder:', reconError);
       }
     }
 
-    return res.status(200).json(orderData)
+    const result = {
+      order_id: orderData?.order_id || orderId,
+      order_status: orderData?.order_status,
+      payment_status: paymentStatus,
+      is_paid: isPaid,
+      order_amount: orderData?.order_amount,
+      order_currency: orderData?.order_currency,
+      customer_details: orderData?.customer_details,
+      order_tags: orderData?.order_tags,
+      payment_message:
+        latestPayment?.payment_message ||
+        (isPaid
+          ? 'Payment verified successfully'
+          : paymentStatus === 'USER_DROPPED'
+          ? 'Payment was cancelled or abandoned by user'
+          : paymentStatus === 'CANCELLED'
+          ? 'Payment was cancelled'
+          : paymentStatus === 'FAILED'
+          ? 'Payment failed'
+          : paymentStatus === 'PENDING'
+          ? 'Payment is processing'
+          : 'Payment not completed'),
+      payments: payments.map((p: any) => ({
+        payment_id: p?.cf_payment_id,
+        payment_status: p?.payment_status,
+        payment_amount: p?.payment_amount,
+        payment_time: p?.payment_time,
+        payment_message: p?.payment_message,
+      })),
+    };
+
+    return res.status(200).json(result);
   } catch (error: any) {
-    const status = error?.response?.status || 500
+    const status = error?.response?.status || 500;
     const payload = error?.response?.data || {
       message: 'Failed to fetch order',
-    }
-    return res.status(status).json(payload)
+    };
+    return res.status(status).json(payload);
   }
-}
+};
 
 export const getUserSubscription = async (req: Request, res: Response) => {
   try {

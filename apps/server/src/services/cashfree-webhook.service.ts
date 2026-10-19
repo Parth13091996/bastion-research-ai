@@ -250,17 +250,103 @@ export const handlePaymentSuccess = async (payload: any) => {
 }
 
 export const handlePaymentUserDropped = async (payload: any) => {
-  const { customer_details } = payload?.data || {}
-  await supabase
-    .from('users')
-    .update({ status: 'payment_pending' })
-    .eq('id', customer_details?.customer_id)
-}
+  const { payment, customer_details } = payload?.data || {};
+  const transactionId = payment?.order_tags?.transaction_id;
+  const customerId = customer_details?.customer_id;
+
+  // 1. Update payment_history if it is currently PENDING
+  if (transactionId) {
+    try {
+      const { data: existingPayment } = await supabase
+        .from('payment_history')
+        .select('transaction_status')
+        .eq('transaction_id', transactionId)
+        .maybeSingle();
+
+      if (existingPayment && existingPayment.transaction_status === 'PENDING') {
+        await supabase
+          .from('payment_history')
+          .update({ transaction_status: 'USER_DROPPED' })
+          .eq('transaction_id', transactionId);
+      }
+    } catch (err: any) {
+      console.error('Error updating payment_history for USER_DROPPED:', err?.message);
+    }
+  }
+
+  // 2. Only set users.status = 'payment_pending' if user is not already active with a valid subscription
+  if (customerId) {
+    try {
+      const { data: user } = await supabase
+        .from('users')
+        .select('status, subscription_end_date')
+        .eq('id', customerId)
+        .maybeSingle();
+
+      const isAlreadyActive =
+        user?.status === 'active' &&
+        user?.subscription_end_date &&
+        new Date(user.subscription_end_date) >= new Date();
+
+      if (!isAlreadyActive) {
+        await supabase
+          .from('users')
+          .update({ status: 'payment_pending' })
+          .eq('id', customerId);
+      }
+    } catch (err: any) {
+      console.error('Error updating user status for USER_DROPPED:', err?.message);
+    }
+  }
+};
 
 export const handlePaymentFailed = async (payload: any) => {
-  const { customer_details } = payload?.data || {}
-  await supabase
-    .from('users')
-    .update({ status: 'payment_pending' })
-    .eq('id', customer_details?.customer_id)
-}
+  const { payment, customer_details } = payload?.data || {};
+  const transactionId = payment?.order_tags?.transaction_id;
+  const customerId = customer_details?.customer_id;
+
+  // 1. Update payment_history if it is currently PENDING
+  if (transactionId) {
+    try {
+      const { data: existingPayment } = await supabase
+        .from('payment_history')
+        .select('transaction_status')
+        .eq('transaction_id', transactionId)
+        .maybeSingle();
+
+      if (existingPayment && existingPayment.transaction_status === 'PENDING') {
+        await supabase
+          .from('payment_history')
+          .update({ transaction_status: 'FAILED' })
+          .eq('transaction_id', transactionId);
+      }
+    } catch (err: any) {
+      console.error('Error updating payment_history for FAILED:', err?.message);
+    }
+  }
+
+  // 2. Only set users.status = 'payment_pending' if user is not already active with a valid subscription
+  if (customerId) {
+    try {
+      const { data: user } = await supabase
+        .from('users')
+        .select('status, subscription_end_date')
+        .eq('id', customerId)
+        .maybeSingle();
+
+      const isAlreadyActive =
+        user?.status === 'active' &&
+        user?.subscription_end_date &&
+        new Date(user.subscription_end_date) >= new Date();
+
+      if (!isAlreadyActive) {
+        await supabase
+          .from('users')
+          .update({ status: 'payment_pending' })
+          .eq('id', customerId);
+      }
+    } catch (err: any) {
+      console.error('Error updating user status for FAILED:', err?.message);
+    }
+  }
+};

@@ -394,19 +394,34 @@ export const onboardUser = async (req: Request, res: Response) => {
 
         if (!planError && planRow) {
           planDetails = planRow as { plan_name?: string | null };
-          const start = new Date();
-          const startDateStr = start.toISOString().split("T")[0];
-          let endDateStr: string | null = null;
+          const isFree =
+            planRow.plan_code === "freemium" ||
+            planRow.price_amount === 0 ||
+            status === "free";
 
-          const durationMonths = (planRow as any).duration_months;
-          if (typeof durationMonths === "number" && durationMonths > 0) {
-            const end = new Date(start);
-            end.setMonth(end.getMonth() + durationMonths);
-            endDateStr = end.toISOString().split("T")[0];
+          if (isFree) {
+            const start = new Date();
+            const startDateStr = start.toISOString().split("T")[0];
+            let endDateStr: string | null = null;
+
+            const durationMonths = (planRow as any).duration_months;
+            if (typeof durationMonths === "number" && durationMonths > 0) {
+              const end = new Date(start);
+              end.setMonth(end.getMonth() + durationMonths);
+              endDateStr = end.toISOString().split("T")[0];
+            }
+
+            baseUpdate.subscription_start_date = startDateStr;
+            baseUpdate.subscription_end_date = endDateStr;
+            baseUpdate.status = "active";
+            baseUpdate.role = role || 'free_subscriber';
+          } else {
+            // For paid plans, subscription dates and active status MUST NOT be granted before payment
+            baseUpdate.subscription_start_date = null;
+            baseUpdate.subscription_end_date = null;
+            baseUpdate.status = status === "agreement_signed" ? "agreement_signed" : (status || "onboarded");
+            baseUpdate.role = role || 'free_subscriber';
           }
-
-          baseUpdate.subscription_start_date = startDateStr;
-          baseUpdate.subscription_end_date = endDateStr;
         }
       } catch {
         // If membership_plans lookup fails, continue without subscription dates.

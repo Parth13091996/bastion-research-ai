@@ -40,3 +40,19 @@ export const pgFetchOrder = async (orderId: string) => {
     return { data: resp.data };
   }
 };
+
+export const pgFetchOrderPayments = async (orderId: string) => {
+  try {
+    const anyCF = Cashfree as any;
+    if (typeof anyCF.PGOrderFetchPayments === "function") {
+      ensureCashfreeConfigured();
+      return await anyCF.PGOrderFetchPayments(orderId);
+    }
+    throw new Error("SDK PGOrderFetchPayments missing; using REST fallback");
+  } catch {
+    const url = `${getBaseUrl()}/orders/${orderId}/payments`;
+    const headers = getCashfreeAuthHeaders() as any;
+    const resp = await axios.get(url, { headers });
+    return { data: resp.data };
+  }
+};
