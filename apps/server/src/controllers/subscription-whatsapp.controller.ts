@@ -30,8 +30,8 @@ export const reminderConfigByType: Record<
     dayDiff: 7,
     paramCount: 0,
     media: {
-      url: process.env.AISENSY_REMINDER_1_MEDIA_URL || 'https://d3jt6ku4g6z5l8.cloudfront.net/IMAGE/6353da2e153a147b991dd812/4958901_highanglekidcheatingschooltestmin.jpg',
-      filename: 'sample_media'
+      url: process.env.AISENSY_REMINDER_1_MEDIA_URL || 'https://bastionresearch.in/media/Bastion-Logo.png',
+      filename: 'Bastion-Logo.png'
     }
   },
   expiry_day: {
@@ -46,8 +46,8 @@ export const reminderConfigByType: Record<
     dayDiff: -7,
     paramCount: 0,
     media: {
-      url: process.env.AISENSY_REMINDER_3_MEDIA_URL || 'https://d3jt6ku4g6z5l8.cloudfront.net/IMAGE/6353da2e153a147b991dd812/4958901_highanglekidcheatingschooltestmin.jpg',
-      filename: 'sample_media'
+      url: process.env.AISENSY_REMINDER_3_MEDIA_URL || 'https://bastionresearch.in/media/Bastion-Logo.png',
+      filename: 'Bastion-Logo.png'
     }
   },
   fifteen_days_after: {

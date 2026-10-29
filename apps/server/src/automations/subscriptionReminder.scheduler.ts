@@ -58,6 +58,7 @@ export const runSubscriptionExpiryReminder = async () => {
         )
         .eq('subscription_end_date', targetDateStr)
         .eq('status', 'active')
+        .in('role', ['core_subscriber', 'ex_core_subscriber'])
 
       if (error) {
         console.error(`Failed to fetch expiring subscriptions for ${reminderType}`, error)
@@ -308,6 +309,7 @@ export const startSubscriptionExpiryReminderJob = () => {
     } finally {
       reminderJobRunning = false
     }
+    if (process.env.ENABLE_SUBSCRIPTION_REPORTS === 'false') return
     const today = reminderDate(now)
     if (lastRunDay === today) {
       return
