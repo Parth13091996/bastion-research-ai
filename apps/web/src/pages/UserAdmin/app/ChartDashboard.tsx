@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import XirrMethodologyDialog from './XirrMethodologyDialog';
 import { useQuery } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { getPortfolioDashboardData } from '@/api/recommendations-apis';
@@ -53,7 +54,7 @@ const ChartDashboard = () => {
     { label: 'Active Hold', value: data?.activeHold, detail: 'Stocks', color: 'text-sky-300' },
     { label: 'Exited / Closed', value: data?.exitedClosed, detail: 'Stocks', color: 'text-amber-300' },
   ];
-  return <section className="mb-8 rounded-xl bg-gradient-to-br from-[#13013d] to-[#010313] p-4 sm:p-6 lg:p-8 text-white" aria-label="Recommendation overview and portfolio performance">
+  return <div id="bastion-performance"><section className="mb-8 rounded-xl bg-gradient-to-br from-[#13013d] to-[#010313] p-4 sm:p-6 lg:p-8 text-white" aria-label="Recommendation overview and portfolio performance">
     <div className="mb-6 text-center lg:mb-8">
       <h2 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Every Hit. Every Miss. <span className="text-blue-300">Shared with Clarity</span></h2>
       <p className="mt-2 text-sm text-slate-300">Confidence is built, not borrowed</p>
@@ -72,14 +73,17 @@ const ChartDashboard = () => {
     <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-3 sm:p-5 lg:p-6">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div><h3 className="text-lg font-semibold sm:text-xl">Recommended Stocks XIRR vs Nifty 500</h3><p className="mt-1 text-xs text-slate-300">Annualised XIRR (%)</p><p className="mt-2 text-sm text-slate-200">Performance period: 11 Mar 2024 – {endDate ?? (isPending ? 'Loading end date…' : 'End date unavailable')}</p></div>
+        <div className="flex flex-wrap items-center gap-2">
+        <XirrMethodologyDialog />
         <button type="button" onClick={() => refetch()} disabled={isFetching} className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3 py-2 text-xs text-slate-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:opacity-50" aria-label="Refresh portfolio dashboard">
           <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} aria-hidden="true" />{isFetching ? 'Refreshing' : 'Refresh'}
         </button>
+        </div>
       </div>
       <div className="mx-auto max-w-3xl">
         {isPending ? <div className="flex min-h-[280px] items-center justify-center text-sm text-slate-300" role="status">Loading portfolio performance...</div> : <XirrChart portfolio={data?.recommendedStocksXirr ?? null} benchmark={data?.nifty500Xirr ?? null} />}
       </div>
     </div>
-  </section>;
+  </section></div>;
 };
 export default ChartDashboard;

@@ -16,7 +16,7 @@ export const getRecommendations = async (_: Request, res: Response) => {
   return res.status(200).json(data);
 };
 
-import { fetchPortfolioDashboard } from "../utils/portfolioDashboardSheet";
+import { fetchPortfolioDashboard, fetchPortfolioMethodology } from "../utils/portfolioDashboardSheet";
 
 type Settings = {
   recommendation_sheet_url?: string;
@@ -91,6 +91,18 @@ export const getPortfolioDashboardSummary = async (_: Request, res: Response) =>
   } catch (error: any) {
     console.error('Portfolio dashboard sheet error:', error?.message);
     return res.status(502).json({ error: 'The portfolio dashboard is temporarily unavailable' });
+  }
+};
+
+export const getPortfolioMethodology = async (_: Request, res: Response) => {
+  try {
+    const settings = await getSettingsData();
+    const url = settings.live_recommendation_sheet_url ||
+      'https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=1899227714';
+    return res.status(200).set('Cache-Control', 'no-store').json(await fetchPortfolioMethodology(url));
+  } catch (error: any) {
+    console.error('Portfolio methodology sheet error:', error?.message);
+    return res.status(502).json({ error: 'The XIRR methodology is temporarily unavailable' });
   }
 };
 
