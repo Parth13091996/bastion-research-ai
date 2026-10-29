@@ -40,6 +40,8 @@ await api.sendAiSensyCampaign({destination:'9876543210',userName:'Test',campaign
 assert.deepEqual(request.templateParams,['Existing','N/A','N/A']);
 globalThis.testAxios.post=async()=>({data:{success:false}});
 assert.equal((await api.sendAiSensyCampaign({destination:'9876543210',userName:'Test',campaignName:'test',source:'subscription-expiry-reminder'})).sent,false);
+globalThis.testAxios.post=async()=>({data:{success:'false'}});
+assert.equal((await api.sendAiSensyCampaign({destination:'9876543210',userName:'Test',campaignName:'test',source:'subscription-expiry-reminder'})).sent,false);
 delete process.env.AISENSY_API_KEY;
 assert.equal((await api.sendAiSensyCampaign({destination:'9876543210',userName:'Test',campaignName:'test'})).sent,false);
 let record=null,lookupError=false,waCalls=0,emailCalls=0,waSuccess=true,emailFail=false,holdResolve;

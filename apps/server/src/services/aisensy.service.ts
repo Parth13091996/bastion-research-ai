@@ -71,7 +71,7 @@ export async function sendAiSensyCampaign(payload: AiSensyCampaignPayload) {
       },
     );
 
-    if (data?.success === false) {
+    if (String(data?.success).toLowerCase() === "false") {
       return { sent: false, skipped: false, error: "AiSensy rejected the campaign request", details: data };
     }
     return { sent: true, skipped: false, data };
