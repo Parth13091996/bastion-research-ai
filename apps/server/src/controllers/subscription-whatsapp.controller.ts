@@ -8,59 +8,10 @@ import { reminderDayDifference } from '../utils/reminder-date'
 
 const inFlightReminders = new Set<string>()
 
-export type SubscriptionReminderType =
-  | 'one_week_before'
-  | 'expiry_day'
-  | 'one_week_after'
-  | 'fifteen_days_after'
-
-export const reminderConfigByType: Record<
-  SubscriptionReminderType,
-  { 
-    reminderLabel: string; 
-    campaignName: string; 
-    dayDiff: number; 
-    paramCount: number;
-    media?: { url: string; filename: string };
-  }
-> = {
-  one_week_before: {
-    reminderLabel: '1 week before subscription expiry',
-    campaignName: 'Bastion CORE Renewal Reminder #1',
-    dayDiff: 7,
-    paramCount: 0,
-    media: {
-      url: process.env.AISENSY_REMINDER_1_MEDIA_URL || 'https://bastionresearch.in/media/Bastion-Logo.png',
-      filename: 'Bastion-Logo.png'
-    }
-  },
-  expiry_day: {
-    reminderLabel: 'subscription expiry day',
-    campaignName: 'Bastion CORE Renewal Reminder #2',
-    dayDiff: 0,
-    paramCount: 0,
-  },
-  one_week_after: {
-    reminderLabel: '1 week after subscription expiry',
-    campaignName: 'Bastion CORE Renewal Reminder #3',
-    dayDiff: -7,
-    paramCount: 0,
-    media: {
-      url: process.env.AISENSY_REMINDER_3_MEDIA_URL || 'https://bastionresearch.in/media/Bastion-Logo.png',
-      filename: 'Bastion-Logo.png'
-    }
-  },
-  fifteen_days_after: {
-    reminderLabel: '15 days after subscription expiry',
-    campaignName: 'Bastion CORE Renewal Reminder #4',
-    dayDiff: -15,
-    paramCount: 0,
-    media: process.env.AISENSY_REMINDER_4_MEDIA_URL ? {
-      url: process.env.AISENSY_REMINDER_4_MEDIA_URL,
-      filename: 'Bastion-Logo.png'
-    } : undefined
-  },
-}
+import { getSubscriptionReminderCampaigns } from '../services/subscription-reminder-settings.service'
+import { REMINDER_STAGES, renderReminderVariables, type SubscriptionReminderType } from '../utils/subscription-reminder-config'
+export { type SubscriptionReminderType } from '../utils/subscription-reminder-config'
+export const reminderConfigByType = REMINDER_STAGES
 
 export type ReminderUserRow = {
   id: string
@@ -77,12 +28,12 @@ export type ReminderUserRow = {
 
 const isSubscriptionReminderType = (
   value: string
-): value is SubscriptionReminderType => value in reminderConfigByType
+): value is SubscriptionReminderType => Object.prototype.hasOwnProperty.call(reminderConfigByType, value)
 
 export const sendReminderForUser = async (
   user: ReminderUserRow,
   reminderType: SubscriptionReminderType,
-  campaignName: string
+  _legacyCampaignName?: string
 ) => {
   if (process.env.NODE_ENV !== 'production') {
     throw new Error('Subscription reminder delivery is disabled outside production; no developer-number redirects are allowed.')
@@ -93,15 +44,18 @@ export const sendReminderForUser = async (
     throw new Error('A valid phone and subscription_end_date are required')
   }
   const name = [user.first_name, user.last_name].filter(Boolean).join(' ').trim() || user.username || 'User'
-  const config = reminderConfigByType[reminderType]
-  if (!config || campaignName !== config.campaignName) throw new Error('Invalid reminder campaign')
+  if (!Object.prototype.hasOwnProperty.call(reminderConfigByType, reminderType)) throw new Error('Invalid reminder type')
+  const config = (await getSubscriptionReminderCampaigns())[reminderType]
+  if (!config.enabled) return { whatsapp: { sent: false, skipped: true, reason: 'disabled' }, emailSent: false, skipped: true }
+  // Campaign selection is server-side; legacy callers cannot override saved admin settings.
+  const campaignName = config.campaignName
   const deliveryKey = `${user.id}:${reminderType}:${subscriptionEndDate}`
   if (inFlightReminders.has(deliveryKey)) throw new Error('Reminder already in progress')
   inFlightReminders.add(deliveryKey)
   try {
     const { data: previous, error: lookupError } = await supabase
       .from('subscription_reminder_logs')
-      .select('id, whatsapp_sent, email_sent, whatsapp_result')
+      .select('id, campaign_name, whatsapp_sent, email_sent, whatsapp_result')
       .eq('user_id', user.id).eq('reminder_type', reminderType)
       .eq('subscription_end_date', subscriptionEndDate).maybeSingle()
     if (lookupError) throw new Error('Cannot verify reminder history; delivery stopped to prevent duplicates')
@@ -115,7 +69,7 @@ export const sendReminderForUser = async (
     const persist = async () => {
       const record = {
         user_id: user.id, email: user.email || null, phone,
-        reminder_type: reminderType, campaign_name: campaignName,
+        reminder_type: reminderType, campaign_name: previous?.whatsapp_sent ? previous.campaign_name || campaignName : campaignName,
         subscription_end_date: subscriptionEndDate,
         whatsapp_sent: !!whatsappResult.sent, email_sent: emailSent,
         whatsapp_result: whatsappResult,
@@ -134,8 +88,8 @@ export const sendReminderForUser = async (
       whatsappResult = await sendAiSensyCampaign({
         destination: phone, userName: name, campaignName,
         source: 'subscription-expiry-reminder',
-        templateParams: config.paramCount > 0 ? [name, subscriptionEndDate, config.reminderLabel] : [],
-        tags: ['subscription-expiry-reminder', reminderType], media: config.media,
+        templateParams: renderReminderVariables(config.templateParams, user, reminderType),
+        tags: ['subscription-expiry-reminder', reminderType], media: config.mediaUrl ? { url: config.mediaUrl, filename: config.mediaFilename || 'reminder-image' } : undefined,
         attributes: { user_id: String(user.id), email: String(user.email || ''), reminder_type: reminderType, subscription_end_date: subscriptionEndDate },
       })
       // Record WhatsApp acceptance before email, so an SMTP failure cannot cause a resend.
@@ -163,7 +117,6 @@ export const sendSubscriptionWhatsappReminder = async (
 ) => {
   try {
     const reminderType = String(req.body?.reminderType || '').trim()
-    const requestCampaignName = String(req.body?.campaignName || '').trim()
 
     if (!isSubscriptionReminderType(reminderType)) {
       return res.status(400).json({ message: 'Invalid reminderType' })
@@ -171,9 +124,6 @@ export const sendSubscriptionWhatsappReminder = async (
 
     const reminderConfig = reminderConfigByType[reminderType]
 
-    if (requestCampaignName !== reminderConfig.campaignName) {
-      return res.status(400).json({ message: 'Invalid campaignName for reminderType' })
-    }
 
     const { data, error } = await supabase
       .from('users')
@@ -216,7 +166,7 @@ export const sendSubscriptionWhatsappReminder = async (
       })
     }
 
-    const result = await sendReminderForUser(user, reminderType, requestCampaignName)
+    const result = await sendReminderForUser(user, reminderType)
     return res.status(200).json(result)
   } catch (e: any) {
     return res

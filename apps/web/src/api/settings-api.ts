@@ -1,7 +1,14 @@
 import axiosInstance from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
 
+export type ReminderStage = 'one_week_before' | 'expiry_day' | 'one_week_after' | 'fifteen_days_after';
+export type ReminderCampaign = {
+  enabled: boolean; campaignName: string; templateParams: string[]; mediaUrl: string; mediaFilename: string;
+};
+export type ReminderCampaigns = Record<ReminderStage, ReminderCampaign>;
+
 export type Settings = {
+  aisensy_subscription_reminders?: ReminderCampaigns;
   site_name?: string;
   contact_recipient_email?: string;
   maintenance_mode?: boolean;
@@ -53,12 +60,8 @@ export async function getPublicSettings(
 // Get admin settings (cached, with force option)
 export async function getAdminSettings(force = false): Promise<Settings> {
   if (!force && adminSettingsCache) return adminSettingsCache;
-  try {
-    const { data } = await axiosInstance.get(endpoints.settings.admin.get);
-    adminSettingsCache = data || {};
-  } catch {
-    adminSettingsCache = {};
-  }
+  const { data } = await axiosInstance.get(endpoints.settings.admin.get);
+  adminSettingsCache = data || {};
   return adminSettingsCache!;
 }
 

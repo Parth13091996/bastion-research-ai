@@ -1,5 +1,5 @@
 // apps/web/src/pages/Admin/Settings/index.tsx
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,8 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import axiosInstance from "@/api/axios";
-import { getAdminSettings, updateAdminSettings } from "@/api/settings-api";
+import { getAdminSettings, updateAdminSettings, type ReminderCampaigns, type ReminderCampaign, type ReminderStage } from "@/api/settings-api";
 import { uploadFile } from "@/api/files-api";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
@@ -22,7 +21,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { AppRoutes } from "@/routes/app-routes";
 
+import { Textarea } from '@/components/ui/textarea';
+
+const renewalStages: { key: ReminderStage; label: string }[] = [
+  { key: 'one_week_before', label: '7 days before expiry' },
+  { key: 'expiry_day', label: 'Expiry day' },
+  { key: 'one_week_after', label: '7 days after expiry' },
+  { key: 'fifteen_days_after', label: '15 days after expiry' },
+];
+const renewalTokens = ['name', 'first_name', 'last_name', 'email', 'phone', 'expiry_date', 'plan_name', 'reminder_label'];
+
 type AdminSettings = {
+  aisensy_subscription_reminders?: ReminderCampaigns;
   site_name?: string;
   contact_recipient_email?: string;
   maintenance_mode?: boolean;
@@ -61,18 +71,6 @@ const AdminSettings = () => {
   });
   const [saving, setSaving] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return <Navigate to={AppRoutes.adminDashboard} replace />;
-  }
-
   // Upload states
   const [uploadingAgreement, setUploadingAgreement] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -83,16 +81,48 @@ const AdminSettings = () => {
   );
   const invoiceFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await getAdminSettings(true);
-        setForm((p) => ({ ...p, ...(data || {}) }));
-      } catch {
-        // fallback remain
-      }
-    })();
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsError, setSettingsError] = useState('');
+  const [remindersSaving, setRemindersSaving] = useState(false);
+  const [remindersError, setRemindersError] = useState('');
+  const loadSettings = useCallback(async () => {
+    setSettingsLoading(true);
+    setSettingsError('');
+    try {
+      const data = await getAdminSettings(true);
+      setForm((previous) => ({ ...previous, ...data }));
+    } catch {
+      setSettingsError('Settings could not be loaded. Retry before making changes.');
+    } finally {
+      setSettingsLoading(false);
+    }
   }, []);
+  useEffect(() => {
+    if (isAdmin) void loadSettings();
+  }, [isAdmin, loadSettings]);
+
+  const setReminder = (stage: ReminderStage, patch: Partial<ReminderCampaign>) => {
+    setForm(previous => previous.aisensy_subscription_reminders ? ({ ...previous,
+      aisensy_subscription_reminders: { ...previous.aisensy_subscription_reminders,
+        [stage]: { ...previous.aisensy_subscription_reminders[stage], ...patch } },
+    }) : previous);
+  };
+  const saveReminders = async () => {
+    if (!form.aisensy_subscription_reminders) return;
+    setRemindersSaving(true);
+    setRemindersError('');
+    try {
+      const campaigns = Object.fromEntries(Object.entries(form.aisensy_subscription_reminders).map(([stage, value]) =>
+        [stage, { ...value, templateParams: value.templateParams.map(line => line.trim()).filter(Boolean) }])) as ReminderCampaigns;
+      const saved = await updateAdminSettings({ aisensy_subscription_reminders: campaigns });
+      setForm(previous => ({ ...previous, aisensy_subscription_reminders: saved.aisensy_subscription_reminders }));
+      toast.success('Renewal reminder settings saved');
+    } catch (error: any) {
+      setRemindersError(error?.response?.data?.message || 'Renewal settings could not be saved. Your edits are still here.');
+    } finally {
+      setRemindersSaving(false);
+    }
+  };
 
   const set = <K extends keyof AdminSettings>(k: K, v: AdminSettings[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
@@ -100,7 +130,8 @@ const AdminSettings = () => {
   const save = async () => {
     try {
       setSaving(true);
-      await updateAdminSettings(form);
+      const { aisensy_subscription_reminders, ...siteSettings } = form;
+      await updateAdminSettings(siteSettings);
       toast.success("Settings saved");
     } catch (e: any) {
       toast.error(e?.response?.data?.message || "Failed to save settings");
@@ -183,9 +214,22 @@ const AdminSettings = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to={AppRoutes.adminDashboard} replace />;
+  }
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Settings Panel</h1>
+      {settingsError && <div role="alert" className="mb-6 rounded-md border p-4 text-red-600">{settingsError} <Button variant="outline" onClick={loadSettings}>Retry loading settings</Button></div>}
       <Card>
         <CardHeader>
           <CardTitle>Site Settings</CardTitle>
@@ -364,8 +408,63 @@ const AdminSettings = () => {
           </div>
         </CardContent>
         <CardFooter className="flex gap-3">
-          <Button onClick={save} disabled={saving}>
+          <Button onClick={save} disabled={saving || settingsLoading || !!settingsError}>
             {saving ? "Saving..." : "Save Settings"}
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Subscription renewal — AiSensy</CardTitle>
+          <CardDescription>
+            Manage all four reminder stages. Use the exact live AiSensy API campaign name linked to your approved WhatsApp template.
+            To change the message wording, update the template in AiSensy and enter its campaign name here.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">Saving applies to future unsent reminders without a redeploy. Reminders already sent will not be resent. Disabling a stage pauses both its WhatsApp and email reminders.</p>
+          {settingsLoading ? <p role="status">Loading renewal reminders...</p> : !form.aisensy_subscription_reminders ?
+            <p role="alert">Renewal reminder configuration is unavailable. No existing campaigns will be overwritten.</p> :
+            <div className="grid gap-6 lg:grid-cols-2">
+              {renewalStages.map(({ key, label }) => {
+                const campaign = form.aisensy_subscription_reminders![key];
+                return <fieldset key={key} className="min-w-0 rounded-lg border p-4 space-y-4">
+                  <legend className="px-2 font-semibold">{label}</legend>
+                  <div className="flex items-center justify-between gap-4">
+                    <Label htmlFor={`renewal-${key}-enabled`}>Enable this reminder</Label>
+                    <Switch id={`renewal-${key}-enabled`} checked={campaign.enabled} onCheckedChange={enabled => setReminder(key, { enabled })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`renewal-${key}-campaign`}>AiSensy API campaign name</Label>
+                    <Input id={`renewal-${key}-campaign`} value={campaign.campaignName} maxLength={200} onChange={event => setReminder(key, { campaignName: event.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`renewal-${key}-variables`}>Variables, in template order</Label>
+                    <Textarea id={`renewal-${key}-variables`} rows={3} maxLength={20000} value={campaign.templateParams.join('\n')}
+                      placeholder="One value per line. Leave empty for templates with no variables."
+                      aria-describedby={`renewal-${key}-variable-help`}
+                      onChange={event => setReminder(key, { templateParams: event.target.value.split('\n') })} />
+                    <p id={`renewal-${key}-variable-help`} className="text-xs text-muted-foreground">One value per line. Use a supported variable below or type a fixed value, such as a renewal link. The number and order must match your AiSensy template.</p>
+                    <div className="flex flex-wrap gap-1">
+                      {renewalTokens.map(token => <button key={token} type="button" className="rounded border px-2 py-1 text-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label={`Add ${token} variable to ${label}`} onClick={() => setReminder(key, { templateParams: [...campaign.templateParams.filter(Boolean), `{{${token}}}`] })}>{`{{${token}}}`}</button>)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{campaign.templateParams.filter(value => value.trim()).length} variable values</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`renewal-${key}-media`}>Template image URL (optional)</Label>
+                    <Input id={`renewal-${key}-media`} type="url" placeholder="https://..." value={campaign.mediaUrl} onChange={event => setReminder(key, { mediaUrl: event.target.value })} />
+                    <p className="text-xs text-muted-foreground">Use a public HTTPS image for image templates. Leave empty for text-only templates.</p>
+                  </div>
+                </fieldset>;
+              })}
+            </div>}
+          {remindersError && <p role="alert" className="text-sm text-red-600">{remindersError}</p>}
+        </CardContent>
+        <CardFooter>
+          <Button onClick={saveReminders} disabled={remindersSaving || settingsLoading || !!settingsError || !form.aisensy_subscription_reminders}>
+            {remindersSaving ? 'Saving reminders...' : 'Save Renewal Reminders'}
           </Button>
         </CardFooter>
       </Card>
@@ -428,7 +527,7 @@ const AdminSettings = () => {
           </div>
         </CardContent>
         <CardFooter className="flex gap-3">
-          <Button onClick={save} disabled={saving}>
+          <Button onClick={save} disabled={saving || settingsLoading || !!settingsError}>
             {saving ? "Saving..." : "Save Settings"}
           </Button>
         </CardFooter>
@@ -470,7 +569,7 @@ const AdminSettings = () => {
           </div>
         </CardContent>
         <CardFooter className="flex gap-3">
-          <Button onClick={save} disabled={saving}>
+          <Button onClick={save} disabled={saving || settingsLoading || !!settingsError}>
             {saving ? "Saving..." : "Save Settings"}
           </Button>
         </CardFooter>

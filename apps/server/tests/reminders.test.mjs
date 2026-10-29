@@ -26,6 +26,8 @@ async function load(entry,shims={}){
 }
 const root=fileURLToPath(new URL('../src/',import.meta.url));
 const dates=await load(root+'utils/reminder-date.ts');
+const configUtils=await load(root+'utils/subscription-reminder-config.ts');
+globalThis.currentReminderCampaigns=configUtils.resolveReminderCampaigns();
 assert.equal(dates.reminderDate(new Date('2026-10-29T18:30:00Z')),'2026-10-30');
 assert.equal(dates.reminderDate(new Date('2026-10-29T18:29:59Z'),7),'2026-11-05');
 assert.equal(dates.reminderDayDifference('2026-11-06',new Date('2026-10-29T18:30:00Z')),7);
@@ -56,6 +58,7 @@ globalThis.testSend=async()=>{waCalls++;if(holdResolve)await new Promise(r=>hold
 globalThis.testEmail=async()=>{emailCalls++;if(emailFail)throw Error('Synthetic SMTP failure')};
 const controller=await load(root+'controllers/subscription-whatsapp.controller.ts',{
  '../supabase':'export const supabase=globalThis.testDb',
+ '../services/subscription-reminder-settings.service':'export const getSubscriptionReminderCampaigns=async()=>globalThis.currentReminderCampaigns',
  '../services/aisensy.service':'export const sendAiSensyCampaign=(...args)=>globalThis.testSend(...args)',
  '../services/emailNotification.service':'export const sendSubscriptionRenewalReminderEmail=(...args)=>globalThis.testEmail(...args)',
 });
@@ -83,6 +86,7 @@ globalThis.scheduleDb={from:table=>{
 globalThis.scheduleSend=async()=>{attempts++;scheduleLog={id:'test',whatsapp_sent:attempts>1,email_sent:true};return {whatsapp:{sent:attempts>1},emailSent:true}};
 const scheduler=await load(root+'automations/subscriptionReminder.scheduler.ts',{
  '../supabase':'export const supabase=globalThis.scheduleDb',
+ '../services/subscription-reminder-settings.service':'export const getSubscriptionReminderCampaigns=async()=>globalThis.currentReminderCampaigns',
  '../controllers/subscription-whatsapp.controller':`export const reminderConfigByType={one_week_before:{dayDiff:7,campaignName:'Bastion CORE Renewal Reminder #1'}};export const sendReminderForUser=(...a)=>globalThis.scheduleSend(...a)`,
  '../services/emailNotification.service':'export const sendMonthlySubscriptionExpirySummaryEmail=async()=>{};export const sendDropOffSummaryEmail=async()=>{}',
  '../services/mailchimpAudience.service':'export const syncExpiredPremiumUserToMailchimp=async()=>{}',
@@ -94,3 +98,37 @@ globalThis.setTimeout=realTimeout;
 assert.equal(attempts,2,'Failed delivery must retry; completed delivery must be skipped');
 assert.equal(lastTarget,dates.reminderDate(new Date(),7));
 console.log('Scheduler checks passed: failed logged WhatsApp is retried, completed delivery is skipped, and due-date selection uses India calendar dates.');
+
+assert.equal(configUtils.resolveReminderCampaigns().one_week_before.campaignName,'Bastion CORE Renewal Reminder #1');
+assert.throws(()=>configUtils.resolveReminderCampaigns({one_week_before:{templateParams:['{{unknown}}']}}),/Unknown variable/);
+assert.throws(()=>configUtils.resolveReminderCampaigns({one_week_before:{mediaUrl:'http://unsafe.example/image.png'}}),/HTTPS/);
+assert.throws(()=>configUtils.resolveReminderCampaigns({one_week_before:{campaignName:' '}}),/campaign name/);
+assert.throws(()=>configUtils.resolveReminderCampaigns({one_week_before:{templateParams:['{{name']}}),/syntax/);
+assert.throws(()=>configUtils.resolveReminderCampaigns({one_week_before:{templateParams:Array(21).fill('text')}}),/20 variables/);
+assert.deepEqual(configUtils.renderReminderVariables(['{{name}}','{{expiry_date}}','{{plan_name}}','https://example.com/renew'],user,'one_week_before'),['Test','2026-11-06','Bastion CORE','https://example.com/renew']);
+record=null;waCalls=emailCalls=0;
+let actualPayload;
+globalThis.testSend=async payload=>{actualPayload=payload;waCalls++;return {sent:true}};
+globalThis.currentReminderCampaigns=configUtils.resolveReminderCampaigns({one_week_before:{campaignName:'Updated renewal campaign',templateParams:['{{name}}','{{expiry_date}}','Fixed renewal link'],mediaUrl:''}});
+await send();
+assert.equal(actualPayload.campaignName,'Updated renewal campaign');
+assert.deepEqual(actualPayload.templateParams,['Test','2026-11-06','Fixed renewal link']);
+assert.equal(actualPayload.media,undefined);
+const alreadySentCalls=waCalls;globalThis.currentReminderCampaigns.one_week_before.campaignName='Another campaign after delivery';await send();assert.equal(waCalls,alreadySentCalls);assert.equal(record.campaign_name,'Updated renewal campaign');
+record=null;globalThis.currentReminderCampaigns.one_week_before.enabled=false;
+const callsBefore=waCalls;const disabled=await send();assert.equal(disabled.whatsapp.reason,'disabled');assert.equal(waCalls,callsBefore);
+globalThis.currentReminderCampaigns=configUtils.resolveReminderCampaigns();
+console.log('Admin campaign tests passed: defaults, validation, variable order, custom literals, media, saved-config changes without restart, and disabled-stage delivery guard.');
+let settingsRow={singleton:true,data:{site_name:'Existing site',unrelated:'preserve',aisensy_subscription_reminders:configUtils.resolveReminderCampaigns()}};
+let settingsReads=0,settingsWrites=0;
+globalThis.settingsDb={from:()=>({select(){return this},async maybeSingle(){settingsReads++;return {data:settingsRow,error:null}},async upsert(payload){settingsWrites++;settingsRow=payload;return {error:null}}})};
+const settingsController=await load(root+'controllers/settings.controller.ts',{'../supabase':'export const supabase=globalThis.settingsDb'});
+const response=()=>({statusCode:200,body:null,status(code){this.statusCode=code;return this},json(body){this.body=body;return this}});
+let res=response();await settingsController.getAdminSettings({},res);assert.equal(res.body.aisensy_subscription_reminders.one_week_before.campaignName,'Bastion CORE Renewal Reminder #1');
+res=response();await settingsController.updateAdminSettings({body:{aisensy_subscription_reminders:{one_week_before:{campaignName:'Saved campaign',templateParams:['{{name}}']}}}},res);
+assert.equal(res.statusCode,200);assert.equal(settingsRow.data.unrelated,'preserve');assert.equal(settingsRow.data.aisensy_subscription_reminders.expiry_day.campaignName,'Bastion CORE Renewal Reminder #2');
+const writes=settingsWrites;res=response();await settingsController.updateAdminSettings({body:{aisensy_subscription_reminders:{one_week_before:{templateParams:['{{bad_key}}']}}}},res);assert.equal(res.statusCode,400);assert.equal(settingsWrites,writes);assert.equal(settingsRow.data.aisensy_subscription_reminders.one_week_before.campaignName,'Saved campaign');
+res=response();await settingsController.getPublicSettings({},res);assert.equal(Object.hasOwn(res.body,'aisensy_subscription_reminders'),false);
+const loader=await load(root+'services/subscription-reminder-settings.service.ts',{'../controllers/settings.controller':'export const getSettingsData=async()=>globalThis.settingsDb.from().select().maybeSingle().then(r=>r.data.data)'});
+assert.equal((await loader.getSubscriptionReminderCampaigns()).one_week_before.campaignName,'Saved campaign');settingsRow.data.aisensy_subscription_reminders.one_week_before.campaignName='Changed without restart';assert.equal((await loader.getSubscriptionReminderCampaigns()).one_week_before.campaignName,'Changed without restart');
+console.log('Settings API tests passed: persisted update/partial merge, unrelated settings preserved, invalid save rejected without writes, reminder config excluded from public settings, and live config reload.');
