@@ -7,6 +7,7 @@ import {
   getRecommendationsFromSheet,
   getLiveRecommendationsSummary,
   getPortfolioDashboardSummary,
+  getPortfolioMethodology,
   upsertRecommendationByCompany,
   updateUserRecommendationAnalytics,
 } from "../controllers/recommendations.controller";
@@ -19,6 +20,7 @@ router.get("/recommendations", getRecommendations);
 router.get("/recommendations/sheet", getRecommendationsFromSheet);
 router.get("/recommendations/live-dashboard", getLiveRecommendationsSummary);
 router.get("/recommendations/portfolio-dashboard", getPortfolioDashboardSummary);
+router.get("/recommendations/xirr-methodology", getPortfolioMethodology);
 router.get(
   "/recommendations/company/analytics/:companySymbol",
   updateUserRecommendationAnalytics

@@ -104,3 +104,41 @@ export async function fetchPortfolioDashboard(sheetUrl: string): Promise<Portfol
   pending.set(url, request);
   try { return await request; } finally { pending.delete(url); }
 }
+
+export type PortfolioMethodology = { rows: string[][] };
+let methodologyCache: { url: string; until: number; data: PortfolioMethodology } | undefined;
+const methodologyPending = new Map<string, Promise<PortfolioMethodology>>();
+export function methodologySheetUrl(sheetUrl: string): string {
+  const url = new URL(portfolioDashboardUrl(sheetUrl));
+  url.searchParams.delete('gid');
+  url.searchParams.set('sheet', 'XIRR Methodology');
+  url.searchParams.set('range', 'A1:Z1000');
+  return url.toString();
+}
+export function mapMethodologyCells(table: SheetTable): PortfolioMethodology {
+  const rows = table.rows.map(row => {
+    const cells = (row.c || []).map(cell => {
+      const value = cell?.f ?? cell?.v;
+      return value == null ? '' : String(value).trim();
+    });
+    while (cells.length && !cells[0]) cells.shift();
+    while (cells.length && !cells[cells.length - 1]) cells.pop();
+    return cells;
+  }).filter(row => row.length);
+  if (!rows.length) throw new Error('The methodology sheet is empty');
+  return { rows };
+}
+export async function fetchPortfolioMethodology(sheetUrl: string): Promise<PortfolioMethodology> {
+  const url = methodologySheetUrl(sheetUrl);
+  if (methodologyCache?.url === url && methodologyCache.until > Date.now()) return methodologyCache.data;
+  const current = methodologyPending.get(url);
+  if (current) return current;
+  const request = (async () => {
+    const response = await axios.get<string>(url, { responseType: 'text', timeout: 15000 });
+    const data = mapMethodologyCells(parsePortfolioSheetResponse(response.data));
+    methodologyCache = { url, until: Date.now() + 60000, data };
+    return data;
+  })();
+  methodologyPending.set(url, request);
+  try { return await request; } finally { methodologyPending.delete(url); }
+}

@@ -62,3 +62,12 @@ export async function getPortfolioDashboardData(): Promise<PortfolioDashboardMet
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid dashboard data');
   return data;
 }
+
+export async function getPortfolioMethodology(): Promise<{ rows: string[][] }> {
+  const { data } = await axiosInstance.get('/api/recommendations/xirr-methodology');
+  if (!data || !Array.isArray(data.rows) || !data.rows.length ||
+    !data.rows.every((row: unknown) => Array.isArray(row) && row.every(cell => typeof cell === 'string'))) {
+    throw new Error('Invalid methodology data');
+  }
+  return data;
+}
