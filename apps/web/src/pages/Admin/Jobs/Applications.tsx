@@ -7,10 +7,11 @@ import {
   getApplications,
   updateApplication,
 } from "@/api/applications-api";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Search, Trash2 } from "lucide-react";
+import { filterApplications, getJobProfileCounts } from "./application-filters";
 import { confirmDelete } from "@/utils/confirm";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
 import { queryKeys } from "@/api/queryKeys";
@@ -21,16 +22,34 @@ const Applications = () => {
   const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
   const { canEdit } = useSectionEditAccess("jobs_applications");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedJobProfile, setSelectedJobProfile] = useState<string | null>(null);
   const { data: rowData, isLoading } = useQuery({
     queryKey: [queryKeys.applications],
     queryFn: async () => {
       const response = await getApplications();
       return response.map(({ job_openings, ...rest }: any) => ({
         ...rest,
-        job_title: job_openings.job_title,
+        job_title: job_openings?.job_title?.trim() || "Unspecified job profile",
       }));
     },
   });
+
+  const jobProfiles = useMemo(() => getJobProfileCounts(rowData ?? []), [rowData]);
+  const filteredApplications = useMemo(
+    () => filterApplications(rowData ?? [], searchQuery, selectedJobProfile),
+    [rowData, searchQuery, selectedJobProfile]
+  );
+
+  useEffect(() => {
+    if (selectedJobProfile !== null && !jobProfiles.some((job) => job.title === selectedJobProfile)) {
+      setSelectedJobProfile(null);
+    }
+  }, [jobProfiles, selectedJobProfile]);
+
+  useEffect(() => {
+    gridRef.current?.api?.paginationGoToFirstPage();
+  }, [searchQuery, selectedJobProfile]);
 
   const [form, setForm] = useState({
     job_id: "",
@@ -220,12 +239,49 @@ const Applications = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="flex flex-wrap items-center gap-2 p-1 mb-6 bg-muted/50 rounded-lg border" role="group" aria-label="Filter applications by job profile">
+        {[{ title: null, count: rowData?.length ?? 0 }, ...jobProfiles].map((job) => {
+          const isSelected = selectedJobProfile === job.title;
+          return (
+            <button
+              key={job.title ?? "all-applications"}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => setSelectedJobProfile(job.title)}
+              className={`relative flex items-center px-3 py-1.5 text-sm font-medium transition-all rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isSelected ? "bg-white text-foreground shadow-sm ring-1 ring-black/5" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            >
+              <span>{job.title ?? "All Applications"}</span>
+              <span className={`ml-2 text-xs py-0.5 px-1.5 rounded-full ${isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                {job.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="flex flex-wrap items-center justify-between mb-4 gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" aria-hidden="true" />
+            <Input
+              type="search"
+              aria-label="Search candidates by name, email or phone"
+              placeholder="Search by name, email or phone..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <span className="text-sm text-muted-foreground" role="status">
+            {filteredApplications.length} of {rowData?.length ?? 0} applications
+          </span>
+        </div>
         <div className="rounded-md border bg-white ag-theme-alpine" style={{ height: 600, width: "100%" }}>
           <AgGridReact
             ref={gridRef as any}
             theme="legacy"
-            rowData={rowData}
+            rowData={filteredApplications}
+            overlayNoRowsTemplate="No applications match your search or job profile."
             columnDefs={columnDefs}
             defaultColDef={{ sortable: true, filter: true, resizable: true }}
             singleClickEdit={canEdit}
