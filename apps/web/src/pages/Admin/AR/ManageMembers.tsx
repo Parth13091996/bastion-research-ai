@@ -10,7 +10,7 @@ import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { Edit, Eye, Mail, Shield, Trash2, User, UserPlus } from "lucide-react";
 import { ICellRendererParams } from "ag-grid-community";
-import { useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import axiosInstance from "@/api/axios";
 import ViewMemberModal from "@/components/core/common/Modals/ViewMemberModal";
@@ -18,6 +18,7 @@ import { differenceInDays } from "date-fns";
 import { confirm } from "@/utils/confirm";
 import { formatDate } from "@/lib/utils";
 import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
+import { getMemberRole, isSubscriptionExpired } from "./member-roles";
 
 interface MemberData {
   id: string;
@@ -51,6 +52,7 @@ const RoleRenderer = (params: ICellRendererParams<MemberData>) => {
     employee: { color: "bg-blue-100 text-blue-800", icon: User },
     free_subscriber: { color: "bg-gray-100 text-gray-800", icon: User },
     core_subscriber: { color: "bg-green-100 text-green-800", icon: User },
+    ex_core_subscriber: { color: "bg-gray-100 text-gray-800", icon: User },
     ipo_subscriber: { color: "bg-purple-100 text-purple-800", icon: User },
     research_ally_subscriber: {
       color: "bg-orange-100 text-orange-800",
@@ -70,7 +72,7 @@ const RoleRenderer = (params: ICellRendererParams<MemberData>) => {
       className={`px-2 py-1 rounded-full text-xs font-medium flex items-center w-fit ${config.color}`}
     >
       <Icon className="mr-1 h-3 w-3" />
-      {role
+      {role === "ex_core_subscriber" ? "Ex-Core Subscriber" : role
         .replace(/_/g, " ")
         .replace(/\b\w/g, (l) => l.toUpperCase())}
     </span>
@@ -125,12 +127,23 @@ const MemberManagementDashboard = () => {
   const gridRef = useRef<AgGridReact>(null);
   const queryClient = useQueryClient();
   const { canEdit } = useSectionEditAccess("ar_manage_members");
+  const [referenceTime, setReferenceTime] = useState(() => Date.now());
+  useEffect(() => {
+    const refreshTime = () => setReferenceTime(Date.now());
+    const timer = window.setInterval(refreshTime, 60_000);
+    window.addEventListener("focus", refreshTime);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refreshTime);
+    };
+  }, []);
   const {
     data: rowData,
     isLoading: loading,
   } = useQuery({
     queryKey: [queryKeys.users],
     queryFn: () => getUsers(),
+    refetchInterval: 60_000,
   });
 
   // Fetch per-user activity summary for analytics (login count, pageviews, recs)
@@ -343,6 +356,7 @@ const MemberManagementDashboard = () => {
     {
       headerName: "Role",
       field: "role",
+      valueGetter: (params) => getMemberRole(params.data ?? {}, referenceTime),
       cellRenderer: RoleRenderer,
       minWidth: 180,
     },
@@ -376,9 +390,9 @@ const MemberManagementDashboard = () => {
         const endDate = params.value as string | null | undefined;
         if (!endDate) return <span className="text-gray-400">-</span>;
 
-        const daysLeft = differenceInDays(new Date(endDate), new Date());
+        const daysLeft = differenceInDays(new Date(endDate), new Date(referenceTime));
 
-        if (daysLeft < 0) {
+        if (isSubscriptionExpired(endDate, referenceTime)) {
           return <span className="text-red-600 font-medium">Expired</span>;
         }
 
@@ -440,14 +454,14 @@ const MemberManagementDashboard = () => {
       employee: 0,
       free_subscriber: 0,
       core_subscriber: 0,
+      ex_core_subscriber: 0,
       ipo_subscriber: 0,
       research_ally_subscriber: 0,
       drop_off: 0,
     };
 
     users.forEach((u: MemberData) => {
-      let role = (u.role || "free_subscriber").toLowerCase().trim();
-      role = role.replace(/[\s-]/g, "_");
+      const role = getMemberRole(u, referenceTime);
 
       if (Object.prototype.hasOwnProperty.call(counts, role)) {
         (counts as Record<string, number>)[role]++;
@@ -461,12 +475,12 @@ const MemberManagementDashboard = () => {
       }
     });
     return counts;
-  }, [users]);
+  }, [users, referenceTime]);
 
   const filteredData = useMemo(() => {
     // 1. Filter by Role
     let data = selectedRole
-      ? users.filter((u: MemberData) => (u.role || "free_subscriber") === selectedRole)
+      ? users.filter((u: MemberData) => getMemberRole(u, referenceTime) === selectedRole)
       : users;
 
     // 2. Filter by Search Query
@@ -480,14 +494,13 @@ const MemberManagementDashboard = () => {
       );
     }
     return data;
-  }, [selectedRole, searchQuery, users]);
+  }, [selectedRole, searchQuery, users, referenceTime]);
 
   const roleFilterButtons = [
     { label: "All Users", value: null, count: roleCounts.all },
     { label: "Free Subs", value: "free_subscriber", count: roleCounts.free_subscriber },
     { label: "Core Subs", value: "core_subscriber", count: roleCounts.core_subscriber },
-    { label: "IPO Subs", value: "ipo_subscriber", count: roleCounts.ipo_subscriber },
-    { label: "Research Ally", value: "research_ally_subscriber", count: roleCounts.research_ally_subscriber },
+    { label: "Ex-Core Subscribers", value: "ex_core_subscriber", count: roleCounts.ex_core_subscriber },
     { label: "Employees", value: "employee", count: roleCounts.employee },
     { label: "Admins", value: "admin", count: roleCounts.admin },
     { label: "Drop Off", value: "drop_off", count: roleCounts.drop_off },
