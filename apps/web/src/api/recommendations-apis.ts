@@ -46,3 +46,19 @@ export const userCompanyAnalytics = async (
   );
   return response.data;
 };
+
+export type PortfolioDashboardMetrics = {
+  totalRecommendations: number | null;
+  activeBuy: number | null;
+  activeHold: number | null;
+  exitedClosed: number | null;
+  recommendedStocksXirr: number | null;
+  nifty500Xirr: number | null;
+  performanceEndDate: string | null;
+};
+
+export async function getPortfolioDashboardData(): Promise<PortfolioDashboardMetrics> {
+  const { data } = await axiosInstance.get('/api/recommendations/portfolio-dashboard');
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid dashboard data');
+  return data;
+}

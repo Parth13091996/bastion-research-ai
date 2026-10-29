@@ -16,6 +16,8 @@ export const getRecommendations = async (_: Request, res: Response) => {
   return res.status(200).json(data);
 };
 
+import { fetchPortfolioDashboard } from "../utils/portfolioDashboardSheet";
+
 type Settings = {
   recommendation_sheet_url?: string;
   live_recommendation_sheet_url?: string;
@@ -76,6 +78,19 @@ export const getLiveRecommendationsSummary = async (
     return res
       .status(500)
       .json({ error: error?.message || "Failed to load live data" });
+  }
+};
+
+export const getPortfolioDashboardSummary = async (_: Request, res: Response) => {
+  try {
+    const settings = await getSettingsData();
+    const url = settings.live_recommendation_sheet_url ||
+      'https://docs.google.com/spreadsheets/d/1ECA3hzUmyooulaWxArjM7iGzF9y-h45ogJ8yLdlEo3A/edit?gid=1899227714';
+    const metrics = await fetchPortfolioDashboard(url);
+    return res.status(200).set('Cache-Control', 'no-store').json(metrics);
+  } catch (error: any) {
+    console.error('Portfolio dashboard sheet error:', error?.message);
+    return res.status(502).json({ error: 'The portfolio dashboard is temporarily unavailable' });
   }
 };
 
