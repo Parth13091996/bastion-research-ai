@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import { supabase } from "../supabase";
 
+import { resolveReminderCampaigns, ReminderSettingsError, type ReminderCampaigns } from '../utils/subscription-reminder-config';
+
 type Settings = {
+  aisensy_subscription_reminders?: ReminderCampaigns;
   site_name?: string;
   contact_recipient_email?: string;
   maintenance_mode?: boolean;
@@ -35,6 +38,13 @@ async function getRow() {
 async function upsert(settings: Partial<Settings>) {
   const row = await getRow();
   const merged = { ...(row.data as Settings), ...settings };
+  if (Object.prototype.hasOwnProperty.call(settings, 'aisensy_subscription_reminders')) {
+    const incoming = settings.aisensy_subscription_reminders;
+    if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new ReminderSettingsError('Invalid reminder settings');
+    merged.aisensy_subscription_reminders = resolveReminderCampaigns({
+      ...((row.data as Settings)?.aisensy_subscription_reminders || {}), ...incoming,
+    });
+  }
   delete (merged as Record<string, unknown>).mailchimp_merge_tag_date;
   delete (merged as Record<string, unknown>).mailchimp_merge_tag_time;
   const { error } = await supabase
@@ -74,7 +84,8 @@ export async function getPublicSettings(req: Request, res: Response) {
 export async function getAdminSettings(req: Request, res: Response) {
   try {
     const row = await getRow();
-    return res.status(200).json((row.data || {}) as Settings);
+    const data = (row.data || {}) as Settings;
+    return res.status(200).json({ ...data, aisensy_subscription_reminders: resolveReminderCampaigns(data.aisensy_subscription_reminders) });
   } catch (e: any) {
     return res
       .status(500)
@@ -92,8 +103,9 @@ export async function updateAdminSettings(req: Request, res: Response) {
   try {
     const body = (req.body || {}) as Partial<Settings>;
     const saved = await upsert(body);
-    return res.status(200).json(saved);
+    return res.status(200).json({ ...saved, aisensy_subscription_reminders: resolveReminderCampaigns(saved.aisensy_subscription_reminders) });
   } catch (e: any) {
+    if (e instanceof ReminderSettingsError) return res.status(400).json({ message: e.message });
     return res
       .status(500)
       .json({ message: e?.message || "Failed to update settings" });

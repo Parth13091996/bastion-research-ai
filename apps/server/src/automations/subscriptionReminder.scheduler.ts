@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { getSubscriptionReminderCampaigns } from '../services/subscription-reminder-settings.service'
 import { reminderDate } from '../utils/reminder-date'
 import {
   sendMonthlySubscriptionExpirySummaryEmail,
@@ -35,9 +36,11 @@ type ExpiringUserRow = {
 export const runSubscriptionExpiryReminder = async () => {
   try {
     const today = new Date()
+    const savedCampaigns = await getSubscriptionReminderCampaigns()
 
     for (const [key, config] of Object.entries(reminderConfigByType)) {
       const reminderType = key as SubscriptionReminderType
+      if (!savedCampaigns[reminderType].enabled) continue
       const targetDateStr = reminderDate(today, config.dayDiff)
 
       const { data, error } = await supabase
@@ -93,6 +96,7 @@ export const runSubscriptionExpiryReminder = async () => {
           }
 
           const result = await sendReminderForUser(user as any, reminderType, config.campaignName)
+          if (result.whatsapp?.skipped && result.whatsapp.reason === 'disabled') continue
           if (!result.whatsapp?.sent || (user.email && !result.emailSent)) {
             console.error(`[subscription-reminder] Incomplete reminder (${reminderType}) for user ${user.id}; failed channels will retry`)
           } else {
