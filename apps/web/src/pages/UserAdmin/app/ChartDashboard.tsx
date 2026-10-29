@@ -54,7 +54,7 @@ const ChartDashboard = () => {
     { label: 'Active Hold', value: data?.activeHold, detail: 'Stocks', color: 'text-sky-300' },
     { label: 'Exited / Closed', value: data?.exitedClosed, detail: 'Stocks', color: 'text-amber-300' },
   ];
-  return <section className="mb-8 rounded-xl bg-gradient-to-br from-[#13013d] to-[#010313] p-4 sm:p-6 lg:p-8 text-white" aria-label="Recommendation overview and portfolio performance">
+  return <div id="bastion-performance"><section className="mb-8 rounded-xl bg-gradient-to-br from-[#13013d] to-[#010313] p-4 sm:p-6 lg:p-8 text-white" aria-label="Recommendation overview and portfolio performance">
     <div className="mb-6 text-center lg:mb-8">
       <h2 className="text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl">Every Hit. Every Miss. <span className="text-blue-300">Shared with Clarity</span></h2>
       <p className="mt-2 text-sm text-slate-300">Confidence is built, not borrowed</p>
@@ -84,6 +84,6 @@ const ChartDashboard = () => {
         {isPending ? <div className="flex min-h-[280px] items-center justify-center text-sm text-slate-300" role="status">Loading portfolio performance...</div> : <XirrChart portfolio={data?.recommendedStocksXirr ?? null} benchmark={data?.nifty500Xirr ?? null} />}
       </div>
     </div>
-  </section>;
+  </section></div>;
 };
 export default ChartDashboard;
