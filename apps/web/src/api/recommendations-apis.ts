@@ -54,6 +54,7 @@ export type PortfolioDashboardMetrics = {
   exitedClosed: number | null;
   recommendedStocksXirr: number | null;
   nifty500Xirr: number | null;
+  performanceEndDate: string | null;
 };
 
 export async function getPortfolioDashboardData(): Promise<PortfolioDashboardMetrics> {

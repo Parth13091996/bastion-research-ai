@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { getPortfolioDashboardData } from '@/api/recommendations-apis';
-import { formatXirr, validMetric, xirrAxis } from './portfolio-chart';
+import { formatPerformanceDate, formatXirr, validMetric, xirrAxis } from './portfolio-chart';
 
 function XirrChart({ portfolio, benchmark }: { portfolio: number | null; benchmark: number | null }) {
   const id = useId();
@@ -18,7 +18,7 @@ function XirrChart({ portfolio, benchmark }: { portfolio: number | null; benchma
     return <div className="flex min-h-[280px] items-center justify-center text-sm text-slate-300">XIRR data is not available yet.</div>;
   }
   return <svg viewBox="0 0 640 300" className="w-full" role="img" aria-labelledby={`${id}-title ${id}-description`}>
-    <title id={`${id}-title`}>Portfolio XIRR compared with Nifty 500</title>
+    <title id={`${id}-title`}>Recommended Stocks XIRR compared with Nifty 500</title>
     <desc id={`${id}-description`}>Recommended Stocks: {formatXirr(portfolio)}. Nifty 500: {formatXirr(benchmark)}. Bars share a zero baseline.</desc>
     {axis.ticks.map(tick => <g key={tick}>
       <line x1={left} x2={right} y1={y(tick)} y2={y(tick)} stroke={Math.abs(tick) < 1e-10 ? '#94a3b8' : '#ffffff'} strokeOpacity={Math.abs(tick) < 1e-10 ? 0.6 : 0.1} />
@@ -46,6 +46,7 @@ const ChartDashboard = () => {
     queryKey: ['portfolio-dashboard-metrics'], queryFn: getPortfolioDashboardData,
     refetchInterval: 60000, staleTime: 30000, retry: 1,
   });
+  const endDate = formatPerformanceDate(data?.performanceEndDate);
   const counts = [
     { label: 'Total Recommendations', value: data?.totalRecommendations, detail: 'Till date', color: 'text-violet-300' },
     { label: 'Active Buy', value: data?.activeBuy, detail: 'Stocks', color: 'text-emerald-300' },
@@ -70,7 +71,7 @@ const ChartDashboard = () => {
     </div>
     <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-3 sm:p-5 lg:p-6">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-        <div><h3 className="text-lg font-semibold sm:text-xl">Portfolio XIRR vs Nifty 500</h3><p className="mt-1 text-xs text-slate-300">Annualised XIRR (%)</p></div>
+        <div><h3 className="text-lg font-semibold sm:text-xl">Recommended Stocks XIRR vs Nifty 500</h3><p className="mt-1 text-xs text-slate-300">Annualised XIRR (%)</p><p className="mt-2 text-sm text-slate-200">Performance period: 11 Mar 2024 – {endDate ?? (isPending ? 'Loading end date…' : 'End date unavailable')}</p></div>
         <button type="button" onClick={() => refetch()} disabled={isFetching} className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3 py-2 text-xs text-slate-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:opacity-50" aria-label="Refresh portfolio dashboard">
           <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} aria-hidden="true" />{isFetching ? 'Refreshing' : 'Refresh'}
         </button>

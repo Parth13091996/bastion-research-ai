@@ -7,6 +7,7 @@ export type PortfolioDashboardMetrics = {
   exitedClosed: number | null;
   recommendedStocksXirr: number | null;
   nifty500Xirr: number | null;
+  performanceEndDate: string | null;
 };
 
 type SheetCell = { v?: unknown; f?: string } | null;
@@ -23,6 +24,22 @@ function cellNumber(cell: SheetCell | undefined, percent = false): number | null
   return percent && hasPercent ? parsed / 100 : parsed;
 }
 
+export function sheetDate(cell: SheetCell | undefined): string | null {
+  const value = cell?.v;
+  if (typeof value !== 'string') return null;
+  const google = value.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})(?:,0,0,0)?\)$/);
+  const iso = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const text = value.trim().match(/^(\d{1,2})[ \/-]+([A-Za-z]{3})[ \/-]+(\d{4})$/);
+  let year: number, month: number, day: number;
+  if (google) [year, month, day] = [Number(google[1]), Number(google[2]) + 1, Number(google[3])];
+  else if (iso) [year, month, day] = iso.slice(1).map(Number);
+  else if (text) [year, month, day] = [Number(text[3]), ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(text[2].toLowerCase()) + 1, Number(text[1])];
+  else return null;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (year < 1900 || date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  return date.toISOString().slice(0, 10);
+}
+
 export function mapPortfolioDashboardCells(table: SheetTable): PortfolioDashboardMetrics {
   // The requested range starts at B35. Each requested cell is placed at its exact offset before mapping.
   const cell = (offset: number) => table.rows[offset]?.c?.[0];
@@ -37,6 +54,7 @@ export function mapPortfolioDashboardCells(table: SheetTable): PortfolioDashboar
     exitedClosed: count(3), // B38
     recommendedStocksXirr: cellNumber(cell(7), true), // B42: XIRR is a decimal ratio.
     nifty500Xirr: cellNumber(cell(8), true), // B43
+    performanceEndDate: sheetDate(cell(10)), // B45
   };
 }
 
@@ -73,7 +91,7 @@ export async function fetchPortfolioDashboard(sheetUrl: string): Promise<Portfol
     // Google gViz omits blank rows from multi-row ranges. Read exact cells so
     // empty neighbouring cells cannot shift B42/B43 into another metric.
     const rows: SheetTable['rows'] = [];
-    await Promise.all([0, 1, 2, 3, 7, 8].map(async offset => {
+    await Promise.all([0, 1, 2, 3, 7, 8, 10].map(async offset => {
       const cellUrl = portfolioDashboardUrl(sheetUrl, `B${35 + offset}`);
       const response = await axios.get<string>(cellUrl, { responseType: 'text', timeout: 15000 });
       const table = parsePortfolioSheetResponse(response.data);
