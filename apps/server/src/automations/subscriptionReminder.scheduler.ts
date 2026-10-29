@@ -61,7 +61,8 @@ export const runSubscriptionExpiryReminder = async () => {
         )
         .eq('subscription_end_date', targetDateStr)
         .eq('status', 'active')
-        .in('role', ['core_subscriber', 'ex_core_subscriber'])
+        // Ex-Core is a derived admin label; expired accounts still store this role.
+        .eq('role', 'core_subscriber')
 
       if (error) {
         console.error(`Failed to fetch expiring subscriptions for ${reminderType}`, error)
@@ -69,6 +70,7 @@ export const runSubscriptionExpiryReminder = async () => {
       }
 
       const rows = (data ?? []) as ExpiringUserRow[]
+      console.log(`[subscription-reminder] Stage ${reminderType}: ${rows.length} eligible for expiry ${targetDateStr}`)
       if (rows.length === 0) {
         continue
       }

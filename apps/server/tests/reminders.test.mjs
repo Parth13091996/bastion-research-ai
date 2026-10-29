@@ -77,9 +77,9 @@ lookupError=false;holdResolve={};const pending=send();
 while(!holdResolve.release)await new Promise(r=>setTimeout(r,1));
 await assert.rejects(send,/already in progress/);holdResolve.release();await pending;holdResolve=null;
 console.log('Reminder regression checks passed: India dates, exact AiSensy parameters, recipient name, missing key, non-production guard, failed WhatsApp retry, email-only retry, completed-delivery dedupe, log failure and concurrent-call guard. No network messages were sent.');
-let scheduleLog=null,attempts=0,lastTarget;
+let scheduleLog=null,attempts=0,lastTarget,lastStoredRole;
 globalThis.scheduleDb={from:table=>{
- const q={select(){return q},eq(field,value){if(table==='users'&&field==='subscription_end_date')lastTarget=value;return q},lt(){return q},gte(){return q},in(){return q},order(){return q},
+ const q={select(){return q},eq(field,value){if(table==='users'&&field==='subscription_end_date')lastTarget=value;if(table==='users'&&field==='role')lastStoredRole=value;return q},lt(){return q},gte(){return q},in(field,values){if(field==='role')assert.equal(values.includes('ex_core_subscriber'),false,'UI-only roles must not be used in database enum queries');return q},order(){return q},
  maybeSingle:async()=>({data:scheduleLog,error:null}),
  then(resolve,reject){return Promise.resolve({data:table==='users'?[user]:[],error:null}).then(resolve,reject)}};return q;
 }};
@@ -97,6 +97,7 @@ await scheduler.runSubscriptionExpiryReminder();await scheduler.runSubscriptionE
 globalThis.setTimeout=realTimeout;
 assert.equal(attempts,2,'Failed delivery must retry; completed delivery must be skipped');
 assert.equal(lastTarget,dates.reminderDate(new Date(),7));
+assert.equal(lastStoredRole,'core_subscriber');
 console.log('Scheduler checks passed: failed logged WhatsApp is retried, completed delivery is skipped, and due-date selection uses India calendar dates.');
 
 assert.equal(configUtils.resolveReminderCampaigns().one_week_before.campaignName,'Bastion CORE Renewal Reminder #1');
