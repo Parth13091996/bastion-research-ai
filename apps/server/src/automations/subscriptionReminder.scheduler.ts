@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { reminderDate } from '../utils/reminder-date'
 import {
   sendMonthlySubscriptionExpirySummaryEmail,
   sendDropOffSummaryEmail,
@@ -37,12 +38,7 @@ export const runSubscriptionExpiryReminder = async () => {
 
     for (const [key, config] of Object.entries(reminderConfigByType)) {
       const reminderType = key as SubscriptionReminderType
-      const target = new Date(Date.UTC(
-        today.getUTCFullYear(),
-        today.getUTCMonth(),
-        today.getUTCDate() + config.dayDiff
-      ))
-      const targetDateStr = target.toISOString().split('T')[0]
+      const targetDateStr = reminderDate(today, config.dayDiff)
 
       const { data, error } = await supabase
         .from('users')
@@ -80,23 +76,27 @@ export const runSubscriptionExpiryReminder = async () => {
           // Check if log already exists for this cycle to prevent duplicates
           const { data: existingLog, error: logError } = await supabase
             .from('subscription_reminder_logs')
-            .select('id')
+            .select('id, whatsapp_sent, email_sent')
             .eq('user_id', user.id)
             .eq('reminder_type', reminderType)
             .eq('subscription_end_date', targetDateStr)
             .maybeSingle()
 
           if (logError) {
-            console.error(`[subscription-reminder] Failed to check logs for user ${user.id}:`, logError)
+            throw new Error(`Cannot check reminder history for user ${user.id}`)
           }
 
-          if (existingLog) {
+          if (existingLog?.whatsapp_sent && (!user.email || existingLog.email_sent)) {
             console.log(`[subscription-reminder] Skipping user ${user.id} - reminder (${reminderType}) already sent for expiry ${targetDateStr}`)
             continue
           }
 
-          await sendReminderForUser(user as any, reminderType, config.campaignName)
-          console.log(`[subscription-reminder] Sent reminder (${reminderType}) to user: ${user.id}`)
+          const result = await sendReminderForUser(user as any, reminderType, config.campaignName)
+          if (!result.whatsapp?.sent || (user.email && !result.emailSent)) {
+            console.error(`[subscription-reminder] Incomplete reminder (${reminderType}) for user ${user.id}; failed channels will retry`)
+          } else {
+            console.log(`[subscription-reminder] Reminder accepted (${reminderType}) for user ${user.id}`)
+          }
           // Wait 2 seconds between emails to prevent rate limiting (e.g. Mailtrap limits)
           await new Promise((resolve) => setTimeout(resolve, 2000))
         } catch (err: any) {
@@ -283,24 +283,37 @@ export const runExpiredPremiumMailchimpSync = async (
 
 let scheduled = false
 let lastRunDay: string | null = null
+let reminderJobRunning = false
 
 export const startSubscriptionExpiryReminderJob = () => {
-  const enableScheduler =
-    process.env.ENABLE_REMINDER_SCHEDULER === 'true' ||
-    process.env.NODE_ENV === 'production'
+  const setting = process.env.ENABLE_REMINDER_SCHEDULER
+  const enableScheduler = setting === undefined
+    ? process.env.NODE_ENV === 'production'
+    : setting === 'true'
 
-  if (scheduled || !enableScheduler) return
+  if (scheduled) return
+  if (!enableScheduler) {
+    console.log('[subscription-reminder] Scheduler disabled by environment configuration')
+    return
+  }
   scheduled = true
+  console.log('[subscription-reminder] Scheduler enabled: retry interval 15 minutes, calendar Asia/Kolkata')
 
   const execute = async () => {
     const now = new Date()
-    const today = now.toISOString().split('T')[0]
+    if (reminderJobRunning) return
+    reminderJobRunning = true
+    try {
+      await runSubscriptionExpiryReminder()
+    } finally {
+      reminderJobRunning = false
+    }
+    const today = reminderDate(now)
     if (lastRunDay === today) {
       return
     }
     lastRunDay = today
     await runExpiredPremiumMailchimpSync(now)
-    await runSubscriptionExpiryReminder()
     await runDropOffSummary(now)
 
     const monthKey = getMonthKey(now)
@@ -310,10 +323,12 @@ export const startSubscriptionExpiryReminderJob = () => {
     }
   }
 
-  execute()
+  execute().catch((error) => {
+    console.error('Subscription reminder initial run failed', error)
+  })
   setInterval(() => {
     execute().catch((error) => {
       console.error('Subscription reminder scheduler error', error)
     })
-  }, ONE_DAY_MS)
+  }, 15 * 60 * 1000)
 }

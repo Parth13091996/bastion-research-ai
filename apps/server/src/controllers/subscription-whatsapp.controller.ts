@@ -4,7 +4,9 @@ import { sendAiSensyCampaign } from '../services/aisensy.service'
 import { sendSubscriptionRenewalReminderEmail } from '../services/emailNotification.service'
 import { supabase } from '../supabase'
 
-const DAY_MS = 24 * 60 * 60 * 1000
+import { reminderDayDifference } from '../utils/reminder-date'
+
+const inFlightReminders = new Set<string>()
 
 export type SubscriptionReminderType =
   | 'one_week_before'
@@ -73,17 +75,6 @@ export type ReminderUserRow = {
   } | null
 }
 
-const getDayDiffFromToday = (dateValue: string) => {
-  const date = new Date(dateValue)
-  if (Number.isNaN(date.getTime())) return null
-
-  const targetUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-  const now = new Date()
-  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-
-  return Math.round((targetUtc - todayUtc) / DAY_MS)
-}
-
 const isSubscriptionReminderType = (
   value: string
 ): value is SubscriptionReminderType => value in reminderConfigByType
@@ -93,95 +84,77 @@ export const sendReminderForUser = async (
   reminderType: SubscriptionReminderType,
   campaignName: string
 ) => {
-  let phone = String(user?.phone || '').trim()
-  const name =
-    [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() ||
-    user?.username ||
-    'User'
-  let subscriptionEndDate = String(user?.subscription_end_date || '').trim()
-
   if (process.env.NODE_ENV !== 'production') {
-    if (!phone) {
-      phone = '9327832747'
-    }
-    if (!subscriptionEndDate) {
-      subscriptionEndDate = new Date().toISOString().split('T')[0]
-    }
+    throw new Error('Subscription reminder delivery is disabled outside production; no developer-number redirects are allowed.')
   }
-
-  if (!phone || !subscriptionEndDate) {
-    throw new Error('User phone and subscription_end_date are required')
+  const phone = String(user.phone || '').trim()
+  const subscriptionEndDate = String(user.subscription_end_date || '').trim().slice(0, 10)
+  if (!phone || reminderDayDifference(subscriptionEndDate) === null) {
+    throw new Error('A valid phone and subscription_end_date are required')
   }
-
-  let targetPhone = phone
-  let targetEmail = user.email
-
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`[subscription-reminder-redirect] Dev mode: overriding real phone (${phone}) with '9327832747' and real email (${user.email || 'N/A'}) with 'mv9898733607@gmail.com'`)
-    targetPhone = '9327832747'
-    if (user.email) {
-      targetEmail = 'mv9898733607@gmail.com'
-    }
-  }
-
-  const reminderConfig = reminderConfigByType[reminderType]
-  const templateParams = reminderConfig.paramCount > 0
-    ? [name, subscriptionEndDate, reminderConfig.reminderLabel]
-    : []
-
-  const whatsappResult = await sendAiSensyCampaign({
-    destination: targetPhone,
-    userName: name,
-    campaignName: campaignName,
-    source: 'subscription-expiry-reminder',
-    templateParams,
-    tags: ['subscription-expiry-reminder', reminderType],
-    media: reminderConfig.media,
-    attributes: {
-      user_id: String(user.id),
-      email: String(user.email || ''),
-      reminder_type: reminderType,
-      subscription_end_date: subscriptionEndDate,
-    },
-  })
-
-  let emailSent = false
-  if (targetEmail) {
-    await sendSubscriptionRenewalReminderEmail({
-      to: targetEmail,
-      firstName: user.first_name || undefined,
-      planName: user.membership_plans?.plan_name || undefined,
-      subscriptionEndDate,
-      reminderType,
-    })
-    emailSent = true
-  }
-
-  // Save log entry to Supabase
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ').trim() || user.username || 'User'
+  const config = reminderConfigByType[reminderType]
+  if (!config || campaignName !== config.campaignName) throw new Error('Invalid reminder campaign')
+  const deliveryKey = `${user.id}:${reminderType}:${subscriptionEndDate}`
+  if (inFlightReminders.has(deliveryKey)) throw new Error('Reminder already in progress')
+  inFlightReminders.add(deliveryKey)
   try {
-    const { error } = await supabase
+    const { data: previous, error: lookupError } = await supabase
       .from('subscription_reminder_logs')
-      .insert({
-        user_id: user.id,
-        email: user.email || null,
-        phone: phone || null,
-        reminder_type: reminderType,
-        campaign_name: campaignName,
+      .select('id, whatsapp_sent, email_sent, whatsapp_result')
+      .eq('user_id', user.id).eq('reminder_type', reminderType)
+      .eq('subscription_end_date', subscriptionEndDate).maybeSingle()
+    if (lookupError) throw new Error('Cannot verify reminder history; delivery stopped to prevent duplicates')
+
+    let whatsappResult: any = previous?.whatsapp_sent
+      ? previous.whatsapp_result || { sent: true, skipped: true, reason: 'already_accepted' }
+      : { sent: false }
+    let emailSent = !!previous?.email_sent
+    let emailError: string | undefined
+    let logId = previous?.id
+    const persist = async () => {
+      const record = {
+        user_id: user.id, email: user.email || null, phone,
+        reminder_type: reminderType, campaign_name: campaignName,
         subscription_end_date: subscriptionEndDate,
-        whatsapp_sent: !!whatsappResult?.sent,
-        email_sent: emailSent,
-        whatsapp_result: whatsappResult || null,
-        email_result: emailSent ? { sent: true } : null,
-      })
-
-    if (error) {
-      console.error(`[subscription-reminder] Failed to write to subscription_reminder_logs for user: ${user.id}:`, error)
+        whatsapp_sent: !!whatsappResult.sent, email_sent: emailSent,
+        whatsapp_result: whatsappResult,
+        email_result: emailSent ? { sent: true } : emailError ? { sent: false, error: emailError } : null,
+      }
+      if (logId) {
+        const { error } = await supabase.from('subscription_reminder_logs').update(record).eq('id', logId)
+        if (error) throw new Error('Failed to persist reminder delivery state')
+      } else {
+        const { data, error } = await supabase.from('subscription_reminder_logs').insert(record).select('id').single()
+        if (error || !data) throw new Error('Failed to persist reminder delivery state')
+        logId = data.id
+      }
     }
-  } catch (err: any) {
-    console.error(`[subscription-reminder] Error inserting into subscription_reminder_logs:`, err?.message || err)
+    if (!previous?.whatsapp_sent) {
+      whatsappResult = await sendAiSensyCampaign({
+        destination: phone, userName: name, campaignName,
+        source: 'subscription-expiry-reminder',
+        templateParams: config.paramCount > 0 ? [name, subscriptionEndDate, config.reminderLabel] : [],
+        tags: ['subscription-expiry-reminder', reminderType], media: config.media,
+        attributes: { user_id: String(user.id), email: String(user.email || ''), reminder_type: reminderType, subscription_end_date: subscriptionEndDate },
+      })
+      // Record WhatsApp acceptance before email, so an SMTP failure cannot cause a resend.
+      await persist()
+    }
+    if (user.email && !emailSent) {
+      try {
+        await sendSubscriptionRenewalReminderEmail({ to: user.email, firstName: user.first_name || undefined,
+          planName: user.membership_plans?.plan_name || undefined, subscriptionEndDate, reminderType })
+        emailSent = true
+      } catch (error: any) {
+        emailError = error?.message || 'Email reminder failed'
+      }
+      await persist()
+    }
+    return { whatsapp: whatsappResult, emailSent, emailError }
+  } finally {
+    inFlightReminders.delete(deliveryKey)
   }
-
-  return { whatsapp: whatsappResult, emailSent }
 }
 
 export const sendSubscriptionWhatsappReminder = async (
@@ -234,7 +207,7 @@ export const sendSubscriptionWhatsappReminder = async (
       })
     }
 
-    const currentDayDiff = getDayDiffFromToday(subscriptionEndDate)
+    const currentDayDiff = reminderDayDifference(subscriptionEndDate)
     if (currentDayDiff !== reminderConfig.dayDiff) {
       return res.status(200).json({
         sent: false,

@@ -47,11 +47,9 @@ export async function sendAiSensyCampaign(payload: AiSensyCampaignPayload) {
         apiKey,
         campaignName,
         destination, 
-        userName: "Bastion Research",
+        userName,
         source: payload.source,
-        templateParams: payload.templateParams && payload.templateParams.length > 0
-          ? [...payload.templateParams, "N/A", "N/A"]
-          : [],
+        templateParams: payload.templateParams || [],
         tags: payload.tags,
         attributes: payload.attributes,
         media: payload.media || {},

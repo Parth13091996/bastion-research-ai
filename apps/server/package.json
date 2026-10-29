@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node --trace-deprecation dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "test:reminders": "node tests/reminders.test.mjs"
   },
   "keywords": [
     "express",
