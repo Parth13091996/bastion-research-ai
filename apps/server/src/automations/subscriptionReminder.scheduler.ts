@@ -58,7 +58,7 @@ export const runSubscriptionExpiryReminder = async () => {
         )
         .eq('subscription_end_date', targetDateStr)
         .eq('status', 'active')
-        .in('role', ['core_subscriber', 'ex_core_subscriber'])
+        .eq('role', 'core_subscriber')
 
       if (error) {
         console.error(`Failed to fetch expiring subscriptions for ${reminderType}`, error)
