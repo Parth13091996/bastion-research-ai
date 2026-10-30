@@ -1,3 +1,5 @@
+import { isFreemium, requestAccess } from '../services/premium-access.service';
+import { protectResearchLinks } from '../services/research-assets.service';
 import { Request, Response } from "express";
 import { uploadToSupabase } from "../services/upload.service";
 import { supabase } from "../supabase";
@@ -8,12 +10,17 @@ import {
   RecommendationRecord,
 } from "../utils/recommendationsSheet";
 
-export const getRecommendations = async (_: Request, res: Response) => {
+export const getRecommendations = async (req: Request, res: Response) => {
   const { data, error } = await supabase.from("recommendations").select("*");
   if (error) {
     return res.status(500).json({ error: error.message });
   }
-  return res.status(200).json(data);
+  try {
+    const {premium}=await requestAccess(req);
+    const rows=(data||[]).filter(row=>premium||isFreemium(row.tags));
+    const manage=req.query.manage==='true' && (req as any).user?.status==='active' && ['admin','employee'].includes((req as any).user?.role);
+    return res.status(200).set('Cache-Control','private, no-store').json(manage?rows:rows.map(row=>protectResearchLinks(row,'recommendations',row.company_symbol)));
+  } catch { return res.status(503).json({message:'Unable to verify access'}); }
 };
 
 import { fetchPortfolioDashboard, fetchPortfolioMethodology } from "../utils/portfolioDashboardSheet";
@@ -36,7 +43,7 @@ async function getSettingsData(): Promise<Settings> {
 }
 
 export const getRecommendationsFromSheet = async (
-  _: Request,
+  req: Request,
   res: Response
 ) => {
   try {
@@ -50,7 +57,12 @@ export const getRecommendationsFromSheet = async (
       .map(mapRow)
       .filter((r) => r.companyName);
 
-    return res.status(200).json(recs);
+    const {premium}=await requestAccess(req);
+    if(premium)return res.status(200).set('Cache-Control','private, no-store').json(recs);
+    const {data:free,error}=await supabase.from('recommendations').select('company_symbol').eq('tags','freemium');
+    if(error)throw error;
+    const symbols=new Set((free||[]).map(row=>row.company_symbol));
+    return res.status(200).set('Cache-Control','private, no-store').json(recs.filter(row=>symbols.has(row.nseSymbol)));
   } catch (error: any) {
     console.error("Error fetching recommendations from sheet:", error);
     return res
@@ -124,7 +136,10 @@ export const getRecommendationByCompanySymbol = async (
     }
     return res.status(500).json({ error: error.message });
   }
-  return res.status(200).json(data);
+  try {
+    if(!(await requestAccess(req)).premium && !isFreemium(data.tags))return res.status((req as any).user?403:401).json({message:'An active CORE subscription is required.'});
+    return res.status(200).set('Cache-Control','private, no-store').json(protectResearchLinks(data,'recommendations',companySymbol));
+  }catch{return res.status(503).json({message:'Unable to verify access'});}
 };
 
 export const updateUserRecommendationAnalytics = async (
@@ -133,7 +148,7 @@ export const updateUserRecommendationAnalytics = async (
 ) => {
   try {
     const { companySymbol } = req.params;
-    const { id } = req.query;
+    const id=(req as any).user?.id;
     if (companySymbol && id) {
       await supabase.from("user_activity").insert({
         user_id: id,

@@ -1,7 +1,10 @@
+import {protectResearchLinks} from '../services/research-assets.service';
 import { Request, Response } from "express";
 import { supabase } from "../supabase";
 
 // Get all scratch pad newsletters (with optional filtering)
+const manage=(req:Request)=>(req as any).user?.status==='active' && ['admin','employee'].includes((req as any).user?.role) && req.query.manage==='true';
+
 export const getScratchPadNewsletters = async (req: Request, res: Response) => {
   try {
     const { published_only } = req.query;
@@ -23,7 +26,7 @@ export const getScratchPadNewsletters = async (req: Request, res: Response) => {
       return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json(data);
+    return res.status(200).set('Cache-Control','private, no-store').json(manage(req)?data:(data||[]).map(row=>protectResearchLinks(row,'scratchpad',row.id)));
   } catch (error: any) {
     console.error("Error fetching scratch pad newsletters:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -52,7 +55,7 @@ export const getScratchPadNewsletterById = async (
       return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json(data);
+    return res.status(200).set('Cache-Control','private, no-store').json(manage(req)?data:protectResearchLinks(data,'scratchpad',data.id));
   } catch (error: any) {
     console.error("Error fetching scratch pad newsletter:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -81,7 +84,7 @@ export const getScratchPadNewsletterBySlug = async (
       return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json(data);
+    return res.status(200).set('Cache-Control','private, no-store').json(manage(req)?data:protectResearchLinks(data,'scratchpad',data.id));
   } catch (error: any) {
     console.error("Error fetching scratch pad newsletter:", error);
     return res.status(500).json({ error: "Internal server error" });

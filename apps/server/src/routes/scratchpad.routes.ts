@@ -1,3 +1,4 @@
+import { requirePremium } from '../services/premium-access.service';
 import { Router } from "express";
 import { protect, requireSectionEdit, staff } from "../middleware/auth.middleware";
 import {
@@ -12,9 +13,9 @@ import {
 const router = Router();
 
 // Public routes
-router.get("/scratch-pad-newsletters", getScratchPadNewsletters);
-router.get("/scratch-pad-newsletters/:id", getScratchPadNewsletterById);
-router.get("/scratch-pad-newsletters/slug/:slug", getScratchPadNewsletterBySlug);
+router.get("/scratch-pad-newsletters", protect, requirePremium, getScratchPadNewsletters);
+router.get("/scratch-pad-newsletters/:id", protect, requirePremium, getScratchPadNewsletterById);
+router.get("/scratch-pad-newsletters/slug/:slug", protect, requirePremium, getScratchPadNewsletterBySlug);
 
 // Admin routes (protected)
 router.post(

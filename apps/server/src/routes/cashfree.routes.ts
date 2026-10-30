@@ -22,10 +22,10 @@ router.get("/verification/pan/:referenceId", getPanVerificationStatus);
 router.get("/plans", listPlans);
 
 // Create order for selected plan
-router.post("/orders", createOrderForPlan);
+router.post("/orders", protect, createOrderForPlan);
 
 // Fetch order status
-router.get("/orders/:orderId", getOrder);
+router.get("/orders/:orderId", protect, getOrder);
 
 // Get user subscription status (authenticated)
 router.get("/subscription", protect, getUserSubscription);

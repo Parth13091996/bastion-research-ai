@@ -1,3 +1,4 @@
+import {researchPreviewUrl} from '@/lib/research-preview';
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Upload, Plus, Trash2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -418,7 +419,7 @@ function UpdatesTable({
                     />
                     {item.pdf_url && (
                       <a
-                        href={item.pdf_url}
+                        href={researchPreviewUrl(item.pdf_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600"
@@ -730,7 +731,7 @@ function IterationDetails({
                             />
                             {update.pdf_url && (
                               <a
-                                href={update.pdf_url}
+                                href={researchPreviewUrl(update.pdf_url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs text-blue-600"

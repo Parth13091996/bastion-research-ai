@@ -27,7 +27,7 @@ const Subscription = () => {
     data: subscription,
     isLoading: isSubscriptionLoading,
     isError: isSubscriptionError,
-  } = useSubscription() as { data: SubscriptionData | undefined } & {
+  } = useSubscription() as { data: (SubscriptionData & {can_purchase_core:boolean}) | undefined } & {
     isLoading: boolean;
     isError: boolean;
   };
@@ -141,13 +141,13 @@ const Subscription = () => {
       const isFree = String(plan.amount) === "0" || planCode === "freemium";
       if (isFree) return false;
       const featureKey = getFeatureKey(plan);
-      if (featureKey === "core" && currentPlanCode === "core_annual") {
+      if (featureKey === "core" && (subscription?.can_purchase_core !== true || currentPlanCode === "core_annual")) {
         return false;
       }
       
       return true;
     });
-  }, [plans, hasSignedAgreement, currentPlanCode, user]);
+  }, [plans, hasSignedAgreement, currentPlanCode, user, subscription?.can_purchase_core]);
 
   const startUpgradeFlow = (plan: Plan) => {
     setPendingPlan(plan);

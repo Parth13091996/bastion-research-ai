@@ -15,21 +15,23 @@ export interface ScratchPadNewsletter {
   updated_at: string;
 }
 
+const manage=()=>typeof window!=='undefined'&&window.location.pathname.startsWith('/admin/')?{manage:true}:{};
+
 export const scratchPadApi = {
   // Public APIs
   getAll: (publishedOnly = false): Promise<ScratchPadNewsletter[]> =>
     axiosInstance
-      .get(`/api/scratch-pad-newsletters${publishedOnly ? '?published_only=true' : ''}`)
+      .get(`/api/scratch-pad-newsletters${publishedOnly ? '?published_only=true' : ''}`,{params:manage()})
       .then((res) => res.data),
 
   getById: (id: string): Promise<ScratchPadNewsletter> =>
     axiosInstance
-      .get(`/api/scratch-pad-newsletters/${id}`)
+      .get(`/api/scratch-pad-newsletters/${id}`,{params:manage()})
       .then((res) => res.data),
 
   getBySlug: (slug: string): Promise<ScratchPadNewsletter> =>
     axiosInstance
-      .get(`/api/scratch-pad-newsletters/slug/${slug}`)
+      .get(`/api/scratch-pad-newsletters/slug/${slug}`,{params:manage()})
       .then((res) => res.data),
 
   // Admin APIs

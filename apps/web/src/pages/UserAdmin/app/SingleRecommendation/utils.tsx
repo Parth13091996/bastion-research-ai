@@ -1,3 +1,4 @@
+import api from '@/api/axios';
 export const mapToStock = (sheetRow: any, apiRow: any) => {
   const iteration =
     Array.isArray(apiRow?.stock_performance_url) &&
@@ -172,16 +173,17 @@ function extractSheetInfo(
 export async function fetchSingleRecommendationGraphSheetData(
   sheetUrl: string
 ): Promise<PBRow[]> {
-  const sheetInfo = extractSheetInfo(sheetUrl);
+  const parsed=new URL(sheetUrl,window.location.origin);
+  const ownApi=new URL(import.meta.env.VITE_API_BASE_URL || 'https://dev-api.bastionresearch.in',window.location.origin);
+  const protectedResource = parsed.origin===ownApi.origin && parsed.pathname.startsWith('/api/research-assets/recommendations/');
+  const sheetInfo = protectedResource ? {sheetId:'',gid:''} : extractSheetInfo(sheetUrl);
   if (!sheetInfo) {
     throw new Error("Invalid Google Sheets URL");
   }
   const { sheetId, gid } = sheetInfo;
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  const url = protectedResource ? sheetUrl : `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch PB Fintech sheet");
-  const csv = await res.text();
+  const csv = protectedResource ? (await api.get<string>(url,{responseType:'text'})).data : await (async()=>{const res=await fetch(url);if(!res.ok)throw new Error('Failed to fetch performance data');return res.text();})();
   const lines = csv.split(/\r?\n/).filter((l) => l.trim().length > 0);
 
   let headerIndex = -1;
