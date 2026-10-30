@@ -51,13 +51,20 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
-const getAuthCookieOptions = () => ({
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite:
-    process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
-  maxAge: 24 * 60 * 60 * 1000,
-});
+const getAuthCookieOptions = () => {
+  const isSecure =
+    process.env.COOKIE_SECURE === "true" ||
+    process.env.NODE_ENV === "production" ||
+    true;
+
+  return {
+    httpOnly: true,
+    secure: isSecure,
+    sameSite: isSecure ? ("none" as const) : ("lax" as const),
+    maxAge: 24 * 60 * 60 * 1000,
+    path: "/",
+  };
+};
 
 export const signIn = async (req: Request, res: Response) => {
   const { email, password, otp } = req.body as {
@@ -125,14 +132,30 @@ export const signIn = async (req: Request, res: Response) => {
       // ignore
     }
 
+    let membershipPlans: any = null;
+    if (user.plan_id) {
+      try {
+        const { data: planData } = await supabase
+          .from("membership_plans")
+          .select("plan_code, plan_id, plan_name, duration_months")
+          .eq("plan_id", user.plan_id)
+          .maybeSingle();
+        if (planData) {
+          membershipPlans = planData;
+        }
+      } catch (e) {
+        console.error("Failed to fetch plan for signed in user:", e);
+      }
+    }
+
+    const { password: _pwd, ...safeUserData } = user;
+
     res.status(200).json({
       message: "Signed in successfully",
+      token,
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        status: user.status,
+        ...safeUserData,
+        membership_plans: membershipPlans,
       },
     });
   } catch (error) {
@@ -474,7 +497,9 @@ export const zeroAmountAccountCreation = async (req: Request,res: Response) => {
 
 export const getUserSession = async (req: Request, res: Response) => {
   try {
-    const token = req.cookies?.token || req.headers.authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+    const token =
+      req.cookies?.token ||
+      req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
     if (!token) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -485,7 +510,7 @@ export const getUserSession = async (req: Request, res: Response) => {
 
     const decoded = jwt.verify(token, secret) as { id: string; email: string };
 
-    const { data: user, error } = await supabase
+    let userResult = await supabase
       .from("users")
       .select(
         `
@@ -508,7 +533,9 @@ export const getUserSession = async (req: Request, res: Response) => {
           subscription_end_date,
           membership_plans (
             plan_code,
-            plan_id
+            plan_id,
+            plan_name,
+            duration_months
           ),
           created_at,
           updated_at,
@@ -518,14 +545,63 @@ export const getUserSession = async (req: Request, res: Response) => {
         `
       )
       .eq("id", decoded.id)
-      .single();
+      .maybeSingle();
 
-    if (error || !user) {
-      return res.status(404).json({ message: "User not found" });
+    let user = userResult.data;
+    if (userResult.error || !user) {
+      if (userResult.error) {
+        console.warn(
+          "getUserSession primary query error, trying safe fallback:",
+          userResult.error.message
+        );
+      }
+      const { data: baseUser, error: baseError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", decoded.id)
+        .maybeSingle();
+
+      if (baseError || !baseUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { password: _pwd, ...safeBaseUser } = baseUser;
+
+      let membershipPlan = null;
+      if (safeBaseUser.plan_id) {
+        try {
+          const { data: planData } = await supabase
+            .from("membership_plans")
+            .select("plan_code, plan_id, plan_name, duration_months")
+            .eq("plan_id", safeBaseUser.plan_id)
+            .maybeSingle();
+          membershipPlan = planData || null;
+        } catch {
+          // ignore
+        }
+      }
+
+      let digioDocs: any[] = [];
+      try {
+        const { data: docs } = await supabase
+          .from("digio_documents")
+          .select("document_id")
+          .eq("user_id", safeBaseUser.id);
+        digioDocs = docs || [];
+      } catch {
+        // ignore
+      }
+
+      user = {
+        ...safeBaseUser,
+        membership_plans: membershipPlan,
+        digio_documents: digioDocs,
+      };
     }
 
     res.status(200).json({ user });
   } catch (error) {
+    console.error("getUserSession error:", error);
     res.status(401).json({ message: "Not authenticated" });
   }
 };

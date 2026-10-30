@@ -45,7 +45,7 @@ const Login = () => {
   const mutation = useMutation<any, Error, LoginFormValues>({
     mutationFn: (data) => signIn(data),
     onSuccess: (data) => {
-      login(data.user);
+      login(data.user, data.token);
       const shouldResumeOnboarding =
         data?.user?.status !== "active" && data?.user?.status !== "free";
       if (shouldResumeOnboarding) {

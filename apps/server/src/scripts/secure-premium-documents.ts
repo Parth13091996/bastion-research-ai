@@ -14,7 +14,7 @@ const tableNames = [
   'tactical_ideas',
   'scratch_pad_newsletters',
   'webinars',
-  'newsletters',
+  'manual_newsletters',
   'podcasts',
   'settings',
 ];
