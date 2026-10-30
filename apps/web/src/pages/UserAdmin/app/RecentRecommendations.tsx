@@ -35,7 +35,7 @@ const RecentRecommendations: React.FC = () => {
   // Get user's tier
   const userPlanCode =
     subscription?.currentPlan || user?.membership_plans?.plan_code || "freemium";
-  const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
+  const currentTier = subscription?.is_premium ? ["freemium","core","core_annual","research_hub"] : ["freemium"];
   const isPremiumUser = !!subscription?.is_premium;
 
   // Only include stocks this user's tier is allowed to access

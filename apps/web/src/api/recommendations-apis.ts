@@ -4,8 +4,8 @@ import { endpoints } from "@/api/endpoints";
 /**
  * Fetch all recommendations from the API (DB-backed).
  */
-export const getAllRecommendations = async (): Promise<any[]> => {
-  const response = await axiosInstance.get(endpoints.recommendations.base);
+export const getAllRecommendations = async (manage = false): Promise<any[]> => {
+  const response = await axiosInstance.get(endpoints.recommendations.base, { params: manage ? { manage: true } : undefined });
   return response.data || [];
 };
 

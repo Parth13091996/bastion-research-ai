@@ -1,3 +1,4 @@
+import PremiumRoute from '@/components/PremiumRoute';
 import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
 import { AppRoutes } from "./app-routes";
@@ -420,12 +421,11 @@ export const routes: RouteObject[] = [
             element: <ViewResearch />,
           },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
-          { path: "app/scratch-pad", element: <ScratchPadList /> },
-          { path: "app/scratch-pad/:id", element: <ScratchPadView /> },
+          {element:<PremiumRoute/>,children:[{ path: "app/scratch-pad", element: <ScratchPadList /> }]},
+          {element:<PremiumRoute/>,children:[{ path: "app/scratch-pad/:id", element: <ScratchPadView /> }]},
           { path: "app/pdf-viewer", element: <PdfViewerPage /> },
           {
-            path: "app/effortless-investor",
-            element: <EffortlessInvestor />,
+            element:<PremiumRoute/>,children:[{path: "app/effortless-investor",element: <EffortlessInvestor />}],
           },
           {
             path: "app/qna",

@@ -21,9 +21,8 @@ const requireUserUpdatePermission = async (
   const targetUserId = String(req.params.id || '');
   const isSelf = req.user?.id && String(req.user.id) === targetUserId;
 
-  if (isSelf) {
-    return requireSectionEdit('ar_profile')(req, res, next);
-  }
+  if (isSelf && req.user?.role !== 'employee') return next();
+  if (isSelf) return requireSectionEdit(['role','plan_id','status','subscription_start_date','subscription_end_date'].some(k=>k in req.body)?'ar_manage_members':'ar_profile')(req,res,next);
 
   return requireSectionEdit('ar_manage_members')(req, res, next);
 };
@@ -31,7 +30,7 @@ const requireUserUpdatePermission = async (
 router.get('/users', protect, staff, getUsers);
 router.get('/users/:id', protect, staff, getUserById);
 router.post('/users', protect, staff, requireSectionEdit('ar_manage_members'), createUser);
-router.put('/users/:id', protect, updateUser);
+router.put('/users/:id', protect, requireUserUpdatePermission, updateUser);
 router.delete('/users/:id', protect, staff, requireSectionEdit('ar_manage_members'), deleteUser);
 
 export default router;

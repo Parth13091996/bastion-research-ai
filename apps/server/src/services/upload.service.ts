@@ -93,7 +93,8 @@ export async function uploadToSupabase({
     throw new Error("Unsupported file type for this category");
   }
 
-  const bucket = pickBucket(category);
+  const restricted=category==='pdf' && /^(recommendations|tactical|scratchpad)(?:\/|$)/.test(dir||'');
+  const bucket = restricted ? 'premium-research' : pickBucket(category);
   const ext = getExtFromMimetype(
     file.mimetype,
     path.extname(file.originalname).slice(1)
@@ -117,7 +118,7 @@ export async function uploadToSupabase({
   return {
     bucket,
     path: storagePath,
-    url: publicUrl,
+    url: restricted ? `supabase://${bucket}/${storagePath}` : publicUrl,
     contentType: file.mimetype,
     size: file.size,
     category,

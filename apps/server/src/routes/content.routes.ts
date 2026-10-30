@@ -1,3 +1,4 @@
+import optionalAuth from '../middleware/optionalAuth.middleware';
 import { Router } from "express";
 import {
   createNewsletter,
@@ -28,10 +29,10 @@ const router = Router();
 // Public routes (no auth required)
 router.get("/newsletters", listNewsletters);
 router.get("/newsletters/:id", getNewsletter);
-router.get("/webinars", listWebinars);
+router.get("/webinars", optionalAuth, listWebinars);
 router.get("/podcasts", listPodcasts);
 router.get("/testimonials", listTestimonials);
-router.get("/webinars/:id", getWebinar);
+router.get("/webinars/:id", optionalAuth, getWebinar);
 router.get("/podcasts/:id", getPodcast);
 router.get("/testimonials/:id", getTestimonial);
 

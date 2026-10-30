@@ -1,3 +1,4 @@
+import {usePremiumBenefits} from '@/hooks/use-premium-benefits';
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Menu, X } from "lucide-react";
@@ -38,6 +39,7 @@ function SidebarOverlay({ isMobileOpen, toggleMobileMenu }) {
 const UserSidebar = () => {
   const { user, isAdmin, isStaff, logout } = useAuth();
   const { data: subscription } = useSubscription();
+  const {data:benefits}=usePremiumBenefits(!!subscription?.is_premium);
   const [showPricing, setShowPricing] = useState(false);
   const { navItems, BrandColors } = useConstants();
 
@@ -59,9 +61,7 @@ const UserSidebar = () => {
     avatarUrl: null,
     is_premium: !!subscription?.is_premium,
     currentPlan:
-      subscription?.currentPlan ||
-      user?.membership_plans?.plan_code ||
-      "freemium",
+      subscription?.is_premium ? (subscription.currentPlan || 'core_annual') : 'freemium',
   };
 
   const sidebarRef = useRef(null);
@@ -123,8 +123,8 @@ const UserSidebar = () => {
       key: "join_whatsapp_group",
       name: "Join WhatsApp Group",
       icon: FaWhatsapp,
-      path: subscription?.is_premium
-        ? "https://chat.whatsapp.com/BtcHdUM5CT3953nLHajCQR?mode=wwt"
+      path: subscription?.is_premium && benefits?.whatsapp_url
+        ? benefits.whatsapp_url
         : "https://whatsapp.com/channel/0029Vb6dMe21SWsvoYQwxp1M",
     },
   ];

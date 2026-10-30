@@ -34,7 +34,7 @@ const RecentTacticalIdeas: React.FC = () => {
 
   const userPlanCode =
     subscription?.currentPlan || user?.membership_plans?.plan_code || "freemium";
-  const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
+  const currentTier = subscription?.is_premium ? ["freemium","core","core_annual","research_hub"] : ["freemium"];
   const isPremiumUser = !!subscription?.is_premium;
 
   const accessibleStocks =

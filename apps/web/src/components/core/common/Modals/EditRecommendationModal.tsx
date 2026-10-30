@@ -1,3 +1,4 @@
+import {researchPreviewUrl} from '@/lib/research-preview';
 import { uploadFile } from "@/api/files-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1104,7 +1105,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   {stockPerformance[activePerformanceIndex]?.business_note && (
                     <div className="mt-1 text-xs">
                       <a
-                        href={stockPerformance[activePerformanceIndex]?.business_note}
+                        href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.business_note)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 underline"
@@ -1199,7 +1200,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   {stockPerformance[activePerformanceIndex]?.quick_bite && (
                     <div className="mt-1 text-xs">
                       <a
-                        href={stockPerformance[activePerformanceIndex]?.quick_bite}
+                        href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.quick_bite)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 underline"
@@ -1296,7 +1297,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                   {stockPerformance[activePerformanceIndex]?.exit_rationale && (
                     <div className="mt-1 text-xs">
                       <a
-                        href={stockPerformance[activePerformanceIndex]?.exit_rationale}
+                        href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.exit_rationale)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 underline"
@@ -1424,7 +1425,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                   {q.pdf_url && q.pdf_url.startsWith("http") && (
                                     <div className="mt-1 text-xs">
                                       <a
-                                        href={q.pdf_url}
+                                        href={researchPreviewUrl(q.pdf_url)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:underline"
@@ -1455,7 +1456,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                 <TableCell className="text-sm">
                                   {q.pdf_url ? (
                                     <a
-                                      href={q.pdf_url}
+                                      href={researchPreviewUrl(q.pdf_url)}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-blue-600 hover:underline truncate block max-w-[120px]"
@@ -1596,7 +1597,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                 {ann.pdf_url && ann.pdf_url.startsWith("http") && (
                                   <div className="mt-1 text-xs">
                                     <a
-                                      href={ann.pdf_url}
+                                      href={researchPreviewUrl(ann.pdf_url)}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-blue-600 hover:underline"
@@ -1627,7 +1628,7 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                               <TableCell className="text-sm">
                                 {ann.pdf_url ? (
                                   <a
-                                    href={ann.pdf_url}
+                                    href={researchPreviewUrl(ann.pdf_url)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-blue-600 hover:underline truncate block max-w-[120px]"
