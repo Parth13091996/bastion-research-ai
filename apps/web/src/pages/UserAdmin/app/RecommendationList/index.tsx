@@ -54,7 +54,7 @@ const prioritizeFreemium = <T extends { tags?: string }>(
 
 const RecommendationList = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("MCAP Wise");
+  const [sortBy, setSortBy] = useState("Newest");
   const [filterBy, setFilterBy] = useState("All");
   const [visibleCount, setVisibleCount] = useState(9);
   const { stocks, loading, error } = useSheetStocks();
