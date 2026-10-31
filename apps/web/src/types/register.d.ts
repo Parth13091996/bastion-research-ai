@@ -37,6 +37,7 @@ interface PanVerificationSummary {
 }
 
 interface SignUpFormProps {
+  initialPlanCode?: string;
   isOpen: boolean;
   onClose: () => void;
 }
