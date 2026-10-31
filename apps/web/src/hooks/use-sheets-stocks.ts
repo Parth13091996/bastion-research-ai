@@ -26,11 +26,19 @@ function getPrimaryIteration(row: any) {
     : null;
 }
 
+// Retain sheet precision for the table without changing the existing card values.
+const tableValues = (row: any): StockData['tableValues'] => {
+  const n = (value: unknown) => value === null || value === undefined || String(value).trim() === '' || !Number.isFinite(Number(value)) ? null : Number(value);
+  const upside = n(row.upsidePotential);
+  return { marketCap: n(row.latestMcapCr), entryPrice: n(row.priceAtRecommendation), cmp: n(row.cmpOrExitPrice), targetPrice: n(row.targetPrice), expectedUpside: upside === null ? null : upside * 100 };
+};
+
 // Transform a single sheet row to StockData (sheet-only, not merged)
 function transformSheetRowToStockData(sheetRow: any, idx: number): StockData {
   return {
     id: `${idx}-${sheetRow.nseSymbol || sheetRow.companyName}`,
     name: sheetRow.companyName,
+    tableValues: tableValues(sheetRow),
     code: sheetRow.nseSymbol || "",
     marketCap: Number(sheetRow.latestMcapCr).toFixed(0),
     upside: Math.round((sheetRow.upsidePotential || 0) * 100).toString(),
@@ -56,6 +64,7 @@ function mergeSheetAndDbRow(sheetRow: any, dbRow: any, idx: number): StockData {
   return {
     id: dbRow?.id ?? `${idx}-${sheetRow.nseSymbol || sheetRow.companyName}`,
     name: sheetRow.companyName,
+    tableValues: tableValues(sheetRow),
     code: sheetRow.nseSymbol || "",
     marketCap: Number(sheetRow.latestMcapCr).toFixed(0),
     upside: Math.round((sheetRow.upsidePotential || 0) * 100).toString(),
@@ -80,6 +89,7 @@ function mergeSheetAndDbRow(sheetRow: any, dbRow: any, idx: number): StockData {
       [],
     percentReturn: sheetRow.percentReturn,
     dateRecommended: (sheetRow.dateRecommended || "").toString(),
+    dateExit: sheetRow.dateExit ? formatDateToYMD(sheetRow.dateExit) : primaryIteration?.exit_date || primaryIteration?.dateExit || "",
   } as StockData;
 }
 
