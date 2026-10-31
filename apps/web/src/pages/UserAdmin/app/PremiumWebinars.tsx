@@ -105,10 +105,6 @@ export default function PremiumWebinarsPage() {
           >
             Premium Webinars
           </h1>
-          <p className="text-gray-600 max-w-2xl">
-            Premium webinars for subscribers. Access detailed sessions and
-            exclusive content.
-          </p>
         </div>
 
         {/* Search */}
