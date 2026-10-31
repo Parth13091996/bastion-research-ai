@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import SignUpForm from '@/pages/Register/SignupForm';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { createPortal } from 'react-dom';
+import CoreTestimonials from './CoreTestimonials';
 import { useNavigate } from 'react-router-dom';
 import content from './core-content.html?raw';
 import './core-styles.css';
@@ -16,6 +18,7 @@ export default function BastionCoreProductPage() {
   const navigate = useNavigate();
   const container = useRef<HTMLDivElement>(null);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [testimonialSlot, setTestimonialSlot] = useState<HTMLElement | null>(null);
   const [preferredPlan, setPreferredPlan] = useState<string>();
   const { data: plans = [], isError } = useQuery({
     queryKey: ['core-landing-plans'], queryFn: fetchPlans, staleTime: 60_000,
@@ -23,6 +26,10 @@ export default function BastionCoreProductPage() {
   });
 
   const initialPlanCode = plans.find((plan) => plan.plan_code === preferredPlan)?.code;
+
+  useEffect(() => {
+    setTestimonialSlot(container.current?.querySelector<HTMLElement>('[data-core-testimonials]') || null);
+  }, []);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -71,6 +78,7 @@ export default function BastionCoreProductPage() {
       Current pricing could not be refreshed. Your plan and price will be confirmed during sign-up.
     </p>}
     <div ref={container} onClick={handleClick} dangerouslySetInnerHTML={{ __html: content }} />
+    {testimonialSlot && createPortal(<CoreTestimonials />, testimonialSlot)}
     <SignUpForm isOpen={isSignUpOpen} onClose={() => setIsSignUpOpen(false)} initialPlanCode={initialPlanCode} />
   </>;
 }
