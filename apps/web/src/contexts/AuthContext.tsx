@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isAuthenticated =
-    (user?.status === "active" && user?.role !== "free_subscriber") ||
+    user?.status === "active" ||
     (user?.status === "free" && user?.role === "free_subscriber");
   const isAdmin = user?.role === Config.roles.admin;
   const isEmployee = user?.role === Config.roles.employee;
