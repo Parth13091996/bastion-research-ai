@@ -14,7 +14,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import favicon from "../../../../server/public/favicon.webp";
 
-const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
+const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCode }) => {
   const { user } = useAuth();
   const isAgreementSignedUser = user?.status === "agreement_signed";
 
@@ -44,6 +44,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     agreementSignedAt: "",
     onboardingSessionId: "",
   });
+
+  useEffect(() => {
+    if (isOpen && initialPlanCode) {
+      setFormData((previous) => ({ ...previous, selectedPlan: initialPlanCode }));
+    }
+  }, [isOpen, initialPlanCode]);
 
   const stepsValues = [
     { id: 1, name: "Register", icon: "??" },
@@ -375,7 +381,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center  justify-center p-2 sm:p-4 z-[999999] top-0">
+    <div role="dialog" aria-modal="true" aria-label="Bastion account registration" className="fixed inset-0 bg-black bg-opacity-50 flex items-center  justify-center p-2 sm:p-4 z-[999999] top-0">
       <div className="bg-white rounded-xl shadow-2xl sm:mt-[0px] mt-[10vh] w-full max-w-5xl max-h-[84dvh] overflow-auto flex flex-col sm:flex-row">
         {/* Sidebar for larger screens */}
         <div className="hidden sm:block w-80 bg-gray-50 p-6 border-r overflow-y-auto">
@@ -475,6 +481,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
               </p>
               <button
                 onClick={onClose}
+                aria-label="Close registration"
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X size={22} />
