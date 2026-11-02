@@ -3,6 +3,7 @@ import twilio from "twilio";
 import { config } from "../utils/config";
 import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { supabase } from "../supabase";
+import jwt from "jsonwebtoken";
 import { saveOtp, validateOtp } from "../services/otpStore.service";
 
 // Initialize Twilio Client
@@ -23,7 +24,38 @@ const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined in environment variables.");
+  }
+  return jwt.sign({ id, email }, secret, { expiresIn: expiresIn as any });
+};
+
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
+
+// const getAuthCookieOptions = () => ({
+//   httpOnly: true,
+//   secure: process.env.NODE_ENV === "production",
+//   sameSite:
+//     process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
+//   maxAge: 24 * 60 * 60 * 1000,
+// });
+
+const getAuthCookieOptions = () => {
+  const isSecure =
+    process.env.COOKIE_SECURE === "true" ||
+    process.env.NODE_ENV === "production" ||
+    true;
+
+  return {
+    httpOnly: true,
+    secure: isSecure,
+    sameSite: isSecure ? ("none" as const) : ("lax" as const),
+    maxAge: 24 * 60 * 60 * 1000,
+    path: "/",
+  };
+};
 
 const normalizePhone = (input?: string): string => {
   const raw = (input || "").trim().replace(/\s+/g, "");
@@ -49,22 +81,48 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 
   try {
-    // Check if an unconsumed OTP was dispatched in the last 30 seconds (prevents double SMS from duplicate clicks)
+    // Check if an active account with this phone number already exists
+    const cleanDigits = phone.replace(/\D/g, "");
+    const phone10 = cleanDigits.slice(-10);
+    if (phone10.length >= 10) {
+      const { data: existingPhoneUser } = await supabase
+        .from("users")
+        .select("id, status")
+        .or(`phone.eq.${phone},phone.ilike.%${phone10},phone.eq.${phone10},phone.eq.+91${phone10}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (
+        existingPhoneUser &&
+        existingPhoneUser.status !== "onboarded" &&
+        existingPhoneUser.status !== "pending" &&
+        existingPhoneUser.status !== null
+      ) {
+        return res.status(400).json({
+          message:
+            "An account with this mobile number already exists. Please log in.",
+        });
+      }
+    }
+
+    // Check if an OTP was recently dispatched in the last 30 seconds (enforces 30s cooldown)
     const { data: existingEntry } = await supabase
       .from("otp_codes")
       .select("updated_at, expires_at, consumed_at")
       .eq("identifier", phone)
       .eq("type", "phone")
-      .is("consumed_at", null)
       .maybeSingle();
 
     if (existingEntry && existingEntry.updated_at) {
       const msSinceLast = Date.now() - new Date(existingEntry.updated_at).getTime();
-      if (msSinceLast < 30000) {
-        console.log(`[sendOtp] Throttled duplicate OTP request for ${phone} (${msSinceLast}ms ago)`);
-        return res.status(200).json({
-          message: "OTP sent successfully.",
-          expiresAt: new Date(existingEntry.expires_at).getTime(),
+      const COOLDOWN_MS = 30000;
+      if (msSinceLast < COOLDOWN_MS) {
+        const remainingSeconds = Math.max(1, Math.ceil((COOLDOWN_MS - msSinceLast) / 1000));
+        console.log(`[sendOtp] Cooldown active for ${phone} (${msSinceLast}ms ago, ${remainingSeconds}s remaining)`);
+        return res.status(429).json({
+          message: `Please wait ${remainingSeconds} second${remainingSeconds === 1 ? "" : "s"} before requesting otp again.`,
+          remainingSeconds,
+          cooldown: remainingSeconds,
         });
       }
     }
@@ -115,6 +173,28 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(400).json({ message: "This email is not registered." });
+    }
+
+    // Check 30-second cooldown for email OTP
+    const { data: existingOtp } = await supabase
+      .from("otp_codes")
+      .select("updated_at, expires_at")
+      .eq("identifier", normalizedEmail)
+      .eq("type", "email")
+      .maybeSingle();
+
+    if (existingOtp && existingOtp.updated_at) {
+      const msSinceLast = Date.now() - new Date(existingOtp.updated_at).getTime();
+      const COOLDOWN_MS = 30000;
+      if (msSinceLast < COOLDOWN_MS) {
+        const remainingSeconds = Math.max(1, Math.ceil((COOLDOWN_MS - msSinceLast) / 1000));
+        console.log(`[sendEmailOtp] Cooldown active for ${normalizedEmail} (${msSinceLast}ms ago, ${remainingSeconds}s remaining)`);
+        return res.status(429).json({
+          message: `An OTP was already sent to this email. Please wait ${remainingSeconds} second${remainingSeconds === 1 ? "" : "s"} before requesting again.`,
+          remainingSeconds,
+          cooldown: remainingSeconds,
+        });
+      }
     }
 
     const otp = generateOtp();
@@ -209,7 +289,9 @@ export const verifyOtp = async (req: Request, res: Response) => {
         .json({ message: reasonToMessage[result.reason || "mismatch"] });
     }
 
-    return res.status(200).json({ message: "OTP verified successfully." });
+    return res.status(200).json({
+      message: "OTP verified successfully.",
+    });
   } catch (error) {
     console.error("Verify OTP error:", error);
     return res

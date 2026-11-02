@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { sendOtp } from "@/api/onboarding-apis";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -14,9 +14,27 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
   nextStep,
 }) => {
   const isSubmittingRef = useRef(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
+
+  // Dynamic countdown timer for "Please wait XX seconds before requesting otp again."
+  useEffect(() => {
+    if (cooldownSeconds === null || cooldownSeconds <= 0) return;
+
+    const timer = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldownSeconds !== null]);
 
   const handleRegister = async () => {
-    if (isSubmittingRef.current || isLoading) return;
+    if (isSubmittingRef.current || isLoading || cooldownSeconds !== null) return;
     setError(null);
 
     // Validate mandatory fields
@@ -30,6 +48,10 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     }
     if (!formData.password.trim()) {
       setError("Please enter password.");
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
     if (!formData.confirmPassword.trim()) {
@@ -48,11 +70,30 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
       await sendOtp("+91" + cleanPhone);
       nextStep();
     } catch (err: any) {
+      const remainingSeconds =
+        err?.response?.data?.remainingSeconds ??
+        err?.response?.data?.cooldown;
+
       const errorMessage =
         err?.response?.data?.message ||
         err?.message ||
         "An unexpected error occurred.";
-      setError(errorMessage);
+
+      if (typeof remainingSeconds === "number" && remainingSeconds > 0) {
+        setCooldownSeconds(remainingSeconds);
+        setError(null);
+      } else {
+        const match =
+          typeof errorMessage === "string"
+            ? errorMessage.match(/(\d+)\s*second/i)
+            : null;
+        if (match && match[1]) {
+          setCooldownSeconds(parseInt(match[1], 10));
+          setError(null);
+        } else {
+          setError(errorMessage);
+        }
+      }
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -92,7 +133,10 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
             <input
               type="tel"
               value={formData.phone}
-              onChange={(e) => updateFormData("phone", e.target.value)}
+              onChange={(e) => {
+                updateFormData("phone", e.target.value);
+                if (cooldownSeconds !== null) setCooldownSeconds(null);
+              }}
               className="w-full flex-1 px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               placeholder="Enter phone number"
             />
@@ -134,10 +178,16 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
           />
         </div>
       </div>
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      {(cooldownSeconds !== null || error) && (
+        <p className="text-red-500 text-sm text-center">
+          {cooldownSeconds !== null
+            ? `Please wait ${cooldownSeconds} second${cooldownSeconds === 1 ? "" : "s"} before requesting otp again.`
+            : error}
+        </p>
+      )}
       <button
         onClick={handleRegister}
-        disabled={isLoading}
+        disabled={isLoading || cooldownSeconds !== null}
         className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400"
       >
         {"Get OTP →"}

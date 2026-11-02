@@ -87,8 +87,8 @@ const TransactionHistory: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 sm:p-4 border-b border-gray-200 gap-3">
           <input
             type="text"
             placeholder={TransactionHistoryConstants.search.placeholder}
@@ -98,7 +98,7 @@ const TransactionHistory: React.FC = () => {
           />
         </div>
         <div
-          className="ag-theme-alpine overflow-hidden"
+          className="ag-theme-alpine w-full overflow-hidden"
           style={{
             height: TransactionHistoryConstants.grid.height,
             width: "100%",

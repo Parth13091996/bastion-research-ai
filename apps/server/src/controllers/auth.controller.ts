@@ -16,6 +16,7 @@ import {
   clearOnboardingDropOffForUser,
   startOnboardingDropOffSession,
 } from "../automations/onboardingDropOff.scheduler";
+export { generateToken, getAuthCookieOptions };
 import { syncOnboardedUserToMailchimp } from "../services/mailchimpAudience.service";
 type OnboardingUserData = {
   email: string;
@@ -346,11 +347,20 @@ export const onboardUser = async (req: Request, res: Response) => {
       !password ||
       !firstName ||
       !lastName ||
-      !dateOfBirth
+      !dateOfBirth ||
+      !pinCode ||
+      !String(pinCode).trim()
     ) {
       return res
         .status(400)
-        .json({ message: "Missing required fields to start onboarding." });
+        .json({ message: "Missing required fields to start onboarding: PIN code is required." });
+    }
+
+    const cleanPin = String(pinCode).trim().replace(/\D/g, "");
+    if (cleanPin.length !== 6) {
+      return res
+        .status(400)
+        .json({ message: "PIN code must be a 6-digit number." });
     }
 
     if (
@@ -372,7 +382,7 @@ export const onboardUser = async (req: Request, res: Response) => {
       address_2: address2 || null,
       state: state || null,
       city: city || null,
-      pin_code: pinCode || null,
+      pin_code: cleanPin,
       company: company || null,
       pan_card_number: panCard,
       status,
@@ -430,15 +440,55 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     let userId: string | null = null;
     let username: string = "";
-    const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
     const normalizedEmail = normalizeEmail(email);
 
     // Check if user already exists
     const { data: existingUser } = await supabase
       .from("users")
-      .select("id, status, username")
+      .select("id, status, username, password")
       .ilike("email", normalizedEmail)
       .maybeSingle();
+
+    if (!password && !existingUser?.password) {
+      return res.status(400).json({ message: "Password is required." });
+    }
+
+    const hashedPassword = password
+      ? await bcrypt.hash(password, config.salt_rounds)
+      : existingUser?.password;
+
+    // Check if mobile number is already registered with another account
+    const cleanPhoneDigits = (phone || "").replace(/\D/g, "");
+    const phone10 = cleanPhoneDigits.slice(-10);
+    const phoneFilterParts = new Set<string>();
+    if (phone && phone.trim()) {
+      phoneFilterParts.add(`phone.eq.${phone.trim()}`);
+    }
+    if (phone10.length >= 10) {
+      phoneFilterParts.add(`phone.ilike.%${phone10}`);
+      phoneFilterParts.add(`phone.eq.${phone10}`);
+      phoneFilterParts.add(`phone.eq.+91${phone10}`);
+      phoneFilterParts.add(`phone.eq.91${phone10}`);
+    }
+    const orFilter = Array.from(phoneFilterParts).join(",");
+
+    if (orFilter) {
+      const { data: phoneUser } = await supabase
+        .from("users")
+        .select("id, email, status")
+        .or(orFilter)
+        .limit(1)
+        .maybeSingle();
+
+      if (phoneUser) {
+        if (!existingUser || phoneUser.id !== existingUser.id) {
+          return res.status(400).json({
+            message:
+              "An account with this mobile number already exists. Please log in.",
+          });
+        }
+      }
+    }
 
     if (existingUser) {
       username = (existingUser as any).username || normalizedEmail.split("@")[0];
@@ -463,12 +513,22 @@ export const onboardUser = async (req: Request, res: Response) => {
         if (updError) {
           if (
             (updError as any)?.code === "23505" &&
-            typeof updError.message === "string" &&
-            updError.message.includes("users_pan_card_number_key")
+            typeof updError.message === "string"
           ) {
-            return res.status(400).json({
-              message: "This PAN is already registered with another account.",
-            });
+            if (updError.message.includes("users_pan_card_number_key")) {
+              return res.status(400).json({
+                message: "This PAN is already registered with another account.",
+              });
+            }
+            if (
+              updError.message.includes("users_phone_key") ||
+              updError.message.includes("phone")
+            ) {
+              return res.status(400).json({
+                message:
+                  "An account with this mobile number already exists. Please log in.",
+              });
+            }
           }
           return res.status(500).json({ message: updError.message });
         }
@@ -506,6 +566,15 @@ export const onboardUser = async (req: Request, res: Response) => {
           if (insError.message.includes("users_email_key")) {
             return res.status(400).json({
               message: "An account with this email already exists. Please log in.",
+            });
+          }
+          if (
+            insError.message.includes("users_phone_key") ||
+            insError.message.includes("phone")
+          ) {
+            return res.status(400).json({
+              message:
+                "An account with this mobile number already exists. Please log in.",
             });
           }
         }

@@ -17,8 +17,8 @@ const UserDashboard = () => {
   const profile = {
     name: user
       ? `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
-        user.username ||
-        "User"
+      user.username ||
+      "User"
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null,
@@ -167,7 +167,7 @@ const UserDashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 sm:gap-6">
           <div className="xl:col-span-3 space-y-4">
             <RecentRecommendations />
-            <RecentTacticalIdeas />
+            {/* <RecentTacticalIdeas /> */}
           </div>
           <LatestUpdates />
         </div>

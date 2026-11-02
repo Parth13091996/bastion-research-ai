@@ -17,13 +17,28 @@ import { signIn } from "@/api/auth-api";
 import { sendEmailOtp } from "@/api/onboarding-apis";
 import SignUpForm from "../Register/SignupForm";
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().optional(),
-  otp: z.string().optional(),
-});
+const createLoginSchema = (useOtp: boolean) =>
+  z.object({
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Please enter a valid email address"),
+    password: useOtp
+      ? z.string().optional()
+      : z
+          .string()
+          .min(1, "Password is required")
+          .min(6, "Password must be at least 6 characters"),
+    otp: useOtp
+      ? z.string().min(1, "OTP is required")
+      : z.string().optional(),
+  });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = {
+  email: string;
+  password?: string;
+  otp?: string;
+};
 
 const Login = () => {
   const navigate = useNavigate();
@@ -37,9 +52,11 @@ const Login = () => {
     register,
     handleSubmit,
     watch,
+    clearErrors,
     formState: { errors },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: (values, context, options) =>
+      zodResolver(createLoginSchema(useOtp))(values, context, options),
   });
 
   const mutation = useMutation<any, Error, LoginFormValues>({
@@ -251,6 +268,7 @@ const Login = () => {
                         onChange={(e) => {
                           setUseOtp(e.target.checked);
                           setOtpSent(false);
+                          clearErrors();
                         }}
                         className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                       />

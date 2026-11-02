@@ -1,9 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import SignUpForm from "../Register/SignupForm.tsx";
-import { useAuth } from "@/contexts/AuthContext";
 
 const NAVY = "#1C2852";
 const MAROON = "#C00000";
@@ -17,8 +15,7 @@ const tabs = [
 type TabKey = (typeof tabs)[number]["key"];
 
 export default function LandingPage() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [active, setActive] = useState<TabKey>("qualified");
+   const [active, setActive] = useState<TabKey>("qualified");
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
@@ -66,11 +63,6 @@ export default function LandingPage() {
       window.open(PDF_URL, "_blank");
     }
   };
-
-  // Redirect authenticated users straight to the app
-  if (!isLoading && isAuthenticated) {
-    return <Navigate to="/user/app/dashboard" replace />;
-  }
 
   return (
     <>
@@ -516,3 +508,4 @@ function Panel({ title, bullets }: { title: string; bullets: BulletItem[] }) {
     </motion.div>
   );
 }
+

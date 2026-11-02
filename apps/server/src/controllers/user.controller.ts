@@ -215,6 +215,24 @@ export const createUser = async (req: Request, res: Response) => {
       userPayload.subscription_end_date = normalizeDate(subscription_end_date);
     }
 
+    // Check if phone already registered
+    const cleanUserPhoneDigits = (phone || "").replace(/\D/g, "");
+    const userPhone10 = cleanUserPhoneDigits.slice(-10);
+    if (userPhone10.length >= 10) {
+      const { data: existingPhoneUser } = await supabase
+        .from("users")
+        .select("id")
+        .or(`phone.eq.${phone},phone.ilike.%${userPhone10},phone.eq.${userPhone10},phone.eq.+91${userPhone10}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingPhoneUser) {
+        return res.status(400).json({
+          error: "An account with this mobile number already exists.",
+        });
+      }
+    }
+
     // Insert and retrieve inserted row(s) without password field, joined membership_plan
     const { data, error } = await supabase.from("users").insert([userPayload])
       .select(`
@@ -248,12 +266,26 @@ export const createUser = async (req: Request, res: Response) => {
     if (error) {
       if (
         (error as any)?.code === "23505" &&
-        typeof error.message === "string" &&
-        error.message.includes("users_pan_card_number_key")
+        typeof error.message === "string"
       ) {
-        return res.status(400).json({
-          error: "This PAN is already registered with another account.",
-        });
+        if (error.message.includes("users_pan_card_number_key")) {
+          return res.status(400).json({
+            error: "This PAN is already registered with another account.",
+          });
+        }
+        if (error.message.includes("users_email_key")) {
+          return res.status(400).json({
+            error: "An account with this email already exists.",
+          });
+        }
+        if (
+          error.message.includes("users_phone_key") ||
+          error.message.includes("phone")
+        ) {
+          return res.status(400).json({
+            error: "An account with this mobile number already exists.",
+          });
+        }
       }
       return res.status(500).json({ error: error.message });
     }

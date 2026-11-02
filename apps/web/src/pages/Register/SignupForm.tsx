@@ -73,11 +73,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     : stepsValues.length;
 
   useEffect(() => {
+    const isPending = user?.status === "pending";
     const shouldResumeOnboarding = user?.status === "onboarded";
     const agreementSigned = user?.status === "agreement_signed";
 
     // Prefill common user details when resuming.
-    if (shouldResumeOnboarding || agreementSigned) {
+    if (isPending || shouldResumeOnboarding || agreementSigned) {
       setFormData((prev) => ({
         selectedPlan:
           prev.selectedPlan ||
@@ -103,7 +104,10 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
       }));
     }
 
-    if (shouldResumeOnboarding) {
+    if (isPending) {
+      // User verified OTP and has account; resume directly from Step 3 (Onboarding Step)
+      setCurrentStep(3);
+    } else if (shouldResumeOnboarding) {
       // KYC is already completed in this state; resume from Agreement step.
       setCurrentStep(6);
     }
@@ -115,7 +119,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     if (field === "selectedPlan" && typeof window !== "undefined") {
       try {
         localStorage.setItem("selectedPlan", String(value));
-      } catch {}
+      } catch { }
     }
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as OnboardingFormData;
@@ -404,18 +408,18 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
               <div
                 key={step.id}
                 className={`flex items-center p-3 rounded-lg transition-colors text-base ${currentStep === step.id
-                    ? "bg-red-100 text-red-700 border-l-4 border-red-500"
-                    : currentStep > step.id
-                      ? "bg-green-50 text-green-700"
-                      : "text-gray-500"
+                  ? "bg-red-100 text-red-700 border-l-4 border-red-500"
+                  : currentStep > step.id
+                    ? "bg-green-50 text-green-700"
+                    : "text-gray-500"
                   }`}
               >
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentStep === step.id
-                      ? "bg-red-500 text-white"
-                      : currentStep > step.id
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-300 text-gray-600"
+                    ? "bg-red-500 text-white"
+                    : currentStep > step.id
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-300 text-gray-600"
                     }`}
                 >
                   {currentStep > step.id ? <Check size={12} /> : step.id}
@@ -449,18 +453,18 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
                   key={step.id}
                   id={`step-${step.id}`}
                   className={`flex flex-col items-center flex-shrink-0 px-3 py-2 rounded-lg transition-colors text-xs ${currentStep === step.id
-                      ? "bg-red-100 text-red-700"
-                      : currentStep > step.id
-                        ? "bg-green-50 text-green-700"
-                        : "text-gray-500"
+                    ? "bg-red-100 text-red-700"
+                    : currentStep > step.id
+                      ? "bg-green-50 text-green-700"
+                      : "text-gray-500"
                     }`}
                 >
                   <div
                     className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${currentStep === step.id
-                        ? "bg-red-500 text-white"
-                        : currentStep > step.id
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-300 text-gray-600"
+                      ? "bg-red-500 text-white"
+                      : currentStep > step.id
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300 text-gray-600"
                       }`}
                   >
                     {currentStep > step.id ? <Check size={10} /> : step.id}

@@ -1,5 +1,7 @@
 import { ArrowLeft, Info } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { updateUser } from "@/api/onboarding-apis";
 
 const OnboardStep: React.FC<OnboardStepProps> = ({
   formData,
@@ -9,8 +11,12 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const { user } = useAuth();
 
   const onBackHandler = () => {
+    if (user?.id) {
+      return;
+    }
     setCurrentStep(1);
   };
 
@@ -46,8 +52,31 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
       setError("Please enter company name.");
       return;
     }
+    if (!formData.pinCode || !formData.pinCode.trim()) {
+      setError("Please enter PIN code.");
+      return;
+    }
+    const cleanPin = formData.pinCode.trim().replace(/\D/g, "");
+    if (cleanPin.length !== 6) {
+      setError("PIN code must be a 6-digit number.");
+      return;
+    }
 
-    // Optional: address2, pinCode
+    // Optional: address2
+
+    if (user?.id) {
+      updateUser(user.id, {
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        date_of_birth: formData.dateOfBirth.trim(),
+        address_1: formData.address1.trim(),
+        address_2: (formData.address2 || "").trim() || null,
+        state: formData.state.trim(),
+        city: formData.city.trim(),
+        pin_code: cleanPin,
+        company: formData.company.trim(),
+      }).catch((e) => console.error("Auto-save user details error:", e));
+    }
 
     onNext();
   };
@@ -159,12 +188,18 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              PIN Code (optional)
+              PIN Code*
             </label>
             <input
               type="text"
+              inputMode="numeric"
               value={formData.pinCode || ""}
-              onChange={(e) => updateFormData("pinCode", e.target.value)}
+              onChange={(e) =>
+                updateFormData(
+                  "pinCode",
+                  e.target.value.replace(/\D/g, "").slice(0, 6)
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               placeholder="6-digit PIN"
               maxLength={6}
@@ -203,12 +238,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
       </div>
 
       <div className="flex space-x-3">
-        <button
-          onClick={onBackHandler}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft size={20} className="mr-1" /> Back
-        </button>
+        {!user?.id && (
+          <button
+            onClick={onBackHandler}
+            className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft size={20} className="mr-1" /> Back
+          </button>
+        )}
 
         <button
           onClick={handleContinue}

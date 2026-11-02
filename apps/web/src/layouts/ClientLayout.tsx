@@ -14,7 +14,7 @@ const ClientLayout = () => {
     isAuthenticated &&
     AuthRoutes.includes(location.pathname as any)
   ) {
-    return <Navigate to={AppRoutes.home} replace />;
+    return <Navigate to={AppRoutes.dashboard} replace />;
   }
 
   return (

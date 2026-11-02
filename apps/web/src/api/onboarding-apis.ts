@@ -60,10 +60,15 @@ export async function sendOtp(phone: string) {
   return data;
 }
 
-export async function verifyOtp(phone: string, otp: string) {
+export async function verifyOtp(
+  phone: string,
+  otp: string,
+  extra?: { email?: string; password?: string }
+) {
   const { data } = await axiosInstance.post(endpoints.otp.verify, {
     phone,
     otp,
+    ...extra,
   });
   return data;
 }

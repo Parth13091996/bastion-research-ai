@@ -1,4 +1,5 @@
 import { sendOtp, verifyOtp } from "@/api/onboarding-apis";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Check } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import OTPInput from "react-otp-input";
@@ -18,7 +19,9 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
 }) => {
   const [startOtpTimer, setStartOtpTimer] = useState(false);
   const [otpTimer, setOtpTimer] = useState<number>(600);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(30);
   const isSubmittingRef = useRef(false);
+  const { login, refetchUser } = useAuth();
 
   const handleVerifyOtp = async () => {
     if (isSubmittingRef.current || isLoading) return;
@@ -33,8 +36,15 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     const otp = Array.isArray(formData.otp) ? formData.otp.join("") : "";
     try {
       const cleanPhone = formData.phone.trim().replace(/^(\+91|91|0)/, "");
-      const response = await verifyOtp("+91" + cleanPhone, otp);
+      const response = await verifyOtp("+91" + cleanPhone, otp, {
+        email: formData.email,
+        password: formData.password,
+      });
       toast.success(response?.message || "OTP verified");
+      if (response?.user && login) {
+        login(response.user, response.token);
+        void refetchUser();
+      }
       nextStep && nextStep();
     } catch (err: any) {
       const errorMessage =
@@ -50,7 +60,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
   };
 
   const handleResendOtp = async () => {
-    if (isSubmittingRef.current || isLoading) return;
+    if (isSubmittingRef.current || isLoading || (cooldownSeconds !== null && cooldownSeconds > 0)) return;
     if (!formData || !formData.phone) {
       setError && setError("Missing phone number.");
       return;
@@ -64,13 +74,34 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     try {
       const cleanPhone = formData.phone.trim().replace(/^(\+91|91|0)/, "");
       await sendOtp("+91" + cleanPhone);
+      toast.success("OTP resent successfully.");
       setOtpTimer(600); // Reset timer to 10 minutes
+      setCooldownSeconds(30);
     } catch (err: any) {
+      const remainingSeconds =
+        err?.response?.data?.remainingSeconds ??
+        err?.response?.data?.cooldown;
+
       const errorMessage =
         err?.response?.data?.message ||
         err?.message ||
         "An unexpected error occurred.";
-      setError && setError(errorMessage);
+
+      if (typeof remainingSeconds === "number" && remainingSeconds > 0) {
+        setCooldownSeconds(remainingSeconds);
+        setError && setError(null);
+      } else {
+        const match =
+          typeof errorMessage === "string"
+            ? errorMessage.match(/(\d+)\s*second/i)
+            : null;
+        if (match && match[1]) {
+          setCooldownSeconds(parseInt(match[1], 10));
+          setError && setError(null);
+        } else {
+          setError && setError(errorMessage);
+        }
+      }
       console.error(err);
     } finally {
       setIsLoading && setIsLoading(false);
@@ -96,6 +127,22 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     setOtpTimer(600);
     setStartOtpTimer(true);
   }, []);
+
+  // Cooldown countdown effect
+  useEffect(() => {
+    if (cooldownSeconds === null || cooldownSeconds <= 0) return;
+
+    const timer = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev === null || prev <= 1) {
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldownSeconds !== null]);
 
   // Countdown effect
   useEffect(() => {
@@ -147,21 +194,29 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
 
         <div className="text-center">
           <p className="text-sm text-gray-600">{renderOtpTimer()}</p>
-          <button className="text-secondary text-sm mt-1 disabled:text-gray-400">
-            Didn't receive the OTP?{` `}
-            <span
-              onClick={isLoading ? () => null : handleResendOtp}
-              className={`text-red-600 hover:underline ${isLoading ? "cursor-not-allowed" : ""}`}
+          <div className="text-sm mt-1 text-gray-600">
+            Didn't receive the OTP?{" "}
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={isLoading}
+              className="text-red-600 hover:underline font-medium disabled:text-gray-400 disabled:cursor-not-allowed disabled:no-underline"
             >
               Resend OTP
-            </span>
-          </button>
+            </button>
+          </div>
         </div>
       </div>
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      {(cooldownSeconds !== null || error) && (
+        <p className="text-red-500 text-sm text-center">
+          {cooldownSeconds !== null
+            ? `Please wait ${cooldownSeconds} second${cooldownSeconds === 1 ? "" : "s"} before requesting otp again.`
+            : error}
+        </p>
+      )}
       <div className="flex space-x-3">
         <button
-          onClick={onBack ? onBack : () => {}}
+          onClick={onBack ? onBack : () => { }}
           className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800"
         >
           <ArrowLeft size={20} className="mr-1" /> Back

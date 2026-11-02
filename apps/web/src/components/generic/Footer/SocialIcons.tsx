@@ -16,10 +16,12 @@ const SocialSvgMap = {
 // Condensed Social Icons Component
 const SocialIcons = ({ className = "flex space-x-3" }) => {
   const { social_links } = Config;
-
+  const email = Config.connect_url?.trim();
   return (
     <div className={className}>
-      <p>{Config.connect_url}</p>
+      <a href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
+        {email}
+      </a>
       <div className="flex space-x-3">
         {Object.entries(social_links).map(([platform, url], index) => {
           const SvgIcon = SocialSvgMap[platform];

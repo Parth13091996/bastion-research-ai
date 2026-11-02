@@ -58,8 +58,9 @@
   height: 26px !important;
   border-radius: 4px !important;
 }
+
 /* Extra spacing between filter operator dropdown and input */
-.ag-theme-alpine .ag-filter-body-wrapper .ag-filter-select + .ag-input-wrapper {
+.ag-theme-alpine .ag-filter-body-wrapper .ag-filter-select+.ag-input-wrapper {
   margin-top: 20px !important;
   margin-bottom: 20px !important;
   display: block !important;
@@ -96,4 +97,114 @@
   outline: none !important;
 }
 
+/*
+   Clean Responsive AG Grid Pagination Panel
+*/
+.ag-theme-alpine .ag-paging-panel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 16px !important;
+  height: auto !important;
+  min-height: 48px !important;
+  border-top: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+}
 
+.ag-theme-alpine .ag-paging-panel>* {
+  white-space: nowrap !important;
+}
+
+.ag-theme-alpine .ag-paging-page-size {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  font-size: 13px !important;
+  color: #4b5563 !important;
+}
+
+.ag-theme-alpine .ag-paging-page-size .ag-picker-field {
+  height: 28px !important;
+  min-height: 28px !important;
+  border-radius: 6px !important;
+  border: 1px solid #d1d5db !important;
+  padding: 0 4px !important;
+  font-size: 13px !important;
+}
+
+.ag-theme-alpine .ag-paging-row-summary-panel {
+  display: inline-block !important;
+  white-space: nowrap !important;
+  font-weight: 500 !important;
+  color: #111827 !important;
+  font-size: 13px !important;
+}
+
+.ag-theme-alpine .ag-paging-row-summary-panel span {
+  display: inline !important;
+  margin: 0 2.5px !important;
+}
+
+.ag-theme-alpine .ag-paging-page-summary-panel {
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  color: #374151 !important;
+}
+
+.ag-theme-alpine .ag-paging-page-summary-panel span {
+  display: inline !important;
+  margin: 0 2px !important;
+}
+
+.ag-theme-alpine .ag-paging-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  padding: 4px 6px !important;
+  min-width: 26px !important;
+  height: 26px !important;
+  border-radius: 4px !important;
+  transition: all 0.15s ease !important;
+}
+
+.ag-theme-alpine .ag-paging-button:hover:not(.ag-disabled) {
+  background-color: #f3f4f6 !important;
+}
+
+/* Mobile responsive layout */
+@media (max-width: 640px) {
+  .ag-theme-alpine .ag-paging-panel {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 8px 12px !important;
+    gap: 8px 0 !important;
+  }
+
+  .ag-theme-alpine .ag-paging-page-size {
+    order: 1 !important;
+    font-size: 12px !important;
+  }
+
+  .ag-theme-alpine .ag-paging-row-summary-panel {
+    order: 2 !important;
+    font-size: 12px !important;
+    margin-left: auto !important;
+  }
+
+  .ag-theme-alpine .ag-paging-page-summary-panel {
+    order: 3 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    padding-top: 6px !important;
+    border-top: 1px dashed #f3f4f6 !important;
+  }
+}
