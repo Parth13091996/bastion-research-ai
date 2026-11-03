@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import twilio from "twilio";
+import bcryptjs from "bcryptjs";
 import { config } from "../utils/config";
 import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { supabase } from "../supabase";
@@ -260,20 +261,66 @@ export const sendEmailOtp = async (req: Request, res: Response) => {
   }
 };
 
+// export const verifyOtp = async (req: Request, res: Response) => {
+//   const { phone: rawPhone, otp } = req.body as {
+//     phone?: string;
+//     otp?: string;
+//     email?: string;
+//   };
+
+//   if (!rawPhone || !otp) {
+//     return res.status(400).json({ message: "phone and otp are required." });
+//   }
+
+//   const phone = normalizePhone(rawPhone);
+
+//   try {
+//     const result = await validateOtp(phone, "phone", otp);
+
+//     if (!result.valid) {
+//       const reasonToMessage: Record<string, string> = {
+//         not_found: "No OTP found. Please request one.",
+//         mismatch: "Invalid OTP.",
+//         expired: "OTP has expired. Please request a new one.",
+//         store_error: "Server error while verifying OTP.",
+//       };
+//       const status = result.reason === "store_error" ? 500 : 400;
+//       return res
+//         .status(status)
+//         .json({ message: reasonToMessage[result.reason || "mismatch"] });
+//     }
+
+//     return res.status(200).json({
+//       message: "OTP verified successfully.",
+//     });
+//   } catch (error) {
+//     console.error("Verify OTP error:", error);
+//     return res
+//       .status(500)
+//       .json({ message: "Server error while verifying OTP." });
+//   }
+// };
+
+
 export const verifyOtp = async (req: Request, res: Response) => {
-  const { phone: rawPhone, otp } = req.body as {
+  const { phone: rawPhone, otp, email, password } = req.body as {
     phone?: string;
     otp?: string;
     email?: string;
+    password?: string;
   };
 
-  if (!rawPhone || !otp) {
-    return res.status(400).json({ message: "phone and otp are required." });
+  if (!rawPhone || !otp || !email || !password) {
+    return res.status(400).json({
+      message: "Phone, OTP, email and password are required.",
+    });
   }
 
   const phone = normalizePhone(rawPhone);
+  const normalizedEmail = normalizeEmail(email);
 
   try {
+    // 1. Verify OTP
     const result = await validateOtp(phone, "phone", otp);
 
     if (!result.valid) {
@@ -283,20 +330,111 @@ export const verifyOtp = async (req: Request, res: Response) => {
         expired: "OTP has expired. Please request a new one.",
         store_error: "Server error while verifying OTP.",
       };
-      const status = result.reason === "store_error" ? 500 : 400;
+
       return res
-        .status(status)
-        .json({ message: reasonToMessage[result.reason || "mismatch"] });
+        .status(result.reason === "store_error" ? 500 : 400)
+        .json({
+          message: reasonToMessage[result.reason || "mismatch"],
+        });
     }
 
-    return res.status(200).json({
-      message: "OTP verified successfully.",
+    // 2. Check existing email
+    const { data: existingEmail, error: emailError } = await supabase
+      .from("users")
+      .select("id")
+      .ilike("email", normalizedEmail)
+      .maybeSingle();
+
+    if (emailError) throw emailError;
+
+    if (existingEmail) {
+      return res.status(409).json({
+        message: "Email already registered. Please login.",
+      });
+    }
+
+    // 3. Check existing phone
+    const cleanPhone = phone.replace(/\D/g, "");
+    const phone10 = cleanPhone.slice(-10);
+
+    const { data: existingPhone, error: phoneError } = await supabase
+      .from("users")
+      .select("id")
+      .or(
+        `phone.eq.${phone},phone.eq.${phone10},phone.eq.+91${phone10},phone.eq.91${phone10}`
+      )
+      .limit(1)
+      .maybeSingle();
+
+    if (phoneError) throw phoneError;
+
+    if (existingPhone) {
+      return res.status(409).json({
+        message: "Phone number already registered. Please login.",
+      });
+    }
+
+    // 4. Hash password
+    const hashedPassword = await bcryptjs.hash(
+      password,
+      config.salt_rounds
+    );
+
+    // 5. Generate username
+    const username =
+      normalizedEmail.split("@")[0] +
+      `_${Math.random().toString(36).substring(2, 7)}`;
+
+    // 6. Create user
+    const { data: user, error: insertError } = await supabase
+      .from("users")
+      .insert({
+        email: normalizedEmail,
+        phone,
+        password: hashedPassword,
+        username,
+        first_name: "",
+        last_name: "",
+        pan_card_number: "",
+        address_1: "",
+        address_2: null,
+        state: "",
+        city: "",
+        pin_code: "",
+        company: "",
+        role: "free_subscriber",
+        // Optional date field
+        date_of_birth: "1970-01-01",
+
+        // Optional JSONB field
+        pan_verification_metadata: null,
+
+        // Optional plan reference
+        plan_id: null,
+        status: "pending",
+      })
+      .select("id, email, phone, username, status")
+      .single();
+
+    if (insertError) throw insertError;
+
+    // 7. Generate authentication token
+    const token = generateToken(user.id, user.email);
+
+    res.cookie("token", token, getAuthCookieOptions());
+
+    return res.status(201).json({
+      message: "OTP verified and account created successfully.",
+      user,
+      token,
     });
-  } catch (error) {
+
+  } catch (error: any) {
     console.error("Verify OTP error:", error);
-    return res
-      .status(500)
-      .json({ message: "Server error while verifying OTP." });
+
+    return res.status(500).json({
+      message: "Server error while creating user.",
+    });
   }
 };
 

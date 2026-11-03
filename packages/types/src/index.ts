@@ -41,6 +41,7 @@ export interface User {
     plan_id?: number | string | null;
     plan_name?: string | null;
     duration_months?: number | null;
+    price_amount?: number | null;
   } | null;
   digio_documents?: { document_id: string }[] | null;
 }

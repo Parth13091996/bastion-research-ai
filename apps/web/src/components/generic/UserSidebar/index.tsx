@@ -69,6 +69,7 @@ const UserSidebar = () => {
 
   useEffect(() => {
     setIsMobileOpen(false);
+    setShowPricing(false);
   }, [location.pathname]);
 
   // Close submenu on outside click
@@ -93,6 +94,7 @@ const UserSidebar = () => {
   const handleExploreWebsite = () => {
     navigate("/");
     setIsMobileOpen(false);
+    setShowPricing(false);
   };
 
   const handleLogout = async () => {
@@ -100,6 +102,7 @@ const UserSidebar = () => {
       await logout();
       navigate("/");
       setIsMobileOpen(false);
+    setShowPricing(false);
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout. Please try again.");
