@@ -54,8 +54,8 @@ export const useSubscription = () => {
         user.role === "research_ally_subscriber"
           ? "research_hub"
           : user.role === "ipo_subscriber"
-          ? "ipo"
-          : "core";
+            ? "ipo"
+            : "core";
 
       const rawPlanCode =
         membershipPlan?.plan_code ?? (isRoleSubscriber ? fallbackPlanCode : "freemium");
@@ -79,22 +79,23 @@ export const useSubscription = () => {
       const subscriptionDetails: SubscriptionData["subscription"] =
         hasSubscriptionWindow
           ? {
-              name:
-                rawPlanCode && rawPlanCode !== "freemium"
-                  ? rawPlanCode.toUpperCase()
-                  : isRoleSubscriber
+            name:
+              membershipPlan?.plan_name ||
+              (rawPlanCode && rawPlanCode !== "freemium"
+                ? rawPlanCode.replace("_", " ").toUpperCase()
+                : isRoleSubscriber
                   ? "CORE"
-                  : "FREEMIUM",
-              startDate:
-                user.subscription_start_date ??
-                user.created_at ??
-                new Date().toISOString(),
-              expireNextRenewal: user.subscription_end_date ?? null,
-              amount: 0,
-              transactionId: "",
-              plan_code: rawPlanCode,
-              tier: null,
-            }
+                  : "FREEMIUM"),
+            startDate:
+              user.subscription_start_date ??
+              user.created_at ??
+              new Date().toISOString(),
+            expireNextRenewal: user.subscription_end_date ?? null,
+            amount: membershipPlan?.price_amount ?? 0,
+            transactionId: "",
+            plan_code: rawPlanCode,
+            tier: null,
+          }
           : null;
 
       const data: SubscriptionData = {

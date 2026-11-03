@@ -33,6 +33,25 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     return () => clearInterval(timer);
   }, [cooldownSeconds !== null]);
 
+  const validatePassword = (password: string): string | null => {
+    if (password.length <= 6) {
+      return "Password must be more than 6 characters.";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least 1 uppercase letter.";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least 1 lowercase letter.";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least 1 number.";
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/`~]/.test(password)) {
+      return "Password must contain at least 1 special character.";
+    }
+    return null;
+  };
+
   const handleRegister = async () => {
     if (isSubmittingRef.current || isLoading || cooldownSeconds !== null) return;
     setError(null);
@@ -50,8 +69,9 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
       setError("Please enter password.");
       return;
     }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
     if (!formData.confirmPassword.trim()) {

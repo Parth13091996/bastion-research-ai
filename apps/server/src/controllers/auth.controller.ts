@@ -24,16 +24,16 @@ type OnboardingUserData = {
   password: string;
   firstName: string;
   lastName: string;
-  panCard: string;
-  dateOfBirth: string;
+  panCard?: string;
+  dateOfBirth?: string;
   address1?: string;
   address2?: string;
   state?: string;
   city?: string;
   pinCode?: string;
   company?: string;
-  panVerification: { valid: boolean;[key: string]: any };
-  agreementSignatureUrl: string;
+  panVerification?: { valid: boolean;[key: string]: any };
+  agreementSignatureUrl?: string;
   agreementSignaturePath?: string;
   agreementSignedAt?: string;
   [key: string]: any; // To allow extra props if necessary
@@ -143,7 +143,7 @@ export const signIn = async (req: Request, res: Response) => {
       try {
         const { data: planData } = await supabase
           .from("membership_plans")
-          .select("plan_code, plan_id, plan_name, duration_months")
+          .select("plan_code, plan_id, plan_name, duration_months, price_amount")
           .eq("plan_id", user.plan_id)
           .maybeSingle();
         if (planData) {
@@ -365,7 +365,8 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     if (
       (!panVerification || panVerification.valid !== true) &&
-      status !== "free"
+      status !== "free" &&
+      status !== "pending"
     ) {
       return res
         .status(400)
@@ -940,7 +941,8 @@ export const getUserSession = async (req: Request, res: Response) => {
             plan_code,
             plan_id,
             plan_name,
-            duration_months
+            duration_months,
+            price_amount     
           ),
           created_at,
           updated_at,
@@ -977,7 +979,7 @@ export const getUserSession = async (req: Request, res: Response) => {
         try {
           const { data: planData } = await supabase
             .from("membership_plans")
-            .select("plan_code, plan_id, plan_name, duration_months")
+            .select("plan_code, plan_id, plan_name, duration_months, price_amount")
             .eq("plan_id", safeBaseUser.plan_id)
             .maybeSingle();
           membershipPlan = planData || null;

@@ -19,7 +19,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
 }) => {
   const [startOtpTimer, setStartOtpTimer] = useState(false);
   const [otpTimer, setOtpTimer] = useState<number>(600);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(30);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
   const isSubmittingRef = useRef(false);
   const { login, refetchUser } = useAuth();
 
@@ -199,7 +199,7 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
             <button
               type="button"
               onClick={handleResendOtp}
-              disabled={isLoading}
+              disabled={isLoading || (cooldownSeconds !== null && cooldownSeconds > 0)}
               className="text-red-600 hover:underline font-medium disabled:text-gray-400 disabled:cursor-not-allowed disabled:no-underline"
             >
               Resend OTP
@@ -207,11 +207,11 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
           </div>
         </div>
       </div>
-      {(cooldownSeconds !== null || error) && (
+      {(error || cooldownSeconds !== null) && (
         <p className="text-red-500 text-sm text-center">
-          {cooldownSeconds !== null
-            ? `Please wait ${cooldownSeconds} second${cooldownSeconds === 1 ? "" : "s"} before requesting otp again.`
-            : error}
+          {error
+            ? error
+            : `Please wait ${cooldownSeconds} second${cooldownSeconds === 1 ? "" : "s"} before requesting otp again.`}
         </p>
       )}
       <div className="flex space-x-3">
