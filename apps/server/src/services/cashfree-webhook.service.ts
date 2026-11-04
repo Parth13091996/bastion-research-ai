@@ -161,7 +161,7 @@ export const handlePaymentSuccess = async (payload: any) => {
     transaction_status: payment?.payment_status,
     plan_id: currentPlan?.plan_id,
     payer_email: customer_details?.customer_email,
-    created_at: payment?.payment_time,
+    created_at: payment?.payment_time || paymentTime.toISOString(),
     discounted_amount:
       typeof payment?.payment_amount === 'number'
         ? payment.payment_amount
@@ -204,7 +204,7 @@ export const handlePaymentSuccess = async (payload: any) => {
         transaction_status: payment?.payment_status,
         plan_id: currentPlan?.plan_id,
         payer_email: customer_details?.customer_email,
-        created_at: payment?.payment_time,
+        created_at: payment?.payment_time || paymentTime.toISOString(),
       }
       if (resolvedUserId) {
         fallbackBase.user_id = resolvedUserId

@@ -122,12 +122,17 @@ export const getSubscriptions = async (req: Request, res: Response) => {
       membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, currency, price_amount, plan_code, duration_months )
     `
     )
+    .not('transaction_status', 'in', '("PENDING","USER_DROPPED")')
     .order('created_at', { ascending: false })
   if (error) {
     return res.status(500).json({ error: parseSupabaseError(error) })
   }
 
-  const rows = (data as any[]) || []
+  const rows = ((data as any[]) || []).filter(
+    (r: any) =>
+      r?.transaction_status !== 'PENDING' &&
+      r?.transaction_status !== 'USER_DROPPED'
+  )
   const extras = await fetchPaymentExtras(
     rows.map((r: any) => String(r?.transaction_id || '')).filter(Boolean)
   )
@@ -191,11 +196,16 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
       membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, price_amount, currency, plan_code )
     `
     )
+    .not('transaction_status', 'in', '("PENDING","USER_DROPPED")')
     .order('created_at', { ascending: false })
   if (error) {
     return res.status(500).json({ error: parseSupabaseError(error) })
   }
-  const rows = (data as any[]) || []
+  const rows = ((data as any[]) || []).filter(
+    (r: any) =>
+      r?.transaction_status !== 'PENDING' &&
+      r?.transaction_status !== 'USER_DROPPED'
+  )
   const extras = await fetchPaymentExtras(
     rows.map((r: any) => String(r?.transaction_id || '')).filter(Boolean)
   )
@@ -251,13 +261,18 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
       `
       )
       .eq('user_id', user.id as string)
+      .not('transaction_status', 'in', '("PENDING","USER_DROPPED")')
       .order('created_at', { ascending: false })
 
     if (error) {
       return res.status(500).json({ error: parseSupabaseError(error) })
     }
 
-    const rows = (data as any[]) || []
+    const rows = ((data as any[]) || []).filter(
+    (r: any) =>
+      r?.transaction_status !== 'PENDING' &&
+      r?.transaction_status !== 'USER_DROPPED'
+  )
     const extras = await fetchPaymentExtras(
       rows.map((r: any) => String(r?.transaction_id || '')).filter(Boolean)
     )

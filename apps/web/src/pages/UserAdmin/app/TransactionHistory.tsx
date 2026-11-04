@@ -33,7 +33,11 @@ const TransactionHistory: React.FC = () => {
   });
 
   const filtered = useMemo(() => {
-    const rows = data || [];
+    const rows = (data || []).filter(
+      (r) =>
+        r.transaction_status !== "PENDING" &&
+        r.transaction_status !== "USER_DROPPED"
+    );
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
     return rows.filter((r) =>
@@ -45,6 +49,14 @@ const TransactionHistory: React.FC = () => {
 
   const totalAmount = useMemo(() => {
     return (filtered || []).reduce((sum, r) => {
+      const status = (r.transaction_status || "").toUpperCase();
+      if (
+        status !== "SUCCESS" &&
+        status !== "FREE" &&
+        status !== "COUPON_APPLIED"
+      ) {
+        return sum;
+      }
       const n = typeof r.amount === "string" ? Number(r.amount) : r.amount || 0;
       return sum + (isNaN(n as number) ? 0 : (n as number));
     }, 0);

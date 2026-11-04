@@ -209,31 +209,5 @@ export const createOrderForPlanService = async (params: {
   };
 
   const response = await pgCreateOrder(request);
-  const pendingPaymentBase: any = {
-    payer_email: params.customer_email || null,
-    transaction_status: "PENDING",
-    user_id: params.customer_id,
-    plan_id: planRow.plan_id,
-    transaction_id: transactionId,
-    created_at: new Date().toISOString(),
-    discounted_amount: selected.amount,
-    coupon_code: normalizedCouponCode,
-    coupon_applied: await couponIdForCode(),
-  };
-
-  const { error: pendingUpsertErr } = await supabase
-    .from("payment_history")
-    .upsert(pendingPaymentBase);
-  if (pendingUpsertErr?.message?.toLowerCase?.().includes("column")) {
-    await supabase.from("payment_history").upsert({
-      payer_email: params.customer_email || null,
-      transaction_status: "PENDING",
-      user_id: params.customer_id,
-      plan_id: planRow.plan_id,
-      transaction_id: transactionId,
-      created_at: new Date().toISOString(),
-    });
-  }
-
   return { selected, order: response?.data || response };
 };

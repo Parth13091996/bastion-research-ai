@@ -13,8 +13,6 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
   const [showTooltip, setShowTooltip] = useState(false);
   const { user } = useAuth();
 
-  console.log("User", user);
-
   const onBackHandler = () => {
     if (user?.id) {
       return;

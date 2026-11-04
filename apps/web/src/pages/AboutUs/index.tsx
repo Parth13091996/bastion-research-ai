@@ -12,6 +12,62 @@ import researchAllyAnim from "@/../public/media/researchAlly.json";
 const About: React.FC = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const headerRef = useRef<HTMLElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+
+      const firstChild = scrollRef.current.firstElementChild as HTMLElement | null;
+      const itemWidth = (firstChild?.clientWidth || clientWidth / 2) + 24;
+      const index = Math.round(scrollLeft / itemWidth);
+      setActiveIndex(Math.min(Math.max(0, index), services.length - 1));
+    }
+  };
+
+  const handleScroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const firstChild = scrollRef.current.firstElementChild as HTMLElement | null;
+      const scrollAmount = (firstChild?.clientWidth || 300) + 24;
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const scrollToIndex = (index: number) => {
+    if (scrollRef.current) {
+      const firstChild = scrollRef.current.firstElementChild as HTMLElement | null;
+      const scrollAmount = (firstChild?.clientWidth || 300) + 24;
+      scrollRef.current.scrollTo({
+        left: index * scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const renderCard = (service: (typeof services)[0], className?: string) => (
+    <div
+      key={service.id}
+      className={`flex flex-col p-6 sm:p-8 rounded-2xl text-center border-2 border-gray-200 bg-white shadow-md hover:shadow-lg transition-all ${className || ""}`}
+    >
+      <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-4 flex items-center justify-center">
+        <Lottie animationData={service.lottie} loop autoplay />
+      </div>
+      <h3 className="text-xl font-bold mb-3 text-blue-900">
+        {service.title}
+      </h3>
+      <p className="text-sm leading-relaxed text-gray-600 flex-grow">
+        {service.description}
+      </p>
+    </div>
+  );
 
   const services = [
     {
@@ -156,36 +212,56 @@ const About: React.FC = () => {
 
 
 
-        {/* Section 2 - static */}
+        {/* Section 2 - Responsive: Mobile (vertical), Tablet (2-card horizontal scroll), Desktop (3-card grid) */}
         <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-8 max-w-7xl">
-            <h2 className="text-4xl font-bold text-blue-900 mb-12 text-center">
+          <div className="container mx-auto px-4 sm:px-8 max-w-6xl">
+            <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 mb-4 text-center">
               Research Built Around You
             </h2>
-            <p className="text-center text-xl mb-12">
+            <p className="text-center text-base sm:text-lg text-gray-600 mb-10 max-w-2xl mx-auto">
               No matter the size of your portfolio or how you manage it, we've
               built offerings to meet you where you are:
             </p>
 
-            <div className="bg-white rounded-3xl p-4 md:p-12 shadow-xl">
-              <div className="flex flex-col lg:flex-row justify-center items-stretch gap-8 max-w-4xl mx-auto">
-                {services.map((service) => (
-                  <div
-                    key={service.id}
-                    className="flex flex-col w-full sm:w-72 p-8 rounded-2xl text-center border-2 border-gray-200 bg-white shadow-md"
-                  >
-                    <div className="w-120 h-120 sm:w-120 sm:h-120 mx-auto mb-4">
-                      {/* bigger lottie size */}
-                      <Lottie animationData={service.lottie} loop autoplay />
-                    </div>
-                    <h3 className="text-xl font-bold mb-4 text-blue-900">
-                      {service.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-gray-600 flex-grow">
-                      {service.description}
-                    </p>
-                  </div>
-                ))}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xl">
+              {/* Mobile View (< 768px): Vertical Stack */}
+              <div className="block md:hidden space-y-6">
+                {services.map((service) => renderCard(service, "w-full"))}
+              </div>
+
+              {/* Tablet View (768px - 1024px): 2 cards with horizontal scroll */}
+              <div className="hidden md:block lg:hidden">
+                <div
+                  ref={scrollRef}
+                  onScroll={checkScroll}
+                  className="flex gap-6 overflow-x-auto pb-4 pt-2 px-1 scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  {services.map((service) =>
+                    renderCard(service, "flex-none snap-start w-[calc(50%-12px)]")
+                  )}
+                </div>
+
+                {/* Pagination Dots (Tablet Only) */}
+                <div className="flex justify-center items-center gap-2 mt-4">
+                  {services.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => scrollToIndex(idx)}
+                      className={`h-2 rounded-full transition-all ${
+                        activeIndex === idx
+                          ? "w-7 bg-blue-900"
+                          : "w-2 bg-gray-300 hover:bg-gray-400"
+                      }`}
+                      aria-label={`Go to card ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Website / Desktop View (>= 1024px): All 3 cards side-by-side */}
+              <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-stretch">
+                {services.map((service) => renderCard(service, "w-full"))}
               </div>
             </div>
           </div>

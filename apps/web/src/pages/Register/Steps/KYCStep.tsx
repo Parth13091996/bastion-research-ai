@@ -176,8 +176,8 @@ const KYCStep: React.FC<KYCStepProps> = ({
         plan_id: formData.selectedPlan
           ? Number(formData.selectedPlan)
           : (typeof window !== "undefined" && localStorage.getItem("selectedPlan")
-              ? Number(localStorage.getItem("selectedPlan"))
-              : undefined),
+            ? Number(localStorage.getItem("selectedPlan"))
+            : undefined),
         onboarding_session_id: formData.onboardingSessionId,
       });
       setLoading(false);
@@ -273,11 +273,10 @@ const KYCStep: React.FC<KYCStepProps> = ({
 
         {verification && (
           <div
-            className={`border rounded-lg p-4 text-sm ${
-              verification.valid
-                ? "border-green-200 bg-green-50"
-                : "border-yellow-200 bg-yellow-50"
-            }`}
+            className={`border rounded-lg p-4 text-sm ${verification.valid
+              ? "border-green-200 bg-green-50"
+              : "border-yellow-200 bg-yellow-50"
+              }`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center text-sm font-medium">
