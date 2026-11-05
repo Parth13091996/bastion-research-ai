@@ -21,6 +21,9 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   setError,
   setIsLoading,
 }) => {
+  const { user, refetchUser } = useAuth();
+  const navigate = useNavigate();
+
   const activePlanCode =
     selectedPlan ||
     formData?.selectedPlan ||
@@ -37,8 +40,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     plans.find((p) => p.plan_code === "core_annual") ||
     plans.find((p) => p.code === "3") ||
     plans.find((p) => Number(p.amount) > 0);
-  const { user, refetchUser } = useAuth();
-  const navigate = useNavigate();
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");

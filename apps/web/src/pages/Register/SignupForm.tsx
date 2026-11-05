@@ -80,27 +80,27 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
     // Prefill common user details when resuming.
     if (isPending || shouldResumeOnboarding || agreementSigned) {
       setFormData((prev) => ({
+        ...prev,
         selectedPlan:
           prev.selectedPlan ||
           (typeof window !== "undefined" ? localStorage.getItem("selectedPlan") : null) ||
           (user?.plan_id ? String(user.plan_id) : "") ||
           "",
-        ...prev,
-        firstName: user?.first_name || "",
-        lastName: user?.last_name || "",
-        phone: user?.phone || "",
-        email: user?.email || "",
-        address1: user?.address_1 || "",
-        address2: user?.address_2 || "",
-        state: user?.state || "",
-        city: user?.city || "",
-        pinCode: user?.pin_code || "",
-        dateOfBirth: user?.date_of_birth || "",
-        company: user?.company || "",
-        panCard: user?.pan_card_number || "",
-        panVerification: user?.pan_card_number
-          ? { valid: true }
-          : prev.panVerification,
+        firstName: prev.firstName || user?.first_name || "",
+        lastName: prev.lastName || user?.last_name || "",
+        phone: prev.phone || user?.phone || "",
+        email: prev.email || user?.email || "",
+        address1: prev.address1 || user?.address_1 || "",
+        address2: prev.address2 || user?.address_2 || "",
+        state: prev.state || user?.state || "",
+        city: prev.city || user?.city || "",
+        pinCode: prev.pinCode || user?.pin_code || "",
+        dateOfBirth: prev.dateOfBirth || user?.date_of_birth || "",
+        company: prev.company || user?.company || "",
+        panCard: prev.panCard || user?.pan_card_number || "",
+        panVerification:
+          prev.panVerification ||
+          (user?.pan_card_number ? { valid: true } : null),
       }));
     }
 

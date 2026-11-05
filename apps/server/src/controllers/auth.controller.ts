@@ -341,26 +341,70 @@ export const onboardUser = async (req: Request, res: Response) => {
       onboarding_session_id,
     }: OnboardingUserData = req.body || {};
 
-    if (
-      !email ||
-      !phone ||
-      !password ||
-      !firstName ||
-      !lastName ||
-      !dateOfBirth ||
-      !pinCode ||
-      !String(pinCode).trim()
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Missing required fields to start onboarding: PIN code is required." });
+    const normalizedEmail = email ? normalizeEmail(email) : "";
+
+    // Check if user already exists in database (by email or phone)
+    let existingUser: any = null;
+    if (normalizedEmail) {
+      const { data: userByEmail } = await supabase
+        .from("users")
+        .select("id, status, username, password, first_name, last_name, phone, pin_code, date_of_birth, address_1, address_2, state, city, company, pan_card_number")
+        .ilike("email", normalizedEmail)
+        .maybeSingle();
+      existingUser = userByEmail;
     }
 
-    const cleanPin = String(pinCode).trim().replace(/\D/g, "");
+    if (!existingUser && phone) {
+      const cleanPhoneDigits = (phone || "").replace(/\D/g, "");
+      const phone10 = cleanPhoneDigits.slice(-10);
+      if (phone10.length >= 10) {
+        const { data: userByPhone } = await supabase
+          .from("users")
+          .select("id, status, username, password, first_name, last_name, phone, pin_code, date_of_birth, address_1, address_2, state, city, company, pan_card_number")
+          .or(`phone.eq.${phone},phone.ilike.%${phone10},phone.eq.${phone10},phone.eq.+91${phone10}`)
+          .limit(1)
+          .maybeSingle();
+        existingUser = userByPhone;
+      }
+    }
+
+    const effectiveEmail = normalizedEmail || existingUser?.email;
+    const effectivePhone = phone || existingUser?.phone;
+    const effectiveFirstName = firstName || existingUser?.first_name;
+    const effectiveLastName = lastName || existingUser?.last_name;
+    const effectiveDob = dateOfBirth || existingUser?.date_of_birth;
+    const rawPin =
+      pinCode ??
+      (req.body as any)?.pin_code ??
+      (req.body as any)?.pincode ??
+      existingUser?.pin_code ??
+      "";
+    const cleanPin = String(rawPin).trim().replace(/\D/g, "");
+
+    // Validate required fields with specific error messages
+    if (!effectiveEmail) {
+      return res.status(400).json({ message: "Email is required to start onboarding." });
+    }
+    if (!effectivePhone) {
+      return res.status(400).json({ message: "Phone number is required to start onboarding." });
+    }
+    if (!password && !existingUser?.password) {
+      return res.status(400).json({ message: "Password is required." });
+    }
+    if (!effectiveFirstName) {
+      return res.status(400).json({ message: "First name is required to start onboarding." });
+    }
+    if (!effectiveLastName) {
+      return res.status(400).json({ message: "Last name is required to start onboarding." });
+    }
+    if (!effectiveDob) {
+      return res.status(400).json({ message: "Date of birth is required to start onboarding." });
+    }
+    if (!cleanPin) {
+      return res.status(400).json({ message: "PIN code is required to start onboarding." });
+    }
     if (cleanPin.length !== 6) {
-      return res
-        .status(400)
-        .json({ message: "PIN code must be a 6-digit number." });
+      return res.status(400).json({ message: "PIN code must be a 6-digit number." });
     }
 
     if (
@@ -375,17 +419,17 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     // Prepare base user fields
     const baseUpdate: any = {
-      phone,
-      first_name: firstName,
-      last_name: lastName,
-      date_of_birth: dateOfBirth,
-      address_1: address1 || null,
-      address_2: address2 || null,
-      state: state || null,
-      city: city || null,
+      phone: effectivePhone,
+      first_name: effectiveFirstName,
+      last_name: effectiveLastName,
+      date_of_birth: effectiveDob,
+      address_1: address1 || existingUser?.address_1 || null,
+      address_2: address2 || existingUser?.address_2 || null,
+      state: state || existingUser?.state || null,
+      city: city || existingUser?.city || null,
       pin_code: cleanPin,
-      company: company || null,
-      pan_card_number: panCard,
+      company: company || existingUser?.company || null,
+      pan_card_number: panCard || existingUser?.pan_card_number || null,
       status,
       pan_verification_metadata: panVerification,
       role: role,
@@ -441,18 +485,6 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     let userId: string | null = null;
     let username: string = "";
-    const normalizedEmail = normalizeEmail(email);
-
-    // Check if user already exists
-    const { data: existingUser } = await supabase
-      .from("users")
-      .select("id, status, username, password")
-      .ilike("email", normalizedEmail)
-      .maybeSingle();
-
-    if (!password && !existingUser?.password) {
-      return res.status(400).json({ message: "Password is required." });
-    }
 
     const hashedPassword = password
       ? await bcrypt.hash(password, config.salt_rounds)
@@ -853,30 +885,13 @@ export const zeroAmountAccountCreation = async (
 
       clearOnboardingDropOffForUser(user_id);
 
-      // Mark coupon as used / expired (best-effort; do not block user activation)
-      if (coupon?.coupon_id) {
-        try {
-          const nextUsedCount =
-            typeof coupon.used_count === "number" ? coupon.used_count + 1 : 1;
-
-          await supabase
-            .from("coupons")
-            .update({
-              used_count: nextUsedCount,
-              active: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("coupon_id", coupon.coupon_id);
-        } catch (e) {
-          console.error("Failed to mark coupon as used/expired", e);
-        }
-      }
       // Increment coupon usage after successful application
-      try {
-        await incrementCouponUsage(coupon_code!);
-      } catch (e: any) {
-        console.error("Failed to increment coupon usage:", e);
-        // Do not fail the request if coupon increment fails
+      if (coupon_code && typeof coupon_code === "string" && coupon_code.trim()) {
+        try {
+          await incrementCouponUsage(coupon_code.trim());
+        } catch (e: any) {
+          console.error("Failed to increment coupon usage:", e);
+        }
       }
 
       void sendWelcomeEmailForUser(user_id);

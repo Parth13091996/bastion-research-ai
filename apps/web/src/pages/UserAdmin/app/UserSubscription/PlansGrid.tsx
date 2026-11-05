@@ -25,6 +25,8 @@ const PlansGrid = ({
   discountRenewalEligible,
   checkingOut,
   handleSubscribe,
+  isExpired = false,
+  currentPlanCode,
 }: {
   availablePlans: Plan[];
   isPlansLoading: boolean;
@@ -34,6 +36,8 @@ const PlansGrid = ({
   discountRenewalEligible: boolean;
   checkingOut: string | null;
   handleSubscribe: (planCode: string, amountOverride?: number) => void;
+  isExpired?: boolean;
+  currentPlanCode?: string | null;
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -74,12 +78,19 @@ const PlansGrid = ({
             : plan.amount;
           const priceLabel = formatINR(displayAmount);
 
+          const isRenewal =
+            canRenewThisPlan ||
+            isExpired ||
+            (currentPlanCode === "core" && renewalEligible);
+
           const disabled =
-            (!canRenewThisPlan && isCurrentPlan) || checkingOut === plan.code;
-          const ctaLabel = isCurrentPlan
-            ? canRenewThisPlan
-              ? "Renew"
-              : "Current Plan"
+            (!canRenewThisPlan && !isExpired && isCurrentPlan) ||
+            checkingOut === plan.code;
+
+          const ctaLabel = isRenewal
+            ? "Renew"
+            : isCurrentPlan
+            ? "Current Plan"
             : "Subscribe";
 
           return (
@@ -131,7 +142,7 @@ const PlansGrid = ({
                 <Button
                   className="w-full"
                   variant={
-                    popular && !planMatchesCurrent(featureKey)
+                    popular && (!planMatchesCurrent(featureKey) || isExpired)
                       ? "default"
                       : "outline"
                   }

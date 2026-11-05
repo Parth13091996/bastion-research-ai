@@ -62,7 +62,16 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
       return;
     }
 
-    // Optional: address2
+    // Store trimmed & cleaned values in formData
+    updateFormData("firstName", formData.firstName.trim());
+    updateFormData("lastName", formData.lastName.trim());
+    updateFormData("dateOfBirth", formData.dateOfBirth.trim());
+    updateFormData("address1", formData.address1.trim());
+    updateFormData("address2", (formData.address2 || "").trim());
+    updateFormData("state", formData.state.trim());
+    updateFormData("city", formData.city.trim());
+    updateFormData("company", formData.company.trim());
+    updateFormData("pinCode", cleanPin);
 
     if (user?.id) {
       updateUser(user.id, {

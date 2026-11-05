@@ -17,6 +17,7 @@ const CurrentPlanCard = ({
   hasAnyPlan,
   onFreePlan,
   currentPlanCode,
+  isExpired: isExpiredProp,
 }: {
   isLoading: boolean;
   isError: boolean;
@@ -24,12 +25,17 @@ const CurrentPlanCard = ({
   hasAnyPlan: boolean;
   onFreePlan: boolean;
   currentPlanCode: string | null;
+  isExpired?: boolean;
 }) => {
   // Extract expiry date and check if expired
   const expireNextRenewal = subscription?.subscription?.expireNextRenewal;
   const isExpired =
-    expireNextRenewal &&
-    new Date(expireNextRenewal).getTime() < new Date().setHours(0, 0, 0, 0);
+    typeof isExpiredProp === "boolean"
+      ? isExpiredProp
+      : Boolean(
+          expireNextRenewal &&
+            new Date(expireNextRenewal).getTime() < new Date().setHours(0, 0, 0, 0)
+        );
 
   const formatDate = (dateString: string) =>
     format(new Date(dateString), "MMM dd, yyyy");

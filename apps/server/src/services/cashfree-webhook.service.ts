@@ -1,3 +1,4 @@
+import { incrementCouponUsage } from '../controllers/coupon.controller'
 import crypto from 'crypto'
 import { supabase } from '../supabase'
 import { config } from '../utils/config'
@@ -227,6 +228,13 @@ export const handlePaymentSuccess = async (payload: any) => {
   }
 
   await Promise.all([updateUserPromise, persistPaymentHistory()])
+  if (normalizedCouponCode && !wasAlreadySuccessful) {
+    try {
+      await incrementCouponUsage(normalizedCouponCode)
+    } catch (e: any) {
+      console.error('Failed to increment coupon usage in webhook:', e)
+    }
+  }
   if (resolvedUserId && !wasAlreadySuccessful) {
     void sendWelcomeEmailForUser(resolvedUserId, currentPlan?.plan_name)
     void (async () => {

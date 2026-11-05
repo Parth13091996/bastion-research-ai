@@ -99,22 +99,43 @@ export const deleteCoupon = async (req: Request, res: Response) => {
 export const validateCoupon = async (req: Request, res: Response) => {
   const { code } = req.query;
 
-  if (!code) {
+  if (!code || typeof code !== "string" || !code.trim()) {
     return res.status(400).json({ error: "Coupon code is required" });
   }
+
+  const normalized = code.trim().toUpperCase();
 
   const { data, error } = await supabase
     .from("coupons")
     .select("*")
-    .eq("coupon_code", code)
-    .eq("active", true)
-    .single();
+    .ilike("coupon_code", normalized)
+    .maybeSingle();
 
   if (error) {
-    if (error.code === "PGRST116") {
-      return res.status(404).json({ error: "Coupon not found" });
-    }
     return res.status(500).json({ error: error.message });
+  }
+
+  if (!data) {
+    return res.status(404).json({ error: "Invalid coupon code" });
+  }
+
+  // Check if coupon usage limit reached
+  const maxUses = typeof data.max_uses === "number" ? data.max_uses : null;
+  const usedCount = typeof data.used_count === "number" ? data.used_count : 0;
+
+  if (maxUses !== null && usedCount >= maxUses) {
+    // Auto-deactivate coupon if it reached max uses
+    if (data.active) {
+      await supabase
+        .from("coupons")
+        .update({ active: false })
+        .eq("coupon_id", data.coupon_id);
+    }
+    return res.status(400).json({ error: "Coupon usage limit reached" });
+  }
+
+  if (!data.active) {
+    return res.status(400).json({ error: "Coupon is no longer active" });
   }
 
   // Check if coupon is expired
@@ -126,19 +147,25 @@ export const validateCoupon = async (req: Request, res: Response) => {
 };
 
 export const incrementCouponUsage = async (couponCode: string) => {
+  if (!couponCode || !couponCode.trim()) return;
+  const normalized = couponCode.trim().toUpperCase();
+
   // Fetch current coupon data
   const { data: coupon, error: fetchError } = await supabase
     .from("coupons")
-    .select("used_count, max_uses, active")
-    .eq("coupon_code", couponCode)
-    .single();
+    .select("coupon_id, coupon_code, used_count, max_uses, active")
+    .ilike("coupon_code", normalized)
+    .maybeSingle();
 
   if (fetchError || !coupon) {
-    throw new Error(`Coupon ${couponCode} not found`);
+    console.warn(`Coupon ${couponCode} not found for incrementing usage`);
+    return;
   }
 
-  const newUsedCount = (coupon.used_count || 0) + 1;
-  const shouldDeactivate = coupon.max_uses && newUsedCount >= coupon.max_uses;
+  const currentCount = typeof coupon.used_count === "number" ? coupon.used_count : 0;
+  const newUsedCount = currentCount + 1;
+  const shouldDeactivate =
+    typeof coupon.max_uses === "number" && newUsedCount >= coupon.max_uses;
 
   // Update used_count and active status if needed
   const { error: updateError } = await supabase
@@ -146,10 +173,12 @@ export const incrementCouponUsage = async (couponCode: string) => {
     .update({
       used_count: newUsedCount,
       active: shouldDeactivate ? false : coupon.active,
+      updated_at: new Date().toISOString(),
     })
-    .eq("coupon_code", couponCode);
+    .eq("coupon_id", coupon.coupon_id);
 
   if (updateError) {
+    console.error(`Failed to update coupon usage for ${couponCode}:`, updateError.message);
     throw new Error(`Failed to update coupon usage: ${updateError.message}`);
   }
 };
