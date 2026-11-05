@@ -11,6 +11,7 @@ import {
   startOnboarding,
   verifyPan as apiVerifyPan,
 } from "@/api/onboarding-apis";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -21,6 +22,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
   onBack,
   onNext,
 }) => {
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -156,19 +158,36 @@ const KYCStep: React.FC<KYCStepProps> = ({
 
     setLoading(true);
     try {
+      const effectivePin = formData.pinCode || user?.pin_code || "";
+      const effectiveFirstName = formData.firstName || user?.first_name || "";
+      const effectiveLastName = formData.lastName || user?.last_name || "";
+      const effectiveDob = formData.dateOfBirth || user?.date_of_birth || "";
+      const effectiveEmail = formData.email || user?.email || "";
+      const effectivePhone = formData.phone || user?.phone || "";
+      const effectiveAddress1 = formData.address1 || user?.address_1 || "";
+      const effectiveAddress2 = formData.address2 || user?.address_2 || "";
+      const effectiveState = formData.state || user?.state || "";
+      const effectiveCity = formData.city || user?.city || "";
+      const effectiveCompany = formData.company || user?.company || "";
+
+      if (!formData.pinCode && effectivePin) updateFormData("pinCode", effectivePin);
+      if (!formData.firstName && effectiveFirstName) updateFormData("firstName", effectiveFirstName);
+      if (!formData.lastName && effectiveLastName) updateFormData("lastName", effectiveLastName);
+
       await startOnboarding({
-        email: formData.email,
-        phone: formData.phone,
+        email: effectiveEmail,
+        phone: effectivePhone,
         password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        dateOfBirth: formData.dateOfBirth,
-        address1: formData.address1,
-        address2: formData.address2,
-        state: formData.state,
-        city: formData.city,
-        pinCode: formData.pinCode,
-        company: formData.company,
+        firstName: effectiveFirstName,
+        lastName: effectiveLastName,
+        dateOfBirth: effectiveDob,
+        address1: effectiveAddress1,
+        address2: effectiveAddress2,
+        state: effectiveState,
+        city: effectiveCity,
+        pinCode: effectivePin,
+        pin_code: effectivePin,
+        company: effectiveCompany,
         panCard: formData.panCard,
         panVerification: verification,
         status: "onboarded",
@@ -176,10 +195,10 @@ const KYCStep: React.FC<KYCStepProps> = ({
         plan_id: formData.selectedPlan
           ? Number(formData.selectedPlan)
           : (typeof window !== "undefined" && localStorage.getItem("selectedPlan")
-              ? Number(localStorage.getItem("selectedPlan"))
-              : undefined),
+            ? Number(localStorage.getItem("selectedPlan"))
+            : undefined),
         onboarding_session_id: formData.onboardingSessionId,
-      });
+      } as any);
       setLoading(false);
       onNext();
     } catch (e: any) {
@@ -273,11 +292,10 @@ const KYCStep: React.FC<KYCStepProps> = ({
 
         {verification && (
           <div
-            className={`border rounded-lg p-4 text-sm ${
-              verification.valid
-                ? "border-green-200 bg-green-50"
-                : "border-yellow-200 bg-yellow-50"
-            }`}
+            className={`border rounded-lg p-4 text-sm ${verification.valid
+              ? "border-green-200 bg-green-50"
+              : "border-yellow-200 bg-yellow-50"
+              }`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center text-sm font-medium">

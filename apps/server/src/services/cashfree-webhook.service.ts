@@ -1,3 +1,4 @@
+import { incrementCouponUsage } from '../controllers/coupon.controller'
 import crypto from 'crypto'
 import { supabase } from '../supabase'
 import { config } from '../utils/config'
@@ -161,7 +162,7 @@ export const handlePaymentSuccess = async (payload: any) => {
     transaction_status: payment?.payment_status,
     plan_id: currentPlan?.plan_id,
     payer_email: customer_details?.customer_email,
-    created_at: payment?.payment_time,
+    created_at: payment?.payment_time || paymentTime.toISOString(),
     discounted_amount:
       typeof payment?.payment_amount === 'number'
         ? payment.payment_amount
@@ -204,7 +205,7 @@ export const handlePaymentSuccess = async (payload: any) => {
         transaction_status: payment?.payment_status,
         plan_id: currentPlan?.plan_id,
         payer_email: customer_details?.customer_email,
-        created_at: payment?.payment_time,
+        created_at: payment?.payment_time || paymentTime.toISOString(),
       }
       if (resolvedUserId) {
         fallbackBase.user_id = resolvedUserId
@@ -227,6 +228,13 @@ export const handlePaymentSuccess = async (payload: any) => {
   }
 
   await Promise.all([updateUserPromise, persistPaymentHistory()])
+  if (normalizedCouponCode && !wasAlreadySuccessful) {
+    try {
+      await incrementCouponUsage(normalizedCouponCode)
+    } catch (e: any) {
+      console.error('Failed to increment coupon usage in webhook:', e)
+    }
+  }
   if (resolvedUserId && !wasAlreadySuccessful) {
     void sendWelcomeEmailForUser(resolvedUserId, currentPlan?.plan_name)
     void (async () => {

@@ -85,10 +85,24 @@ export const createOrderForPlanService = async (params: {
     if (!normalizedCouponCode) return null;
     const { data, error } = await supabase
       .from("coupons")
-      .select("coupon_id")
-      .eq("coupon_code", normalizedCouponCode)
+      .select("coupon_id, active, max_uses, used_count, expiry_date")
+      .ilike("coupon_code", normalizedCouponCode)
       .maybeSingle();
-    if (error) return null;
+    if (error || !data) {
+      throw new Error("Invalid or inactive coupon code");
+    }
+    if (!data.active) {
+      throw new Error("Coupon is inactive");
+    }
+    if (data.expiry_date && new Date(data.expiry_date) < new Date()) {
+      throw new Error("Coupon has expired");
+    }
+    const maxUses = typeof data.max_uses === "number" ? data.max_uses : null;
+    const usedCount = typeof data.used_count === "number" ? data.used_count : 0;
+    if (maxUses !== null && usedCount >= maxUses) {
+      throw new Error("Coupon usage limit reached");
+    }
+
     return typeof (data as any)?.coupon_id === "number"
       ? (data as any).coupon_id
       : null;
@@ -102,6 +116,8 @@ export const createOrderForPlanService = async (params: {
     tier: planRow.tier,
     plan_code: planRow.plan_code,
   };
+
+  const resolvedCouponId = await couponIdForCode();
 
   // Handle free tier or zero-amount subscription
   if (params.is_free || params.discount_amount === 0) {
@@ -142,7 +158,7 @@ export const createOrderForPlanService = async (params: {
       created_at: startDate.toISOString(),
       discounted_amount: 0,
       coupon_code: normalizedCouponCode,
-      coupon_applied: await couponIdForCode(),
+      coupon_applied: resolvedCouponId,
     };
 
     const { error: freeInsertErr } = await supabase
@@ -209,31 +225,5 @@ export const createOrderForPlanService = async (params: {
   };
 
   const response = await pgCreateOrder(request);
-  const pendingPaymentBase: any = {
-    payer_email: params.customer_email || null,
-    transaction_status: "PENDING",
-    user_id: params.customer_id,
-    plan_id: planRow.plan_id,
-    transaction_id: transactionId,
-    created_at: new Date().toISOString(),
-    discounted_amount: selected.amount,
-    coupon_code: normalizedCouponCode,
-    coupon_applied: await couponIdForCode(),
-  };
-
-  const { error: pendingUpsertErr } = await supabase
-    .from("payment_history")
-    .upsert(pendingPaymentBase);
-  if (pendingUpsertErr?.message?.toLowerCase?.().includes("column")) {
-    await supabase.from("payment_history").upsert({
-      payer_email: params.customer_email || null,
-      transaction_status: "PENDING",
-      user_id: params.customer_id,
-      plan_id: planRow.plan_id,
-      transaction_id: transactionId,
-      created_at: new Date().toISOString(),
-    });
-  }
-
   return { selected, order: response?.data || response };
 };

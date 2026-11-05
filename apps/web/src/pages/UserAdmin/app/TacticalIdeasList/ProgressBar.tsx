@@ -8,7 +8,6 @@ const TacticalProgressBar = ({
   stock: StockData;
   blurStyle?: React.CSSProperties;
 }) => {
-  console.log({ tac: stock });
   const entry = Number(stock.entryPrice ?? 0);
   const cmp = Number(stock.cmp ?? 0);
   const stopLoss = Number(stock.stopLoss ?? 0);
@@ -67,9 +66,8 @@ const TacticalProgressBar = ({
           </div>
 
           <div
-            className={`absolute top-5 text-xs ${
-              isProfit ? "text-green-700" : "text-red-700"
-            }`}
+            className={`absolute top-5 text-xs ${isProfit ? "text-green-700" : "text-red-700"
+              }`}
             style={{
               left: `${cmpPos}%`,
               transform: "translateX(-50%)",

@@ -28,10 +28,10 @@ export const verifyPan = async (req: Request, res: Response) => {
     }
 
     const normalizedPan = pan.trim().toUpperCase()
+    const currentUserId = (req as any).user?.id as string | undefined
 
-    // Check PAN uniqueness in the system (ignore current user, if any)
+    // 1. Check PAN uniqueness in the system (ignore current user, if any)
     try {
-      const currentUserId = (req as any).user?.id as string | undefined
       const { data: existing, error: existingError } = await supabase
         .from('users')
         .select('id')
@@ -39,7 +39,6 @@ export const verifyPan = async (req: Request, res: Response) => {
         .maybeSingle()
 
       if (existingError) {
-        // Log but don't block PAN verification just because of a lookup issue
         console.error('Error checking PAN uniqueness:', existingError)
       }
 
@@ -52,7 +51,110 @@ export const verifyPan = async (req: Request, res: Response) => {
       console.error('PAN uniqueness check failed:', e)
     }
 
+    // 2. Check if this PAN is already cached in pan_verifications table
+    try {
+      const { data: cachedPan, error: cacheError } = await supabase
+        .from('pan_verifications')
+        .select('*')
+        .eq('pan_number', normalizedPan)
+        .eq('status', 'VALID')
+        .maybeSingle()
+
+      if (!cacheError && cachedPan && (cachedPan.valid === true || cachedPan.status === 'VALID')) {
+        // Link user_id if not linked yet and user is authenticated
+        if (currentUserId && !cachedPan.user_id) {
+          void supabase
+            .from('pan_verifications')
+            .update({ user_id: currentUserId, updated_at: new Date().toISOString() })
+            .eq('pan_number', normalizedPan)
+            .then(() => { })
+        }
+
+        return res.status(200).json({
+          referenceId: cachedPan.reference_id,
+          valid: true,
+          status: 'VALID',
+          registeredName: cachedPan.registered_name,
+          nameProvided: name,
+          message: cachedPan.message || 'PAN verified successfully',
+          panHolderType: cachedPan.pan_holder_type,
+          raw: cachedPan.raw_response || {
+            pan: normalizedPan,
+            type: cachedPan.pan_holder_type,
+            reference_id: cachedPan.reference_id,
+            name_provided: name,
+            registered_name: cachedPan.registered_name,
+            valid: true,
+            message: cachedPan.message || 'PAN verified successfully',
+          },
+          cached: true,
+        })
+      }
+    } catch (cacheLookupErr) {
+      console.warn('PAN cache lookup skipped:', cacheLookupErr)
+    }
+
+    // 3. Fallback: check if the current user already verified this PAN previously
+    if (currentUserId) {
+      try {
+        const { data: currentUserData } = await supabase
+          .from('users')
+          .select('pan_card_number, pan_verification_metadata')
+          .eq('id', currentUserId)
+          .maybeSingle()
+
+        if (
+          currentUserData?.pan_card_number === normalizedPan &&
+          currentUserData?.pan_verification_metadata?.valid === true
+        ) {
+          const meta = currentUserData.pan_verification_metadata
+          return res.status(200).json({
+            referenceId: meta.referenceId || meta.reference_id,
+            valid: true,
+            status: 'VALID',
+            registeredName: meta.registeredName || meta.registered_name,
+            nameProvided: name,
+            message: meta.message || 'PAN verified successfully',
+            panHolderType: meta.panHolderType,
+            raw: meta.raw || meta,
+            cached: true,
+          })
+        }
+      } catch (userMetaErr) {
+        console.warn('PAN user metadata lookup error:', userMetaErr)
+      }
+    }
+
+    // 4. Cache Miss: Call Cashfree API
     const data = await verifyPanRequest(normalizedPan, name)
+
+    // 5. Store verified result into pan_verifications table for future cache hits
+    if (data?.valid === true || data?.status === 'VALID') {
+      try {
+        await supabase
+          .from('pan_verifications')
+          .upsert(
+            {
+              pan_number: normalizedPan,
+              registered_name: data.registeredName || (data.raw as any)?.registered_name || '',
+              name_provided: name,
+              pan_holder_type: data.panHolderType || (data.raw as any)?.type || null,
+              reference_id: data.referenceId != null ? String(data.referenceId) : null,
+              status: data.status || 'VALID',
+              valid: true,
+              message: data.message || 'PAN verified successfully',
+              raw_response: data.raw || data,
+              user_id: currentUserId || null,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'pan_number' }
+          )
+      } catch (insertCacheErr) {
+        // Non-blocking: log warning so verification doesn't fail if table isn't created yet
+        console.warn('Could not cache verified PAN to pan_verifications:', insertCacheErr)
+      }
+    }
+
     return res.status(200).json({ ...data })
   } catch (error: any) {
     const status = error?.response?.status || 500
@@ -297,14 +399,14 @@ export const getOrder = async (req: Request, res: Response) => {
         (isPaid
           ? 'Payment verified successfully'
           : paymentStatus === 'USER_DROPPED'
-          ? 'Payment was cancelled or abandoned by user'
-          : paymentStatus === 'CANCELLED'
-          ? 'Payment was cancelled'
-          : paymentStatus === 'FAILED'
-          ? 'Payment failed'
-          : paymentStatus === 'PENDING'
-          ? 'Payment is processing'
-          : 'Payment not completed'),
+            ? 'Payment was cancelled or abandoned by user'
+            : paymentStatus === 'CANCELLED'
+              ? 'Payment was cancelled'
+              : paymentStatus === 'FAILED'
+                ? 'Payment failed'
+                : paymentStatus === 'PENDING'
+                  ? 'Payment is processing'
+                  : 'Payment not completed'),
       payments: payments.map((p: any) => ({
         payment_id: p?.cf_payment_id,
         payment_status: p?.payment_status,

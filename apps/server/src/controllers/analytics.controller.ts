@@ -208,6 +208,7 @@ export const getAnalyticsSummary = async (req: Request, res: Response) => {
         )
       `
       )
+      .in("transaction_status", ["SUCCESS", "FREE", "COUPON_APPLIED"])
       .order("created_at", { ascending: false });
 
     if (paymentsError) {
