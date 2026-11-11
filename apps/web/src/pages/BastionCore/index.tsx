@@ -80,7 +80,14 @@ export default function BastionCoreProductPage() {
   const [plans, setPlans] = useState<any[]>([]);
   const [plansLoading, setPlansLoading] = useState<boolean>(false);
   const [plansError, setPlansError] = useState<string | null>(null);
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const { user } = useAuth();
+  const [isSignUpOpen, setIsSignUpOpen] = useState(() => (typeof window !== "undefined" ? sessionStorage.getItem("onboarding_open") === "true" : false));
+
+  useEffect(() => {
+    if (user && (user.status === "pending" || user.status === "onboarded")) {
+      setIsSignUpOpen(true);
+    }
+  }, [user]);
 
   // 👇 State for Floating Button
   const [showFloatingBtn, setShowFloatingBtn] = useState(false);

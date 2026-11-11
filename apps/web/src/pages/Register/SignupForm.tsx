@@ -16,6 +16,23 @@ import favicon from "../../../../server/public/favicon.webp";
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+
+  const handleCloseModal = () => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("onboarding_open");
+      } catch {}
+    }
+    onClose();
+  };
+
+  useEffect(() => {
+    if (isOpen && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("onboarding_open", "true");
+      } catch {}
+    }
+  }, [isOpen]);
   const isAgreementSignedUser = user?.status === "agreement_signed";
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -484,7 +501,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
                 Subscribe to <strong>Bastion CORE</strong>
               </p>
               <button
-                onClick={onClose}
+                onClick={handleCloseModal}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X size={22} />

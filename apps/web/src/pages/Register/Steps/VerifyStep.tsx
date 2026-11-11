@@ -42,7 +42,12 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       });
       toast.success(response?.message || "OTP verified");
       if (response?.user && login) {
-        login(response.user, response.token);
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem("onboarding_open", "true");
+          } catch {}
+        }
+        login(response.user, response.token, response.refreshToken);
         void refetchUser();
       }
       nextStep && nextStep();

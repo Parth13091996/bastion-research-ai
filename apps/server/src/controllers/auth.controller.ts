@@ -16,7 +16,6 @@ import {
   clearOnboardingDropOffForUser,
   startOnboardingDropOffSession,
 } from "../automations/onboardingDropOff.scheduler";
-export { generateToken, getAuthCookieOptions };
 import { syncOnboardedUserToMailchimp } from "../services/mailchimpAudience.service";
 type OnboardingUserData = {
   email: string;
@@ -39,7 +38,10 @@ type OnboardingUserData = {
   [key: string]: any; // To allow extra props if necessary
 };
 
-const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
+export const getAccessExpiresIn = (): string => process.env.JWT_ACCESS_EXPIRES_IN || "1d";
+export const getRefreshExpiresIn = (): string => process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+
+export const generateToken = (id: string, email: string, expiresIn: string = getAccessExpiresIn()) => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("JWT_SECRET is not defined in environment variables.");
@@ -57,17 +59,55 @@ const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 //   maxAge: 24 * 60 * 60 * 1000,
 // });
 
-const getAuthCookieOptions = () => {
+export const parseDurationToMs = (duration: string, defaultMs: number): number => {
+  if (!duration) return defaultMs;
+  const match = duration.match(/^(\d+)(s|m|h|d|w)?$/);
+  if (!match) return defaultMs;
+  const val = parseInt(match[1], 10);
+  const unit = match[2];
+  switch (unit) {
+    case 's': return val * 1000;
+    case 'm': return val * 60 * 1000;
+    case 'h': return val * 60 * 60 * 1000;
+    case 'd': return val * 24 * 60 * 60 * 1000;
+    case 'w': return val * 7 * 24 * 60 * 60 * 1000;
+    default: return val * 1000;
+  }
+};
+
+export const getRefreshSecret = (): string => {
+  const secret =
+    process.env.JWT_REFRESH_SECRET ||
+    (process.env.JWT_SECRET ? `${process.env.JWT_SECRET}_refresh` : "");
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined in environment variables.");
+  }
+  return secret;
+};
+
+export const generateRefreshToken = (
+  id: string,
+  email: string,
+  expiresIn: string = getRefreshExpiresIn()
+) => {
+  const secret = getRefreshSecret();
+  return jwt.sign({ id, email, type: "refresh" }, secret, {
+    expiresIn: expiresIn as any,
+  });
+};
+
+export const getAuthCookieOptions = (maxAgeMs: number = 24 * 60 * 60 * 1000) => {
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.APP_ENV === "production";
   const isSecure =
     process.env.COOKIE_SECURE === "true" ||
-    process.env.NODE_ENV === "production" ||
-    true;
+    (isProduction && process.env.COOKIE_SECURE !== "false");
 
   return {
     httpOnly: true,
     secure: isSecure,
     sameSite: isSecure ? ("none" as const) : ("lax" as const),
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: maxAgeMs,
     path: "/",
   };
 };
@@ -118,8 +158,12 @@ export const signIn = async (req: Request, res: Response) => {
     }
 
     const token = generateToken(user.id, user.email);
+    const refreshToken = generateRefreshToken(user.id, user.email);
 
-    res.cookie("token", token, getAuthCookieOptions());
+    const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+    const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+    res.cookie("token", token, getAuthCookieOptions(accessMaxAge));
+    res.cookie("refreshToken", refreshToken, getAuthCookieOptions(refreshMaxAge));
 
     // Fire-and-forget: record a login activity (do not block sign-in)
     try {
@@ -159,6 +203,7 @@ export const signIn = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Signed in successfully",
       token,
+      refreshToken,
       user: {
         ...safeUserData,
         membership_plans: membershipPlans,
@@ -661,14 +706,22 @@ export const onboardUser = async (req: Request, res: Response) => {
       }).catch((e) => console.error("Mailchimp free onboarding sync failed", e));
     }
 
-    // Issue a session cookie so subsequent steps are authenticated
+    // Issue session cookies so subsequent steps are authenticated
+    let token = "";
+    let refreshToken = "";
     try {
-      const token = generateToken(userId as string, normalizedEmail);
-      res.cookie("token", token, getAuthCookieOptions());
+      token = generateToken(userId as string, normalizedEmail);
+      refreshToken = generateRefreshToken(userId as string, normalizedEmail);
+      const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+      const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+      res.cookie("token", token, getAuthCookieOptions(accessMaxAge));
+      res.cookie("refreshToken", refreshToken, getAuthCookieOptions(refreshMaxAge));
     } catch { }
 
     return res.status(200).json({
       message: "Onboarding started. User saved.",
+      token,
+      refreshToken,
       user: { id: userId, email: normalizedEmail, status },
     });
   } catch (error: any) {
@@ -922,14 +975,85 @@ export const getUserSession = async (req: Request, res: Response) => {
       req.cookies?.token ||
       req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
-    if (!token) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error("JWT_SECRET not set");
 
-    const decoded = jwt.verify(token, secret) as { id: string; email: string };
+    let decoded: { id: string; email: string } | null = null;
+
+    if (token && token !== "undefined" && token !== "null") {
+      try {
+        decoded = jwt.verify(token, secret) as { id: string; email: string };
+      } catch (err: any) {
+        if (err.name === "TokenExpiredError") {
+          // Access token expired: silent auto-refresh using refreshToken if valid
+          const refreshSecret = getRefreshSecret();
+          const refreshCandidates = [
+            req.cookies?.refreshToken,
+            req.headers["x-refresh-token"] as string,
+            (req.body as any)?.refreshToken,
+          ].filter(
+            (t): t is string =>
+              typeof t === "string" &&
+              t.trim().length > 0 &&
+              t !== "undefined" &&
+              t !== "null"
+          );
+
+          for (const cand of refreshCandidates) {
+            try {
+              const refreshDecoded = jwt.verify(cand, refreshSecret) as any;
+              if (refreshDecoded && refreshDecoded.id) {
+                decoded = { id: refreshDecoded.id, email: refreshDecoded.email };
+                const newAccessToken = generateToken(refreshDecoded.id, refreshDecoded.email, getAccessExpiresIn());
+                const newRefreshToken = generateRefreshToken(refreshDecoded.id, refreshDecoded.email, getRefreshExpiresIn());
+                const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+                const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+                res.cookie("token", newAccessToken, getAuthCookieOptions(accessMaxAge));
+                res.cookie("refreshToken", newRefreshToken, getAuthCookieOptions(refreshMaxAge));
+                res.setHeader("x-access-token", newAccessToken);
+                res.setHeader("x-refresh-token", newRefreshToken);
+                break;
+              }
+            } catch {}
+          }
+        }
+      }
+    } else {
+      // No access token (e.g. expired & cleared by browser), check refresh token candidates
+      const refreshSecret = getRefreshSecret();
+      const refreshCandidates = [
+        req.cookies?.refreshToken,
+        req.headers["x-refresh-token"] as string,
+      ].filter(
+        (t): t is string =>
+          typeof t === "string" &&
+          t.trim().length > 0 &&
+          t !== "undefined" &&
+          t !== "null"
+      );
+
+      for (const cand of refreshCandidates) {
+        try {
+          const refreshDecoded = jwt.verify(cand, refreshSecret) as any;
+          if (refreshDecoded && refreshDecoded.id) {
+            decoded = { id: refreshDecoded.id, email: refreshDecoded.email };
+            const newAccessToken = generateToken(refreshDecoded.id, refreshDecoded.email, getAccessExpiresIn());
+            const newRefreshToken = generateRefreshToken(refreshDecoded.id, refreshDecoded.email, getRefreshExpiresIn());
+            const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+            const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+            res.cookie("token", newAccessToken, getAuthCookieOptions(accessMaxAge));
+            res.cookie("refreshToken", newRefreshToken, getAuthCookieOptions(refreshMaxAge));
+            res.setHeader("x-access-token", newAccessToken);
+            res.setHeader("x-refresh-token", newRefreshToken);
+            break;
+          }
+        } catch {}
+      }
+    }
+
+    if (!decoded) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     let userResult = await supabase
       .from("users")
@@ -1030,9 +1154,90 @@ export const getUserSession = async (req: Request, res: Response) => {
 
 export const logout = (req: Request, res: Response) => {
   res.cookie("token", "", {
-    ...getAuthCookieOptions(),
+    ...getAuthCookieOptions(0),
+    expires: new Date(0),
+    maxAge: 0,
+  });
+  res.cookie("refreshToken", "", {
+    ...getAuthCookieOptions(0),
     expires: new Date(0),
     maxAge: 0,
   });
   res.status(200).json({ message: "Logged out successfully" });
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const rawRefreshTokenCandidates = [
+      req.body?.refreshToken,
+      req.cookies?.refreshToken,
+      req.headers["x-refresh-token"] as string,
+    ].filter(
+      (t): t is string =>
+        typeof t === "string" &&
+        t.trim().length > 0 &&
+        t !== "undefined" &&
+        t !== "null"
+    );
+
+    if (rawRefreshTokenCandidates.length === 0) {
+      console.warn("[refreshToken] No refresh token provided in body, cookies, or headers");
+      return res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    const refreshSecret = getRefreshSecret();
+    let decoded: any = null;
+    let lastError: any = null;
+
+    for (const tokenCandidate of rawRefreshTokenCandidates) {
+      try {
+        const result = jwt.verify(tokenCandidate, refreshSecret) as any;
+        if (result && result.id && (result.type === "refresh" || !result.type)) {
+          decoded = result;
+          break;
+        }
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    if (!decoded) {
+      console.warn("[refreshToken] Refresh token verification failed:", lastError?.message);
+      return res.status(401).json({
+        message: "Invalid or expired refresh token",
+        error: lastError?.name || "Unauthorized",
+      });
+    }
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, email, status, role, username")
+      .eq("id", decoded.id)
+      .maybeSingle();
+
+    if (error || !user) {
+      console.warn("[refreshToken] User not found for id:", decoded.id);
+      return res.status(401).json({ message: "User not found or session expired" });
+    }
+
+    const newAccessToken = generateToken(user.id, user.email, getAccessExpiresIn());
+    const newRefreshToken = generateRefreshToken(user.id, user.email, getRefreshExpiresIn());
+
+    const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+    const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+    res.cookie("token", newAccessToken, getAuthCookieOptions(accessMaxAge));
+    res.cookie("refreshToken", newRefreshToken, getAuthCookieOptions(refreshMaxAge));
+    res.setHeader("x-access-token", newAccessToken);
+    res.setHeader("x-refresh-token", newRefreshToken);
+
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
+      user,
+    });
+  } catch (error: any) {
+    console.error("[refreshToken] Unexpected error:", error);
+    return res.status(500).json({ message: "Failed to refresh token" });
+  }
 };
