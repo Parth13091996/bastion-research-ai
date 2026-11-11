@@ -6,6 +6,7 @@ import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { supabase } from "../supabase";
 import jwt from "jsonwebtoken";
 import { saveOtp, validateOtp } from "../services/otpStore.service";
+import { generateRefreshToken, getAuthCookieOptions, parseDurationToMs } from "./auth.controller";
 
 // Initialize Twilio Client
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -25,7 +26,7 @@ const generateOtp = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
+const generateToken = (id: string, email: string, expiresIn: string = process.env.JWT_ACCESS_EXPIRES_IN || "1d") => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("JWT_SECRET is not defined in environment variables.");
@@ -43,20 +44,7 @@ const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 //   maxAge: 24 * 60 * 60 * 1000,
 // });
 
-const getAuthCookieOptions = () => {
-  const isSecure =
-    process.env.COOKIE_SECURE === "true" ||
-    process.env.NODE_ENV === "production" ||
-    true;
 
-  return {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: isSecure ? ("none" as const) : ("lax" as const),
-    maxAge: 24 * 60 * 60 * 1000,
-    path: "/",
-  };
-};
 
 const normalizePhone = (input?: string): string => {
   const raw = (input || "").trim().replace(/\s+/g, "");
@@ -418,15 +406,22 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
     if (insertError) throw insertError;
 
-    // 7. Generate authentication token
+    // 7. Generate authentication and refresh tokens
     const token = generateToken(user.id, user.email);
+    const refreshToken = generateRefreshToken(user.id, user.email);
 
-    res.cookie("token", token, getAuthCookieOptions());
+    const accessMaxAge = parseDurationToMs(process.env.JWT_ACCESS_EXPIRES_IN || "1d", 24 * 60 * 60 * 1000);
+    const refreshMaxAge = parseDurationToMs(process.env.JWT_REFRESH_EXPIRES_IN || "7d", 7 * 24 * 60 * 60 * 1000);
+    res.cookie("token", token, getAuthCookieOptions(accessMaxAge));
+    res.cookie("refreshToken", refreshToken, getAuthCookieOptions(refreshMaxAge));
+    res.setHeader("x-access-token", token);
+    res.setHeader("x-refresh-token", refreshToken);
 
     return res.status(201).json({
       message: "OTP verified and account created successfully.",
       user,
       token,
+      refreshToken,
     });
 
   } catch (error: any) {

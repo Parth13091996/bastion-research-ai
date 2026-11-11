@@ -42,11 +42,11 @@ type LoginFormValues = {
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { user, login, isAuthenticated, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [useOtp, setUseOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = useState(() => (typeof window !== "undefined" ? sessionStorage.getItem("onboarding_open") === "true" : false));
 
   const {
     register,
@@ -62,7 +62,7 @@ const Login = () => {
   const mutation = useMutation<any, Error, LoginFormValues>({
     mutationFn: (data) => signIn(data),
     onSuccess: (data) => {
-      login(data.user, data.token);
+      login(data.user, data.token, data.refreshToken);
       const shouldResumeOnboarding =
         data?.user?.role !== "admin" &&
         data?.user?.status !== "active" &&
@@ -70,6 +70,11 @@ const Login = () => {
         data?.user?.status !== "agreement_signed";
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem("onboarding_open", "true");
+          } catch {}
+        }
         setTimeout(() => {
           setIsSignUpOpen(true);
         }, 100);
@@ -115,11 +120,22 @@ const Login = () => {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
+      const isStillOnboarding =
+        user?.role !== "admin" &&
+        user?.status !== "active" &&
+        user?.status !== "free" &&
+        user?.status !== "agreement_signed";
+
+      if (isStillOnboarding) {
+        setIsSignUpOpen(true);
+        return;
+      }
+
       navigate("/user/app/dashboard", {
         replace: true,
       });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, user]);
 
   if (isLoading) {
     return (

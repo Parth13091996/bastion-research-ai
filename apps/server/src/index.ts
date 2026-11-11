@@ -30,7 +30,14 @@ import qnaRoutes from './routes/qna.routes'
 import subscriptionWhatsappRoutes from './routes/subscription-whatsapp.routes'
 import publicRoutes from './routes/public.routes'
 
-dotenv.config()
+import fs from 'fs'
+import path from 'path'
+
+// Load environment variables (.env.development if .env doesn't exist)
+const envPath = fs.existsSync(path.resolve(process.cwd(), '.env'))
+  ? path.resolve(process.cwd(), '.env')
+  : path.resolve(process.cwd(), '.env.development');
+dotenv.config({ path: envPath });
 
 const app: Express = express()
 const port = Number(process.env.PORT) || 3001
@@ -136,8 +143,10 @@ app.use(
       'Origin',
       'Cookie',
       'Set-Cookie',
+      'x-access-token',
+      'x-refresh-token',
     ],
-    exposedHeaders: ['Set-Cookie'],
+    exposedHeaders: ['Set-Cookie', 'x-access-token', 'x-refresh-token'],
     optionsSuccessStatus: 200, // For legacy browser support
   })
 )

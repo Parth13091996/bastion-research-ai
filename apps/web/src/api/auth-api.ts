@@ -25,3 +25,10 @@ export async function resetPassword(payload: { token: string; password: string }
   return axiosInstance.post(endpoints.auth.resetPassword, payload);
 }
 
+
+export async function refreshSession(refreshToken?: string) {
+  const { data } = await axiosInstance.post(endpoints.auth.refresh, {
+    refreshToken,
+  });
+  return data as { token: string; refreshToken?: string; user?: User };
+}

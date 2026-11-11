@@ -174,7 +174,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
       if (!formData.firstName && effectiveFirstName) updateFormData("firstName", effectiveFirstName);
       if (!formData.lastName && effectiveLastName) updateFormData("lastName", effectiveLastName);
 
-      await startOnboarding({
+      const startRes = await startOnboarding({
         email: effectiveEmail,
         phone: effectivePhone,
         password: formData.password,
@@ -199,6 +199,15 @@ const KYCStep: React.FC<KYCStepProps> = ({
             : undefined),
         onboarding_session_id: formData.onboardingSessionId,
       } as any);
+      if ((startRes as any)?.token && typeof window !== "undefined") {
+        try {
+          localStorage.setItem("token", (startRes as any).token);
+          if ((startRes as any).refreshToken) {
+            localStorage.setItem("refreshToken", (startRes as any).refreshToken);
+          }
+          sessionStorage.setItem("onboarding_open", "true");
+        } catch {}
+      }
       setLoading(false);
       onNext();
     } catch (e: any) {
