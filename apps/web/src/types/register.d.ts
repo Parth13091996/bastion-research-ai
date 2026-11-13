@@ -34,6 +34,7 @@ interface PanVerificationSummary {
   nameMatchScore?: string;
   message?: string;
   checkedAt?: string;
+  alreadyVerified?: boolean;
 }
 
 interface SignUpFormProps {
@@ -48,6 +49,7 @@ interface Plan {
   currency: string;
   plan_code?: string;
   tier?: number;
+  plan_id?: number | string;
 }
 
 interface RegisterStepProps {
@@ -114,6 +116,7 @@ interface PlansStepProps {
   isLoading: boolean;
   error: string | null;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  onClose?: () => void;
 }
 
 interface AgreementStepProps {
