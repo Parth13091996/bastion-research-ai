@@ -5,6 +5,7 @@ import { ChevronDown, Info, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState, useRef } from "react";
 import axiosInstance from "@/api/axios";
 import SignUpForm from "../Register/SignupForm.tsx";
+import { useAuth } from "@/contexts/AuthContext.tsx";
 // import { ArrowLeft, Check, Info, Sparkles } from "lucide-react";
 
 // Brand Colors
@@ -309,7 +310,7 @@ export default function BastionCoreProductPage() {
               >
 
 
-        
+
                 {idx === 0 && (
                   <div className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-3 py-2 text-xs font-medium">
                     <Sparkles className="h-4 w-4" /> Once in a lifetime access
@@ -360,7 +361,7 @@ export default function BastionCoreProductPage() {
                 <ul className="mt-4 space-y-2 text-sm">
                   {idx === 0 && (
                     <>
-                    <li className="flex items-center gap-2">
+                      <li className="flex items-center gap-2">
                         <span className="text-green-600 text-lg">✓</span> Access to Bastion CORE (Existing + Past Research)
                       </li>
                       <li className="flex items-center gap-2">
@@ -401,7 +402,7 @@ export default function BastionCoreProductPage() {
 
                 <div className="mt-6 flex justify-end">
                   <a
-                  onClick={() => setIsSignUpOpen(true)}
+                    onClick={() => setIsSignUpOpen(true)}
                   >
                     <button
                       className={`px-4 py-2 rounded-xl transition-colors ${idx === 1
