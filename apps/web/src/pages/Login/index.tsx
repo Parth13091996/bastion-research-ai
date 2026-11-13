@@ -26,9 +26,9 @@ const createLoginSchema = (useOtp: boolean) =>
     password: useOtp
       ? z.string().optional()
       : z
-          .string()
-          .min(1, "Password is required")
-          .min(6, "Password must be at least 6 characters"),
+        .string()
+        .min(1, "Password is required")
+        .min(6, "Password must be at least 6 characters"),
     otp: useOtp
       ? z.string().min(1, "OTP is required")
       : z.string().optional(),
@@ -73,7 +73,7 @@ const Login = () => {
         if (typeof window !== "undefined") {
           try {
             sessionStorage.setItem("onboarding_open", "true");
-          } catch {}
+          } catch { }
         }
         setTimeout(() => {
           setIsSignUpOpen(true);
@@ -118,24 +118,24 @@ const Login = () => {
     sendOtpMutation.mutate(email);
   };
 
+  const isStillOnboarding =
+    Boolean(user) &&
+    user?.role !== "admin" &&
+    user?.role !== "employee" &&
+    (user?.status === "pending" || user?.status === "onboarded");
+
   useEffect(() => {
+    if (isStillOnboarding) {
+      setIsSignUpOpen(true);
+      return;
+    }
+
     if (!isLoading && isAuthenticated) {
-      const isStillOnboarding =
-        user?.role !== "admin" &&
-        user?.status !== "active" &&
-        user?.status !== "free" &&
-        user?.status !== "agreement_signed";
-
-      if (isStillOnboarding) {
-        setIsSignUpOpen(true);
-        return;
-      }
-
       navigate("/user/app/dashboard", {
         replace: true,
       });
     }
-  }, [isAuthenticated, isLoading, navigate, user]);
+  }, [isAuthenticated, isLoading, navigate, user, isStillOnboarding]);
 
   if (isLoading) {
     return (
@@ -148,7 +148,7 @@ const Login = () => {
     );
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !isStillOnboarding) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50 flex items-center justify-center">
         <div className="text-center">

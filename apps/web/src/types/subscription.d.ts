@@ -43,6 +43,7 @@ interface AuthContextType {
   refetchUser: () => Promise<User>;
   refetchUserAfterAgreement: () => Promise<User>;
   isAuthenticated: boolean;
+  isOnboarding: boolean;
   isAdmin: boolean;
   isEmployee: boolean;
   isStaff: boolean;

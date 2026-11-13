@@ -103,12 +103,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated =
     Boolean(user) &&
     (user?.status === "active" ||
-      user?.status === "pending" ||
-      user?.status === "onboarded" ||
       (user?.status === "free" && user?.role === "free_subscriber") ||
       user?.status === "agreement_signed" ||
       user?.role === Config.roles.admin ||
       user?.role === Config.roles.employee);
+  const isOnboarding =
+    Boolean(user) &&
+    user?.role !== Config.roles.admin &&
+    user?.role !== Config.roles.employee &&
+    (user?.status === "pending" || user?.status === "onboarded");
   const isAdmin = user?.role === Config.roles.admin;
   const isEmployee = user?.role === Config.roles.employee;
   const isStaff = isAdmin || isEmployee;
@@ -122,6 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           logout,
           refetchUser,
           isAuthenticated,
+          isOnboarding,
           isAdmin,
           isEmployee,
           isStaff,

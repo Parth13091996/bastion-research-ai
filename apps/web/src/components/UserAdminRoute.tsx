@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Outlet } from "react-router-dom";
 
 const UserAdminRoute = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -15,6 +15,22 @@ const UserAdminRoute = () => {
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // If user is still in the onboarding process, prevent accessing the dashboard
+  const isStillOnboarding =
+    Boolean(user) &&
+    user?.role !== "admin" &&
+    user?.role !== "employee" &&
+    (user?.status === "pending" || user?.status === "onboarded");
+
+  if (isStillOnboarding) {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("onboarding_open", "true");
+      } catch { }
+    }
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;
