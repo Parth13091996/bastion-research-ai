@@ -468,13 +468,13 @@ export const onboardUser = async (req: Request, res: Response) => {
       first_name: effectiveFirstName,
       last_name: effectiveLastName,
       date_of_birth: effectiveDob,
-      address_1: address1 || existingUser?.address_1 || null,
+      address_1: address1 || existingUser?.address_1 || "",
       address_2: address2 || existingUser?.address_2 || null,
-      state: state || existingUser?.state || null,
-      city: city || existingUser?.city || null,
+      state: state || existingUser?.state || "",
+      city: city || existingUser?.city || "",
       pin_code: cleanPin,
       company: company || existingUser?.company || null,
-      pan_card_number: panCard || existingUser?.pan_card_number || null,
+      pan_card_number: (panCard || existingUser?.pan_card_number || "").trim().toUpperCase(),
       status,
       pan_verification_metadata: panVerification,
       role: role,
@@ -722,7 +722,12 @@ export const onboardUser = async (req: Request, res: Response) => {
       message: "Onboarding started. User saved.",
       token,
       refreshToken,
-      user: { id: userId, email: normalizedEmail, status },
+      user: {
+        id: userId,
+        email: normalizedEmail,
+        status: baseUpdate.status || "active",
+        role: baseUpdate.role || "free_subscriber",
+      },
     });
   } catch (error: any) {
     return res

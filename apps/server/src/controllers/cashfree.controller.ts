@@ -76,7 +76,7 @@ export const verifyPan = async (req: Request, res: Response) => {
           status: 'VALID',
           registeredName: cachedPan.registered_name,
           nameProvided: name,
-          message: cachedPan.message || 'PAN verified successfully',
+          message: 'This pan has been verified already',
           panHolderType: cachedPan.pan_holder_type,
           raw: cachedPan.raw_response || {
             pan: normalizedPan,
@@ -85,9 +85,10 @@ export const verifyPan = async (req: Request, res: Response) => {
             name_provided: name,
             registered_name: cachedPan.registered_name,
             valid: true,
-            message: cachedPan.message || 'PAN verified successfully',
+            message: 'This pan has been verified already',
           },
           cached: true,
+          alreadyVerified: true,
         })
       }
     } catch (cacheLookupErr) {
@@ -114,10 +115,11 @@ export const verifyPan = async (req: Request, res: Response) => {
             status: 'VALID',
             registeredName: meta.registeredName || meta.registered_name,
             nameProvided: name,
-            message: meta.message || 'PAN verified successfully',
+            message: 'This pan has been verified already',
             panHolderType: meta.panHolderType,
             raw: meta.raw || meta,
             cached: true,
+            alreadyVerified: true,
           })
         }
       } catch (userMetaErr) {

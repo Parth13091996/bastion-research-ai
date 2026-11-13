@@ -275,6 +275,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
               onNext={nextStep}
               updateFormData={updateFormData}
               setIsLoading={setIsLoading}
+              onClose={handleCloseModal}
             />
           );
         case 2:
@@ -348,6 +349,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose }) => {
             onNext={nextStep}
             updateFormData={updateFormData}
             setIsLoading={setIsLoading}
+            onClose={handleCloseModal}
           />
         );
       case 5:
