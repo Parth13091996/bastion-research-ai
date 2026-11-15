@@ -2,7 +2,6 @@ import { Crown, Shield } from "lucide-react";
 import ChartDashboard from "./ChartDashboard";
 import LatestUpdates from "./LatestUpdates";
 import RecentRecommendations from "./RecentRecommendations";
-import RecentTacticalIdeas from "./RecentTacticalIdeas";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useNavigate } from "react-router-dom";
@@ -167,7 +166,6 @@ const UserDashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 sm:gap-6">
           <div className="xl:col-span-3 space-y-4">
             <RecentRecommendations />
-            <RecentTacticalIdeas />
           </div>
           <LatestUpdates />
         </div>

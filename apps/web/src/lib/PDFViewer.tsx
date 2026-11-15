@@ -1,3 +1,4 @@
+import api from '@/api/axios';
 import React, { useEffect, useRef, useState } from "react";
 
 interface PDFViewerProps {
@@ -17,6 +18,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   const renderIdRef = useRef(0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const pdfDocRef = useRef<any>(null);
+  const documentUrlRef=useRef<string>();
 
   const handleGoBack = () => {
     if (window.history.length > 1) {
@@ -52,6 +54,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
   useEffect(() => {
     const currentRenderId = ++renderIdRef.current;
+    if(documentUrlRef.current!==pdfUrl){pdfDocRef.current?.destroy?.();pdfDocRef.current=null;documentUrlRef.current=pdfUrl;}
 
     const loadPDFJS = async () => {
       if (typeof window.pdfjsLib === "undefined") {
@@ -81,7 +84,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
         // Load PDF only once and cache it
         if (!pdfDocRef.current) {
-          const loadingTask = pdfLib.getDocument(pdfUrl);
+          const parsed=new URL(pdfUrl,window.location.origin);
+          const ownApi=new URL(import.meta.env.VITE_API_BASE_URL || 'https://dev-api.bastionresearch.in',window.location.origin);
+          const protectedResource=parsed.origin===ownApi.origin && parsed.pathname.startsWith('/api/research-assets/');
+          const source=protectedResource ? {data:new Uint8Array((await api.get(pdfUrl,{responseType:'arraybuffer'})).data)} : {url:pdfUrl};
+          if(renderId!==renderIdRef.current)return;
+          const loadingTask = pdfLib.getDocument(source);
           pdfDocRef.current = await loadingTask.promise;
         }
 

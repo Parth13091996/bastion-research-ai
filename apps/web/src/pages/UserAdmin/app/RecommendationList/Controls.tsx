@@ -1,5 +1,5 @@
-import { Input } from "@/components/ui/input";
-import { Filter, Search } from "lucide-react";
+import { Input } from '@/components/ui/input';
+import { Filter, Search } from 'lucide-react';
 
 const RecommendationsControls = ({
   sortBy,
@@ -31,6 +31,7 @@ const RecommendationsControls = ({
             onChange={(e) => onSortChange(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
+            {sortBy.startsWith('Column:') && <option value={sortBy}>{sortBy}</option>}
             <option value="MCAP Wise">MCAP Wise</option>
             <option value="Newest">Newest</option>
             <option value="Oldest">Oldest</option>
@@ -49,7 +50,7 @@ const RecommendationsControls = ({
             <option value="All">All</option>
             <option value="BUY">BUY</option>
             <option value="HOLD">HOLD</option>
-            <option value="EXIT">EXIT</option>
+            <option value="EXIT">Exited</option>
           </select>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { accessForUser, coreIntroConsumed } from './premium-access.service';
 import { supabase } from "../supabase";
 
 export const getUserSubscriptionService = async (userId: string) => {
@@ -7,6 +8,7 @@ export const getUserSubscriptionService = async (userId: string) => {
       .select(
         `
         id,
+        role,
         plan_id,
         status,
         subscription_start_date,
@@ -53,53 +55,15 @@ export const getUserSubscriptionService = async (userId: string) => {
   const user = userResult.data as any;
   const lastPayment = paymentResult?.data as any | null;
 
-  const effectivePlan =
-    user?.membership_plans || lastPayment?.membership_plans || null;
-
-  const isPremium = Boolean(
-    user?.plan_id ||
-      effectivePlan?.plan_code ||
-      effectivePlan?.plan_id ||
-      lastPayment?.plan_id
-  );
-
-  const currentPlan: string | null =
-    effectivePlan?.plan_code ||
-    (effectivePlan?.plan_id != null
-      ? String(effectivePlan.plan_id)
-      : lastPayment?.plan_id != null
-        ? String(lastPayment.plan_id)
-        : null);
+  const { premium: isPremium, plan: effectivePlan } = await accessForUser(user);
+  const currentPlan = isPremium ? (effectivePlan?.plan_code === 'core' ? 'core' : 'core_annual') : 'freemium';
+  const canPurchaseCore = !(await coreIntroConsumed(userId));
 
   let subscription: any = null;
   if (effectivePlan && (user?.subscription_start_date || lastPayment)) {
-    // Prefer explicit subscription dates stored on the user record
-    let startDate: Date | null = null;
-    let expireNextRenewal: string | null = null;
-
-    if (user?.subscription_start_date) {
-      startDate = new Date(user.subscription_start_date);
-      if (user.subscription_end_date) {
-        expireNextRenewal = new Date(
-          user.subscription_end_date
-        ).toISOString();
-      } else {
-        const durationMonths = effectivePlan.duration_months;
-        if (typeof durationMonths === "number" && durationMonths > 0) {
-          const exp = new Date(startDate);
-          exp.setMonth(exp.getMonth() + durationMonths);
-          expireNextRenewal = exp.toISOString();
-        }
-      }
-    } else if (lastPayment?.created_at) {
-      startDate = new Date(lastPayment.created_at);
-      const durationMonths = effectivePlan.duration_months;
-      if (typeof durationMonths === "number" && durationMonths > 0) {
-        const exp = new Date(startDate);
-        exp.setMonth(exp.getMonth() + durationMonths);
-        expireNextRenewal = exp.toISOString();
-      }
-    }
+    // Dates are never inferred from payment attempts or missing data.
+    const startDate = user.subscription_start_date && Number.isFinite(Date.parse(user.subscription_start_date)) ? new Date(user.subscription_start_date) : null;
+    const expireNextRenewal = user.subscription_end_date && Number.isFinite(Date.parse(user.subscription_end_date)) ? user.subscription_end_date : null;
 
     if (startDate) {
       subscription = {
@@ -116,6 +80,7 @@ export const getUserSubscriptionService = async (userId: string) => {
 
   const response = {
     is_premium: isPremium,
+    can_purchase_core: canPurchaseCore,
     currentPlan,
     subscription,
     lastPayment: lastPayment

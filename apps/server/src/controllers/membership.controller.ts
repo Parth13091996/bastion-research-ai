@@ -543,6 +543,9 @@ export const deleteMembershipPlan = async (req: Request, res: Response) => {
 export const deletePaymentHistory = async (req: Request, res: Response) => {
   const { id } = req.params // transaction_id as identifier
   try {
+    const {data:existing,error:readError}=await supabase.from('payment_history').select('plan_id,transaction_status').eq('transaction_id',id).maybeSingle();
+    if(readError)throw readError;
+    if(Number(existing?.plan_id)===2 && ['SUCCESS','COMPLETED','PAID','COUPON_APPLIED','FREE'].includes(existing?.transaction_status))return res.status(409).json({error:'The one-time CORE purchase record must be retained to enforce eligibility.'});
     const { data, error } = await supabase
       .from('payment_history')
       .delete()

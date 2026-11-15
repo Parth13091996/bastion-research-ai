@@ -329,7 +329,18 @@ export const updateUser = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "User id is required." });
   }
 
+  const actor=(req as any).user;
+  const isStaff=actor?.status==='active' && ['admin','employee'].includes(actor?.role);
+  if(!isStaff && actor?.id!==id)return res.status(403).json({error:'Not authorized for this account'});
+  const protectedFields=['role','plan_id','subscription_start_date','subscription_end_date'];
+  if(!isStaff && protectedFields.some(key=>Object.prototype.hasOwnProperty.call(req.body,key)))return res.status(403).json({error:'Only staff may change subscription fields.'});
+  if(!isStaff && 'status' in req.body && req.body.status!=='agreement_signed')return res.status(403).json({error:'Account status cannot be changed here.'});
+  if(!isStaff && req.body.status==='agreement_signed') {
+    const {data:documents,error}=await supabase.from('digio_documents').select('document_id').eq('user_id',id).limit(1);
+    if(error||!documents?.length)return res.status(403).json({error:'A signed agreement is required.'});
+  }
   // The full update schema (all updatable fields as in EditMemberModal)
+  if(!isStaff && actor.status==='active' && req.body.status==='agreement_signed')delete req.body.status;
   const updatableFields: (keyof typeof req.body)[] = [
     "username",
     "email",

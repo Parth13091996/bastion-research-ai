@@ -1,16 +1,12 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      navigate("/user/app/dashboard", { replace: true });
-    }
-  }, [isAuthenticated, isLoading, navigate]);
+  if (!isLoading) {
+    return <Navigate to={isAuthenticated ? "/user/app/dashboard" : "/login"} replace />;
+  }
 
   // Show loading while redirecting
   return (

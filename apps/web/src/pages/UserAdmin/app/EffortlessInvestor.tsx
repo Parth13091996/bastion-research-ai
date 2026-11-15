@@ -1,3 +1,4 @@
+import {usePremiumBenefits} from '@/hooks/use-premium-benefits';
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,8 @@ import {
 
 const EffortlessInvestor: React.FC = () => {
   const [copied, setCopied] = useState(false);
-  const code = "CORECOMMUNITY";
+  const {data:benefit,isPending:loadingBenefit,isError:benefitError}=usePremiumBenefits(true);
+  const code = benefit?.coupon_code || ''; 
   const { BrandColors } = useConstants();
 
   const copyCode = () => {
@@ -64,6 +66,7 @@ const EffortlessInvestor: React.FC = () => {
     visible: { opacity: 1, y: 0 },
   };
 
+  if(loadingBenefit||benefitError)return <p role="status" className="p-6">{loadingBenefit?'Loading premium benefits…':'Unable to load premium benefits. Please retry.'}</p>;
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-12">
       {/* HERO SECTION */}

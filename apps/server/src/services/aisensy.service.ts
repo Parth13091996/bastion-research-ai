@@ -40,6 +40,7 @@ export async function sendAiSensyCampaign(payload: AiSensyCampaignPayload) {
     return { sent: false, skipped: true, reason: "invalid_payload" as const };
   }
 
+  const isRenewalReminder = payload.source === "subscription-expiry-reminder";
   try {
     const { data } = await axios.post(
       config.aisensy_endpoint,
@@ -47,11 +48,11 @@ export async function sendAiSensyCampaign(payload: AiSensyCampaignPayload) {
         apiKey,
         campaignName,
         destination, 
-        userName: "Bastion Research",
+        userName: isRenewalReminder ? userName : "Bastion Research",
         source: payload.source,
-        templateParams: payload.templateParams && payload.templateParams.length > 0
-          ? [...payload.templateParams, "N/A", "N/A"]
-          : [],
+        // Preserve existing unrelated campaign behavior during the renewal repair.
+        templateParams: isRenewalReminder ? payload.templateParams || []
+          : payload.templateParams?.length ? [...payload.templateParams, "N/A", "N/A"] : [],
         tags: payload.tags,
         attributes: payload.attributes,
         media: payload.media || {},
@@ -70,6 +71,9 @@ export async function sendAiSensyCampaign(payload: AiSensyCampaignPayload) {
       },
     );
 
+    if (String(data?.success).toLowerCase() === "false") {
+      return { sent: false, skipped: false, error: "AiSensy rejected the campaign request", details: data };
+    }
     return { sent: true, skipped: false, data };
   } catch (error: any) {
     console.error("AiSensy API call failed:", error?.message || error);

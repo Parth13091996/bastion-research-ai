@@ -14,7 +14,7 @@ const StockCard = ({ stock }: { stock: StockData }) => {
   const { user } = useAuth();
   const { data: subscription } = useSubscription();
   // "Paid" logic: lock non-freemium stocks for users without an active premium subscription
-  const isPaid = stock?.tags !== "freemium" && !subscription?.is_premium;
+  const isPaid = String(stock?.tags || "").trim().toLowerCase() !== "freemium" && !subscription?.is_premium;
   const [showPricingModal, setShowPricingModal] = useState(false);
   const navigate = useNavigate();
 

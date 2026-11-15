@@ -1,3 +1,4 @@
+import optionalAuth from '../middleware/optionalAuth.middleware';
 import { Router } from "express";
 import { protect, admin } from "../middleware/auth.middleware";
 import {
@@ -10,6 +11,8 @@ import {
 } from "../controllers/tacticalIdeas.controller";
 
 const router = Router();
+router.use(optionalAuth);
+
 
 // Public routes (same pattern as recommendations)
 router.get("/tactical-ideas", getTacticalIdeas);

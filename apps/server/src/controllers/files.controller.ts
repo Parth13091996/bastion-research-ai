@@ -9,6 +9,7 @@ export async function uploadFile(req: Request, res: Response) {
 
     const category = (req.body.category as any) || undefined; // optional hint
     const dir = (req.body.dir as string) || undefined; // optional subfolder
+    if(/^(recommendations|tactical|scratchpad)(?:\/|$)/.test(dir||'') && !((req as any).user?.status==='active' && ['admin','employee'].includes((req as any).user?.role)))return res.status(403).json({error:'Staff access required for research uploads'});
     const fileNameBase = (req.body.fileName as string) || undefined;
 
     const result = await uploadToSupabase({

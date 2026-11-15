@@ -1,3 +1,5 @@
+import {checkoutAmount,reserveIntroCheckout,introOrderId} from './core-checkout.service';
+import {AccessError,addMonths,indiaToday,calendarDate,approvedCorePlan} from './premium-access.service';
 import crypto from "crypto";
 import { supabase } from "../supabase";
 import { pgCreateOrder } from "./cashfree-pg.service";
@@ -75,7 +77,15 @@ export const createOrderForPlanService = async (params: {
   coupon_code?: string;
 }) => {
   const planRow = await resolvePlanById(params.planId);
-  const transactionId = crypto.randomUUID();
+  const {data:customer,error:customerError}=await supabase.from('users').select('*').eq('id',params.customer_id).single();
+  if(customerError||!customer)throw new AccessError('Customer not found',404);
+  if(['inactive','suspended','blocked','disabled'].includes(customer.status))throw new AccessError('Account is not active');
+  params.customer_email=customer.email;params.customer_phone=customer.phone;
+  // Ignore client-supplied amount and is_free: the database determines the price.
+  params.discount_amount=await checkoutAmount(planRow,customer,params.coupon_code);
+  params.is_free=params.discount_amount===0;
+  const reservation=await reserveIntroCheckout(params.customer_id,planRow,params.discount_amount,params.customer_email);
+  const transactionId = reservation?.transactionId || crypto.randomUUID();
   const normalizedCouponCode =
     typeof params.coupon_code === "string" && params.coupon_code.trim()
       ? params.coupon_code.trim().toUpperCase()
@@ -103,29 +113,30 @@ export const createOrderForPlanService = async (params: {
     plan_code: planRow.plan_code,
   };
 
+  if(reservation?.existingOrder)return {selected:{...selected,amount:Number(reservation.existingOrder.order_amount)},order:reservation.existingOrder};
   // Handle free tier or zero-amount subscription
   if (params.is_free || params.discount_amount === 0) {
     const startDate = new Date();
-    const startDateStr = startDate.toISOString().split("T")[0];
+    const startDateStr = indiaToday(startDate);
     let endDateStr: string | null = null;
 
     const durationMonths = (planRow as any).duration_months;
     if (typeof durationMonths === "number" && durationMonths > 0) {
-      const end = new Date(startDate);
-      end.setMonth(end.getMonth() + durationMonths);
-      endDateStr = end.toISOString().split("T")[0];
+      endDateStr = addMonths(startDateStr,durationMonths);
     }
 
     // For free tier, mark the user as active on this plan in users table
-    await supabase
+    const {error:activationError}=await supabase
       .from("users")
       .update({
-        status: "active",
+        status: ['admin','employee'].includes(customer.role)?'active':planRow.plan_code==='freemium'?'free':'active',
+        role: ['admin','employee'].includes(customer.role)?customer.role:planRow.plan_code==='freemium'?'free_subscriber':'core_subscriber',
         plan_id: planRow.plan_id,
         subscription_start_date: startDateStr,
         subscription_end_date: endDateStr,
       })
       .eq("id", params.customer_id);
+    if(activationError)throw activationError;
     void syncOnboardedUserToMailchimp({
       email: params.customer_email,
       phone: params.customer_phone,
@@ -135,7 +146,7 @@ export const createOrderForPlanService = async (params: {
     // Record in payment history as FREE or COUPON_APPLIED
     const freePaymentBase: any = {
       payer_email: params.customer_email || null,
-      transaction_status: normalizedCouponCode ? "COUPON_APPLIED" : "FREE",
+      transaction_status: "SUCCESS",
       user_id: params.customer_id,
       plan_id: planRow.plan_id,
       transaction_id: transactionId,
@@ -145,20 +156,23 @@ export const createOrderForPlanService = async (params: {
       coupon_applied: await couponIdForCode(),
     };
 
-    const { error: freeInsertErr } = await supabase
-      .from("payment_history")
-      .insert(freePaymentBase);
+    const { error: freeInsertErr } = reservation
+      ? await supabase.from('payment_history').update(freePaymentBase).eq('transaction_id',transactionId)
+      : await supabase.from('payment_history').insert(freePaymentBase);
     if (freeInsertErr?.message?.toLowerCase?.().includes("column")) {
-      await supabase.from("payment_history").insert({
+      const fallback= {
         payer_email: params.customer_email || null,
-        transaction_status: normalizedCouponCode ? "COUPON_APPLIED" : "FREE",
+        transaction_status: "SUCCESS",
         user_id: params.customer_id,
         plan_id: planRow.plan_id,
         transaction_id: transactionId,
         created_at: startDate.toISOString(),
-      });
+      };
+      const {error}=reservation?await supabase.from('payment_history').update(fallback).eq('transaction_id',transactionId):await supabase.from('payment_history').insert(fallback);
+      if(error)throw error;
     }
 
+    if(freeInsertErr && !freeInsertErr.message?.toLowerCase().includes("column"))throw freeInsertErr;
     // Increment coupon usage if coupon was used
     if (normalizedCouponCode) {
       try {
@@ -180,7 +194,7 @@ export const createOrderForPlanService = async (params: {
   }
 
   // Normal paid flow
-  const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+  const orderId = reservation ? introOrderId(transactionId,reservation.createdAt) : `order_${Date.now()}_${crypto.randomBytes(6).toString("hex")}`;
   const frontendUrl = getFrontendBaseUrl();
   const returnUrl =
     params.return_url || `${frontendUrl}/payment/success?order_id=${orderId}`;
@@ -196,6 +210,9 @@ export const createOrderForPlanService = async (params: {
       plan_code: String(planRow.plan_code || ""),
       transaction_id: transactionId,
       coupon_code: normalizedCouponCode || "",
+      // Fix the renewal window at checkout; webhook retries must not add years twice.
+      renewal_from: planRow.plan_code==='core_annual' && ['core_subscriber','admin','employee'].includes(customer.role) && [2,3].includes(Number(customer.plan_id)) && (calendarDate(customer.subscription_end_date)||'')>=indiaToday() ? calendarDate(customer.subscription_end_date)! : '',
+      subscription_start: calendarDate(customer.subscription_start_date)||'',
     },
     customer_details: {
       customer_id: params.customer_id,
@@ -214,7 +231,7 @@ export const createOrderForPlanService = async (params: {
     user_id: params.customer_id,
     plan_id: planRow.plan_id,
     transaction_id: transactionId,
-    created_at: new Date().toISOString(),
+    created_at: reservation?.createdAt || new Date().toISOString(),
     discounted_amount: selected.amount,
     coupon_code: normalizedCouponCode,
     coupon_applied: await couponIdForCode(),
@@ -230,9 +247,10 @@ export const createOrderForPlanService = async (params: {
       user_id: params.customer_id,
       plan_id: planRow.plan_id,
       transaction_id: transactionId,
-      created_at: new Date().toISOString(),
+      created_at: reservation?.createdAt || new Date().toISOString(),
     });
   }
 
+  if(pendingUpsertErr && !pendingUpsertErr.message?.toLowerCase().includes("column"))throw pendingUpsertErr;
   return { selected, order: response?.data || response };
 };

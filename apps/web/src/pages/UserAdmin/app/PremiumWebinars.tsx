@@ -81,7 +81,7 @@ export default function PremiumWebinarsPage() {
     // Wait for auth and subscription to load before checking
     if (!isLoading && !isSubscriptionLoading) {
       // If not logged in or not premium, redirect to subscription/upgrade page
-      if (!user || !subscription || (!subscription.is_premium && !isAdmin)) {
+      if (!user || !subscription || !subscription.is_premium) {
         toast.error(
           "Premium access required. Redirecting to subscription page."
         );
@@ -105,10 +105,6 @@ export default function PremiumWebinarsPage() {
           >
             Premium Webinars
           </h1>
-          <p className="text-gray-600 max-w-2xl">
-            Premium webinars for subscribers. Access detailed sessions and
-            exclusive content.
-          </p>
         </div>
 
         {/* Search */}

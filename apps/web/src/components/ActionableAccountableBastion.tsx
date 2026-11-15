@@ -1,37 +1,22 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import useSheetStocks from "@/hooks/use-sheets-stocks";
+import { useQuery } from "@tanstack/react-query";
+import { getPortfolioDashboardData } from "@/api/recommendations-apis";
 
+const count = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
 const ActionableAccountableBastion = () => {
-  const [stats, setStats] = useState([
-    { number: "0", label: "Total Ideas" },
-    { number: "0", label: "Active Ideas" },
-    { number: "0", label: "Sectors" },
-  ]);
-
-  const { sheetStocks } = useSheetStocks(true);
-
-  useEffect(() => {
-    try {
-      const actions = (sheetStocks || [])
-        .map((row: any) => row.band?.toString().trim().toUpperCase())
-        .filter(Boolean);
-
-      const totalIdeas = actions.length;
-      const activeIdeas = actions.filter(
-        (a) => a === "BUY" || a === "HOLD"
-      ).length;
-      const sectors = 13;
-
-      setStats([
-        { number: `${totalIdeas}`, label: "Total Ideas" },
-        { number: `${activeIdeas}`, label: "Active Ideas" },
-        { number: `${sectors}`, label: "Sectors" },
-      ]);
-    } catch (err) {
-      console.error("Error computing recommendations stats:", err);
-    }
-  }, [sheetStocks]);
+  const { data } = useQuery({
+    queryKey: ["public-recommendation-totals"],
+    queryFn: getPortfolioDashboardData,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+  const active = count(data?.activeBuy) && count(data?.activeHold)
+    ? data.activeBuy + data.activeHold : null;
+  const stats = [
+    { number: count(data?.totalRecommendations) ? String(data.totalRecommendations) : "—", label: "Total Ideas" },
+    { number: count(active) ? String(active) : "—", label: "Active Ideas" },
+    { number: count(data?.exitedClosed) ? String(data.exitedClosed) : "—", label: "Exited/Closed" },
+  ];
 
   return (
     <motion.div
@@ -63,7 +48,7 @@ const ActionableAccountableBastion = () => {
       </div>
 
       <motion.div
-        className="grid grid-cols-2 md:grid-cols-4 gap-6"
+        className="grid grid-cols-3 gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
