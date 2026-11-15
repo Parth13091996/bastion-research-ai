@@ -1,3 +1,4 @@
+import {AccessError} from '../services/premium-access.service';
 import { Request, Response } from 'express'
 import { pgFetchOrder } from '../services/cashfree-pg.service'
 import {
@@ -111,6 +112,7 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       coupon_code,
     } = req.body
 
+    if(customer_id !== (req as any).user?.id)return res.status(403).json({message:'You can only purchase a plan for your own account.'});
     if (!plan) return res.status(400).json({ message: 'plan is required' })
     if (!customer_id)
       return res.status(400).json({ message: 'customer_id is required' })
@@ -133,6 +135,7 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
     })
     return res.status(201).json({ plan: selected, order })
   } catch (error: any) {
+    if(error instanceof AccessError)return res.status(error.status).json({message:error.message});
     const status = error?.response?.status || 500
     const payload = error?.response?.data || {
       message: 'Failed to create order',
@@ -197,7 +200,9 @@ export const getOrder = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params
     const response = await pgFetchOrder(orderId)
-    return res.status(200).json(response?.data || response)
+    const order=response?.data||response;
+    if(order.customer_details?.customer_id!==(req as any).user?.id)return res.status(403).json({message:'Not authorized for this order'});
+    return res.status(200).json(order)
   } catch (error: any) {
     const status = error?.response?.status || 500
     const payload = error?.response?.data || {

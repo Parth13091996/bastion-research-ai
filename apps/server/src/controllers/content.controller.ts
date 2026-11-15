@@ -1,5 +1,9 @@
+import {protectResearchLinks} from '../services/research-assets.service';
+import {requestAccess} from '../services/premium-access.service';
 import { Request, Response } from "express";
 import { supabase } from "../supabase";
+
+const manage=(req:Request)=>(req as any).user?.status==='active' && ['admin','employee'].includes((req as any).user?.role) && (req.query.manage==='true'||req.originalUrl?.startsWith('/api/admin/'));
 
 // Webinars
 export async function createWebinar(req: Request, res: Response) {
@@ -24,14 +28,16 @@ export async function createWebinar(req: Request, res: Response) {
   }
 }
 
-export async function listWebinars(_req: Request, res: Response) {
+export async function listWebinars(req: Request, res: Response) {
   try {
     const { data, error } = await supabase
       .from("webinars")
       .select("*")
       .order("created_at", { ascending: false });
     if (error) return res.status(500).json({ error: error.message });
-    return res.status(200).json(data ?? []);
+    if(manage(req))return res.status(200).set('Cache-Control','private, no-store').json(data);
+    const {premium}=await requestAccess(req);
+    return res.status(200).set('Cache-Control','private, no-store').json((data||[]).map(row=>premium||row.is_premium===false?(row.is_premium===false?row:protectResearchLinks(row,'webinars',row.id)):{id:row.id,title:row.title,is_premium:true,created_at:row.created_at,locked:true}));
   } catch (e: any) {
     return res.status(500).json({ error: e.message });
   }
@@ -86,7 +92,9 @@ export async function getWebinar(req: Request, res: Response) {
     if (error) return res.status(500).json({ error: error.message });
     if (!data) return res.status(404).json({ error: "Webinar not found" });
 
-    return res.status(200).json(data);
+    if(manage(req))return res.status(200).set('Cache-Control','private, no-store').json(data);
+    if(data.is_premium!==false && !(await requestAccess(req)).premium)return res.status((req as any).user?403:401).json({message:'An active CORE subscription is required.'});
+    return res.status(200).set('Cache-Control','private, no-store').json(data.is_premium===false?data:protectResearchLinks(data,'webinars',data.id));
   } catch (e: any) {
     return res.status(500).json({ error: e.message });
   }

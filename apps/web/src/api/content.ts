@@ -46,14 +46,15 @@ export const newsletterApi = {
   },
 };
 
+const webinarManage=()=>typeof window!=='undefined'&&window.location.pathname.startsWith('/admin/')?{manage:true}:{};
 export const webinarApi = {
   // Public APIs
   getAll: (): Promise<Webinar[]> =>
-    axiosInstance.get(endpoints.content.webinars.base).then((res) => res.data),
+    axiosInstance.get(endpoints.content.webinars.base,{params:webinarManage()}).then((res) => res.data),
 
   getById: (id: string): Promise<Webinar> =>
     axiosInstance
-      .get(endpoints.content.webinars.byId(id))
+      .get(endpoints.content.webinars.byId(id),{params:webinarManage()})
       .then((res) => res.data),
 
   create: (data: Omit<Webinar, "id" | "created_at">): Promise<Webinar> =>

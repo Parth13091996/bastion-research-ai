@@ -16,7 +16,7 @@ export const protect = async (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.cookies.token;
+  const token = req.cookies?.token || req.headers.authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
 
   if (!token) {
     return res.status(401).json({ message: "Not authorized, no token" });
@@ -41,6 +41,7 @@ export const protect = async (
         .json({ message: "Not authorized, user not found" });
     }
 
+    if (["inactive", "suspended", "blocked", "disabled"].includes(user.status)) return res.status(403).json({ message: "Account is not active" });
     req.user = user;
     next();
   } catch (error) {
@@ -49,7 +50,7 @@ export const protect = async (
 };
 
 export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user && req.user.role === "admin") {
+  if (req.user && req.user.role === "admin" && req.user.status === "active") {
     next();
   } else {
     res.status(401).json({ message: "Not authorized as an administrator" });
@@ -57,7 +58,7 @@ export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {
 };
 
 export const staff = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user && (req.user.role === "admin" || req.user.role === "employee")) {
+  if (req.user?.status === "active" && (req.user.role === "admin" || req.user.role === "employee")) {
     next();
   } else {
     res.status(401).json({ message: "Not authorized" });
@@ -71,7 +72,7 @@ export const requireSectionEdit =
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    if (req.user.role === "admin") {
+    if (req.user.role === "admin" && req.user.status === "active") {
       return next();
     }
 

@@ -1,3 +1,4 @@
+import {useSubscription} from '@/hooks/use-subscription';
 import { getRecommendationByCompanySymbol } from "@/api/recommendations-apis";
 import dayjs from "dayjs"
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,6 +35,7 @@ const SingleRecommendation = () => {
   const [selectedPerformanceIndex, setSelectedPerformanceIndex] =
     useState<number>(0);
   const isMobile = useIsMobile();
+  const {data:subscription,isPending:checkingAccess}=useSubscription();
 
   const performanceArray =
     Array.isArray(stock?.stock_performance_url) && stock.stock_performance_url
@@ -112,8 +114,8 @@ const SingleRecommendation = () => {
         // Reset selected performance index when stock changes
         setSelectedPerformanceIndex(0);
       })
-      .catch(() => {
-        setFetchError("Failed to fetch recommendation.");
+      .catch((error) => {
+        setFetchError([401,403].includes(error?.response?.status) ? 'An active CORE subscription is required to view this recommendation.' : 'Failed to fetch recommendation.');
         setStock(null);
       });
   }, [symbol, stocks]);
@@ -134,7 +136,7 @@ const SingleRecommendation = () => {
         .then((rows) => {
           if (!cancelled) setExternalRows(rows);
         })
-        .catch(() => {
+        .catch((error) => {
           if (!cancelled) setExternalRows(null);
         });
     } else {
@@ -163,6 +165,7 @@ const SingleRecommendation = () => {
       }))
     : [];
 
+  if(stock && String(stock.tags||'').trim().toLowerCase()!=='freemium' && (checkingAccess||!subscription?.is_premium))return <p role="alert" className="p-6">{checkingAccess?'Checking access…':'An active CORE subscription is required.'}</p>;
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {loading ? (

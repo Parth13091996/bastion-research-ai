@@ -1,3 +1,6 @@
+import {createOrderForPlanService,resolvePlanById} from '../services/cashfree-plans-orders.service';
+import {checkoutAmount} from '../services/core-checkout.service';
+import {AccessError} from '../services/premium-access.service';
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -48,13 +51,20 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
-const getAuthCookieOptions = () => ({
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite:
-    process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
-  maxAge: 24 * 60 * 60 * 1000,
-});
+const getAuthCookieOptions = () => {
+  const isSecure =
+    process.env.COOKIE_SECURE === "true" ||
+    process.env.NODE_ENV === "production" ||
+    true;
+
+  return {
+    httpOnly: true,
+    secure: isSecure,
+    sameSite: isSecure ? ("none" as const) : ("lax" as const),
+    maxAge: 24 * 60 * 60 * 1000,
+    path: "/",
+  };
+};
 
 export const signIn = async (req: Request, res: Response) => {
   const { email, password, otp } = req.body as {
@@ -122,14 +132,30 @@ export const signIn = async (req: Request, res: Response) => {
       // ignore
     }
 
+    let membershipPlans: any = null;
+    if (user.plan_id) {
+      try {
+        const { data: planData } = await supabase
+          .from("membership_plans")
+          .select("plan_code, plan_id, plan_name, duration_months")
+          .eq("plan_id", user.plan_id)
+          .maybeSingle();
+        if (planData) {
+          membershipPlans = planData;
+        }
+      } catch (e) {
+        console.error("Failed to fetch plan for signed in user:", e);
+      }
+    }
+
+    const { password: _pwd, ...safeUserData } = user;
+
     res.status(200).json({
       message: "Signed in successfully",
+      token,
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        status: user.status,
+        ...safeUserData,
+        membership_plans: membershipPlans,
       },
     });
   } catch (error) {
@@ -349,38 +375,18 @@ export const onboardUser = async (req: Request, res: Response) => {
       role: role,
       plan_id,
     };
-    let planDetails: { plan_name?: string | null } | null = null;
-
-    // If a plan is attached at onboarding (e.g. free tier),
-    // pre-compute subscription start and expiry dates based on plan duration.
-    if (plan_id) {
-      try {
-        const { data: planRow, error: planError } = await supabase
-          .from("membership_plans")
-          .select("duration_months, plan_name, plan_code, price_amount")
-          .eq("plan_id", plan_id as any)
-          .maybeSingle();
-
-        if (!planError && planRow) {
-          planDetails = planRow as { plan_name?: string | null };
-          const start = new Date();
-          const startDateStr = start.toISOString().split("T")[0];
-          let endDateStr: string | null = null;
-
-          const durationMonths = (planRow as any).duration_months;
-          if (typeof durationMonths === "number" && durationMonths > 0) {
-            const end = new Date(start);
-            end.setMonth(end.getMonth() + durationMonths);
-            endDateStr = end.toISOString().split("T")[0];
-          }
-
-          baseUpdate.subscription_start_date = startDateStr;
-          baseUpdate.subscription_end_date = endDateStr;
-        }
-      } catch {
-        // If membership_plans lookup fails, continue without subscription dates.
-      }
+    let planDetails: any = null;
+    if(plan_id) {
+      const {data,error}=await supabase.from('membership_plans').select('plan_id,plan_code,plan_name,price_amount').eq('plan_id',plan_id).maybeSingle();
+      if(error||!data)return res.status(400).json({message:'Invalid plan'});
+      planDetails=data;
     }
+    const freeSignup=planDetails?.plan_code==='freemium' && Number(planDetails.price_amount)===0;
+    baseUpdate.role=freeSignup?'free_subscriber':'core_subscriber';
+    baseUpdate.status=freeSignup?'free':'onboarded';
+    baseUpdate.plan_id=freeSignup?planDetails.plan_id:null;
+    baseUpdate.subscription_start_date=null;
+    baseUpdate.subscription_end_date=null;
 
     let userId: string | null = null;
     const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
@@ -466,7 +472,7 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       message: "Onboarding started. User saved.",
-      user: { id: userId, email: normalizedEmail, status },
+      user: { id: userId, email: normalizedEmail, status:baseUpdate.status },
     });
   } catch (error: any) {
     return res
@@ -475,264 +481,25 @@ export const onboardUser = async (req: Request, res: Response) => {
   }
 };
 
-export const zeroAmountAccountCreation = async (
-  req: Request,
-  res: Response
-) => {
+export const zeroAmountAccountCreation = async (req: Request,res: Response) => {
   try {
-    const { plan_id, coupon_code, user_id, payer_email } = req.body as {
-      plan_id: number;
-      coupon_code?: string;
-      user_id: string;
-      payer_email: string;
-    };
-
-    // Fetch coupon (if provided)
-    let coupon: any = null;
-    if (coupon_code && typeof coupon_code === "string" && coupon_code.trim()) {
-      try {
-        const { data: couponData, error: couponError } = await supabase
-          .from("coupons")
-          .select("*")
-          .eq("coupon_code", coupon_code.trim().toUpperCase())
-          .eq("active", true)
-          .maybeSingle();
-
-        if (couponError) {
-          return res.status(400).json({ error: couponError.message });
-        }
-
-        if (!couponData) {
-          return res.status(400).json({ error: "Invalid or inactive coupon" });
-        }
-
-        // Check expiry
-        if (
-          couponData.expiry_date &&
-          new Date(couponData.expiry_date) < new Date()
-        ) {
-          return res.status(400).json({ error: "Coupon has expired" });
-        }
-
-        // Respect max_uses / used_count if set
-        const maxUses =
-          typeof couponData.max_uses === "number"
-            ? couponData.max_uses
-            : null;
-        const usedCount =
-          typeof couponData.used_count === "number"
-            ? couponData.used_count
-            : 0;
-
-        if (maxUses !== null && usedCount >= maxUses) {
-          return res
-            .status(400)
-            .json({ error: "Coupon usage limit reached" });
-        }
-
-        coupon = couponData;
-      } catch (e: any) {
-        return res
-          .status(500)
-          .json({ error: e?.message || "Error fetching coupon" });
-      }
-    }
-
-    // Record a zero-amount payment in history so subscription tables stay consistent
-    const startDate = new Date();
-
-    try {
-      const transactionId = crypto.randomUUID();
-      const paymentInsertBase: any = {
-        transaction_status: "SUCCESS",
-        plan_id: plan_id,
-        user_id: user_id,
-        payer_email: payer_email,
-        transaction_id: transactionId,
-        coupon_applied: coupon?.coupon_id,
-        coupon_code: coupon?.coupon_code || coupon_code || null,
-        discounted_amount: 0,
-        created_at: startDate.toISOString(),
-      };
-
-      const { error: paymentError } = await supabase
-        .from("payment_history")
-        .insert(paymentInsertBase)
-        .maybeSingle();
-
-      if (paymentError) {
-        if (paymentError?.message?.toLowerCase?.().includes("column")) {
-          const { error: fallbackError } = await supabase
-            .from("payment_history")
-            .insert({
-              transaction_status: "SUCCESS",
-              plan_id: plan_id,
-              user_id: user_id,
-              payer_email: payer_email,
-              transaction_id: transactionId,
-              coupon_applied: coupon?.coupon_id,
-              created_at: startDate.toISOString(),
-            })
-            .maybeSingle();
-          if (fallbackError) {
-            return res.status(500).json({
-              error: fallbackError.message || "Error saving payment history",
-            });
-          }
-        } else {
-          return res.status(500).json({
-            error: paymentError.message || "Error saving payment history",
-          });
-        }
-      }
-    } catch (e: any) {
-      return res
-        .status(500)
-        .json({ error: e?.message || "Failed to insert payment history" });
-    }
-
-    // Compute subscription window based on plan duration
-    let subscriptionStartDate: string | null = null;
-    let subscriptionEndDate: string | null = null;
-    let roleAfterActivation: string | null = null;
-    try {
-      const { data: planRow, error: planError } = await supabase
-        .from("membership_plans")
-        .select("duration_months, plan_code, plan_name, price_amount")
-        .eq("plan_id", plan_id as any)
-        .maybeSingle();
-
-      if (!planError && planRow) {
-        subscriptionStartDate = startDate.toISOString().split("T")[0];
-        const durationMonths = (planRow as any).duration_months;
-        const planCode = (planRow as any).plan_code;
-
-        if (typeof durationMonths === "number" && durationMonths > 0) {
-          const end = new Date(startDate);
-          end.setMonth(end.getMonth() + durationMonths);
-          subscriptionEndDate = end.toISOString().split("T")[0];
-        }
-
-        // Keep role aligned with payment_success webhook behavior.
-        // - research_hub -> research_ally_subscriber
-        // - freemium -> free_subscriber
-        // - everything else -> core_subscriber
-        if (planCode === "research_hub") {
-          roleAfterActivation = config.roles.research_ally_subscriber;
-        } else if (planCode === "freemium") {
-          roleAfterActivation = "free_subscriber";
-        } else {
-          roleAfterActivation = config.roles.core_subscriber;
-        }
-      }
-    } catch (e: any) {
-      // If we cannot compute duration, keep dates null; user still gets the plan.
-      console.error("Failed to compute subscription dates for zero-amount flow", e);
-    }
-
-    try {
-      const userUpdate: any = {
-        plan_id,
-        status: "active",
-        role: roleAfterActivation || config.roles.core_subscriber,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (subscriptionStartDate) {
-        userUpdate.subscription_start_date = subscriptionStartDate;
-        userUpdate.subscription_end_date = subscriptionEndDate;
-      }
-
-      const { data, error } = await supabase
-        .from("users")
-        .update(userUpdate)
-        .eq("id", user_id)
-        .select(
-          `
-          id,
-          username,
-          first_name,
-          last_name,
-          phone,
-          email,
-          address_1,
-          pan_card_number,
-          address_2,
-          state,
-          city,
-          pin_code,
-          date_of_birth,
-          company,
-          plan_id,
-          created_at,
-          updated_at,
-          status,
-          role,
-          membership_plans (
-            plan_code,
-            plan_id
-          )
-        `
-        )
-        .single();
-
-      if (error) {
-        return res.status(500).json({ error: error.message });
-      }
-
-      clearOnboardingDropOffForUser(user_id);
-
-      // Mark coupon as used / expired (best-effort; do not block user activation)
-      if (coupon?.coupon_id) {
-        try {
-          const nextUsedCount =
-            typeof coupon.used_count === "number" ? coupon.used_count + 1 : 1;
-
-          await supabase
-            .from("coupons")
-            .update({
-              used_count: nextUsedCount,
-              active: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("coupon_id", coupon.coupon_id);
-        } catch (e) {
-          console.error("Failed to mark coupon as used/expired", e);
-        }
-      }
-      // Increment coupon usage after successful application
-      try {
-        await incrementCouponUsage(coupon_code!);
-      } catch (e: any) {
-        console.error("Failed to increment coupon usage:", e);
-        // Do not fail the request if coupon increment fails
-      }
-
-      void sendWelcomeEmailForUser(user_id);
-      void syncOnboardedUserToMailchimp({
-        email: (data as any)?.email || payer_email,
-        firstName: (data as any)?.first_name,
-        lastName: (data as any)?.last_name,
-        phone: (data as any)?.phone,
-        plan: (data as any)?.membership_plans || undefined,
-      }).catch((e) => console.error("Mailchimp zero-amount sync failed", e));
-
-      return res.status(200).json({ user: data });
-    } catch (e: any) {
-      return res
-        .status(500)
-        .json({ error: e?.message || "Failed to update user" });
-    }
-  } catch (e: any) {
-    return res
-      .status(500)
-      .json({ error: e?.message || "An unexpected server error occurred" });
-  }
+    const user=(req as any).user;
+    if(!user || (req.body.user_id && req.body.user_id!==user.id))return res.status(403).json({message:'Not authorized for this account'});
+    const plan=await resolvePlanById(Number(req.body.plan_id));
+    if(await checkoutAmount(plan,user,req.body.coupon_code)!==0)return res.status(400).json({message:'This plan requires payment.'});
+    await createOrderForPlanService({planId:plan.plan_id,customer_id:user.id,customer_email:user.email,customer_phone:user.phone,discount_amount:0,coupon_code:req.body.coupon_code});
+    const {data,error}=await supabase.from('users').select('id,email,first_name,last_name,status,role,plan_id,subscription_start_date,subscription_end_date,membership_plans(plan_id,plan_code)').eq('id',user.id).single();
+    if(error)throw error;
+    clearOnboardingDropOffForUser(user.id);
+    return res.status(200).json({user:data});
+  }catch(e:any){return res.status(e instanceof AccessError?e.status:500).json({message:e instanceof AccessError?e.message:'Unable to activate subscription'});}
 };
 
 export const getUserSession = async (req: Request, res: Response) => {
   try {
-    const token = req.cookies.token;
+    const token =
+      req.cookies?.token ||
+      req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
     if (!token) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -743,7 +510,7 @@ export const getUserSession = async (req: Request, res: Response) => {
 
     const decoded = jwt.verify(token, secret) as { id: string; email: string };
 
-    const { data: user, error } = await supabase
+    let userResult = await supabase
       .from("users")
       .select(
         `
@@ -766,7 +533,9 @@ export const getUserSession = async (req: Request, res: Response) => {
           subscription_end_date,
           membership_plans (
             plan_code,
-            plan_id
+            plan_id,
+            plan_name,
+            duration_months
           ),
           created_at,
           updated_at,
@@ -776,14 +545,63 @@ export const getUserSession = async (req: Request, res: Response) => {
         `
       )
       .eq("id", decoded.id)
-      .single();
+      .maybeSingle();
 
-    if (error || !user) {
-      return res.status(404).json({ message: "User not found" });
+    let user = userResult.data;
+    if (userResult.error || !user) {
+      if (userResult.error) {
+        console.warn(
+          "getUserSession primary query error, trying safe fallback:",
+          userResult.error.message
+        );
+      }
+      const { data: baseUser, error: baseError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", decoded.id)
+        .maybeSingle();
+
+      if (baseError || !baseUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { password: _pwd, ...safeBaseUser } = baseUser;
+
+      let membershipPlan = null;
+      if (safeBaseUser.plan_id) {
+        try {
+          const { data: planData } = await supabase
+            .from("membership_plans")
+            .select("plan_code, plan_id, plan_name, duration_months")
+            .eq("plan_id", safeBaseUser.plan_id)
+            .maybeSingle();
+          membershipPlan = planData || null;
+        } catch {
+          // ignore
+        }
+      }
+
+      let digioDocs: any[] = [];
+      try {
+        const { data: docs } = await supabase
+          .from("digio_documents")
+          .select("document_id")
+          .eq("user_id", safeBaseUser.id);
+        digioDocs = docs || [];
+      } catch {
+        // ignore
+      }
+
+      user = {
+        ...safeBaseUser,
+        membership_plans: membershipPlan,
+        digio_documents: digioDocs,
+      };
     }
 
     res.status(200).json({ user });
   } catch (error) {
+    console.error("getUserSession error:", error);
     res.status(401).json({ message: "Not authenticated" });
   }
 };

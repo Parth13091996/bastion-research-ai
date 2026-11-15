@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { useEditMemberStore } from "@/stores/edit-member-store";
 import { updateUserById } from "@/api/users-api";
 import { getMembershipPlans } from "@/api/membership-api";
+import { getMemberRole } from "@/pages/Admin/AR/member-roles";
 
 const editMemberSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -61,6 +62,8 @@ const EditMemberModal = () => {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<EditMemberValues>({
     resolver: zodResolver(editMemberSchema),
@@ -78,7 +81,7 @@ const EditMemberModal = () => {
       pin_code: member?.pin_code ?? "",
       date_of_birth: member?.date_of_birth ?? "",
       company_name: member?.company_name ?? "",
-      role: member?.role ?? "employee",
+      role: member ? getMemberRole(member, Date.now()) : "employee",
       status: member?.status ?? "active",
       plan_id:
         member?.plan_id !== undefined && member?.plan_id !== null
@@ -109,7 +112,7 @@ const EditMemberModal = () => {
         pin_code: member.pin_code ?? "",
         date_of_birth: member.date_of_birth ?? "",
         company_name: member.company_name ?? "",
-        role: member.role ?? "employee",
+        role: getMemberRole(member, Date.now()),
         status: member.status ?? "active",
         plan_id:
           member.plan_id !== undefined && member.plan_id !== null
@@ -125,12 +128,30 @@ const EditMemberModal = () => {
     }
   }, [member, reset]);
 
+  const selectedRole = watch("role");
+  const selectedEndDate = watch("subscription_end_date");
+  useEffect(() => {
+    if (selectedRole !== "core_subscriber" && selectedRole !== "ex_core_subscriber") return;
+    const syncRole = () => {
+      const effectiveRole = getMemberRole({ role: "core_subscriber", subscription_end_date: selectedEndDate }, Date.now());
+      if (effectiveRole !== selectedRole) setValue("role", effectiveRole);
+    };
+    syncRole();
+    const timer = window.setInterval(syncRole, 60_000);
+    return () => window.clearInterval(timer);
+  }, [selectedRole, selectedEndDate, setValue]);
+
   const mutation = useMutation({
     mutationFn: (values: EditMemberValues) => {
       if (!member?.id) return Promise.reject(new Error("Missing member id"));
       const payload: any = {
         ...values,
       };
+      // Until the production role schema can be migrated, Ex-Core is a derived
+      // admin classification. Never send an unsupported role when editing a Core member.
+      if (payload.role === "ex_core_subscriber" && member.role !== "ex_core_subscriber") {
+        payload.role = "core_subscriber";
+      }
       if (!payload.plan_id) {
         delete payload.plan_id;
       } else {
@@ -283,12 +304,13 @@ const EditMemberModal = () => {
               >
                 <option value="employee">Employee</option>
                 <option value="admin">Admin</option>
+                <option value="free_subscriber">Free Subscriber</option>
                 <option value="core_subscriber">Core Subscriber</option>
-                <option value="ipo_subscriber">IPO Subscriber</option>
-                <option value="research_ally_subscriber">
-                  Research Ally Subscriber
-                </option>
+                <option value="ex_core_subscriber" disabled>Ex-Core Subscriber (automatic)</option>
+                {member?.role === "ipo_subscriber" && <option value="ipo_subscriber" hidden>IPO Subscriber</option>}
+                {member?.role === "research_ally_subscriber" && <option value="research_ally_subscriber" hidden>Research Ally Subscriber</option>}
               </select>
+              <p className="mt-1 text-xs text-gray-500">Ex-Core status follows the subscription expiry date automatically.</p>
               {errors.role && (
                 <p className="text-red-600">{errors.role.message}</p>
               )}

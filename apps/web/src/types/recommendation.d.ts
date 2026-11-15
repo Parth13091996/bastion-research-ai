@@ -13,6 +13,8 @@ interface Announcement {
 }
 
 interface StockPerformanceItem {
+  exit_date?: string;
+  exit_price?: string | number;
   date: string;
   title: string;
   stock_recommendation_url: string;
@@ -35,6 +37,14 @@ interface StockPerformanceItem {
 }
 
 interface StockData {
+  stock_performance_url?: StockPerformanceItem[];
+  tableValues?: {
+    marketCap: number | null;
+    entryPrice: number | null;
+    cmp: number | null;
+    targetPrice: number | null;
+    expectedUpside: number | null;
+  };
   id: string | number;
   logo?: string;
   name: string;
