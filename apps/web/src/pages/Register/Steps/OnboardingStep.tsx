@@ -1,5 +1,5 @@
 import { ArrowLeft, Info } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateUser } from "@/api/onboarding-apis";
 
@@ -9,7 +9,7 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
   onNext,
   setCurrentStep,
 }) => {
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showTooltip, setShowTooltip] = useState(false);
   const { user } = useAuth();
 
@@ -20,47 +20,58 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
     setCurrentStep(1);
   };
 
-  const handleContinue = () => {
-    setError(null);
+  const handleFieldChange = (field: string, value: any) => {
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+    updateFormData(field, value);
+  };
 
-    // Required fields
+  const handleContinue = () => {
+    const errors: Record<string, string> = {};
+
+    // Validate required fields
     if (!formData.firstName.trim()) {
-      setError("Please enter first name.");
-      return;
+      errors.firstName = "Please enter first name.";
     }
     if (!formData.lastName.trim()) {
-      setError("Please enter last name.");
-      return;
+      errors.lastName = "Please enter last name.";
     }
     if (!formData.dateOfBirth.trim()) {
-      setError("Please enter date of birth.");
-      return;
+      errors.dateOfBirth = "Please enter date of birth.";
     }
     if (!formData.address1.trim()) {
-      setError("Please enter address line 1.");
-      return;
+      errors.address1 = "Please enter address line 1.";
     }
     if (!formData.state.trim()) {
-      setError("Please enter state.");
-      return;
+      errors.state = "Please enter state.";
     }
     if (!formData.city.trim()) {
-      setError("Please enter city.");
-      return;
-    }
-    if (!formData.company.trim()) {
-      setError("Please enter company name.");
-      return;
+      errors.city = "Please enter city.";
     }
     if (!formData.pinCode || !formData.pinCode.trim()) {
-      setError("Please enter PIN code.");
+      errors.pinCode = "Please enter PIN code.";
+    } else {
+      const cleanPin = formData.pinCode.trim().replace(/\D/g, "");
+      if (cleanPin.length !== 6) {
+        errors.pinCode = "PIN code must be a 6-digit number.";
+      }
+    }
+    if (!formData.company.trim()) {
+      errors.company = "Please enter company name.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
+    setFieldErrors({});
+
     const cleanPin = formData.pinCode.trim().replace(/\D/g, "");
-    if (cleanPin.length !== 6) {
-      setError("PIN code must be a 6-digit number.");
-      return;
-    }
 
     // Store trimmed & cleaned values in formData
     updateFormData("firstName", formData.firstName.trim());
@@ -110,10 +121,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <input
               type="text"
               value={formData.firstName}
-              onChange={(e) => updateFormData("firstName", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              onChange={(e) => handleFieldChange("firstName", e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.firstName ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                }`}
               placeholder="First name"
             />
+            {fieldErrors.firstName && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.firstName}</p>
+            )}
           </div>
 
           <div>
@@ -123,10 +138,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <input
               type="text"
               value={formData.lastName}
-              onChange={(e) => updateFormData("lastName", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              onChange={(e) => handleFieldChange("lastName", e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.lastName ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                }`}
               placeholder="Last name"
             />
+            {fieldErrors.lastName && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.lastName}</p>
+            )}
           </div>
         </div>
 
@@ -137,9 +156,13 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
           <input
             type="date"
             value={formData.dateOfBirth}
-            onChange={(e) => updateFormData("dateOfBirth", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            onChange={(e) => handleFieldChange("dateOfBirth", e.target.value)}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.dateOfBirth ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+              }`}
           />
+          {fieldErrors.dateOfBirth && (
+            <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.dateOfBirth}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -150,10 +173,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <input
               type="text"
               value={formData.address1 || ""}
-              onChange={(e) => updateFormData("address1", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              onChange={(e) => handleFieldChange("address1", e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.address1 ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                }`}
               placeholder="House/Flat, Street"
             />
+            {fieldErrors.address1 && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.address1}</p>
+            )}
           </div>
 
           <div className="col-span-2">
@@ -163,7 +190,7 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <input
               type="text"
               value={formData.address2 || ""}
-              onChange={(e) => updateFormData("address2", e.target.value)}
+              onChange={(e) => handleFieldChange("address2", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               placeholder="Area, Landmark"
             />
@@ -176,10 +203,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <input
               type="text"
               value={formData.state || ""}
-              onChange={(e) => updateFormData("state", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              onChange={(e) => handleFieldChange("state", e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.state ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                }`}
               placeholder="State"
             />
+            {fieldErrors.state && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.state}</p>
+            )}
           </div>
 
           <div>
@@ -189,10 +220,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <input
               type="text"
               value={formData.city || ""}
-              onChange={(e) => updateFormData("city", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              onChange={(e) => handleFieldChange("city", e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.city ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                }`}
               placeholder="City"
             />
+            {fieldErrors.city && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.city}</p>
+            )}
           </div>
 
           <div>
@@ -204,15 +239,19 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
               inputMode="numeric"
               value={formData.pinCode || ""}
               onChange={(e) =>
-                updateFormData(
+                handleFieldChange(
                   "pinCode",
                   e.target.value.replace(/\D/g, "").slice(0, 6)
                 )
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.pinCode ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                }`}
               placeholder="6-digit PIN"
               maxLength={6}
             />
+            {fieldErrors.pinCode && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.pinCode}</p>
+            )}
           </div>
 
           {/* Company Required + Tooltip */}
@@ -238,10 +277,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <input
               type="text"
               value={formData.company || ""}
-              onChange={(e) => updateFormData("company", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              onChange={(e) => handleFieldChange("company", e.target.value)}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.company ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                }`}
               placeholder="Company name or Individual investor"
             />
+            {fieldErrors.company && (
+              <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.company}</p>
+            )}
           </div>
         </div>
       </div>
@@ -263,10 +306,6 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
           Continue
         </button>
       </div>
-
-      {error && (
-        <p className="text-red-500 text-sm text-center">{error}</p>
-      )}
     </div>
   );
 };
