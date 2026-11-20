@@ -25,8 +25,8 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
       anyReq.file ||
       (Array.isArray(anyReq.files)
         ? anyReq.files.find(
-            (f: any) => f.fieldname === "file" || f.fieldname === "pdf"
-          )
+          (f: any) => f.fieldname === "file" || f.fieldname === "pdf"
+        )
         : undefined);
 
     if (file) {
@@ -137,7 +137,7 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
           .insert([{ document_id, status: doc_status, user_id }])
           .select();
       }
-    } catch (dbError) {}
+    } catch (dbError) { }
 
     return res.status(201).json({
       success: true,
@@ -145,7 +145,44 @@ export const initiateSignatureJSON = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error: any) {
-    console.error("Error message:", error.message);
+    // Sanitized diagnostic — no credentials, Aadhaar numbers, OTPs, or doc content logged.
+    const upstreamStatus: number | undefined = error?.response?.status;
+    const correlationId: string =
+      (req.headers["x-request-id"] as string) ||
+      (req.headers["x-correlation-id"] as string) ||
+      "n/a";
+    const digioData = error?.response?.data;
+    const digioReason: string =
+      typeof digioData === "string"
+        ? digioData.slice(0, 200)
+        : digioData?.message ||
+        digioData?.details ||
+        digioData?.error_code ||
+        "none";
+    console.error(
+      `[digio] initiateSignatureJSON failed — upstreamStatus=${upstreamStatus ?? "no-response"} correlationId=${correlationId} message=${error.message} digioReason=${digioReason}`
+    );
+
+    // Map upstream status to an appropriate client-facing status.
+    // 400 → bad request we sent; 401/403 → credentials issue; 429 → rate limit;
+    // 5xx or network error → treat as 502 Bad Gateway so the client knows the
+    // failure is upstream, not a local 500.
+    const clientStatus =
+      upstreamStatus === 400
+        ? 400
+        : upstreamStatus === 401 || upstreamStatus === 403
+          ? 502
+          : upstreamStatus === 429
+            ? 429
+            : upstreamStatus && upstreamStatus >= 400 && upstreamStatus < 500
+              ? 502
+              : 502;
+
+    // Safe, opaque message — never forward raw Digio payloads to the browser.
+    return res.status(clientStatus).json({
+      message:
+        "Failed to initiate e-signing. Please try again or contact support.",
+    });
   }
 };
 

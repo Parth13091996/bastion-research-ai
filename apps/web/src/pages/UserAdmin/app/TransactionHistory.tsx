@@ -33,7 +33,11 @@ const TransactionHistory: React.FC = () => {
   });
 
   const filtered = useMemo(() => {
-    const rows = data || [];
+    const rows = (data || []).filter(
+      (r) =>
+        r.transaction_status !== "PENDING" &&
+        r.transaction_status !== "USER_DROPPED"
+    );
     if (!search.trim()) return rows;
     const q = search.toLowerCase();
     return rows.filter((r) =>
@@ -45,6 +49,14 @@ const TransactionHistory: React.FC = () => {
 
   const totalAmount = useMemo(() => {
     return (filtered || []).reduce((sum, r) => {
+      const status = (r.transaction_status || "").toUpperCase();
+      if (
+        status !== "SUCCESS" &&
+        status !== "FREE" &&
+        status !== "COUPON_APPLIED"
+      ) {
+        return sum;
+      }
       const n = typeof r.amount === "string" ? Number(r.amount) : r.amount || 0;
       return sum + (isNaN(n as number) ? 0 : (n as number));
     }, 0);
@@ -87,8 +99,8 @@ const TransactionHistory: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 sm:p-4 border-b border-gray-200 gap-3">
           <input
             type="text"
             placeholder={TransactionHistoryConstants.search.placeholder}
@@ -98,7 +110,7 @@ const TransactionHistory: React.FC = () => {
           />
         </div>
         <div
-          className="ag-theme-alpine overflow-hidden"
+          className="ag-theme-alpine w-full overflow-hidden"
           style={{
             height: TransactionHistoryConstants.grid.height,
             width: "100%",

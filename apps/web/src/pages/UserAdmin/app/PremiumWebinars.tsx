@@ -81,7 +81,7 @@ export default function PremiumWebinarsPage() {
     // Wait for auth and subscription to load before checking
     if (!isLoading && !isSubscriptionLoading) {
       // If not logged in or not premium, redirect to subscription/upgrade page
-      if (!user || !subscription || !subscription.is_premium) {
+      if (!user || !subscription || (!subscription.is_premium && !isAdmin)) {
         toast.error(
           "Premium access required. Redirecting to subscription page."
         );
@@ -105,6 +105,10 @@ export default function PremiumWebinarsPage() {
           >
             Premium Webinars
           </h1>
+          <p className="text-gray-600 max-w-2xl">
+            Premium webinars for subscribers. Access detailed sessions and
+            exclusive content.
+          </p>
         </div>
 
         {/* Search */}
@@ -293,11 +297,10 @@ export default function PremiumWebinarsPage() {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page as number)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        isActive
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${isActive
                           ? "text-white shadow-md"
                           : "text-gray-700 hover:bg-gray-100 border border-gray-300"
-                      }`}
+                        }`}
                       style={{
                         backgroundColor: isActive ? COLORS.red : COLORS.white,
                       }}

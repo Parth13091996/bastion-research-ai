@@ -8,6 +8,7 @@ export const endpoints = {
     onboardingDropOffStart: '/api/auth/onboarding-dropoff/start',
     onboard: '/api/auth/onboard',
     zeroAmountPayment: '/api/auth/zero-amount-payment',
+    refresh: '/api/auth/refresh',
   },
   users: {
     base: '/api/users',
@@ -188,7 +189,7 @@ export const endpoints = {
   admin: {
     staff: {
       sectionEditAccess: "/api/admin/staff/section-edit-access",
-    }, 
+    },
   },
 } as const
 

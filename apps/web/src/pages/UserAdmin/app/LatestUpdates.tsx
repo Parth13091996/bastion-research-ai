@@ -47,7 +47,8 @@ const LatestUpdates: React.FC = () => {
 
   const userPlanCode =
     subscription?.currentPlan || user?.membership_plans?.plan_code || "freemium";
-  const currentTier = subscription?.is_premium ? ["freemium","core","core_annual","research_hub"] : ["freemium"];
+  const currentTier = subscription?.is_premium ? ["freemium", "core", "core_annual", "research_hub"] : ["freemium"];
+  // const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
 
   const updates = useMemo<LatestUpdateItem[]>(() => {
     if (!stocks || !Array.isArray(stocks)) return [];

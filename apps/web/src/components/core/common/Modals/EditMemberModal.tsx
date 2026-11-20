@@ -113,6 +113,7 @@ const EditMemberModal = () => {
         date_of_birth: member.date_of_birth ?? "",
         company_name: member.company_name ?? "",
         role: getMemberRole(member, Date.now()),
+        // role: member.role ?? "employee",
         status: member.status ?? "active",
         plan_id:
           member.plan_id !== undefined && member.plan_id !== null
@@ -309,12 +310,20 @@ const EditMemberModal = () => {
                 <option value="ex_core_subscriber" disabled>Ex-Core Subscriber (automatic)</option>
                 {member?.role === "ipo_subscriber" && <option value="ipo_subscriber" hidden>IPO Subscriber</option>}
                 {member?.role === "research_ally_subscriber" && <option value="research_ally_subscriber" hidden>Research Ally Subscriber</option>}
-              </select>
+              </select >
               <p className="mt-1 text-xs text-gray-500">Ex-Core status follows the subscription expiry date automatically.</p>
-              {errors.role && (
-                <p className="text-red-600">{errors.role.message}</p>
-              )}
-            </div>
+              {/* <option value="core_subscriber">Core Subscriber</option>
+                <option value="ipo_subscriber">IPO Subscriber</option>
+                <option value="research_ally_subscriber">
+                  Research Ally Subscriber
+                </option>
+              </select> */}
+              {
+                errors.role && (
+                  <p className="text-red-600">{errors.role.message}</p>
+                )
+              }
+            </div >
             <div className="md:col-span-1">
               <label>Member Status</label>
               <select
@@ -358,12 +367,14 @@ const EditMemberModal = () => {
                 {"Save Changes"}
               </Button>
             </div>
-            {mutation.isError && (
-              <p className="text-red-500 text-sm md:col-span-2">
-                {(mutation.error as any)?.message ?? "Failed to update"}
-              </p>
-            )}
-          </form>
+            {
+              mutation.isError && (
+                <p className="text-red-500 text-sm md:col-span-2">
+                  {(mutation.error as any)?.message ?? "Failed to update"}
+                </p>
+              )
+            }
+          </form >
 
           <Dialog.Close asChild>
             <button
@@ -373,9 +384,9 @@ const EditMemberModal = () => {
               <X className="h-4 w-4" />
             </button>
           </Dialog.Close>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </Dialog.Content >
+      </Dialog.Portal >
+    </Dialog.Root >
   );
 };
 

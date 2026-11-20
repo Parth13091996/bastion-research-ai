@@ -6,11 +6,11 @@ export interface Newsletter {
   created_at: string;
   category?: string;
   hidden?: boolean; // admin flag to hide from public listing
-   link?: string;
-   author?: string;
-   plain_text?: string;
-   source?: "mailchimp" | "cms";
-   published_date?: string;
+  link?: string;
+  author?: string;
+  plain_text?: string;
+  source?: "mailchimp" | "cms";
+  published_date?: string;
 }
 
 export interface User {
@@ -29,12 +29,21 @@ export interface User {
   date_of_birth: string; // Or Date, but string is safer for serialization
   company?: string | null;
   password?: string | null; // Null for OAuth users
-  role?: "core_subscriber" | "free_subscriber" | "employee"; // Assuming possible roles
+  role?: "core_subscriber" | "free_subscriber" | "employee" | "research_ally_subscriber" | "ipo_subscriber" | "admin" | string;
   cameFromOAuth?: boolean;
-  status?: "active" | "agreement_signed" | "onboarded" | "free";
+  status?: "active" | "agreement_signed" | "onboarded" | "free" | string;
   created_at?: string;
   subscription_start_date?: string | null;
   subscription_end_date?: string | null;
+  plan_id?: number | string | null;
+  membership_plans?: {
+    plan_code?: string | null;
+    plan_id?: number | string | null;
+    plan_name?: string | null;
+    duration_months?: number | null;
+    price_amount?: number | null;
+  } | null;
+  digio_documents?: { document_id: string }[] | null;
 }
 
 // KRA (KYC Registration Agency) Types - Digio API Format

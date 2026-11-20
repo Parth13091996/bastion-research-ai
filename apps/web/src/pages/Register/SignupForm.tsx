@@ -16,6 +16,23 @@ import favicon from "../../../../server/public/favicon.webp";
 
 const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCode }) => {
   const { user } = useAuth();
+
+  const handleCloseModal = () => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("onboarding_open");
+      } catch { }
+    }
+    onClose();
+  };
+
+  useEffect(() => {
+    if (isOpen && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("onboarding_open", "true");
+      } catch { }
+    }
+  }, [isOpen]);
   const isAgreementSignedUser = user?.status === "agreement_signed";
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -38,7 +55,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
     panCard: "",
     panVerification: null,
     agreeToTerms: false,
-    selectedPlan: "",
+    selectedPlan: (typeof window !== "undefined" ? localStorage.getItem("selectedPlan") : null) || "",
     agreementSignatureUrl: "",
     agreementSignaturePath: "",
     agreementSignedAt: "",
@@ -79,32 +96,41 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
     : stepsValues.length;
 
   useEffect(() => {
+    const isPending = user?.status === "pending";
     const shouldResumeOnboarding = user?.status === "onboarded";
     const agreementSigned = user?.status === "agreement_signed";
 
     // Prefill common user details when resuming.
-    if (shouldResumeOnboarding || agreementSigned) {
+    if (isPending || shouldResumeOnboarding || agreementSigned) {
       setFormData((prev) => ({
         ...prev,
-        firstName: user?.first_name || "",
-        lastName: user?.last_name || "",
-        phone: user?.phone || "",
-        email: user?.email || "",
-        address1: user?.address_1 || "",
-        address2: user?.address_2 || "",
-        state: user?.state || "",
-        city: user?.city || "",
-        pinCode: user?.pin_code || "",
-        dateOfBirth: user?.date_of_birth || "",
-        company: user?.company || "",
-        panCard: user?.pan_card_number || "",
-        panVerification: user?.pan_card_number
-          ? { valid: true }
-          : prev.panVerification,
+        selectedPlan:
+          prev.selectedPlan ||
+          (typeof window !== "undefined" ? localStorage.getItem("selectedPlan") : null) ||
+          (user?.plan_id ? String(user.plan_id) : "") ||
+          "",
+        firstName: prev.firstName || user?.first_name || "",
+        lastName: prev.lastName || user?.last_name || "",
+        phone: prev.phone || user?.phone || "",
+        email: prev.email || user?.email || "",
+        address1: prev.address1 || user?.address_1 || "",
+        address2: prev.address2 || user?.address_2 || "",
+        state: prev.state || user?.state || "",
+        city: prev.city || user?.city || "",
+        pinCode: prev.pinCode || user?.pin_code || "",
+        dateOfBirth: prev.dateOfBirth || user?.date_of_birth || "",
+        company: prev.company || user?.company || "",
+        panCard: prev.panCard || user?.pan_card_number || "",
+        panVerification:
+          prev.panVerification ||
+          (user?.pan_card_number ? { valid: true } : null),
       }));
     }
 
-    if (shouldResumeOnboarding) {
+    if (isPending) {
+      // User verified OTP and has account; resume directly from Step 3 (Onboarding Step)
+      setCurrentStep(3);
+    } else if (shouldResumeOnboarding) {
       // KYC is already completed in this state; resume from Agreement step.
       setCurrentStep(6);
     }
@@ -113,6 +139,11 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
   }, [user]);
 
   const updateFormData = (field: string, value: any) => {
+    if (field === "selectedPlan" && typeof window !== "undefined") {
+      try {
+        localStorage.setItem("selectedPlan", String(value));
+      } catch { }
+    }
     setFormData((prev) => {
       const next = { ...prev, [field]: value } as OnboardingFormData;
       if (
@@ -160,8 +191,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
         } catch (err: any) {
           setError(
             err?.response?.data?.message ||
-              err?.message ||
-              "Failed to fetch plans."
+            err?.message ||
+            "Failed to fetch plans."
           );
         } finally {
           setIsLoading(false);
@@ -250,6 +281,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
               onNext={nextStep}
               updateFormData={updateFormData}
               setIsLoading={setIsLoading}
+              onClose={handleCloseModal}
             />
           );
         case 2:
@@ -323,6 +355,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
             onNext={nextStep}
             updateFormData={updateFormData}
             setIsLoading={setIsLoading}
+            onClose={handleCloseModal}
           />
         );
       case 5:
@@ -381,7 +414,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Bastion account registration" className="fixed inset-0 bg-black bg-opacity-50 flex items-center  justify-center p-2 sm:p-4 z-[999999] top-0">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center  justify-center p-2 sm:p-4 z-[999999] top-0">
       <div className="bg-white rounded-xl shadow-2xl sm:mt-[0px] mt-[10vh] w-full max-w-5xl max-h-[84dvh] overflow-auto flex flex-col sm:flex-row">
         {/* Sidebar for larger screens */}
         <div className="hidden sm:block w-80 bg-gray-50 p-6 border-r overflow-y-auto">
@@ -399,22 +432,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
             {steps.map((step) => (
               <div
                 key={step.id}
-                className={`flex items-center p-3 rounded-lg transition-colors text-base ${
-                  currentStep === step.id
-                    ? "bg-red-100 text-red-700 border-l-4 border-red-500"
-                    : currentStep > step.id
-                      ? "bg-green-50 text-green-700"
-                      : "text-gray-500"
-                }`}
+                className={`flex items-center p-3 rounded-lg transition-colors text-base ${currentStep === step.id
+                  ? "bg-red-100 text-red-700 border-l-4 border-red-500"
+                  : currentStep > step.id
+                    ? "bg-green-50 text-green-700"
+                    : "text-gray-500"
+                  }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${
-                    currentStep === step.id
-                      ? "bg-red-500 text-white"
-                      : currentStep > step.id
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-300 text-gray-600"
-                  }`}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 ${currentStep === step.id
+                    ? "bg-red-500 text-white"
+                    : currentStep > step.id
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-300 text-gray-600"
+                    }`}
                 >
                   {currentStep > step.id ? <Check size={12} /> : step.id}
                 </div>
@@ -446,22 +477,20 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
                 <div
                   key={step.id}
                   id={`step-${step.id}`}
-                  className={`flex flex-col items-center flex-shrink-0 px-3 py-2 rounded-lg transition-colors text-xs ${
-                    currentStep === step.id
-                      ? "bg-red-100 text-red-700"
-                      : currentStep > step.id
-                        ? "bg-green-50 text-green-700"
-                        : "text-gray-500"
-                  }`}
+                  className={`flex flex-col items-center flex-shrink-0 px-3 py-2 rounded-lg transition-colors text-xs ${currentStep === step.id
+                    ? "bg-red-100 text-red-700"
+                    : currentStep > step.id
+                      ? "bg-green-50 text-green-700"
+                      : "text-gray-500"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${
-                      currentStep === step.id
-                        ? "bg-red-500 text-white"
-                        : currentStep > step.id
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-300 text-gray-600"
-                    }`}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs mb-1 ${currentStep === step.id
+                      ? "bg-red-500 text-white"
+                      : currentStep > step.id
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300 text-gray-600"
+                      }`}
                   >
                     {currentStep > step.id ? <Check size={10} /> : step.id}
                   </div>
@@ -480,8 +509,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
                 Subscribe to <strong>Bastion CORE</strong>
               </p>
               <button
-                onClick={onClose}
-                aria-label="Close registration"
+                onClick={handleCloseModal}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X size={22} />

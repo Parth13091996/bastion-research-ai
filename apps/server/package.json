@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node --trace-deprecation dist/index.js",
-    "dev": "nodemon src/index.ts",
+    "start": "dotenv -e .env -- node --trace-deprecation dist/index.js",
+    "dev": "dotenv -e .env.development -- nodemon",
     "test:reminders": "node tests/reminders.test.mjs"
   },
   "keywords": [

@@ -29,6 +29,20 @@ export type ReminderUserRow = {
 const isSubscriptionReminderType = (
   value: string
 ): value is SubscriptionReminderType => Object.prototype.hasOwnProperty.call(reminderConfigByType, value)
+// const getDayDiffFromToday = (dateValue: string) => {
+//   const date = new Date(dateValue)
+//   if (Number.isNaN(date.getTime())) return null
+
+//   const targetUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+//   const now = new Date()
+//   const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+
+//   return Math.round((targetUtc - todayUtc) / DAY_MS)
+// }
+
+// const isSubscriptionReminderType = (
+//   value: string
+// ): value is SubscriptionReminderType => value in reminderConfigByType
 
 export const sendReminderForUser = async (
   user: ReminderUserRow,
@@ -97,8 +111,10 @@ export const sendReminderForUser = async (
     }
     if (user.email && !emailSent) {
       try {
-        await sendSubscriptionRenewalReminderEmail({ to: user.email, firstName: user.first_name || undefined,
-          planName: user.membership_plans?.plan_name || undefined, subscriptionEndDate, reminderType })
+        await sendSubscriptionRenewalReminderEmail({
+          to: user.email, firstName: user.first_name || undefined,
+          planName: user.membership_plans?.plan_name || undefined, subscriptionEndDate, reminderType
+        })
         emailSent = true
       } catch (error: any) {
         emailError = error?.message || 'Email reminder failed'
@@ -117,6 +133,7 @@ export const sendSubscriptionWhatsappReminder = async (
 ) => {
   try {
     const reminderType = String(req.body?.reminderType || '').trim()
+    const requestCampaignName = String(req.body?.campaignName || '').trim()
 
     if (!isSubscriptionReminderType(reminderType)) {
       return res.status(400).json({ message: 'Invalid reminderType' })
@@ -124,6 +141,9 @@ export const sendSubscriptionWhatsappReminder = async (
 
     const reminderConfig = reminderConfigByType[reminderType]
 
+    if (requestCampaignName !== reminderConfig.campaignName) {
+      return res.status(400).json({ message: 'Invalid campaignName for reminderType' })
+    }
 
     const { data, error } = await supabase
       .from('users')
@@ -158,6 +178,7 @@ export const sendSubscriptionWhatsappReminder = async (
     }
 
     const currentDayDiff = reminderDayDifference(subscriptionEndDate)
+    // const currentDayDiff = getDayDiffFromToday(subscriptionEndDate)
     if (currentDayDiff !== reminderConfig.dayDiff) {
       return res.status(200).json({
         sent: false,
@@ -167,6 +188,7 @@ export const sendSubscriptionWhatsappReminder = async (
     }
 
     const result = await sendReminderForUser(user, reminderType)
+    // const result = await sendReminderForUser(user, reminderType, requestCampaignName)
     return res.status(200).json(result)
   } catch (e: any) {
     return res

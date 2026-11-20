@@ -37,8 +37,8 @@ const RecommendationsControls = ({
             <option value="Oldest">Oldest</option>
             <option value="Upside Wise">Upside Wise</option>
             <option value="Return Wise">Return Wise</option>
-          </select>
-        </div>
+          </select >
+        </div >
 
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-600" />
@@ -51,10 +51,10 @@ const RecommendationsControls = ({
             <option value="BUY">BUY</option>
             <option value="HOLD">HOLD</option>
             <option value="EXIT">Exited</option>
-          </select>
-        </div>
-      </div>
-    </div>
+          </select >
+        </div >
+      </div >
+    </div >
   );
 };
 

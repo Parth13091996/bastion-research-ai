@@ -38,10 +38,19 @@ export const runSubscriptionExpiryReminder = async () => {
     const today = new Date()
     const savedCampaigns = await getSubscriptionReminderCampaigns()
 
+    // for (const [key, config] of Object.entries(reminderConfigByType)) {
+    //   const reminderType = key as SubscriptionReminderType
+    //   if (!savedCampaigns[reminderType].enabled) continue
+    // const targetDateStr = reminderDate(today, config.dayDiff)
+
     for (const [key, config] of Object.entries(reminderConfigByType)) {
       const reminderType = key as SubscriptionReminderType
-      if (!savedCampaigns[reminderType].enabled) continue
-      const targetDateStr = reminderDate(today, config.dayDiff)
+      const target = new Date(Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth(),
+        today.getUTCDate() + config.dayDiff
+      ))
+      const targetDateStr = target.toISOString().split('T')[0]
 
       const { data, error } = await supabase
         .from('users')
@@ -322,6 +331,7 @@ export const startSubscriptionExpiryReminderJob = () => {
     }
     lastRunDay = today
     await runExpiredPremiumMailchimpSync(now)
+    // await runSubscriptionExpiryReminder() // early it was handle without if block
     await runDropOffSummary(now)
 
     const monthKey = getMonthKey(now)

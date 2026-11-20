@@ -1,6 +1,6 @@
-import {useAuth} from '@/contexts/AuthContext';
-import {useSubscription} from '@/hooks/use-subscription';
-import {useLocation} from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/use-subscription';
+import { useLocation } from 'react-router-dom';
 import {
   getAllRecommendations,
   getSheetRecommendations,
@@ -106,8 +106,8 @@ function partitionMergedByDbSymbol(
 }
 
 const useSheetStocks = (onlySheet: boolean = false) => {
-  const {user,isStaff}=useAuth();const {data:subscription}=useSubscription();const location=useLocation();
-  const manage=!!isStaff && location.pathname.startsWith('/admin/');
+  const { user, isStaff } = useAuth(); const { data: subscription } = useSubscription(); const location = useLocation();
+  const manage = !!isStaff && location.pathname.startsWith('/admin/');
   const [mergedStocks, setMergedStocks] = useState<StockData[]>([]);
   const [dbData, setDbData] = useState<StockData[]>([]);
   const [notInserterData, setNotInsertedData] = useState<StockData[]>([]);
@@ -116,15 +116,15 @@ const useSheetStocks = (onlySheet: boolean = false) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let active=true;
-    setMergedStocks([]);setDbData([]);setNotInsertedData([]);setSheetStocks([]);
+    let active = true;
+    setMergedStocks([]); setDbData([]); setNotInsertedData([]); setSheetStocks([]);
     async function fetchData() {
       setLoading(true);
       setError(null);
       try {
         // Get Sheet Data
         const sheetData = await getSheetRecommendations();
-        if(!active)return;
+        if (!active) return;
         // Transform for sheet-only structure
         const transformedSheetStocks: StockData[] = sheetData.map(
           transformSheetRowToStockData
@@ -133,7 +133,8 @@ const useSheetStocks = (onlySheet: boolean = false) => {
 
         if (onlySheet) {
           setMergedStocks(transformedSheetStocks);
-          if(active)setLoading(false);
+          if (active) setLoading(false);
+          // setLoading(false);
           return;
         }
 
@@ -150,20 +151,20 @@ const useSheetStocks = (onlySheet: boolean = false) => {
         const { dbData: justDbData, notInsertedData } =
           partitionMergedByDbSymbol(merged, dbDataArr);
 
-        if(!active)return;
+        if (!active) return;
         setDbData(justDbData);
         setNotInsertedData(notInsertedData);
         setMergedStocks(merged);
       } catch (e: any) {
-        if(!active)return;
+        if (!active) return;
         setError(e?.message || "Failed to load recommendations");
       } finally {
-        if(active)setLoading(false);
+        if (active) setLoading(false);
       }
     }
     fetchData();
-    return()=>{active=false;};
-  }, [onlySheet,user?.id,subscription?.is_premium,manage]);
+    return () => { active = false; };
+  }, [onlySheet, user?.id, subscription?.is_premium, manage]);
 
   return {
     stocks: mergedStocks,

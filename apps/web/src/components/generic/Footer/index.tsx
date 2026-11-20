@@ -165,9 +165,14 @@ const Footer = () => {
               <SocialIcons className="flex flex-col items-start gap-3 justify-center mb-4" />
 
               <div className="mt-6">
-                <h5 className="font-semibold mb-2">
+                <a
+                  href="https://bastionresearch.substack.com/subscribe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold mb-2 block hover:underline"
+                >
                   Subscribe To Our Newsletter
-                </h5>
+                </a>
 
                 {/* Supascribe Embed */}
                 <div

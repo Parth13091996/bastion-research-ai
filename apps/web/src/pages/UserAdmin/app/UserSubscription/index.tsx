@@ -27,7 +27,7 @@ const Subscription = () => {
     data: subscription,
     isLoading: isSubscriptionLoading,
     isError: isSubscriptionError,
-  } = useSubscription() as { data: (SubscriptionData & {can_purchase_core:boolean}) | undefined } & {
+  } = useSubscription() as { data: (SubscriptionData & { can_purchase_core: boolean }) | undefined } & {
     isLoading: boolean;
     isError: boolean;
   };
@@ -68,9 +68,9 @@ const Subscription = () => {
     agreementSignedAt: undefined,
   });
 
-  
+
   const currentPlanCode =
-  subscription?.subscription?.plan_code || "freemium"
+    subscription?.subscription?.plan_code || "freemium"
   useEffect(() => {
     const loadPlans = async () => {
       setIsPlansLoading(true);
@@ -96,43 +96,41 @@ const Subscription = () => {
   };
 
 
-  const renewalEligible = useMemo(() => {
-    const expiresAt =
-      subscription?.subscription?.expireNextRenewal ||
-      user?.subscription_end_date ||
-      null;
-    if (!expiresAt) return false;
+  const expireNextRenewal =
+    subscription?.subscription?.expireNextRenewal ||
+    user?.subscription_end_date ||
+    null;
 
-    const exp = new Date(expiresAt);
+  const isExpired = useMemo(() => {
+    if (!expireNextRenewal) return false;
+    const exp = new Date(expireNextRenewal);
+    if (isNaN(exp.getTime())) return false;
+    return exp.getTime() < new Date().setHours(0, 0, 0, 0);
+  }, [expireNextRenewal]);
+
+  const renewalEligible = useMemo(() => {
+    if (!expireNextRenewal) return false;
+
+    const exp = new Date(expireNextRenewal);
     if (isNaN(exp.getTime())) return false;
 
     const today = new Date();
     const msLeft = exp.getTime() - today.getTime();
     const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
     return daysLeft <= 30;
-  }, [
-    subscription?.subscription?.expireNextRenewal,
-    user?.subscription_end_date,
-  ]);
+  }, [expireNextRenewal]);
 
   const discountRenewalEligible = useMemo(() => {
-    const expiresAt =
-      subscription?.subscription?.expireNextRenewal ||
-      user?.subscription_end_date ||
-      null;
-    if (!expiresAt) return false;
+    if (!expireNextRenewal) return false;
 
-    const exp = new Date(expiresAt);
+    const exp = new Date(expireNextRenewal);
     if (isNaN(exp.getTime())) return false;
 
     const today = new Date();
     const msLeft = exp.getTime() - today.getTime();
     const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
     return daysLeft <= 7 && daysLeft >= -30;
-  }, [
-    subscription?.subscription?.expireNextRenewal,
-    user?.subscription_end_date,
-  ]);
+  }, [expireNextRenewal]);
 
   const availablePlans = useMemo(() => {
     if (!plans.length) return [];
@@ -141,13 +139,30 @@ const Subscription = () => {
       const isFree = String(plan.amount) === "0" || planCode === "freemium";
       if (isFree) return false;
       const featureKey = getFeatureKey(plan);
-      if (featureKey === "core" && (subscription?.can_purchase_core !== true || currentPlanCode === "core_annual")) {
+
+      // If user's plan is expired, or they already have/had CORE or CORE Annual,
+      // hide the one-time CORE plan so only the Annual plan is shown.
+      const hasOrHadCore =
+        currentPlanCode === "core" ||
+        currentPlanCode === "core_annual" ||
+        user?.membership_plans?.plan_code === "core" ||
+        user?.membership_plans?.plan_code === "core_annual" ||
+        (Array.isArray(user?.membership_plans) &&
+          user?.membership_plans.some(
+            (p: any) =>
+              p?.plan_code === "core" || p?.plan_code === "core_annual"
+          ));
+
+      if (
+        featureKey === "core" &&
+        (isExpired || hasOrHadCore || currentPlanCode === "core_annual")
+      ) {
         return false;
       }
-      
+
       return true;
     });
-  }, [plans, hasSignedAgreement, currentPlanCode, user, subscription?.can_purchase_core]);
+  }, [plans, hasSignedAgreement, currentPlanCode, user, isExpired]);
 
   const startUpgradeFlow = (plan: Plan) => {
     setPendingPlan(plan);
@@ -323,6 +338,7 @@ const Subscription = () => {
           customer_id: String(user.id),
           customer_email: user.email,
           customer_phone: user.phone,
+          return_url: `${window.location.origin}/payment/success?order_id={order_id}`,
           // Let the server compose return_url with order_id for reconciliation
           source: "subscription",
           discount_amount:
@@ -386,6 +402,7 @@ const Subscription = () => {
           hasAnyPlan={hasAnyPlan}
           onFreePlan={onFreePlan}
           currentPlanCode={currentPlanCode}
+          isExpired={isExpired}
         />
 
         {/* Plans Grid */}
@@ -398,6 +415,8 @@ const Subscription = () => {
           discountRenewalEligible={discountRenewalEligible}
           checkingOut={checkingOut}
           handleSubscribe={handleSubscribe}
+          isExpired={isExpired}
+          currentPlanCode={currentPlanCode}
         />
       </div>
 

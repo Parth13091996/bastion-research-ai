@@ -1,11 +1,11 @@
-import {usePremiumBenefits} from '@/hooks/use-premium-benefits';
+import { usePremiumBenefits } from '@/hooks/use-premium-benefits';
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Copy, Check, ExternalLink, Sparkles, Zap, 
-  HelpCircle, Play, Info, Gift, Star, TrendingUp 
+import {
+  Copy, Check, ExternalLink, Sparkles, Zap,
+  HelpCircle, Play, Info, Gift, Star, TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
 import useConstants from "@/hooks/use-constants";
@@ -19,8 +19,9 @@ import {
 
 const EffortlessInvestor: React.FC = () => {
   const [copied, setCopied] = useState(false);
-  const {data:benefit,isPending:loadingBenefit,isError:benefitError}=usePremiumBenefits(true);
-  const code = benefit?.coupon_code || ''; 
+  const { data: benefit, isPending: loadingBenefit, isError: benefitError } = usePremiumBenefits(true);
+  const code = benefit?.coupon_code || '';
+  // const code = "CORECOMMUNITY";
   const { BrandColors } = useConstants();
 
   const copyCode = () => {
@@ -66,14 +67,14 @@ const EffortlessInvestor: React.FC = () => {
     visible: { opacity: 1, y: 0 },
   };
 
-  if(loadingBenefit||benefitError)return <p role="status" className="p-6">{loadingBenefit?'Loading premium benefits…':'Unable to load premium benefits. Please retry.'}</p>;
+  if (loadingBenefit || benefitError) return <p role="status" className="p-6">{loadingBenefit ? 'Loading premium benefits…' : 'Unable to load premium benefits. Please retry.'}</p>;
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-12">
       {/* HERO SECTION */}
-      <div 
+      <div
         className="relative overflow-hidden pt-12 pb-20 px-4"
-        style={{ 
-          background: `linear-gradient(135deg, ${BrandColors.blue} 0%, #1e293b 100%)` 
+        style={{
+          background: `linear-gradient(135deg, ${BrandColors.blue} 0%, #1e293b 100%)`
         }}
       >
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-10">
@@ -81,7 +82,7 @@ const EffortlessInvestor: React.FC = () => {
           <div className="absolute top-1/2 -right-24 w-64 h-64 rounded-full bg-white blur-2xl opacity-10"></div>
         </div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -100,7 +101,7 @@ const EffortlessInvestor: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 max-w-4xl -mt-12 relative z-20">
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -114,10 +115,10 @@ const EffortlessInvestor: React.FC = () => {
                 <div className="p-8 md:p-10 flex-1 border-r border-gray-100">
                   <div className="flex flex-col gap-6">
                     <div className="flex items-center gap-2">
-                       <div className="p-2 bg-blue-50 rounded-lg">
-                         <TrendingUp className="h-5 w-5 text-blue-600" />
-                       </div>
-                       <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Smallcase Portfolio</span>
+                      <div className="p-2 bg-blue-50 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Smallcase Portfolio</span>
                     </div>
 
                     <div>
@@ -189,14 +190,14 @@ const EffortlessInvestor: React.FC = () => {
                     <Gift className="h-10 w-10 text-blue-500 mb-2 mx-auto" strokeWidth={1.5} />
                     <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Member Exclusive</p>
                   </div>
-                  
+
                   <h3 className="text-xl font-black text-[#1C2852] mb-4">Your Promo Code</h3>
-                  
+
                   {/* Voucher UI */}
                   <div className="w-full relative py-6 px-4 bg-white border-2 border-dashed border-blue-200 rounded-2xl mb-6 overflow-hidden">
                     <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#FAFBFD] rounded-full border-r-2 border-blue-200"></div>
                     <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#FAFBFD] rounded-full border-l-2 border-blue-200"></div>
-                    
+
                     <div className="text-3xl font-black tracking-[0.25em] text-blue-600 mb-1">
                       {code}
                     </div>
@@ -214,7 +215,7 @@ const EffortlessInvestor: React.FC = () => {
                       <><Copy className="mr-2 h-4 w-4" /> Copy Code</>
                     )}
                   </Button>
-                  
+
                   <p className="mt-4 text-[10px] text-gray-400 font-medium">
                     Valid for one-time use on smallcase platform.
                   </p>
@@ -257,7 +258,7 @@ const EffortlessInvestor: React.FC = () => {
 
             {/* FAQ SECTION */}
             <motion.div variants={itemVariants} className="md:col-span-1">
-               <Card className="border-none shadow-xl bg-white rounded-3xl h-full overflow-hidden">
+              <Card className="border-none shadow-xl bg-white rounded-3xl h-full overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="p-1.5 bg-orange-100 rounded-md">
@@ -279,7 +280,7 @@ const EffortlessInvestor: React.FC = () => {
                       </AccordionItem>
                     ))}
                   </Accordion>
-                  
+
                   <div className="mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100">
                     <div className="flex items-start gap-3">
                       <Info className="h-5 w-5 text-gray-400 mt-0.5" />
@@ -294,7 +295,7 @@ const EffortlessInvestor: React.FC = () => {
             </motion.div>
           </div>
 
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 rounded-3xl text-center"
           >

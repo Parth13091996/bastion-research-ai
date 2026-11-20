@@ -1,4 +1,4 @@
-import {researchPreviewUrl} from '@/lib/research-preview';
+import { researchPreviewUrl } from '@/lib/research-preview';
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Upload, Plus, Trash2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -1043,10 +1043,10 @@ const AddRecommendationModal: React.FC<AddRecommendationModalProps> = ({
     const stockPerformancePayload = stockPerformanceItems.map((item, index) =>
       index === 0
         ? {
-            ...item,
-            quarterly_update: quarterlyUpdates,
-            announcements_and_update: announcements,
-          }
+          ...item,
+          quarterly_update: quarterlyUpdates,
+          announcements_and_update: announcements,
+        }
         : item
     );
 

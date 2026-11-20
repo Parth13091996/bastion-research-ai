@@ -76,6 +76,12 @@ const useConstants = () => {
       icon: TrendingUp,
       path: "/user/app/recommendation",
     },
+    // {
+    //   key: "tactical_ideas",
+    //   name: "Tactical Ideas",
+    //   icon: TrendingUp,
+    //   path: "/user/app/tactical-ideas",
+    // },
     {
       key: "premium_webinars",
       name: "Premium Webinars",
@@ -212,12 +218,15 @@ const useConstants = () => {
         const row = params.data as PaymentRow;
         const transactionId = row?.transaction_id;
         const planCode = (row?.plan_code || "").toLowerCase();
+        const status = (row?.transaction_status || "").toUpperCase();
         const isFree =
           planCode === "freemium" ||
           (row?.amount != null &&
             Number(row.amount) === 0 &&
             !planCode);
-        if (!transactionId || isFree) {
+        const isPaidOrCompleted =
+          status === "SUCCESS" || status === "FREE" || status === "COUPON_APPLIED";
+        if (!transactionId || isFree || !isPaidOrCompleted) {
           return params.value || "";
         }
         const href = `${import.meta.env.VITE_API_BASE_URL}/api/payment-history/${encodeURIComponent(

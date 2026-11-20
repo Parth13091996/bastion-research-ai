@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getAdminSettings, updateAdminSettings, type ReminderCampaigns, type ReminderCampaign, type ReminderStage } from "@/api/settings-api";
+import axiosInstance from "@/api/axios";
 import { uploadFile } from "@/api/files-api";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
@@ -71,6 +72,18 @@ const AdminSettings = () => {
   });
   const [saving, setSaving] = useState(false);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to={AppRoutes.adminDashboard} replace />;
+  }
+
   // Upload states
   const [uploadingAgreement, setUploadingAgreement] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -102,9 +115,12 @@ const AdminSettings = () => {
   }, [isAdmin, loadSettings]);
 
   const setReminder = (stage: ReminderStage, patch: Partial<ReminderCampaign>) => {
-    setForm(previous => previous.aisensy_subscription_reminders ? ({ ...previous,
-      aisensy_subscription_reminders: { ...previous.aisensy_subscription_reminders,
-        [stage]: { ...previous.aisensy_subscription_reminders[stage], ...patch } },
+    setForm(previous => previous.aisensy_subscription_reminders ? ({
+      ...previous,
+      aisensy_subscription_reminders: {
+        ...previous.aisensy_subscription_reminders,
+        [stage]: { ...previous.aisensy_subscription_reminders[stage], ...patch }
+      },
     }) : previous);
   };
   const saveReminders = async () => {
@@ -123,6 +139,16 @@ const AdminSettings = () => {
       setRemindersSaving(false);
     }
   };
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const data = await getAdminSettings(true);
+  //       setForm((p) => ({ ...p, ...(data || {}) }));
+  //     } catch {
+  //       // fallback remain
+  //     }
+  //   })();
+  // }, []);
 
   const set = <K extends keyof AdminSettings>(k: K, v: AdminSettings[K]) =>
     setForm((p) => ({ ...p, [k]: v }));
@@ -230,6 +256,9 @@ const AdminSettings = () => {
     <div>
       <h1 className="text-3xl font-bold mb-8">Settings Panel</h1>
       {settingsError && <div role="alert" className="mb-6 rounded-md border p-4 text-red-600">{settingsError} <Button variant="outline" onClick={loadSettings}>Retry loading settings</Button></div>}
+      {/* return (
+    <div>
+        <h1 className="text-3xl font-bold mb-8">Settings Panel</h1> */}
       <Card>
         <CardHeader>
           <CardTitle>Site Settings</CardTitle>
@@ -412,7 +441,7 @@ const AdminSettings = () => {
             {saving ? "Saving..." : "Save Settings"}
           </Button>
         </CardFooter>
-      </Card>
+      </Card >
 
       <Card className="mt-8">
         <CardHeader>
@@ -421,7 +450,7 @@ const AdminSettings = () => {
             Manage all four reminder stages. Use the exact live AiSensy API campaign name linked to your approved WhatsApp template.
             To change the message wording, update the template in AiSensy and enter its campaign name here.
           </CardDescription>
-        </CardHeader>
+        </CardHeader >
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">Saving applies to future unsent reminders without a redeploy. Reminders already sent will not be resent. Disabling a stage pauses both its WhatsApp and email reminders.</p>
           {settingsLoading ? <p role="status">Loading renewal reminders...</p> : !form.aisensy_subscription_reminders ?
@@ -467,7 +496,7 @@ const AdminSettings = () => {
             {remindersSaving ? 'Saving reminders...' : 'Save Renewal Reminders'}
           </Button>
         </CardFooter>
-      </Card>
+      </Card >
 
       <Card className="mt-8">
         <CardHeader>
@@ -531,7 +560,7 @@ const AdminSettings = () => {
             {saving ? "Saving..." : "Save Settings"}
           </Button>
         </CardFooter>
-      </Card>
+      </Card >
 
       <Card className="mt-8">
         <CardHeader>
@@ -573,8 +602,8 @@ const AdminSettings = () => {
             {saving ? "Saving..." : "Save Settings"}
           </Button>
         </CardFooter>
-      </Card>
-    </div>
+      </Card >
+    </div >
   );
 };
 

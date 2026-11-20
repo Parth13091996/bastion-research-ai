@@ -21,9 +21,25 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   setError,
   setIsLoading,
 }) => {
-  const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
   const { user, refetchUser } = useAuth();
   const navigate = useNavigate();
+
+  const activePlanCode =
+    selectedPlan ||
+    formData?.selectedPlan ||
+    (typeof window !== "undefined" ? localStorage.getItem("selectedPlan") : null) ||
+    (user?.plan_id ? String(user.plan_id) : null);
+
+  const selectedPlanDetails =
+    plans.find(
+      (p) =>
+        p.code === activePlanCode ||
+        p.plan_code === activePlanCode ||
+        String(p.code) === String(activePlanCode)
+    ) ||
+    plans.find((p) => p.plan_code === "core_annual") ||
+    plans.find((p) => p.code === "3") ||
+    plans.find((p) => Number(p.amount) > 0);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -107,7 +123,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       if (isFreeOrZero) {
         const result = await zeroAmountPayment({
           plan_id: Number(selectedPlanDetails?.code),
-          payer_email: formData.email,
+          payer_email: formData.email || user?.email,
           coupon_code: couponToUse,
           user_id: user?.id,
           role: formData?.role,
@@ -130,10 +146,11 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           return;
         }
         const orderResponse = await createCashfreeOrder({
-          plan: formData.selectedPlan,
+          plan: selectedPlanDetails?.code || formData.selectedPlan || "3",
           customer_id: user.id,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
+          customer_email: formData.email || user.email,
+          customer_phone: formData.phone || user.phone,
+          return_url: `${window.location.origin}/payment/success?order_id={order_id}`,
           source: "register",
           coupon_code: appliedCoupon?.coupon_code || null,
           discount_amount: finalAmount,

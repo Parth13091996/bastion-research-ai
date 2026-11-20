@@ -1,4 +1,4 @@
-import {researchPreviewUrl} from '@/lib/research-preview';
+import { researchPreviewUrl } from '@/lib/research-preview';
 import { uploadFile } from "@/api/files-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -645,14 +645,14 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
               )}
               {watch("logo") && !selectedFiles.logo && typeof watch("logo") === "string"
                 && watch("logo").startsWith("http") && (
-                <div className="mt-2">
-                  <img
-                    src={watch("logo")}
-                    alt="Company logo"
-                    className="h-12 object-contain"
-                  />
-                </div>
-              )}
+                  <div className="mt-2">
+                    <img
+                      src={watch("logo")}
+                      alt="Company logo"
+                      className="h-12 object-contain"
+                    />
+                  </div>
+                )}
             </div>
 
             <div>
@@ -754,13 +754,13 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
                                 const next = prev.map((p, i) =>
                                   i === idx
                                     ? {
-                                        ...p,
-                                        is_active: checked,
-                                        exit_price: checked ? "" : p.exit_price,
-                                        exit_date: checked ? "" : p.exit_date,
-                                        holding_period: checked ? "" : p.holding_period,
-                                        total_return: checked ? "" : p.total_return,
-                                      }
+                                      ...p,
+                                      is_active: checked,
+                                      exit_price: checked ? "" : p.exit_price,
+                                      exit_date: checked ? "" : p.exit_date,
+                                      holding_period: checked ? "" : p.holding_period,
+                                      total_return: checked ? "" : p.total_return,
+                                    }
                                     : { ...p, is_active: false }
                                 );
                                 return next;
@@ -1000,500 +1000,500 @@ const EditRecommendationModal: React.FC<EditRecommendationModalProps> = ({
 
             {/* -- Selected Stock Performance Card with editable quick bite/business note/exit rationale -- */}
             {stockPerformance.length > 0 && (
-            <div className="border rounded-lg bg-white p-4 space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-base">
-                  Resources & Updates for <span className="font-bold">{stockPerformance[activePerformanceIndex]?.title || "Performance"}</span>
-                </h3>
-                <span className="text-sm text-blue-600">
-                  ({stockPerformance[activePerformanceIndex]?.date || "–"})
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* --- Business Note --- */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Business Note (PDF)
-                  </label>
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      value={stockPerformance[activePerformanceIndex]?.business_note || ""}
-                      onChange={e => {
-                        const value = e.target.value === "" ? null : e.target.value;
-                        setStockPerformance(prev => {
-                          const next = [...prev];
-                          next[activePerformanceIndex] = {
-                            ...next[activePerformanceIndex],
-                            business_note: value,
-                          };
-                          return next;
-                        });
-                      }}
-                      placeholder="PDF URL"
-                      key={stockPerformance[activePerformanceIndex]?.business_note || "empty"} // <--- force re-render on clear
-                    />
-                    <label className="cursor-pointer">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={!!uploading[`stockperf_${activePerformanceIndex}_business_note`]}
-                        asChild
-                      >
-                        <span>
-                          <Upload className="h-4 w-4 mr-1" />
-                          {uploading[`stockperf_${activePerformanceIndex}_business_note`] ? "Uploading..." : "Upload"}
-                        </span>
-                      </Button>
-                      <input
-                        ref={businessNoteInputRef}
-                        type="file"
-                        accept="application/pdf"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handlePerformanceFileUpload(activePerformanceIndex, "business_note", file);
-                            // Reset file input so user can reselect the same file after clearing
-                            e.target.value = "";
-                          }
-                        }}
-                      />
+              <div className="border rounded-lg bg-white p-4 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-base">
+                    Resources & Updates for <span className="font-bold">{stockPerformance[activePerformanceIndex]?.title || "Performance"}</span>
+                  </h3>
+                  <span className="text-sm text-blue-600">
+                    ({stockPerformance[activePerformanceIndex]?.date || "–"})
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* --- Business Note --- */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Business Note (PDF)
                     </label>
-                    {(stockPerformance[activePerformanceIndex]?.business_note) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-500"
-                        onClick={() => {
-                          handleClearPerformanceFile(activePerformanceIndex, "business_note");
-                          // If input ref is available, reset the file input too
-                          if (businessNoteInputRef.current) {
-                            businessNoteInputRef.current.value = "";
-                          }
-                        }}
-                        title="Clear PDF"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {/* NEW: allow clearing even if empty/non-null */}
-                    {(!stockPerformance[activePerformanceIndex]?.business_note) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-400"
-                        onClick={() => {
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        value={stockPerformance[activePerformanceIndex]?.business_note || ""}
+                        onChange={e => {
+                          const value = e.target.value === "" ? null : e.target.value;
                           setStockPerformance(prev => {
                             const next = [...prev];
                             next[activePerformanceIndex] = {
                               ...next[activePerformanceIndex],
-                              business_note: null,
+                              business_note: value,
                             };
                             return next;
                           });
-                          if (businessNoteInputRef.current) businessNoteInputRef.current.value = "";
                         }}
-                        title="Clear"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        placeholder="PDF URL"
+                        key={stockPerformance[activePerformanceIndex]?.business_note || "empty"} // <--- force re-render on clear
+                      />
+                      <label className="cursor-pointer">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!!uploading[`stockperf_${activePerformanceIndex}_business_note`]}
+                          asChild
+                        >
+                          <span>
+                            <Upload className="h-4 w-4 mr-1" />
+                            {uploading[`stockperf_${activePerformanceIndex}_business_note`] ? "Uploading..." : "Upload"}
+                          </span>
+                        </Button>
+                        <input
+                          ref={businessNoteInputRef}
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handlePerformanceFileUpload(activePerformanceIndex, "business_note", file);
+                              // Reset file input so user can reselect the same file after clearing
+                              e.target.value = "";
+                            }
+                          }}
+                        />
+                      </label>
+                      {(stockPerformance[activePerformanceIndex]?.business_note) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500"
+                          onClick={() => {
+                            handleClearPerformanceFile(activePerformanceIndex, "business_note");
+                            // If input ref is available, reset the file input too
+                            if (businessNoteInputRef.current) {
+                              businessNoteInputRef.current.value = "";
+                            }
+                          }}
+                          title="Clear PDF"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {/* NEW: allow clearing even if empty/non-null */}
+                      {(!stockPerformance[activePerformanceIndex]?.business_note) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400"
+                          onClick={() => {
+                            setStockPerformance(prev => {
+                              const next = [...prev];
+                              next[activePerformanceIndex] = {
+                                ...next[activePerformanceIndex],
+                                business_note: null,
+                              };
+                              return next;
+                            });
+                            if (businessNoteInputRef.current) businessNoteInputRef.current.value = "";
+                          }}
+                          title="Clear"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    {stockPerformance[activePerformanceIndex]?.business_note && (
+                      <div className="mt-1 text-xs">
+                        <a
+                          href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.business_note)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline"
+                        >
+                          View PDF
+                        </a>
+                      </div>
                     )}
                   </div>
-                  {stockPerformance[activePerformanceIndex]?.business_note && (
-                    <div className="mt-1 text-xs">
-                      <a
-                        href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.business_note)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                      >
-                        View PDF
-                      </a>
+                  {/* --- Quick Bite --- */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Quick Bite (PDF)
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        value={stockPerformance[activePerformanceIndex]?.quick_bite || ""}
+                        onChange={e => {
+                          const value = e.target.value === "" ? null : e.target.value;
+                          setStockPerformance((prev) => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = { ...next[activePerformanceIndex], quick_bite: value };
+                            return next;
+                          });
+                        }}
+                        placeholder="PDF URL"
+                      />
+                      <label className="cursor-pointer">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!!uploading[`stockperf_${activePerformanceIndex}_quick_bite`]}
+                          asChild
+                        >
+                          <span>
+                            <Upload className="h-4 w-4 mr-1" />
+                            {uploading[`stockperf_${activePerformanceIndex}_quick_bite`] ? "Uploading..." : "Upload"}
+                          </span>
+                        </Button>
+                        <input
+                          ref={quickBiteInputRef}
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handlePerformanceFileUpload(activePerformanceIndex, "quick_bite", file);
+                            }
+                          }}
+                        />
+                      </label>
+                      {(stockPerformance[activePerformanceIndex]?.quick_bite) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500"
+                          onClick={() =>
+                            handleClearPerformanceFile(activePerformanceIndex, "quick_bite")
+                          }
+                          title="Clear PDF"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {/* Always allow clearing */}
+                      {(!stockPerformance[activePerformanceIndex]?.quick_bite) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400"
+                          onClick={() => {
+                            setStockPerformance(prev => {
+                              const next = [...prev];
+                              next[activePerformanceIndex] = {
+                                ...next[activePerformanceIndex],
+                                quick_bite: null,
+                              };
+                              return next;
+                            });
+                            if (quickBiteInputRef.current) quickBiteInputRef.current.value = "";
+                          }}
+                          title="Clear"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                  )}
-                </div>
-                {/* --- Quick Bite --- */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Quick Bite (PDF)
-                  </label>
-                  <div className="flex gap-2 items-center">
+                    {stockPerformance[activePerformanceIndex]?.quick_bite && (
+                      <div className="mt-1 text-xs">
+                        <a
+                          href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.quick_bite)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline"
+                        >
+                          View PDF
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  {/* --- Exit Rationale --- */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Exit Rationale (PDF)
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        value={stockPerformance[activePerformanceIndex]?.exit_rationale || ""}
+                        onChange={e => {
+                          const value = e.target.value === "" ? null : e.target.value;
+                          setStockPerformance(prev => {
+                            const next = [...prev];
+                            next[activePerformanceIndex] = {
+                              ...next[activePerformanceIndex],
+                              exit_rationale: value,
+                            };
+                            return next;
+                          });
+                        }}
+                        placeholder="PDF URL"
+                      />
+                      <label className="cursor-pointer">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!!uploading[`stockperf_${activePerformanceIndex}_exit_rationale`]}
+                          asChild
+                        >
+                          <span>
+                            <Upload className="h-4 w-4 mr-1" />
+                            {uploading[`stockperf_${activePerformanceIndex}_exit_rationale`] ? "Uploading..." : "Upload"}
+                          </span>
+                        </Button>
+                        <input
+                          ref={exitRationaleInputRef}
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handlePerformanceFileUpload(activePerformanceIndex, "exit_rationale", file);
+                            }
+                          }}
+                        />
+                      </label>
+                      {(stockPerformance[activePerformanceIndex]?.exit_rationale) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500"
+                          onClick={() =>
+                            handleClearPerformanceFile(activePerformanceIndex, "exit_rationale")
+                          }
+                          title="Clear PDF"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {(!stockPerformance[activePerformanceIndex]?.exit_rationale) && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400"
+                          onClick={() => {
+                            setStockPerformance(prev => {
+                              const next = [...prev];
+                              next[activePerformanceIndex] = {
+                                ...next[activePerformanceIndex],
+                                exit_rationale: null,
+                              };
+                              return next;
+                            });
+                            if (exitRationaleInputRef.current) exitRationaleInputRef.current.value = "";
+                          }}
+                          title="Clear"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    {stockPerformance[activePerformanceIndex]?.exit_rationale && (
+                      <div className="mt-1 text-xs">
+                        <a
+                          href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.exit_rationale)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline"
+                        >
+                          View PDF
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  {/* Video URL section unchanged */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Video URL</label>
                     <Input
-                      value={stockPerformance[activePerformanceIndex]?.quick_bite || ""}
+                      value={stockPerformance[activePerformanceIndex]?.video || ""}
                       onChange={e => {
-                        const value = e.target.value === "" ? null : e.target.value;
                         setStockPerformance((prev) => {
                           const next = [...prev];
-                          next[activePerformanceIndex] = { ...next[activePerformanceIndex], quick_bite: value };
+                          next[activePerformanceIndex] = { ...next[activePerformanceIndex], video: e.target.value };
                           return next;
                         });
                       }}
-                      placeholder="PDF URL"
+                      placeholder="YouTube or Vimeo URL"
                     />
-                    <label className="cursor-pointer">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={!!uploading[`stockperf_${activePerformanceIndex}_quick_bite`]}
-                        asChild
-                      >
-                        <span>
-                          <Upload className="h-4 w-4 mr-1" />
-                          {uploading[`stockperf_${activePerformanceIndex}_quick_bite`] ? "Uploading..." : "Upload"}
-                        </span>
-                      </Button>
-                      <input
-                        ref={quickBiteInputRef}
-                        type="file"
-                        accept="application/pdf"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handlePerformanceFileUpload(activePerformanceIndex, "quick_bite", file);
-                          }
-                        }}
-                      />
-                    </label>
-                    {(stockPerformance[activePerformanceIndex]?.quick_bite) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-500"
-                        onClick={() =>
-                          handleClearPerformanceFile(activePerformanceIndex, "quick_bite")
-                        }
-                        title="Clear PDF"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {/* Always allow clearing */}
-                    {(!stockPerformance[activePerformanceIndex]?.quick_bite) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-400"
-                        onClick={() => {
-                          setStockPerformance(prev => {
-                            const next = [...prev];
-                            next[activePerformanceIndex] = {
-                              ...next[activePerformanceIndex],
-                              quick_bite: null,
-                            };
-                            return next;
-                          });
-                          if (quickBiteInputRef.current) quickBiteInputRef.current.value = "";
-                        }}
-                        title="Clear"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
-                  {stockPerformance[activePerformanceIndex]?.quick_bite && (
-                    <div className="mt-1 text-xs">
-                      <a
-                        href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.quick_bite)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                      >
-                        View PDF
-                      </a>
-                    </div>
-                  )}
                 </div>
-                {/* --- Exit Rationale --- */}
+                {/* --- Quarterly Updates Section --- */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Exit Rationale (PDF)
-                  </label>
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      value={stockPerformance[activePerformanceIndex]?.exit_rationale || ""}
-                      onChange={e => {
-                        const value = e.target.value === "" ? null : e.target.value;
-                        setStockPerformance(prev => {
-                          const next = [...prev];
-                          next[activePerformanceIndex] = {
-                            ...next[activePerformanceIndex],
-                            exit_rationale: value,
-                          };
-                          return next;
-                        });
-                      }}
-                      placeholder="PDF URL"
-                    />
-                    <label className="cursor-pointer">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={!!uploading[`stockperf_${activePerformanceIndex}_exit_rationale`]}
-                        asChild
-                      >
-                        <span>
-                          <Upload className="h-4 w-4 mr-1" />
-                          {uploading[`stockperf_${activePerformanceIndex}_exit_rationale`] ? "Uploading..." : "Upload"}
-                        </span>
-                      </Button>
-                      <input
-                        ref={exitRationaleInputRef}
-                        type="file"
-                        accept="application/pdf"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handlePerformanceFileUpload(activePerformanceIndex, "exit_rationale", file);
-                          }
-                        }}
-                      />
-                    </label>
-                    {(stockPerformance[activePerformanceIndex]?.exit_rationale) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-500"
-                        onClick={() =>
-                          handleClearPerformanceFile(activePerformanceIndex, "exit_rationale")
-                        }
-                        title="Clear PDF"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {(!stockPerformance[activePerformanceIndex]?.exit_rationale) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-400"
-                        onClick={() => {
-                          setStockPerformance(prev => {
-                            const next = [...prev];
-                            next[activePerformanceIndex] = {
-                              ...next[activePerformanceIndex],
-                              exit_rationale: null,
-                            };
-                            return next;
-                          });
-                          if (exitRationaleInputRef.current) exitRationaleInputRef.current.value = "";
-                        }}
-                        title="Clear"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-medium text-base">Quarterly Updates</h4>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleAddQuarterlyUpdate}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Update
+                    </Button>
                   </div>
-                  {stockPerformance[activePerformanceIndex]?.exit_rationale && (
-                    <div className="mt-1 text-xs">
-                      <a
-                        href={researchPreviewUrl(stockPerformance[activePerformanceIndex]?.exit_rationale)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                      >
-                        View PDF
-                      </a>
-                    </div>
-                  )}
-                </div>
-                {/* Video URL section unchanged */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">Video URL</label>
-                  <Input
-                    value={stockPerformance[activePerformanceIndex]?.video || ""}
-                    onChange={e => {
-                      setStockPerformance((prev) => {
-                        const next = [...prev];
-                        next[activePerformanceIndex] = { ...next[activePerformanceIndex], video: e.target.value };
-                        return next;
-                      });
-                    }}
-                    placeholder="YouTube or Vimeo URL"
-                  />
-                </div>
-              </div>
-              {/* --- Quarterly Updates Section --- */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-medium text-base">Quarterly Updates</h4>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={handleAddQuarterlyUpdate}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Update
-                  </Button>
-                </div>
-                <div className="border rounded-md overflow-hidden">
-                  {!(stockPerformance[activePerformanceIndex]?.quarterly_update || []).length ? (
-                    <div className="text-center py-6 text-gray-500">
-                      No quarterly updates. Click "Add Update" to create one.
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[110px]">Date</TableHead>
-                          <TableHead className="w-[160px]">Title</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead className="w-[220px]">PDF</TableHead>
-                          <TableHead className="w-[100px] text-center">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(stockPerformance[activePerformanceIndex]?.quarterly_update || []).map((q, idx) => (
-                          <TableRow key={idx}>
-                            {editingQuarterly === idx ? (
-                              <>
-                                <TableCell>
-                                  <Input
-                                    type="date"
-                                    value={formatDateForInput(q.date)}
-                                    onChange={(e) => handleUpdateQuarterlyUpdate(idx, "date", e.target.value)}
-                                    className="text-sm"
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={q.title}
-                                    onChange={(e) => handleUpdateQuarterlyUpdate(idx, "title", e.target.value)}
-                                    placeholder="Title"
-                                    className="text-sm"
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Textarea
-                                    value={q.description}
-                                    onChange={(e) => handleUpdateQuarterlyUpdate(idx, "description", e.target.value)}
-                                    placeholder="Description"
-                                    rows={2}
-                                    className="text-sm"
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex gap-2 items-center">
-                                    <label className="cursor-pointer">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={quarterlyUploading[idx]}
-                                        asChild
-                                      >
-                                        <span>
-                                          <Upload className="h-4 w-4 mr-1" />
-                                          {quarterlyUploading[idx] ? "Uploading..." : "Upload"}
-                                        </span>
-                                      </Button>
-                                      <input
-                                        ref={(el) => { quarterlyPdfInputRefs.current[idx] = el; }}
-                                        type="file"
-                                        accept="application/pdf"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) handleQuarterlyPdfUpload(idx, file);
-                                        }}
-                                      />
-                                    </label>
-                                    {q.pdf_url && (
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-500"
-                                        onClick={() => handleClearQuarterlyPdf(idx)}
-                                        title="Clear PDF"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
+                  <div className="border rounded-md overflow-hidden">
+                    {!(stockPerformance[activePerformanceIndex]?.quarterly_update || []).length ? (
+                      <div className="text-center py-6 text-gray-500">
+                        No quarterly updates. Click "Add Update" to create one.
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[110px]">Date</TableHead>
+                            <TableHead className="w-[160px]">Title</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="w-[220px]">PDF</TableHead>
+                            <TableHead className="w-[100px] text-center">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(stockPerformance[activePerformanceIndex]?.quarterly_update || []).map((q, idx) => (
+                            <TableRow key={idx}>
+                              {editingQuarterly === idx ? (
+                                <>
+                                  <TableCell>
+                                    <Input
+                                      type="date"
+                                      value={formatDateForInput(q.date)}
+                                      onChange={(e) => handleUpdateQuarterlyUpdate(idx, "date", e.target.value)}
+                                      className="text-sm"
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      value={q.title}
+                                      onChange={(e) => handleUpdateQuarterlyUpdate(idx, "title", e.target.value)}
+                                      placeholder="Title"
+                                      className="text-sm"
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Textarea
+                                      value={q.description}
+                                      onChange={(e) => handleUpdateQuarterlyUpdate(idx, "description", e.target.value)}
+                                      placeholder="Description"
+                                      rows={2}
+                                      className="text-sm"
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex gap-2 items-center">
+                                      <label className="cursor-pointer">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          disabled={quarterlyUploading[idx]}
+                                          asChild
+                                        >
+                                          <span>
+                                            <Upload className="h-4 w-4 mr-1" />
+                                            {quarterlyUploading[idx] ? "Uploading..." : "Upload"}
+                                          </span>
+                                        </Button>
+                                        <input
+                                          ref={(el) => { quarterlyPdfInputRefs.current[idx] = el; }}
+                                          type="file"
+                                          accept="application/pdf"
+                                          className="hidden"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleQuarterlyPdfUpload(idx, file);
+                                          }}
+                                        />
+                                      </label>
+                                      {q.pdf_url && (
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          className="text-red-500"
+                                          onClick={() => handleClearQuarterlyPdf(idx)}
+                                          title="Clear PDF"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                    {q.pdf_url && q.pdf_url.startsWith("http") && (
+                                      <div className="mt-1 text-xs">
+                                        <a
+                                          href={researchPreviewUrl(q.pdf_url)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline"
+                                        >
+                                          Preview PDF
+                                        </a>
+                                      </div>
                                     )}
-                                  </div>
-                                  {q.pdf_url && q.pdf_url.startsWith("http") && (
-                                    <div className="mt-1 text-xs">
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setEditingQuarterly(null)}
+                                    >
+                                      Done
+                                    </Button>
+                                  </TableCell>
+                                </>
+                              ) : (
+                                <>
+                                  <TableCell className="text-sm">{formatDateForInput(q.date) || "-"}</TableCell>
+                                  <TableCell className="text-sm font-medium">{q.title || "-"}</TableCell>
+                                  <TableCell className="text-sm text-gray-600">
+                                    <div className="max-w-xs truncate" title={q.description}>{q.description || "-"}</div>
+                                  </TableCell>
+                                  <TableCell className="text-sm">
+                                    {q.pdf_url ? (
                                       <a
                                         href={researchPreviewUrl(q.pdf_url)}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
+                                        className="text-blue-600 hover:underline truncate block max-w-[120px]"
                                       >
-                                        Preview PDF
+                                        View PDF
                                       </a>
-                                    </div>
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setEditingQuarterly(null)}
-                                  >
-                                    Done
-                                  </Button>
-                                </TableCell>
-                              </>
-                            ) : (
-                              <>
-                                <TableCell className="text-sm">{formatDateForInput(q.date) || "-"}</TableCell>
-                                <TableCell className="text-sm font-medium">{q.title || "-"}</TableCell>
-                                <TableCell className="text-sm text-gray-600">
-                                  <div className="max-w-xs truncate" title={q.description}>{q.description || "-"}</div>
-                                </TableCell>
-                                <TableCell className="text-sm">
-                                  {q.pdf_url ? (
-                                    <a
-                                      href={researchPreviewUrl(q.pdf_url)}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline truncate block max-w-[120px]"
+                                    ) : "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center space-x-1">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setEditingQuarterly(idx)}
                                     >
-                                      View PDF
-                                    </a>
-                                  ) : "-"}
-                                </TableCell>
-                                <TableCell className="text-center space-x-1">
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setEditingQuarterly(idx)}
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleRemoveQuarterlyUpdate(idx)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                              </>
-                            )}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
+                                      <Edit2 className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-red-600 hover:text-red-700"
+                                      onClick={() => handleRemoveQuarterlyUpdate(idx)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </>
+                              )}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
             )}
 
             <div className="border rounded-lg bg-white p-4 space-y-6">

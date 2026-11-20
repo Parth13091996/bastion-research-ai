@@ -2,7 +2,7 @@ import api from '@/api/axios';
 export const mapToStock = (sheetRow: any, apiRow: any) => {
   const iteration =
     Array.isArray(apiRow?.stock_performance_url) &&
-    apiRow.stock_performance_url.length > 0
+      apiRow.stock_performance_url.length > 0
       ? apiRow.stock_performance_url[0]
       : null;
   return {
@@ -59,7 +59,7 @@ export const mapToStock = (sheetRow: any, apiRow: any) => {
         : typeof sheetRow?.percent_return !== "undefined"
           ? sheetRow?.percent_return
           : iteration?.percentReturn ??
-            (apiRow?.percentReturn ?? apiRow?.percent_return ?? undefined),
+          (apiRow?.percentReturn ?? apiRow?.percent_return ?? undefined),
     upside:
       // upsidePotential as percent integer, e.g. 0.47 = 47%
       typeof sheetRow?.upsidePotential !== "undefined"
@@ -173,17 +173,19 @@ function extractSheetInfo(
 export async function fetchSingleRecommendationGraphSheetData(
   sheetUrl: string
 ): Promise<PBRow[]> {
-  const parsed=new URL(sheetUrl,window.location.origin);
-  const ownApi=new URL(import.meta.env.VITE_API_BASE_URL || 'https://dev-api.bastionresearch.in',window.location.origin);
-  const protectedResource = parsed.origin===ownApi.origin && parsed.pathname.startsWith('/api/research-assets/recommendations/');
-  const sheetInfo = protectedResource ? {sheetId:'',gid:''} : extractSheetInfo(sheetUrl);
+  const parsed = new URL(sheetUrl, window.location.origin);
+  const ownApi = new URL(import.meta.env.VITE_API_BASE_URL || 'https://dev-api.bastionresearch.in', window.location.origin);
+  const protectedResource = parsed.origin === ownApi.origin && parsed.pathname.startsWith('/api/research-assets/recommendations/');
+  const sheetInfo = protectedResource ? { sheetId: '', gid: '' } : extractSheetInfo(sheetUrl);
   if (!sheetInfo) {
     throw new Error("Invalid Google Sheets URL");
   }
   const { sheetId, gid } = sheetInfo;
-  const url = protectedResource ? sheetUrl : `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
 
-  const csv = protectedResource ? (await api.get<string>(url,{responseType:'text'})).data : await (async()=>{const res=await fetch(url);if(!res.ok)throw new Error('Failed to fetch performance data');return res.text();})();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch PB Fintech sheet");
+  const csv = await res.text();
   const lines = csv.split(/\r?\n/).filter((l) => l.trim().length > 0);
 
   let headerIndex = -1;

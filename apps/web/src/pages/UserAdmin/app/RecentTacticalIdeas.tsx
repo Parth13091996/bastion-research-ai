@@ -34,7 +34,8 @@ const RecentTacticalIdeas: React.FC = () => {
 
   const userPlanCode =
     subscription?.currentPlan || user?.membership_plans?.plan_code || "freemium";
-  const currentTier = subscription?.is_premium ? ["freemium","core","core_annual","research_hub"] : ["freemium"];
+  const currentTier = subscription?.is_premium ? ["freemium", "core", "core_annual", "research_hub"] : ["freemium"];
+  // const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
   const isPremiumUser = !!subscription?.is_premium;
 
   const accessibleStocks =
@@ -152,11 +153,10 @@ const RecentTacticalIdeas: React.FC = () => {
                     ?{formatIndianNumber(Number(stock.cmp ?? 0))}
                   </div>
                   <div
-                    className={`text-sm ${
-                      Number(stock.cmp ?? 0) >= Number(stock.entryPrice ?? 0)
+                    className={`text-sm ${Number(stock.cmp ?? 0) >= Number(stock.entryPrice ?? 0)
                         ? "text-green-600"
                         : "text-red-600"
-                    }`}
+                      }`}
                   >
                     {Number(stock.cmp ?? 0) >= Number(stock.entryPrice ?? 0)
                       ? " Gain"

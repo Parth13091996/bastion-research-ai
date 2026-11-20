@@ -12,6 +12,7 @@ interface Plan {
   name: string;
   amount: string | number;
   plan_code?: string;
+  plan_id?: number | string;
 }
 
 interface PlansStepProps {
@@ -23,6 +24,7 @@ interface PlansStepProps {
   isLoading: boolean;
   error: string | null;
   setIsLoading: (loading: boolean) => void;
+  onClose?: () => void;
 }
 
 const PlansStep: React.FC<PlansStepProps> = ({
@@ -34,24 +36,62 @@ const PlansStep: React.FC<PlansStepProps> = ({
   isLoading,
   error,
   setIsLoading,
+  onClose,
 }) => {
   const navigate = useNavigate();
-  const { refetchUser } = useAuth();
+  const { refetchUser, login, user } = useAuth();
   const plansStepNextHandler = async () => {
     try {
       setIsLoading(true);
       const selectedPlan = formData.selectedPlan as string;
-      const selectedPlanDetails = plans.find((p) => p.code === selectedPlan);
-      const isFree = selectedPlanDetails?.plan_code === "freemium";
+      const selectedPlanDetails = plans.find(
+        (p) =>
+          p.code === selectedPlan ||
+          String(p.plan_id ?? "") === String(selectedPlan) ||
+          p.plan_code === selectedPlan
+      );
+      const isFree =
+        selectedPlanDetails?.plan_code === "freemium" ||
+        String(selectedPlanDetails?.amount) === "0";
+
       if (isFree) {
+        const planId =
+          Number(selectedPlanDetails?.plan_id) ||
+          Number(selectedPlanDetails?.code) ||
+          1;
+
         const response = await createFreeAccount({
           ...(formData as unknown as OnboardingPayload),
           status: "free",
           role: "free_subscriber",
-          plan_id: 1,
+          plan_id: planId,
         });
+
         setIsLoading(false);
-        await refetchUser();
+
+        if (response?.token) {
+          login(
+            response.user || {
+              id: response?.user?.id || (user as any)?.id,
+              email: formData.email,
+              status: "active",
+              role: "free_subscriber",
+            },
+            response.token,
+            response.refreshToken
+          );
+        } else {
+          await refetchUser();
+        }
+
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.removeItem("onboarding_open");
+          } catch { }
+        }
+
+        toast.success("Welcome! You are now subscribed to the Freemium plan.");
+        onClose?.();
         await sleep(500);
         navigate("/user/app/dashboard");
         return;

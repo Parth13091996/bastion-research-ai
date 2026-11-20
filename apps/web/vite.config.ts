@@ -7,6 +7,10 @@ export default defineConfig(() => ({
   plugins: [react(), viteCompression()].filter(Boolean),
   build: {
     outDir: "public_html",
+    // export default defineConfig({
+    //   plugins: [react(), viteCompression()].filter(Boolean),
+    //   build: {
+    //     outDir: "dist",
   },
   css: {
     preprocessorOptions: {
@@ -15,6 +19,10 @@ export default defineConfig(() => ({
       },
     },
   },
+  // server: {
+  //   host: true,
+  //   allowedHosts: true,
+  // },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

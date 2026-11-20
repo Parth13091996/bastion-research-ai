@@ -60,8 +60,12 @@ export async function getPublicSettings(
 // Get admin settings (cached, with force option)
 export async function getAdminSettings(force = false): Promise<Settings> {
   if (!force && adminSettingsCache) return adminSettingsCache;
-  const { data } = await axiosInstance.get(endpoints.settings.admin.get);
-  adminSettingsCache = data || {};
+  try {
+    const { data } = await axiosInstance.get(endpoints.settings.admin.get);
+    adminSettingsCache = data || {};
+  } catch {
+    adminSettingsCache = {};
+  }
   return adminSettingsCache!;
 }
 

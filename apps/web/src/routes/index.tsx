@@ -69,6 +69,7 @@ const EffortlessInvestor = lazy(
   () => import("@/pages/UserAdmin/app/EffortlessInvestor")
 );
 const QnaSection = lazy(() => import("@/pages/UserAdmin/app/QnaSection"));
+const PaymentSuccess = lazy(() => import("../pages/PaymentSuccess"));
 
 
 // Admin Pages
@@ -215,7 +216,7 @@ export const routes: RouteObject[] = [
       },
       { path: AppRoutes.podcastView, element: <SinglePodcastPage /> },
       { path: AppRoutes.scratchPadView, element: <ScratchPadView /> },
-      { path: AppRoutes.dashboard, element: <Dashboard /> },
+      { path: "/dashboard", element: <Dashboard /> },
     ],
   },
   {
@@ -245,6 +246,10 @@ export const routes: RouteObject[] = [
   {
     path: AppRoutes.redFlagDecision,
     element: <RedFlagDecision />,
+  },
+  {
+    path: AppRoutes.paymentSuccess,
+    element: <PaymentSuccess />,
   },
   {
     element: <AdminLayout />,
@@ -421,11 +426,11 @@ export const routes: RouteObject[] = [
             element: <ViewResearch />,
           },
           { path: "app/research-hub", element: <UserAdminResearchHub /> },
-          {element:<PremiumRoute/>,children:[{ path: "app/scratch-pad", element: <ScratchPadList /> }]},
-          {element:<PremiumRoute/>,children:[{ path: "app/scratch-pad/:id", element: <ScratchPadView /> }]},
+          { element: <PremiumRoute />, children: [{ path: "app/scratch-pad", element: <ScratchPadList /> }] },
+          { element: <PremiumRoute />, children: [{ path: "app/scratch-pad/:id", element: <ScratchPadView /> }] },
           { path: "app/pdf-viewer", element: <PdfViewerPage /> },
           {
-            element:<PremiumRoute/>,children:[{path: "app/effortless-investor",element: <EffortlessInvestor />}],
+            element: <PremiumRoute />, children: [{ path: "app/effortless-investor", element: <EffortlessInvestor /> }],
           },
           {
             path: "app/qna",

@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
@@ -18,7 +19,14 @@ export default function LandingPage() {
   const [active, setActive] = useState<TabKey>("qualified");
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const { user } = useAuth();
+  const [isSignUpOpen, setIsSignUpOpen] = useState(() => (typeof window !== "undefined" ? sessionStorage.getItem("onboarding_open") === "true" : false));
+
+  useEffect(() => {
+    if (user && (user.status === "pending" || user.status === "onboarded")) {
+      setIsSignUpOpen(true);
+    }
+  }, [user]);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const activeIndex = tabs.findIndex((t) => t.key === active);

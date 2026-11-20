@@ -1,6 +1,6 @@
-import {createOrderForPlanService,resolvePlanById} from '../services/cashfree-plans-orders.service';
-import {checkoutAmount} from '../services/core-checkout.service';
-import {AccessError} from '../services/premium-access.service';
+import { createOrderForPlanService, resolvePlanById } from '../services/cashfree-plans-orders.service';
+import { checkoutAmount } from '../services/core-checkout.service';
+import { AccessError } from '../services/premium-access.service';
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -26,22 +26,25 @@ type OnboardingUserData = {
   password: string;
   firstName: string;
   lastName: string;
-  panCard: string;
-  dateOfBirth: string;
+  panCard?: string;
+  dateOfBirth?: string;
   address1?: string;
   address2?: string;
   state?: string;
   city?: string;
   pinCode?: string;
   company?: string;
-  panVerification: { valid: boolean; [key: string]: any };
-  agreementSignatureUrl: string;
+  panVerification?: { valid: boolean;[key: string]: any };
+  agreementSignatureUrl?: string;
   agreementSignaturePath?: string;
   agreementSignedAt?: string;
   [key: string]: any; // To allow extra props if necessary
 };
 
-const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
+export const getAccessExpiresIn = (): string => process.env.JWT_ACCESS_EXPIRES_IN || "1d";
+export const getRefreshExpiresIn = (): string => process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+
+export const generateToken = (id: string, email: string, expiresIn: string = getAccessExpiresIn()) => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("JWT_SECRET is not defined in environment variables.");
@@ -51,17 +54,63 @@ const generateToken = (id: string, email: string, expiresIn: string = "1d") => {
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
-const getAuthCookieOptions = () => {
+// const getAuthCookieOptions = () => ({
+//   httpOnly: true,
+//   secure: process.env.NODE_ENV === "production",
+//   sameSite:
+//     process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
+//   maxAge: 24 * 60 * 60 * 1000,
+// });
+
+export const parseDurationToMs = (duration: string, defaultMs: number): number => {
+  if (!duration) return defaultMs;
+  const match = duration.match(/^(\d+)(s|m|h|d|w)?$/);
+  if (!match) return defaultMs;
+  const val = parseInt(match[1], 10);
+  const unit = match[2];
+  switch (unit) {
+    case 's': return val * 1000;
+    case 'm': return val * 60 * 1000;
+    case 'h': return val * 60 * 60 * 1000;
+    case 'd': return val * 24 * 60 * 60 * 1000;
+    case 'w': return val * 7 * 24 * 60 * 60 * 1000;
+    default: return val * 1000;
+  }
+};
+
+export const getRefreshSecret = (): string => {
+  const secret =
+    process.env.JWT_REFRESH_SECRET ||
+    (process.env.JWT_SECRET ? `${process.env.JWT_SECRET}_refresh` : "");
+  if (!secret) {
+    throw new Error("JWT_SECRET is not defined in environment variables.");
+  }
+  return secret;
+};
+
+export const generateRefreshToken = (
+  id: string,
+  email: string,
+  expiresIn: string = getRefreshExpiresIn()
+) => {
+  const secret = getRefreshSecret();
+  return jwt.sign({ id, email, type: "refresh" }, secret, {
+    expiresIn: expiresIn as any,
+  });
+};
+
+export const getAuthCookieOptions = (maxAgeMs: number = 24 * 60 * 60 * 1000) => {
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.APP_ENV === "production";
   const isSecure =
     process.env.COOKIE_SECURE === "true" ||
-    process.env.NODE_ENV === "production" ||
-    true;
+    (isProduction && process.env.COOKIE_SECURE !== "false");
 
   return {
     httpOnly: true,
     secure: isSecure,
     sameSite: isSecure ? ("none" as const) : ("lax" as const),
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: maxAgeMs,
     path: "/",
   };
 };
@@ -112,8 +161,12 @@ export const signIn = async (req: Request, res: Response) => {
     }
 
     const token = generateToken(user.id, user.email);
+    const refreshToken = generateRefreshToken(user.id, user.email);
 
-    res.cookie("token", token, getAuthCookieOptions());
+    const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+    const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+    res.cookie("token", token, getAuthCookieOptions(accessMaxAge));
+    res.cookie("refreshToken", refreshToken, getAuthCookieOptions(refreshMaxAge));
 
     // Fire-and-forget: record a login activity (do not block sign-in)
     try {
@@ -137,7 +190,7 @@ export const signIn = async (req: Request, res: Response) => {
       try {
         const { data: planData } = await supabase
           .from("membership_plans")
-          .select("plan_code, plan_id, plan_name, duration_months")
+          .select("plan_code, plan_id, plan_name, duration_months, price_amount")
           .eq("plan_id", user.plan_id)
           .maybeSingle();
         if (planData) {
@@ -153,6 +206,7 @@ export const signIn = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Signed in successfully",
       token,
+      refreshToken,
       user: {
         ...safeUserData,
         membership_plans: membershipPlans,
@@ -335,22 +389,76 @@ export const onboardUser = async (req: Request, res: Response) => {
       onboarding_session_id,
     }: OnboardingUserData = req.body || {};
 
-    if (
-      !email ||
-      !phone ||
-      !password ||
-      !firstName ||
-      !lastName ||
-      !dateOfBirth
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Missing required fields to start onboarding." });
+    const normalizedEmail = email ? normalizeEmail(email) : "";
+
+    // Check if user already exists in database (by email or phone)
+    let existingUser: any = null;
+    if (normalizedEmail) {
+      const { data: userByEmail } = await supabase
+        .from("users")
+        .select("id, status, username, password, first_name, last_name, phone, pin_code, date_of_birth, address_1, address_2, state, city, company, pan_card_number")
+        .ilike("email", normalizedEmail)
+        .maybeSingle();
+      existingUser = userByEmail;
+    }
+
+    if (!existingUser && phone) {
+      const cleanPhoneDigits = (phone || "").replace(/\D/g, "");
+      const phone10 = cleanPhoneDigits.slice(-10);
+      if (phone10.length >= 10) {
+        const { data: userByPhone } = await supabase
+          .from("users")
+          .select("id, status, username, password, first_name, last_name, phone, pin_code, date_of_birth, address_1, address_2, state, city, company, pan_card_number")
+          .or(`phone.eq.${phone},phone.ilike.%${phone10},phone.eq.${phone10},phone.eq.+91${phone10}`)
+          .limit(1)
+          .maybeSingle();
+        existingUser = userByPhone;
+      }
+    }
+
+    const effectiveEmail = normalizedEmail || existingUser?.email;
+    const effectivePhone = phone || existingUser?.phone;
+    const effectiveFirstName = firstName || existingUser?.first_name;
+    const effectiveLastName = lastName || existingUser?.last_name;
+    const effectiveDob = dateOfBirth || existingUser?.date_of_birth;
+    const rawPin =
+      pinCode ??
+      (req.body as any)?.pin_code ??
+      (req.body as any)?.pincode ??
+      existingUser?.pin_code ??
+      "";
+    const cleanPin = String(rawPin).trim().replace(/\D/g, "");
+
+    // Validate required fields with specific error messages
+    if (!effectiveEmail) {
+      return res.status(400).json({ message: "Email is required to start onboarding." });
+    }
+    if (!effectivePhone) {
+      return res.status(400).json({ message: "Phone number is required to start onboarding." });
+    }
+    if (!password && !existingUser?.password) {
+      return res.status(400).json({ message: "Password is required." });
+    }
+    if (!effectiveFirstName) {
+      return res.status(400).json({ message: "First name is required to start onboarding." });
+    }
+    if (!effectiveLastName) {
+      return res.status(400).json({ message: "Last name is required to start onboarding." });
+    }
+    if (!effectiveDob) {
+      return res.status(400).json({ message: "Date of birth is required to start onboarding." });
+    }
+    if (!cleanPin) {
+      return res.status(400).json({ message: "PIN code is required to start onboarding." });
+    }
+    if (cleanPin.length !== 6) {
+      return res.status(400).json({ message: "PIN code must be a 6-digit number." });
     }
 
     if (
       (!panVerification || panVerification.valid !== true) &&
-      status !== "free"
+      status !== "free" &&
+      status !== "pending"
     ) {
       return res
         .status(400)
@@ -359,65 +467,202 @@ export const onboardUser = async (req: Request, res: Response) => {
 
     // Prepare base user fields
     const baseUpdate: any = {
-      phone,
-      first_name: firstName,
-      last_name: lastName,
-      date_of_birth: dateOfBirth,
-      address_1: address1 || null,
-      address_2: address2 || null,
-      state: state || null,
-      city: city || null,
-      pin_code: pinCode || null,
-      company: company || null,
-      pan_card_number: panCard,
+      phone: effectivePhone,
+      first_name: effectiveFirstName,
+      last_name: effectiveLastName,
+      date_of_birth: effectiveDob,
+      address_1: address1 || existingUser?.address_1 || "",
+      address_2: address2 || existingUser?.address_2 || null,
+      state: state || existingUser?.state || "",
+      city: city || existingUser?.city || "",
+      pin_code: cleanPin,
+      company: company || existingUser?.company || null,
+      pan_card_number: (panCard || existingUser?.pan_card_number || "").trim().toUpperCase(),
       status,
       pan_verification_metadata: panVerification,
       role: role,
       plan_id,
     };
-    let planDetails: any = null;
-    if(plan_id) {
-      const {data,error}=await supabase.from('membership_plans').select('plan_id,plan_code,plan_name,price_amount').eq('plan_id',plan_id).maybeSingle();
-      if(error||!data)return res.status(400).json({message:'Invalid plan'});
-      planDetails=data;
+    let planDetails: { plan_name?: string | null } | null = null;
+
+    // If a plan is attached at onboarding (e.g. free tier),
+    // pre-compute subscription start and expiry dates based on plan duration.
+    if (plan_id) {
+      try {
+        const { data: planRow, error: planError } = await supabase
+          .from("membership_plans")
+          .select("duration_months, plan_name, plan_code, price_amount")
+          .eq("plan_id", plan_id as any)
+          .maybeSingle();
+
+        if (!planError && planRow) {
+          planDetails = planRow as { plan_name?: string | null };
+          const isFree =
+            planRow.plan_code === "freemium" ||
+            planRow.price_amount === 0 ||
+            status === "free";
+
+          if (isFree) {
+            const start = new Date();
+            const startDateStr = start.toISOString().split("T")[0];
+            let endDateStr: string | null = null;
+
+            const durationMonths = (planRow as any).duration_months;
+            if (typeof durationMonths === "number" && durationMonths > 0) {
+              const end = new Date(start);
+              end.setMonth(end.getMonth() + durationMonths);
+              endDateStr = end.toISOString().split("T")[0];
+            }
+
+            baseUpdate.subscription_start_date = startDateStr;
+            baseUpdate.subscription_end_date = endDateStr;
+            baseUpdate.status = "active";
+            baseUpdate.role = role || 'free_subscriber';
+          } else {
+            // For paid plans, subscription dates and active status MUST NOT be granted before payment
+            baseUpdate.subscription_start_date = null;
+            baseUpdate.subscription_end_date = null;
+            baseUpdate.status = status === "agreement_signed" ? "agreement_signed" : (status || "onboarded");
+            baseUpdate.role = role || 'free_subscriber';
+          }
+        }
+      } catch {
+        // If membership_plans lookup fails, continue without subscription dates.
+      }
     }
-    const freeSignup=planDetails?.plan_code==='freemium' && Number(planDetails.price_amount)===0;
-    baseUpdate.role=freeSignup?'free_subscriber':'core_subscriber';
-    baseUpdate.status=freeSignup?'free':'onboarded';
-    baseUpdate.plan_id=freeSignup?planDetails.plan_id:null;
-    baseUpdate.subscription_start_date=null;
-    baseUpdate.subscription_end_date=null;
 
     let userId: string | null = null;
-    const hashedPassword = await bcrypt.hash(password, config.salt_rounds);
-    const normalizedEmail = normalizeEmail(email);
-    const username =
-      normalizedEmail.split("@")[0] +
-      `_${Math.random().toString(36).substring(2, 7)}`;
-    const { data: inserted, error: insError } = await supabase
-      .from("users")
-      .insert({
-        email: normalizedEmail,
-        phone,
-        password: hashedPassword,
-        username,
-        ...baseUpdate,
-      })
-      .select("id, email")
-      .single();
-    if (insError) {
+    let username: string = "";
+
+    const hashedPassword = password
+      ? await bcrypt.hash(password, config.salt_rounds)
+      : existingUser?.password;
+
+    // Check if mobile number is already registered with another account
+    const cleanPhoneDigits = (phone || "").replace(/\D/g, "");
+    const phone10 = cleanPhoneDigits.slice(-10);
+    const phoneFilterParts = new Set<string>();
+    if (phone && phone.trim()) {
+      phoneFilterParts.add(`phone.eq.${phone.trim()}`);
+    }
+    if (phone10.length >= 10) {
+      phoneFilterParts.add(`phone.ilike.%${phone10}`);
+      phoneFilterParts.add(`phone.eq.${phone10}`);
+      phoneFilterParts.add(`phone.eq.+91${phone10}`);
+      phoneFilterParts.add(`phone.eq.91${phone10}`);
+    }
+    const orFilter = Array.from(phoneFilterParts).join(",");
+
+    if (orFilter) {
+      const { data: phoneUser } = await supabase
+        .from("users")
+        .select("id, email, status")
+        .or(orFilter)
+        .limit(1)
+        .maybeSingle();
+
+      if (phoneUser) {
+        if (!existingUser || phoneUser.id !== existingUser.id) {
+          return res.status(400).json({
+            message:
+              "An account with this mobile number already exists. Please log in.",
+          });
+        }
+      }
+    }
+
+    if (existingUser) {
+      username = (existingUser as any).username || normalizedEmail.split("@")[0];
+      // If user is re-attempting or resuming onboarding, update existing record
       if (
-        (insError as any)?.code === "23505" &&
-        typeof insError.message === "string" &&
-        insError.message.includes("users_pan_card_number_key")
+        existingUser.status === "onboarded" ||
+        existingUser.status === "pending" ||
+        !existingUser.status
       ) {
+        const { data: updated, error: updError } = await supabase
+          .from("users")
+          .update({
+            phone,
+            password: hashedPassword,
+            ...baseUpdate,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingUser.id)
+          .select("id, email")
+          .single();
+
+        if (updError) {
+          if (
+            (updError as any)?.code === "23505" &&
+            typeof updError.message === "string"
+          ) {
+            if (updError.message.includes("users_pan_card_number_key")) {
+              return res.status(400).json({
+                message: "This PAN is already registered with another account.",
+              });
+            }
+            if (
+              updError.message.includes("users_phone_key") ||
+              updError.message.includes("phone")
+            ) {
+              return res.status(400).json({
+                message:
+                  "An account with this mobile number already exists. Please log in.",
+              });
+            }
+          }
+          return res.status(500).json({ message: updError.message });
+        }
+        userId = updated?.id || existingUser.id;
+      } else {
         return res.status(400).json({
-          message: "This PAN is already registered with another account.",
+          message: "An account with this email already exists. Please log in.",
         });
       }
-      return res.status(500).json({ message: insError.message });
+    } else {
+      username =
+        normalizedEmail.split("@")[0] +
+        `_${Math.random().toString(36).substring(2, 7)}`;
+      const { data: inserted, error: insError } = await supabase
+        .from("users")
+        .insert({
+          email: normalizedEmail,
+          phone,
+          password: hashedPassword,
+          username,
+          ...baseUpdate,
+        })
+        .select("id, email")
+        .single();
+      if (insError) {
+        if (
+          (insError as any)?.code === "23505" &&
+          typeof insError.message === "string"
+        ) {
+          if (insError.message.includes("users_pan_card_number_key")) {
+            return res.status(400).json({
+              message: "This PAN is already registered with another account.",
+            });
+          }
+          if (insError.message.includes("users_email_key")) {
+            return res.status(400).json({
+              message: "An account with this email already exists. Please log in.",
+            });
+          }
+          if (
+            insError.message.includes("users_phone_key") ||
+            insError.message.includes("phone")
+          ) {
+            return res.status(400).json({
+              message:
+                "An account with this mobile number already exists. Please log in.",
+            });
+          }
+        }
+        return res.status(500).json({ message: insError.message });
+      }
+      userId = inserted?.id || null;
     }
-    userId = inserted?.id || null;
 
     if (userId && status !== "active" && status !== "free") {
       armOnboardingDropOffForUser(userId, onboarding_session_id);
@@ -464,15 +709,28 @@ export const onboardUser = async (req: Request, res: Response) => {
       }).catch((e) => console.error("Mailchimp free onboarding sync failed", e));
     }
 
-    // Issue a session cookie so subsequent steps are authenticated
+    // Issue session cookies so subsequent steps are authenticated
+    let token = "";
+    let refreshToken = "";
     try {
-      const token = generateToken(userId as string, normalizedEmail);
-      res.cookie("token", token, getAuthCookieOptions());
-    } catch {}
+      token = generateToken(userId as string, normalizedEmail);
+      refreshToken = generateRefreshToken(userId as string, normalizedEmail);
+      const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+      const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+      res.cookie("token", token, getAuthCookieOptions(accessMaxAge));
+      res.cookie("refreshToken", refreshToken, getAuthCookieOptions(refreshMaxAge));
+    } catch { }
 
     return res.status(200).json({
       message: "Onboarding started. User saved.",
-      user: { id: userId, email: normalizedEmail, status:baseUpdate.status },
+      token,
+      refreshToken,
+      user: {
+        id: userId,
+        email: normalizedEmail,
+        status: baseUpdate.status || "active",
+        role: baseUpdate.role || "free_subscriber",
+      },
     });
   } catch (error: any) {
     return res
@@ -481,18 +739,254 @@ export const onboardUser = async (req: Request, res: Response) => {
   }
 };
 
-export const zeroAmountAccountCreation = async (req: Request,res: Response) => {
+// export const zeroAmountAccountCreation = async (req: Request, res: Response) => {
+//   try {
+//     const user = (req as any).user;
+//     if (!user || (req.body.user_id && req.body.user_id !== user.id)) return res.status(403).json({ message: 'Not authorized for this account' });
+//     const plan = await resolvePlanById(Number(req.body.plan_id));
+//     if (await checkoutAmount(plan, user, req.body.coupon_code) !== 0) return res.status(400).json({ message: 'This plan requires payment.' });
+//     await createOrderForPlanService({ planId: plan.plan_id, customer_id: user.id, customer_email: user.email, customer_phone: user.phone, discount_amount: 0, coupon_code: req.body.coupon_code });
+//     const { data, error } = await supabase.from('users').select('id,email,first_name,last_name,status,role,plan_id,subscription_start_date,subscription_end_date,membership_plans(plan_id,plan_code)').eq('id', user.id).single();
+//     if (error) throw error;
+//     clearOnboardingDropOffForUser(user.id);
+//     return res.status(200).json({ user: data });
+//   } catch (e: any) { return res.status(e instanceof AccessError ? e.status : 500).json({ message: e instanceof AccessError ? e.message : 'Unable to activate subscription' }); }
+export const zeroAmountAccountCreation = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const user=(req as any).user;
-    if(!user || (req.body.user_id && req.body.user_id!==user.id))return res.status(403).json({message:'Not authorized for this account'});
-    const plan=await resolvePlanById(Number(req.body.plan_id));
-    if(await checkoutAmount(plan,user,req.body.coupon_code)!==0)return res.status(400).json({message:'This plan requires payment.'});
-    await createOrderForPlanService({planId:plan.plan_id,customer_id:user.id,customer_email:user.email,customer_phone:user.phone,discount_amount:0,coupon_code:req.body.coupon_code});
-    const {data,error}=await supabase.from('users').select('id,email,first_name,last_name,status,role,plan_id,subscription_start_date,subscription_end_date,membership_plans(plan_id,plan_code)').eq('id',user.id).single();
-    if(error)throw error;
-    clearOnboardingDropOffForUser(user.id);
-    return res.status(200).json({user:data});
-  }catch(e:any){return res.status(e instanceof AccessError?e.status:500).json({message:e instanceof AccessError?e.message:'Unable to activate subscription'});}
+    const { plan_id, coupon_code, user_id, payer_email } = req.body as {
+      plan_id: number;
+      coupon_code?: string;
+      user_id: string;
+      payer_email: string;
+    };
+
+    // Fetch coupon (if provided)
+    let coupon: any = null;
+    if (coupon_code && typeof coupon_code === "string" && coupon_code.trim()) {
+      try {
+        const { data: couponData, error: couponError } = await supabase
+          .from("coupons")
+          .select("*")
+          .eq("coupon_code", coupon_code.trim().toUpperCase())
+          .eq("active", true)
+          .maybeSingle();
+
+        if (couponError) {
+          return res.status(400).json({ error: couponError.message });
+        }
+
+        if (!couponData) {
+          return res.status(400).json({ error: "Invalid or inactive coupon" });
+        }
+
+        // Check expiry
+        if (
+          couponData.expiry_date &&
+          new Date(couponData.expiry_date) < new Date()
+        ) {
+          return res.status(400).json({ error: "Coupon has expired" });
+        }
+
+        // Respect max_uses / used_count if set
+        const maxUses =
+          typeof couponData.max_uses === "number"
+            ? couponData.max_uses
+            : null;
+        const usedCount =
+          typeof couponData.used_count === "number"
+            ? couponData.used_count
+            : 0;
+
+        if (maxUses !== null && usedCount >= maxUses) {
+          return res
+            .status(400)
+            .json({ error: "Coupon usage limit reached" });
+        }
+
+        coupon = couponData;
+      } catch (e: any) {
+        return res
+          .status(500)
+          .json({ error: e?.message || "Error fetching coupon" });
+      }
+    }
+
+    // Record a zero-amount payment in history so subscription tables stay consistent
+    const startDate = new Date();
+
+    try {
+      const transactionId = crypto.randomUUID();
+      const paymentInsertBase: any = {
+        transaction_status: "SUCCESS",
+        plan_id: plan_id,
+        user_id: user_id,
+        payer_email: payer_email,
+        transaction_id: transactionId,
+        coupon_applied: coupon?.coupon_id,
+        coupon_code: coupon?.coupon_code || coupon_code || null,
+        discounted_amount: 0,
+        created_at: startDate.toISOString(),
+      };
+
+      const { error: paymentError } = await supabase
+        .from("payment_history")
+        .insert(paymentInsertBase)
+        .maybeSingle();
+
+      if (paymentError) {
+        if (paymentError?.message?.toLowerCase?.().includes("column")) {
+          const { error: fallbackError } = await supabase
+            .from("payment_history")
+            .insert({
+              transaction_status: "SUCCESS",
+              plan_id: plan_id,
+              user_id: user_id,
+              payer_email: payer_email,
+              transaction_id: transactionId,
+              coupon_applied: coupon?.coupon_id,
+              created_at: startDate.toISOString(),
+            })
+            .maybeSingle();
+          if (fallbackError) {
+            return res.status(500).json({
+              error: fallbackError.message || "Error saving payment history",
+            });
+          }
+        } else {
+          return res.status(500).json({
+            error: paymentError.message || "Error saving payment history",
+          });
+        }
+      }
+    } catch (e: any) {
+      return res
+        .status(500)
+        .json({ error: e?.message || "Failed to insert payment history" });
+    }
+
+    // Compute subscription window based on plan duration
+    let subscriptionStartDate: string | null = null;
+    let subscriptionEndDate: string | null = null;
+    let roleAfterActivation: string | null = null;
+    try {
+      const { data: planRow, error: planError } = await supabase
+        .from("membership_plans")
+        .select("duration_months, plan_code, plan_name, price_amount")
+        .eq("plan_id", plan_id as any)
+        .maybeSingle();
+
+      if (!planError && planRow) {
+        subscriptionStartDate = startDate.toISOString().split("T")[0];
+        const durationMonths = (planRow as any).duration_months;
+        const planCode = (planRow as any).plan_code;
+
+        if (typeof durationMonths === "number" && durationMonths > 0) {
+          const end = new Date(startDate);
+          end.setMonth(end.getMonth() + durationMonths);
+          subscriptionEndDate = end.toISOString().split("T")[0];
+        }
+
+        // Keep role aligned with payment_success webhook behavior.
+        // - research_hub -> research_ally_subscriber
+        // - freemium -> free_subscriber
+        // - everything else -> core_subscriber
+        if (planCode === "research_hub") {
+          roleAfterActivation = config.roles.research_ally_subscriber;
+        } else if (planCode === "freemium") {
+          roleAfterActivation = "free_subscriber";
+        } else {
+          roleAfterActivation = config.roles.core_subscriber;
+        }
+      }
+    } catch (e: any) {
+      // If we cannot compute duration, keep dates null; user still gets the plan.
+      console.error("Failed to compute subscription dates for zero-amount flow", e);
+    }
+
+    try {
+      const userUpdate: any = {
+        plan_id,
+        status: "active",
+        role: roleAfterActivation || config.roles.core_subscriber,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (subscriptionStartDate) {
+        userUpdate.subscription_start_date = subscriptionStartDate;
+        userUpdate.subscription_end_date = subscriptionEndDate;
+      }
+
+      const { data, error } = await supabase
+        .from("users")
+        .update(userUpdate)
+        .eq("id", user_id)
+        .select(
+          `
+          id,
+          username,
+          first_name,
+          last_name,
+          phone,
+          email,
+          address_1,
+          pan_card_number,
+          address_2,
+          state,
+          city,
+          pin_code,
+          date_of_birth,
+          company,
+          plan_id,
+          created_at,
+          updated_at,
+          status,
+          role,
+          membership_plans (
+            plan_code,
+            plan_id
+          )
+        `
+        )
+        .single();
+
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
+
+      clearOnboardingDropOffForUser(user_id);
+
+      // Increment coupon usage after successful application
+      if (coupon_code && typeof coupon_code === "string" && coupon_code.trim()) {
+        try {
+          await incrementCouponUsage(coupon_code.trim());
+        } catch (e: any) {
+          console.error("Failed to increment coupon usage:", e);
+        }
+      }
+
+      void sendWelcomeEmailForUser(user_id);
+      void syncOnboardedUserToMailchimp({
+        email: (data as any)?.email || payer_email,
+        firstName: (data as any)?.first_name,
+        lastName: (data as any)?.last_name,
+        phone: (data as any)?.phone,
+        plan: (data as any)?.membership_plans || undefined,
+      }).catch((e) => console.error("Mailchimp zero-amount sync failed", e));
+
+      return res.status(200).json({ user: data });
+    } catch (e: any) {
+      return res
+        .status(500)
+        .json({ error: e?.message || "Failed to update user" });
+    }
+  } catch (e: any) {
+    return res
+      .status(500)
+      .json({ error: e?.message || "An unexpected server error occurred" });
+  }
 };
 
 export const getUserSession = async (req: Request, res: Response) => {
@@ -501,14 +995,85 @@ export const getUserSession = async (req: Request, res: Response) => {
       req.cookies?.token ||
       req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
-    if (!token) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error("JWT_SECRET not set");
 
-    const decoded = jwt.verify(token, secret) as { id: string; email: string };
+    let decoded: { id: string; email: string } | null = null;
+
+    if (token && token !== "undefined" && token !== "null") {
+      try {
+        decoded = jwt.verify(token, secret) as { id: string; email: string };
+      } catch (err: any) {
+        if (err.name === "TokenExpiredError") {
+          // Access token expired: silent auto-refresh using refreshToken if valid
+          const refreshSecret = getRefreshSecret();
+          const refreshCandidates = [
+            req.cookies?.refreshToken,
+            req.headers["x-refresh-token"] as string,
+            (req.body as any)?.refreshToken,
+          ].filter(
+            (t): t is string =>
+              typeof t === "string" &&
+              t.trim().length > 0 &&
+              t !== "undefined" &&
+              t !== "null"
+          );
+
+          for (const cand of refreshCandidates) {
+            try {
+              const refreshDecoded = jwt.verify(cand, refreshSecret) as any;
+              if (refreshDecoded && refreshDecoded.id) {
+                decoded = { id: refreshDecoded.id, email: refreshDecoded.email };
+                const newAccessToken = generateToken(refreshDecoded.id, refreshDecoded.email, getAccessExpiresIn());
+                const newRefreshToken = generateRefreshToken(refreshDecoded.id, refreshDecoded.email, getRefreshExpiresIn());
+                const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+                const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+                res.cookie("token", newAccessToken, getAuthCookieOptions(accessMaxAge));
+                res.cookie("refreshToken", newRefreshToken, getAuthCookieOptions(refreshMaxAge));
+                res.setHeader("x-access-token", newAccessToken);
+                res.setHeader("x-refresh-token", newRefreshToken);
+                break;
+              }
+            } catch { }
+          }
+        }
+      }
+    } else {
+      // No access token (e.g. expired & cleared by browser), check refresh token candidates
+      const refreshSecret = getRefreshSecret();
+      const refreshCandidates = [
+        req.cookies?.refreshToken,
+        req.headers["x-refresh-token"] as string,
+      ].filter(
+        (t): t is string =>
+          typeof t === "string" &&
+          t.trim().length > 0 &&
+          t !== "undefined" &&
+          t !== "null"
+      );
+
+      for (const cand of refreshCandidates) {
+        try {
+          const refreshDecoded = jwt.verify(cand, refreshSecret) as any;
+          if (refreshDecoded && refreshDecoded.id) {
+            decoded = { id: refreshDecoded.id, email: refreshDecoded.email };
+            const newAccessToken = generateToken(refreshDecoded.id, refreshDecoded.email, getAccessExpiresIn());
+            const newRefreshToken = generateRefreshToken(refreshDecoded.id, refreshDecoded.email, getRefreshExpiresIn());
+            const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+            const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+            res.cookie("token", newAccessToken, getAuthCookieOptions(accessMaxAge));
+            res.cookie("refreshToken", newRefreshToken, getAuthCookieOptions(refreshMaxAge));
+            res.setHeader("x-access-token", newAccessToken);
+            res.setHeader("x-refresh-token", newRefreshToken);
+            break;
+          }
+        } catch { }
+      }
+    }
+
+    if (!decoded) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     let userResult = await supabase
       .from("users")
@@ -535,7 +1100,8 @@ export const getUserSession = async (req: Request, res: Response) => {
             plan_code,
             plan_id,
             plan_name,
-            duration_months
+            duration_months,
+            price_amount     
           ),
           created_at,
           updated_at,
@@ -572,7 +1138,7 @@ export const getUserSession = async (req: Request, res: Response) => {
         try {
           const { data: planData } = await supabase
             .from("membership_plans")
-            .select("plan_code, plan_id, plan_name, duration_months")
+            .select("plan_code, plan_id, plan_name, duration_months, price_amount")
             .eq("plan_id", safeBaseUser.plan_id)
             .maybeSingle();
           membershipPlan = planData || null;
@@ -608,9 +1174,90 @@ export const getUserSession = async (req: Request, res: Response) => {
 
 export const logout = (req: Request, res: Response) => {
   res.cookie("token", "", {
-    ...getAuthCookieOptions(),
+    ...getAuthCookieOptions(0),
+    expires: new Date(0),
+    maxAge: 0,
+  });
+  res.cookie("refreshToken", "", {
+    ...getAuthCookieOptions(0),
     expires: new Date(0),
     maxAge: 0,
   });
   res.status(200).json({ message: "Logged out successfully" });
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const rawRefreshTokenCandidates = [
+      req.body?.refreshToken,
+      req.cookies?.refreshToken,
+      req.headers["x-refresh-token"] as string,
+    ].filter(
+      (t): t is string =>
+        typeof t === "string" &&
+        t.trim().length > 0 &&
+        t !== "undefined" &&
+        t !== "null"
+    );
+
+    if (rawRefreshTokenCandidates.length === 0) {
+      console.warn("[refreshToken] No refresh token provided in body, cookies, or headers");
+      return res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    const refreshSecret = getRefreshSecret();
+    let decoded: any = null;
+    let lastError: any = null;
+
+    for (const tokenCandidate of rawRefreshTokenCandidates) {
+      try {
+        const result = jwt.verify(tokenCandidate, refreshSecret) as any;
+        if (result && result.id && (result.type === "refresh" || !result.type)) {
+          decoded = result;
+          break;
+        }
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    if (!decoded) {
+      console.warn("[refreshToken] Refresh token verification failed:", lastError?.message);
+      return res.status(401).json({
+        message: "Invalid or expired refresh token",
+        error: lastError?.name || "Unauthorized",
+      });
+    }
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, email, status, role, username")
+      .eq("id", decoded.id)
+      .maybeSingle();
+
+    if (error || !user) {
+      console.warn("[refreshToken] User not found for id:", decoded.id);
+      return res.status(401).json({ message: "User not found or session expired" });
+    }
+
+    const newAccessToken = generateToken(user.id, user.email, getAccessExpiresIn());
+    const newRefreshToken = generateRefreshToken(user.id, user.email, getRefreshExpiresIn());
+
+    const accessMaxAge = parseDurationToMs(getAccessExpiresIn(), 24 * 60 * 60 * 1000);
+    const refreshMaxAge = parseDurationToMs(getRefreshExpiresIn(), 7 * 24 * 60 * 60 * 1000);
+    res.cookie("token", newAccessToken, getAuthCookieOptions(accessMaxAge));
+    res.cookie("refreshToken", newRefreshToken, getAuthCookieOptions(refreshMaxAge));
+    res.setHeader("x-access-token", newAccessToken);
+    res.setHeader("x-refresh-token", newRefreshToken);
+
+    return res.status(200).json({
+      message: "Token refreshed successfully",
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
+      user,
+    });
+  } catch (error: any) {
+    console.error("[refreshToken] Unexpected error:", error);
+    return res.status(500).json({ message: "Failed to refresh token" });
+  }
 };

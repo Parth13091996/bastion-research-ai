@@ -35,7 +35,8 @@ const RecentRecommendations: React.FC = () => {
   // Get user's tier
   const userPlanCode =
     subscription?.currentPlan || user?.membership_plans?.plan_code || "freemium";
-  const currentTier = subscription?.is_premium ? ["freemium","core","core_annual","research_hub"] : ["freemium"];
+  const currentTier = subscription?.is_premium ? ["freemium", "core", "core_annual", "research_hub"] : ["freemium"];
+  // const currentTier = tiers[userPlanCode] ?? tiers["freemium"];
   const isPremiumUser = !!subscription?.is_premium;
 
   // Only include stocks this user's tier is allowed to access
@@ -47,10 +48,10 @@ const RecentRecommendations: React.FC = () => {
 
   // Sorted by newest
   const sorted = [...accessibleStocks].sort(
-  (a, b) =>
-    new Date(b.dateRecommended ?? 0).getTime() -
-    new Date(a.dateRecommended ?? 0).getTime()
-);
+    (a, b) =>
+      new Date(b.dateRecommended ?? 0).getTime() -
+      new Date(a.dateRecommended ?? 0).getTime()
+  );
 
   // Show only up to 3 latest accessible recommendations
   const latestAccessibleStocks = sorted.slice(0, 3);
@@ -154,11 +155,10 @@ const RecentRecommendations: React.FC = () => {
                       ₹{formatIndianNumber(Number(stock.cmp ?? 0))}
                     </div>
                     <div
-                      className={`text-sm ${
-                        stock.cmp >= stock.entryPrice
+                      className={`text-sm ${stock.cmp >= stock.entryPrice
                           ? "text-green-600"
                           : "text-red-600"
-                      }`}
+                        }`}
                     >
                       {stock.cmp >= stock.entryPrice ? "↑ Gain" : "↓ Loss"}
                     </div>

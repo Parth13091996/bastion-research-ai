@@ -82,3 +82,19 @@ Run the script from the project root on the server. It will start or restart the
 - See `apps/web/README.md` and `apps/server/README.md` for app-specific details (analytics, payments, file uploads).
 
 pg_dump postgresql://postgres.ftuuyfhfrhvlllfwfbjx:<password>@aws-0-ap-south-1.pooler.supabase.com:5432/postgres > db.sql
+
+### Supabase environments
+
+Local server development uses `apps/server/.env.development`. Keep the production
+credentials in `apps/server/.env` and never commit either file.
+
+Copy `apps/server/.env.development.example` to `apps/server/.env.development`,
+then fill in the development Supabase URL and service-role key from the
+development Supabase project. The publishable/anon key cannot replace the
+service-role key because the server performs protected database and storage
+operations.
+
+Set `APP_ENV=development` when running locally. The development environment must
+use a separate Supabase project (for example, `Bastion dev`) and should initially
+contain schema only. Do not point development at the production project or copy
+production users, payments, OTPs, or uploaded files into it.

@@ -215,6 +215,24 @@ export const createUser = async (req: Request, res: Response) => {
       userPayload.subscription_end_date = normalizeDate(subscription_end_date);
     }
 
+    // Check if phone already registered
+    const cleanUserPhoneDigits = (phone || "").replace(/\D/g, "");
+    const userPhone10 = cleanUserPhoneDigits.slice(-10);
+    if (userPhone10.length >= 10) {
+      const { data: existingPhoneUser } = await supabase
+        .from("users")
+        .select("id")
+        .or(`phone.eq.${phone},phone.ilike.%${userPhone10},phone.eq.${userPhone10},phone.eq.+91${userPhone10}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingPhoneUser) {
+        return res.status(400).json({
+          error: "An account with this mobile number already exists.",
+        });
+      }
+    }
+
     // Insert and retrieve inserted row(s) without password field, joined membership_plan
     const { data, error } = await supabase.from("users").insert([userPayload])
       .select(`
@@ -248,12 +266,26 @@ export const createUser = async (req: Request, res: Response) => {
     if (error) {
       if (
         (error as any)?.code === "23505" &&
-        typeof error.message === "string" &&
-        error.message.includes("users_pan_card_number_key")
+        typeof error.message === "string"
       ) {
-        return res.status(400).json({
-          error: "This PAN is already registered with another account.",
-        });
+        if (error.message.includes("users_pan_card_number_key")) {
+          return res.status(400).json({
+            error: "This PAN is already registered with another account.",
+          });
+        }
+        if (error.message.includes("users_email_key")) {
+          return res.status(400).json({
+            error: "An account with this email already exists.",
+          });
+        }
+        if (
+          error.message.includes("users_phone_key") ||
+          error.message.includes("phone")
+        ) {
+          return res.status(400).json({
+            error: "An account with this mobile number already exists.",
+          });
+        }
       }
       return res.status(500).json({ error: error.message });
     }
@@ -329,18 +361,18 @@ export const updateUser = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "User id is required." });
   }
 
-  const actor=(req as any).user;
-  const isStaff=actor?.status==='active' && ['admin','employee'].includes(actor?.role);
-  if(!isStaff && actor?.id!==id)return res.status(403).json({error:'Not authorized for this account'});
-  const protectedFields=['role','plan_id','subscription_start_date','subscription_end_date'];
-  if(!isStaff && protectedFields.some(key=>Object.prototype.hasOwnProperty.call(req.body,key)))return res.status(403).json({error:'Only staff may change subscription fields.'});
-  if(!isStaff && 'status' in req.body && req.body.status!=='agreement_signed')return res.status(403).json({error:'Account status cannot be changed here.'});
-  if(!isStaff && req.body.status==='agreement_signed') {
-    const {data:documents,error}=await supabase.from('digio_documents').select('document_id').eq('user_id',id).limit(1);
-    if(error||!documents?.length)return res.status(403).json({error:'A signed agreement is required.'});
+  const actor = (req as any).user;
+  const isStaff = actor?.status === 'active' && ['admin', 'employee'].includes(actor?.role);
+  if (!isStaff && actor?.id !== id) return res.status(403).json({ error: 'Not authorized for this account' });
+  const protectedFields = ['role', 'plan_id', 'subscription_start_date', 'subscription_end_date'];
+  if (!isStaff && protectedFields.some(key => Object.prototype.hasOwnProperty.call(req.body, key))) return res.status(403).json({ error: 'Only staff may change subscription fields.' });
+  if (!isStaff && 'status' in req.body && req.body.status !== 'agreement_signed') return res.status(403).json({ error: 'Account status cannot be changed here.' });
+  if (!isStaff && req.body.status === 'agreement_signed') {
+    const { data: documents, error } = await supabase.from('digio_documents').select('document_id').eq('user_id', id).limit(1);
+    if (error || !documents?.length) return res.status(403).json({ error: 'A signed agreement is required.' });
   }
   // The full update schema (all updatable fields as in EditMemberModal)
-  if(!isStaff && actor.status==='active' && req.body.status==='agreement_signed')delete req.body.status;
+  if (!isStaff && actor.status === 'active' && req.body.status === 'agreement_signed') delete req.body.status;
   const updatableFields: (keyof typeof req.body)[] = [
     "username",
     "email",

@@ -47,7 +47,7 @@ export async function sendAiSensyCampaign(payload: AiSensyCampaignPayload) {
       {
         apiKey,
         campaignName,
-        destination, 
+        destination,
         userName: isRenewalReminder ? userName : "Bastion Research",
         source: payload.source,
         // Preserve existing unrelated campaign behavior during the renewal repair.

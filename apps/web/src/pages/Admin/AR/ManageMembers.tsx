@@ -393,6 +393,9 @@ const MemberManagementDashboard = () => {
         const daysLeft = differenceInDays(new Date(endDate), new Date(referenceTime));
 
         if (isSubscriptionExpired(endDate, referenceTime)) {
+          // const daysLeft = differenceInDays(new Date(endDate), new Date());
+
+          // if (daysLeft < 0) {
           return <span className="text-red-600 font-medium">Expired</span>;
         }
 
@@ -501,6 +504,8 @@ const MemberManagementDashboard = () => {
     { label: "Free Subs", value: "free_subscriber", count: roleCounts.free_subscriber },
     { label: "Core Subs", value: "core_subscriber", count: roleCounts.core_subscriber },
     { label: "Ex-Core Subscribers", value: "ex_core_subscriber", count: roleCounts.ex_core_subscriber },
+    { label: "IPO Subs", value: "ipo_subscriber", count: roleCounts.ipo_subscriber },
+    { label: "Research Ally", value: "research_ally_subscriber", count: roleCounts.research_ally_subscriber },
     { label: "Employees", value: "employee", count: roleCounts.employee },
     { label: "Admins", value: "admin", count: roleCounts.admin },
     { label: "Drop Off", value: "drop_off", count: roleCounts.drop_off },

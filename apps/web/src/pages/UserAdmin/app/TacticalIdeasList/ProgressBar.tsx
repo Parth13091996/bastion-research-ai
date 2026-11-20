@@ -67,9 +67,8 @@ const TacticalProgressBar = ({
           </div>
 
           <div
-            className={`absolute top-5 text-xs ${
-              isProfit ? "text-green-700" : "text-red-700"
-            }`}
+            className={`absolute top-5 text-xs ${isProfit ? "text-green-700" : "text-red-700"
+              }`}
             style={{
               left: `${cmpPos}%`,
               transform: "translateX(-50%)",

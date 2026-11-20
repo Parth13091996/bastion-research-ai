@@ -29,3 +29,5 @@ dist-ssr
 # Authentication tokens
 .npmrc
 *vite.config.ts.timestamp
+
+.firebase/

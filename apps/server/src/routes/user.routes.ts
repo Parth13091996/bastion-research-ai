@@ -22,7 +22,7 @@ const requireUserUpdatePermission = async (
   const isSelf = req.user?.id && String(req.user.id) === targetUserId;
 
   if (isSelf && req.user?.role !== 'employee') return next();
-  if (isSelf) return requireSectionEdit(['role','plan_id','status','subscription_start_date','subscription_end_date'].some(k=>k in req.body)?'ar_manage_members':'ar_profile')(req,res,next);
+  if (isSelf) return requireSectionEdit(['role', 'plan_id', 'status', 'subscription_start_date', 'subscription_end_date'].some(k => k in req.body) ? 'ar_manage_members' : 'ar_profile')(req, res, next);
 
   return requireSectionEdit('ar_manage_members')(req, res, next);
 };

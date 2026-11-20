@@ -27,12 +27,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     refetch,
   } = useQuery({
     queryKey: [queryKeys.auth_session],
-    queryFn: async () => getSession(),
+    queryFn: async () => {
+      try {
+        return await getSession();
+      } catch {
+        return { user: null };
+      }
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes cache freshness
     gcTime: 60 * 60 * 1000, // 10 minutes cache retention (TanStack v5: cacheTime -> gcTime)
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    retry: 1,
+    retry: false,
   });
 
   useEffect(() => {
@@ -53,11 +59,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return data?.user;
   };
 
-  const login = (newUser: User, token?: string) => {
-    if (token) { try { localStorage.setItem('token', token); } catch {} }
-    queryClient.setQueryData([queryKeys.auth_session], {user:newUser});
-    queryClient.invalidateQueries({queryKey:[queryKeys.subscription]});
+  const login = (newUser: User, token?: string, refreshToken?: string) => {
+    if (typeof window !== "undefined") {
+      try {
+        if (token && token !== "undefined" && token !== "null") {
+          localStorage.setItem("token", token);
+        }
+        if (refreshToken && refreshToken !== "undefined" && refreshToken !== "null") {
+          localStorage.setItem("refreshToken", refreshToken);
+        }
+      } catch { }
+    }
     setUser(newUser);
+    queryClient.setQueryData([queryKeys.auth_session], { user: newUser });
+    queryClient.invalidateQueries({ queryKey: [queryKeys.subscription] });
     // Force a refetch to ensure session is properly established
     refetch();
   };
@@ -65,20 +80,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       const response = await logoutUser();
+      queryClient.setQueryData([queryKeys.auth_session], null);
+      queryClient.invalidateQueries({ queryKey: [queryKeys.subscription] });
       await refetch();
       toast.success(response?.data?.message || "Logged out successfully");
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
-      try { localStorage.removeItem('token'); } catch {}
-      queryClient.clear();
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          sessionStorage.removeItem("onboarding_open");
+        } catch { }
+      }
+      queryClient.setQueryData([queryKeys.auth_session], null);
+      queryClient.invalidateQueries({ queryKey: [queryKeys.subscription] });
       setUser(null);
     }
   };
 
   const isAuthenticated =
-    user?.status === "active" ||
-    (user?.status === "free" && user?.role === "free_subscriber");
+    Boolean(user) &&
+    (user?.status === "active" ||
+      (user?.status === "free" && user?.role === "free_subscriber") ||
+      user?.status === "agreement_signed" ||
+      user?.role === Config.roles.admin ||
+      user?.role === Config.roles.employee);
+  const isOnboarding =
+    Boolean(user) &&
+    user?.role !== Config.roles.admin &&
+    user?.role !== Config.roles.employee &&
+    (user?.status === "pending" || user?.status === "onboarded");
   const isAdmin = user?.role === Config.roles.admin;
   const isEmployee = user?.role === Config.roles.employee;
   const isStaff = isAdmin || isEmployee;
@@ -92,6 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           logout,
           refetchUser,
           isAuthenticated,
+          isOnboarding,
           isAdmin,
           isEmployee,
           isStaff,

@@ -25,6 +25,8 @@ const PlansGrid = ({
   discountRenewalEligible,
   checkingOut,
   handleSubscribe,
+  isExpired = false,
+  currentPlanCode,
 }: {
   availablePlans: Plan[];
   isPlansLoading: boolean;
@@ -34,6 +36,8 @@ const PlansGrid = ({
   discountRenewalEligible: boolean;
   checkingOut: string | null;
   handleSubscribe: (planCode: string, amountOverride?: number) => void;
+  isExpired?: boolean;
+  currentPlanCode?: string | null;
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -68,19 +72,26 @@ const PlansGrid = ({
           const displayAmount = showDiscountedRenewal
             ? CORE_ANNUAL_DISCOUNTED_PRICE_INR
             : canRenewThisPlan && isCoreAnnualPlan
-            ? CORE_ANNUAL_STANDARD_PRICE_INR
-            : canRenewThisPlan
-            ? getRenewalAmountINR(plan.plan_code ?? featureKey, plan.amount)
-            : plan.amount;
+              ? CORE_ANNUAL_STANDARD_PRICE_INR
+              : canRenewThisPlan
+                ? getRenewalAmountINR(plan.plan_code ?? featureKey, plan.amount)
+                : plan.amount;
           const priceLabel = formatINR(displayAmount);
 
+          const isRenewal =
+            canRenewThisPlan ||
+            isExpired ||
+            (currentPlanCode === "core" && renewalEligible);
+
           const disabled =
-            (!canRenewThisPlan && isCurrentPlan) || checkingOut === plan.code;
-          const ctaLabel = isCurrentPlan
-            ? canRenewThisPlan
-              ? "Renew"
-              : "Current Plan"
-            : "Subscribe";
+            (!canRenewThisPlan && !isExpired && isCurrentPlan) ||
+            checkingOut === plan.code;
+
+          const ctaLabel = isRenewal
+            ? "Renew"
+            : isCurrentPlan
+              ? "Current Plan"
+              : "Subscribe";
 
           return (
             <Card
@@ -131,7 +142,7 @@ const PlansGrid = ({
                 <Button
                   className="w-full"
                   variant={
-                    popular && !planMatchesCurrent(featureKey)
+                    popular && (!planMatchesCurrent(featureKey) || isExpired)
                       ? "default"
                       : "outline"
                   }

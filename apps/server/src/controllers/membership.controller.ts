@@ -60,7 +60,7 @@ async function fetchPaymentExtras(
         .select('coupon_id, coupon_code')
         .in('coupon_id', couponIds)
       if (!couponErr) {
-        ;((couponRows as any[]) || []).forEach((c) => {
+        ; ((couponRows as any[]) || []).forEach((c) => {
           if (
             typeof c?.coupon_id === 'number' &&
             typeof c?.coupon_code === 'string'
@@ -122,12 +122,17 @@ export const getSubscriptions = async (req: Request, res: Response) => {
       membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, currency, price_amount, plan_code, duration_months )
     `
     )
+    .not('transaction_status', 'in', '("PENDING","USER_DROPPED")')
     .order('created_at', { ascending: false })
   if (error) {
     return res.status(500).json({ error: parseSupabaseError(error) })
   }
 
-  const rows = (data as any[]) || []
+  const rows = ((data as any[]) || []).filter(
+    (r: any) =>
+      r?.transaction_status !== 'PENDING' &&
+      r?.transaction_status !== 'USER_DROPPED'
+  )
   const extras = await fetchPaymentExtras(
     rows.map((r: any) => String(r?.transaction_id || '')).filter(Boolean)
   )
@@ -191,11 +196,16 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
       membership_plans!payment_history_plan_id_fkey ( plan_id, plan_name, price_amount, currency, plan_code )
     `
     )
+    .not('transaction_status', 'in', '("PENDING","USER_DROPPED")')
     .order('created_at', { ascending: false })
   if (error) {
     return res.status(500).json({ error: parseSupabaseError(error) })
   }
-  const rows = (data as any[]) || []
+  const rows = ((data as any[]) || []).filter(
+    (r: any) =>
+      r?.transaction_status !== 'PENDING' &&
+      r?.transaction_status !== 'USER_DROPPED'
+  )
   const extras = await fetchPaymentExtras(
     rows.map((r: any) => String(r?.transaction_id || '')).filter(Boolean)
   )
@@ -251,13 +261,18 @@ export const getMyPaymentHistory = async (req: Request, res: Response) => {
       `
       )
       .eq('user_id', user.id as string)
+      .not('transaction_status', 'in', '("PENDING","USER_DROPPED")')
       .order('created_at', { ascending: false })
 
     if (error) {
       return res.status(500).json({ error: parseSupabaseError(error) })
     }
 
-    const rows = (data as any[]) || []
+    const rows = ((data as any[]) || []).filter(
+      (r: any) =>
+        r?.transaction_status !== 'PENDING' &&
+        r?.transaction_status !== 'USER_DROPPED'
+    )
     const extras = await fetchPaymentExtras(
       rows.map((r: any) => String(r?.transaction_id || '')).filter(Boolean)
     )
@@ -543,9 +558,9 @@ export const deleteMembershipPlan = async (req: Request, res: Response) => {
 export const deletePaymentHistory = async (req: Request, res: Response) => {
   const { id } = req.params // transaction_id as identifier
   try {
-    const {data:existing,error:readError}=await supabase.from('payment_history').select('plan_id,transaction_status').eq('transaction_id',id).maybeSingle();
-    if(readError)throw readError;
-    if(Number(existing?.plan_id)===2 && ['SUCCESS','COMPLETED','PAID','COUPON_APPLIED','FREE'].includes(existing?.transaction_status))return res.status(409).json({error:'The one-time CORE purchase record must be retained to enforce eligibility.'});
+    const { data: existing, error: readError } = await supabase.from('payment_history').select('plan_id,transaction_status').eq('transaction_id', id).maybeSingle();
+    if (readError) throw readError;
+    if (Number(existing?.plan_id) === 2 && ['SUCCESS', 'COMPLETED', 'PAID', 'COUPON_APPLIED', 'FREE'].includes(existing?.transaction_status)) return res.status(409).json({ error: 'The one-time CORE purchase record must be retained to enforce eligibility.' });
     const { data, error } = await supabase
       .from('payment_history')
       .delete()

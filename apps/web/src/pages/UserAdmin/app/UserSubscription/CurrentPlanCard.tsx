@@ -17,6 +17,7 @@ const CurrentPlanCard = ({
   hasAnyPlan,
   onFreePlan,
   currentPlanCode,
+  isExpired: isExpiredProp,
 }: {
   isLoading: boolean;
   isError: boolean;
@@ -24,12 +25,17 @@ const CurrentPlanCard = ({
   hasAnyPlan: boolean;
   onFreePlan: boolean;
   currentPlanCode: string | null;
+  isExpired?: boolean;
 }) => {
   // Extract expiry date and check if expired
   const expireNextRenewal = subscription?.subscription?.expireNextRenewal;
   const isExpired =
-    expireNextRenewal &&
-    new Date(expireNextRenewal).getTime() < new Date().setHours(0, 0, 0, 0);
+    typeof isExpiredProp === "boolean"
+      ? isExpiredProp
+      : Boolean(
+        expireNextRenewal &&
+        new Date(expireNextRenewal).getTime() < new Date().setHours(0, 0, 0, 0)
+      );
 
   const formatDate = (dateString: string) =>
     format(new Date(dateString), "MMM dd, yyyy");
@@ -57,16 +63,11 @@ const CurrentPlanCard = ({
               )}
               <h3 className="text-base sm:text-lg font-semibold">
                 {subscription?.subscription?.name
-                  ? `${subscription.subscription.name.replace("_", " ")
-                    .toUpperCase()} Plan`
+                  ? /plan$/i.test(subscription.subscription.name)
+                    ? subscription.subscription.name
+                    : `${subscription.subscription.name} Plan`
                   : hasAnyPlan
-                    ? `${
-                        currentPlanCode === "freemium"
-                          ? "Freemium"
-                          : String(currentPlanCode)
-                              .replace("_", " ")
-                              .toUpperCase()
-                      } Plan`
+                    ? `${currentPlanCode === "freemium" ? "Freemium" : String(currentPlanCode).replace("_", " ")} Plan`
                     : "No Active Plan"}
                 {isExpired && (
                   <span className="ml-2 text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 font-medium border border-red-200">
@@ -81,20 +82,20 @@ const CurrentPlanCard = ({
                   isExpired
                     ? "destructive"
                     : hasAnyPlan && subscription?.is_premium
-                    ? "default"
-                    : "secondary"
+                      ? "default"
+                      : "secondary"
                 }
                 className="self-start sm:self-auto"
               >
                 {!hasAnyPlan
                   ? "None"
                   : isExpired
-                  ? "Expired"
-                  : onFreePlan
-                  ? "Free"
-                  : subscription?.is_premium
-                  ? "Active"
-                  : "Pending"}
+                    ? "Expired"
+                    : onFreePlan
+                      ? "Free"
+                      : subscription?.is_premium
+                        ? "Active"
+                        : "Pending"}
               </Badge>
               {subscription?.subscription && (
                 <div className="text-xs sm:text-sm text-muted-foreground space-y-1">

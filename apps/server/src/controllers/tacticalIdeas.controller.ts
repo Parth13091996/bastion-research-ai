@@ -1,5 +1,5 @@
-import {isFreemium,requestAccess} from '../services/premium-access.service';
-import {protectResearchLinks} from '../services/research-assets.service';
+import { isFreemium, requestAccess } from '../services/premium-access.service';
+import { protectResearchLinks } from '../services/research-assets.service';
 import { Request, Response } from "express";
 import { supabase } from "../supabase";
 import {
@@ -17,8 +17,8 @@ export const getTacticalIdeas = async (req: Request, res: Response) => {
   if (error) {
     return res.status(500).json({ error: error.message });
   }
-  try {const {premium}=await requestAccess(req);return res.status(200).set('Cache-Control','private, no-store').json((data||[]).filter(row=>premium||isFreemium(row.tags)).map(row=>protectResearchLinks(row,'tactical',row.company_symbol)));}
-  catch{return res.status(503).json({message:'Unable to verify access'});}
+  try { const { premium } = await requestAccess(req); return res.status(200).set('Cache-Control', 'private, no-store').json((data || []).filter(row => premium || isFreemium(row.tags)).map(row => protectResearchLinks(row, 'tactical', row.company_symbol))); }
+  catch { return res.status(503).json({ message: 'Unable to verify access' }); }
 };
 
 type Settings = {
@@ -53,9 +53,9 @@ export const getTacticalIdeasFromSheet = async (req: Request, res: Response) => 
     const ideas: RecommendationRecord[] = rows
       .map(mapRow)
       .filter((r) => r.companyName);
-    const {premium}=await requestAccess(req);if(premium)return res.status(200).set('Cache-Control','private, no-store').json(ideas);
-    const {data:free,error}=await supabase.from(TACTICAL_TABLE).select('company_symbol').eq('tags','freemium');if(error)throw error;
-    const symbols=new Set((free||[]).map(row=>row.company_symbol));return res.status(200).set('Cache-Control','private, no-store').json(ideas.filter(row=>symbols.has(row.nseSymbol))); 
+    const { premium } = await requestAccess(req); if (premium) return res.status(200).set('Cache-Control', 'private, no-store').json(ideas);
+    const { data: free, error } = await supabase.from(TACTICAL_TABLE).select('company_symbol').eq('tags', 'freemium'); if (error) throw error;
+    const symbols = new Set((free || []).map(row => row.company_symbol)); return res.status(200).set('Cache-Control', 'private, no-store').json(ideas.filter(row => symbols.has(row.nseSymbol)));
   } catch (error: any) {
     console.error("Error fetching tactical ideas from sheet:", error);
     return res
@@ -110,7 +110,7 @@ export const getTacticalIdeaByCompanySymbol = async (
     }
     return res.status(500).json({ error: error.message });
   }
-  try {if(!(await requestAccess(req)).premium&&!isFreemium(data.tags))return res.status((req as any).user?403:401).json({message:'An active CORE subscription is required.'});return res.status(200).set('Cache-Control','private, no-store').json(protectResearchLinks(data,'tactical',companySymbol));}catch{return res.status(503).json({message:'Unable to verify access'});}
+  try { if (!(await requestAccess(req)).premium && !isFreemium(data.tags)) return res.status((req as any).user ? 403 : 401).json({ message: 'An active CORE subscription is required.' }); return res.status(200).set('Cache-Control', 'private, no-store').json(protectResearchLinks(data, 'tactical', companySymbol)); } catch { return res.status(503).json({ message: 'Unable to verify access' }); }
 };
 
 export const upsertTacticalIdeaByCompany = async (

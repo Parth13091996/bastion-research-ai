@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -11,6 +11,7 @@ import {
   startOnboarding,
   verifyPan as apiVerifyPan,
 } from "@/api/onboarding-apis";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -21,6 +22,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
   onBack,
   onNext,
 }) => {
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,9 +30,22 @@ const KYCStep: React.FC<KYCStepProps> = ({
   const [verification, setVerification] =
     useState<PanVerificationSummary | null>(formData.panVerification || null);
 
+  const lastVerifiedPanRef = useRef<string | null>(
+    formData.panVerification?.valid && formData.panCard
+      ? formData.panCard.trim().toUpperCase()
+      : null
+  );
+  const lastVerificationResultRef = useRef<PanVerificationSummary | null>(
+    formData.panVerification || null
+  );
+
   useEffect(() => {
     setVerification(formData.panVerification || null);
-  }, [formData.panVerification]);
+    if (formData.panVerification?.valid && formData.panCard) {
+      lastVerifiedPanRef.current = formData.panCard.trim().toUpperCase();
+      lastVerificationResultRef.current = formData.panVerification;
+    }
+  }, [formData.panVerification, formData.panCard]);
 
   const fullName = useMemo(() => {
     return `${formData.firstName || ""} ${formData.lastName || ""}`
@@ -52,27 +67,63 @@ const KYCStep: React.FC<KYCStepProps> = ({
       return;
     }
 
+    // Check if user is re-verifying the same PAN again without making changes
+    if (
+      lastVerifiedPanRef.current === pan &&
+      (verification?.valid || lastVerificationResultRef.current?.valid)
+    ) {
+      const existingResult: PanVerificationSummary = {
+        ...(lastVerificationResultRef.current || verification || {}),
+        valid: true,
+        message: "This pan has been verified already",
+        alreadyVerified: true,
+      };
+      setVerification(existingResult);
+      updateFormData("panVerification", existingResult);
+      toast.info("This pan has been verified already");
+      return;
+    }
+
     setIsVerifying(true);
     try {
       const data = await apiVerifyPan({
         pan,
         name: formData.firstName + " " + formData.lastName,
       });
+
+      const isAlreadyVerified = Boolean(
+        data.alreadyVerified ||
+        data.cached ||
+        data.message?.toLowerCase().includes("already") ||
+        lastVerifiedPanRef.current === pan
+      );
+
       const result: PanVerificationSummary = {
         referenceId: data.referenceId,
         valid: Boolean(data.valid),
         status: data.status,
         registeredName: data.registeredName,
         nameMatchScore: data.nameMatchScore,
-        message: data.message,
+        message: isAlreadyVerified
+          ? "This pan has been verified already"
+          : (data.message || (data.valid ? "PAN verified successfully" : "PAN verification failed")),
+        alreadyVerified: isAlreadyVerified,
         checkedAt: new Date().toISOString(),
       };
+
       setVerification(result);
       updateFormData("panCard", pan);
       updateFormData("panVerification", result);
 
+      lastVerifiedPanRef.current = pan;
+      lastVerificationResultRef.current = result;
+
       if (result.valid) {
-        toast.success("PAN verified successfully");
+        if (isAlreadyVerified) {
+          toast.info("This pan has been verified already");
+        } else {
+          toast.success("PAN verified successfully");
+        }
       } else {
         toast.error(result.message || "PAN verification failed");
       }
@@ -91,6 +142,9 @@ const KYCStep: React.FC<KYCStepProps> = ({
   };
 
   const messageForStatus = (result: PanVerificationSummary) => {
+    if (result.alreadyVerified || result.message?.toLowerCase().includes("already")) {
+      return "This pan has been verified already";
+    }
     if (result.valid) return "PAN verified successfully";
     if (result.message) return result.message;
     if (result.status === "PENDING") return "Verification is still pending.";
@@ -156,25 +210,56 @@ const KYCStep: React.FC<KYCStepProps> = ({
 
     setLoading(true);
     try {
-      await startOnboarding({
-        email: formData.email,
-        phone: formData.phone,
+      const effectivePin = formData.pinCode || user?.pin_code || "";
+      const effectiveFirstName = formData.firstName || user?.first_name || "";
+      const effectiveLastName = formData.lastName || user?.last_name || "";
+      const effectiveDob = formData.dateOfBirth || user?.date_of_birth || "";
+      const effectiveEmail = formData.email || user?.email || "";
+      const effectivePhone = formData.phone || user?.phone || "";
+      const effectiveAddress1 = formData.address1 || user?.address_1 || "";
+      const effectiveAddress2 = formData.address2 || user?.address_2 || "";
+      const effectiveState = formData.state || user?.state || "";
+      const effectiveCity = formData.city || user?.city || "";
+      const effectiveCompany = formData.company || user?.company || "";
+
+      if (!formData.pinCode && effectivePin) updateFormData("pinCode", effectivePin);
+      if (!formData.firstName && effectiveFirstName) updateFormData("firstName", effectiveFirstName);
+      if (!formData.lastName && effectiveLastName) updateFormData("lastName", effectiveLastName);
+
+      const startRes = await startOnboarding({
+        email: effectiveEmail,
+        phone: effectivePhone,
         password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        dateOfBirth: formData.dateOfBirth,
-        address1: formData.address1,
-        address2: formData.address2,
-        state: formData.state,
-        city: formData.city,
-        pinCode: formData.pinCode,
-        company: formData.company,
+        firstName: effectiveFirstName,
+        lastName: effectiveLastName,
+        dateOfBirth: effectiveDob,
+        address1: effectiveAddress1,
+        address2: effectiveAddress2,
+        state: effectiveState,
+        city: effectiveCity,
+        pinCode: effectivePin,
+        pin_code: effectivePin,
+        company: effectiveCompany,
         panCard: formData.panCard,
         panVerification: verification,
         status: "onboarded",
         role: formData.role,
+        plan_id: formData.selectedPlan
+          ? Number(formData.selectedPlan)
+          : (typeof window !== "undefined" && localStorage.getItem("selectedPlan")
+            ? Number(localStorage.getItem("selectedPlan"))
+            : undefined),
         onboarding_session_id: formData.onboardingSessionId,
-      });
+      } as any);
+      if ((startRes as any)?.token && typeof window !== "undefined") {
+        try {
+          localStorage.setItem("token", (startRes as any).token);
+          if ((startRes as any).refreshToken) {
+            localStorage.setItem("refreshToken", (startRes as any).refreshToken);
+          }
+          sessionStorage.setItem("onboarding_open", "true");
+        } catch { }
+      }
       setLoading(false);
       onNext();
     } catch (e: any) {
@@ -211,10 +296,15 @@ const KYCStep: React.FC<KYCStepProps> = ({
             value={formData.panCard}
             onChange={(e) => {
               setError(null);
+              const newVal = e.target.value.toUpperCase();
               if (verification) {
                 resetVerification();
               }
-              updateFormData("panCard", e.target.value.toUpperCase());
+              if (newVal !== lastVerifiedPanRef.current) {
+                lastVerifiedPanRef.current = null;
+                lastVerificationResultRef.current = null;
+              }
+              updateFormData("panCard", newVal);
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 tracking-widest"
             placeholder="ABCDE1234F"
@@ -268,11 +358,10 @@ const KYCStep: React.FC<KYCStepProps> = ({
 
         {verification && (
           <div
-            className={`border rounded-lg p-4 text-sm ${
-              verification.valid
-                ? "border-green-200 bg-green-50"
-                : "border-yellow-200 bg-yellow-50"
-            }`}
+            className={`border rounded-lg p-4 text-sm ${verification.valid
+              ? "border-green-200 bg-green-50"
+              : "border-yellow-200 bg-yellow-50"
+              }`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center text-sm font-medium">
@@ -282,7 +371,9 @@ const KYCStep: React.FC<KYCStepProps> = ({
                   <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
                 )}
                 {verification.valid
-                  ? "PAN verified successfully"
+                  ? (verification.alreadyVerified || verification.message?.toLowerCase().includes("already")
+                    ? "This pan has been verified already"
+                    : "PAN verified successfully")
                   : "Unable to verify PAN"}
               </div>
               {verification.referenceId && (

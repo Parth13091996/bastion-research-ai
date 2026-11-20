@@ -17,47 +17,70 @@ import { signIn } from "@/api/auth-api";
 import { sendEmailOtp } from "@/api/onboarding-apis";
 import SignUpForm from "../Register/SignupForm";
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().optional(),
-  otp: z.string().optional(),
-});
+const createLoginSchema = (useOtp: boolean) =>
+  z.object({
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Please enter a valid email address"),
+    password: useOtp
+      ? z.string().optional()
+      : z
+        .string()
+        .min(1, "Password is required")
+        .min(6, "Password must be at least 6 characters"),
+    otp: useOtp
+      ? z.string().min(1, "OTP is required")
+      : z.string().optional(),
+  });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = {
+  email: string;
+  password?: string;
+  otp?: string;
+};
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { user, login, isAuthenticated, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [useOtp, setUseOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
+  const [isSignUpOpen, setIsSignUpOpen] = useState(() => (typeof window !== "undefined" ? sessionStorage.getItem("onboarding_open") === "true" : false));
 
   const {
     register,
     handleSubmit,
     watch,
+    clearErrors,
     formState: { errors },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: (values, context, options) =>
+      zodResolver(createLoginSchema(useOtp))(values, context, options),
   });
 
   const mutation = useMutation<any, Error, LoginFormValues>({
     mutationFn: (data) => signIn(data),
     onSuccess: (data) => {
-      login(data.user, data.token);
+      login(data.user, data.token, data.refreshToken);
       const shouldResumeOnboarding =
-        data?.user?.status !== "active" && data?.user?.status !== "free";
+        data?.user?.role !== "admin" &&
+        data?.user?.status !== "active" &&
+        data?.user?.status !== "free" &&
+        data?.user?.status !== "agreement_signed";
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem("onboarding_open", "true");
+          } catch { }
+        }
         setTimeout(() => {
           setIsSignUpOpen(true);
         }, 100);
       } else {
         toast.success("Login successful! Redirecting to dashboard...");
-        setTimeout(() => {
-          navigate(AppRoutes.dashboard, { replace: true });
-        }, 100);
+        navigate("/user/app/dashboard", { replace: true });
       }
     },
     onError(error: any) {
@@ -95,13 +118,24 @@ const Login = () => {
     sendOtpMutation.mutate(email);
   };
 
+  const isStillOnboarding =
+    Boolean(user) &&
+    user?.role !== "admin" &&
+    user?.role !== "employee" &&
+    (user?.status === "pending" || user?.status === "onboarded");
+
   useEffect(() => {
+    if (isStillOnboarding) {
+      setIsSignUpOpen(true);
+      return;
+    }
+
     if (!isLoading && isAuthenticated) {
-      navigate(AppRoutes.dashboard, {
+      navigate("/user/app/dashboard", {
         replace: true,
       });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, user, isStillOnboarding]);
 
   if (isLoading) {
     return (
@@ -114,7 +148,7 @@ const Login = () => {
     );
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !isStillOnboarding) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50 flex items-center justify-center">
         <div className="text-center">
@@ -250,6 +284,7 @@ const Login = () => {
                         onChange={(e) => {
                           setUseOtp(e.target.checked);
                           setOtpSent(false);
+                          clearErrors();
                         }}
                         className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                       />

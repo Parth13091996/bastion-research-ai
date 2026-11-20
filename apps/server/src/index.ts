@@ -30,7 +30,14 @@ import qnaRoutes from './routes/qna.routes'
 import subscriptionWhatsappRoutes from './routes/subscription-whatsapp.routes'
 import publicRoutes from './routes/public.routes'
 
-dotenv.config()
+import fs from 'fs'
+import path from 'path'
+
+// Load environment variables (.env.development if .env doesn't exist)
+const envPath = fs.existsSync(path.resolve(process.cwd(), '.env'))
+  ? path.resolve(process.cwd(), '.env')
+  : path.resolve(process.cwd(), '.env.development');
+dotenv.config({ path: envPath });
 
 const app: Express = express()
 const port = Number(process.env.PORT) || 3001
@@ -66,7 +73,12 @@ const allowedOrigins = new Set(
 const isBastionOrigin = (origin: string) => {
   try {
     const { protocol, hostname } = new URL(origin)
-    return protocol === 'https:' && /(^|\.)bastionresearch\.in$/.test(hostname)
+    return (
+      protocol === 'https:' &&
+      (/(^|\.)bastionresearch\.in$/.test(hostname) ||
+        /(^|\.)web\.app$/.test(hostname) ||
+        /(^|\.)firebaseapp\.com$/.test(hostname))
+    )
   } catch {
     return false
   }
@@ -122,6 +134,19 @@ app.use(
       return callback(null, false)
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+      'Cookie',
+      'Set-Cookie',
+      'x-access-token',
+      'x-refresh-token',
+    ],
+    exposedHeaders: ['Set-Cookie', 'x-access-token', 'x-refresh-token'],
     optionsSuccessStatus: 200, // For legacy browser support
   })
 )
@@ -175,6 +200,11 @@ app.get('/', (req: Request, res: Response) => {
 const host = '0.0.0.0'
 app.listen(port, host, () => {
   console.log(`[server]: Server is running at http://${host}:${port}`)
+  console.log("AUTH CONFIG:", {
+    NODE_ENV: process.env.NODE_ENV,
+    COOKIE_SECURE: process.env.COOKIE_SECURE,
+    FRONTEND_URL: process.env.FRONTEND_URL,
+  });
 })
 
 startSubscriptionExpiryReminderJob()

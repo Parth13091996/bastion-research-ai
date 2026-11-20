@@ -39,7 +39,7 @@ function inferCategory(mime?: string): UploadCategory {
   if (
     mime === "application/msword" ||
     mime ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   )
     return "doc";
   return "file";
@@ -93,7 +93,7 @@ export async function uploadToSupabase({
     throw new Error("Unsupported file type for this category");
   }
 
-  const restricted=category==='pdf' && /^(recommendations|tactical|scratchpad)(?:\/|$)/.test(dir||'');
+  const restricted = category === 'pdf' && /^(recommendations|tactical|scratchpad)(?:\/|$)/.test(dir || '');
   const bucket = restricted ? 'premium-research' : pickBucket(category);
   const ext = getExtFromMimetype(
     file.mimetype,

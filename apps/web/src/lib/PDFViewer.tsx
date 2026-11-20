@@ -18,7 +18,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   const renderIdRef = useRef(0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const pdfDocRef = useRef<any>(null);
-  const documentUrlRef=useRef<string>();
+  const documentUrlRef = useRef<string>();
 
   const handleGoBack = () => {
     if (window.history.length > 1) {
@@ -31,7 +31,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
   // Detect zoom changes
   useEffect(() => {
     let resizeTimer: NodeJS.Timeout;
-    
+
     const handleZoomChange = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
@@ -42,7 +42,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
     // Listen for resize events (which fire on zoom)
     window.addEventListener('resize', handleZoomChange);
-    
+
     // Initial zoom level
     setZoomLevel(window.devicePixelRatio);
 
@@ -54,7 +54,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
   useEffect(() => {
     const currentRenderId = ++renderIdRef.current;
-    if(documentUrlRef.current!==pdfUrl){pdfDocRef.current?.destroy?.();pdfDocRef.current=null;documentUrlRef.current=pdfUrl;}
+    if (documentUrlRef.current !== pdfUrl) { pdfDocRef.current?.destroy?.(); pdfDocRef.current = null; documentUrlRef.current = pdfUrl; }
 
     const loadPDFJS = async () => {
       if (typeof window.pdfjsLib === "undefined") {
@@ -84,11 +84,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
 
         // Load PDF only once and cache it
         if (!pdfDocRef.current) {
-          const parsed=new URL(pdfUrl,window.location.origin);
-          const ownApi=new URL(import.meta.env.VITE_API_BASE_URL || 'https://dev-api.bastionresearch.in',window.location.origin);
-          const protectedResource=parsed.origin===ownApi.origin && parsed.pathname.startsWith('/api/research-assets/');
-          const source=protectedResource ? {data:new Uint8Array((await api.get(pdfUrl,{responseType:'arraybuffer'})).data)} : {url:pdfUrl};
-          if(renderId!==renderIdRef.current)return;
+          const parsed = new URL(pdfUrl, window.location.origin);
+          const ownApi = new URL(import.meta.env.VITE_API_BASE_URL || 'https://dev-api.bastionresearch.in', window.location.origin);
+          const protectedResource = parsed.origin === ownApi.origin && parsed.pathname.startsWith('/api/research-assets/');
+          const source = protectedResource ? { data: new Uint8Array((await api.get(pdfUrl, { responseType: 'arraybuffer' })).data) } : { url: pdfUrl };
+          if (renderId !== renderIdRef.current) return;
           const loadingTask = pdfLib.getDocument(source);
           pdfDocRef.current = await loadingTask.promise;
         }
@@ -96,7 +96,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
         const pdf = pdfDocRef.current;
         const isMobile = window.innerWidth < 768;
         const baseScale = isMobile ? 1 : 1.5;
-        
+
         // Multiply base scale by zoom level for crisp rendering
         const scale = baseScale * zoomLevel * 2.5;
 
@@ -199,7 +199,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfUrl }) => {
           canvas.style.borderRadius = "6px";
           canvas.style.boxShadow = "0 1px 4px rgba(0,0,0,0.15)";
           canvas.style.backgroundColor = "#fff";
-          
+
           // Scale canvas display size back down while keeping high-res rendering
           canvas.style.imageRendering = "high-quality";
 

@@ -1,4 +1,4 @@
-import {usePremiumBenefits} from '@/hooks/use-premium-benefits';
+import { usePremiumBenefits } from '@/hooks/use-premium-benefits';
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Menu, X } from "lucide-react";
@@ -39,7 +39,7 @@ function SidebarOverlay({ isMobileOpen, toggleMobileMenu }) {
 const UserSidebar = () => {
   const { user, isAdmin, isStaff, logout } = useAuth();
   const { data: subscription } = useSubscription();
-  const {data:benefits}=usePremiumBenefits(!!subscription?.is_premium);
+  const { data: benefits } = usePremiumBenefits(!!subscription?.is_premium);
   const [showPricing, setShowPricing] = useState(false);
   const { navItems, BrandColors } = useConstants();
 
@@ -54,14 +54,17 @@ const UserSidebar = () => {
   const profile = {
     name: user
       ? `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
-        user.username ||
-        "User"
+      user.username ||
+      "User"
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null,
     is_premium: !!subscription?.is_premium,
     currentPlan:
       subscription?.is_premium ? (subscription.currentPlan || 'core_annual') : 'freemium',
+    // subscription?.currentPlan ||
+    // user?.membership_plans?.plan_code ||
+    // "freemium",
   };
 
   const sidebarRef = useRef(null);
@@ -69,6 +72,7 @@ const UserSidebar = () => {
 
   useEffect(() => {
     setIsMobileOpen(false);
+    setShowPricing(false);
   }, [location.pathname]);
 
   // Close submenu on outside click
@@ -93,6 +97,7 @@ const UserSidebar = () => {
   const handleExploreWebsite = () => {
     navigate("/");
     setIsMobileOpen(false);
+    setShowPricing(false);
   };
 
   const handleLogout = async () => {
@@ -100,6 +105,7 @@ const UserSidebar = () => {
       await logout();
       navigate("/");
       setIsMobileOpen(false);
+      setShowPricing(false);
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout. Please try again.");
@@ -182,9 +188,8 @@ const UserSidebar = () => {
 
       {/* Mobile sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-80 transform lg:hidden transition-transform duration-300 ease-in-out ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 w-80 transform lg:hidden transition-transform duration-300 ease-in-out ${isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {sidebarContent}
       </div>
@@ -195,9 +200,8 @@ const UserSidebar = () => {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col transition-all duration-300 h-screen z-40 ${
-          isCollapsed ? "w-16" : "w-80"
-        }`}
+        className={`hidden lg:flex flex-col transition-all duration-300 h-screen z-40 ${isCollapsed ? "w-16" : "w-80"
+          }`}
       >
         {sidebarContent}
       </aside>

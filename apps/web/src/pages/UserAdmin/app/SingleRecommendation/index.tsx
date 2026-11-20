@@ -1,4 +1,4 @@
-import {useSubscription} from '@/hooks/use-subscription';
+import { useSubscription } from '@/hooks/use-subscription';
 import { getRecommendationByCompanySymbol } from "@/api/recommendations-apis";
 import dayjs from "dayjs"
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -35,64 +35,64 @@ const SingleRecommendation = () => {
   const [selectedPerformanceIndex, setSelectedPerformanceIndex] =
     useState<number>(0);
   const isMobile = useIsMobile();
-  const {data:subscription,isPending:checkingAccess}=useSubscription();
+  const { data: subscription, isPending: checkingAccess } = useSubscription();
 
   const performanceArray =
     Array.isArray(stock?.stock_performance_url) && stock.stock_performance_url
       ? stock.stock_performance_url
       : stock?.stock_performance_url
         ? [
-            {
-              date: stock.dateRecommended || "",
-              title: "Initial recommendation",
-              stock_recommendation_url: stock.stock_performance_url,
-            },
-          ]
+          {
+            date: stock.dateRecommended || "",
+            title: "Initial recommendation",
+            stock_recommendation_url: stock.stock_performance_url,
+          },
+        ]
         : [];
 
   const selectedPerformanceItem =
     performanceArray.length > 0
       ? performanceArray[
-          Math.min(selectedPerformanceIndex, performanceArray.length - 1)
-        ]
+      Math.min(selectedPerformanceIndex, performanceArray.length - 1)
+      ]
       : null;
 
   const effectiveStock =
     stock && typeof stock === "object"
       ? {
-          ...stock,
-          business_note:
-            selectedPerformanceItem?.business_note ?? stock.business_note,
-          quick_bite: selectedPerformanceItem?.quick_bite ?? stock.quick_bite,
-          video: selectedPerformanceItem?.video ?? stock.video,
-          exit_rationale:
-            selectedPerformanceItem?.exit_rationale ?? stock.exit_rationale,
-          quarterly_update:
-            selectedPerformanceItem?.quarterly_update ?? stock.quarterly_update,
-          announcements_and_update:
-            selectedPerformanceItem?.announcements_and_update ??
-            stock.announcements_and_update,
-          dateRecommended:
-            selectedPerformanceItem?.dateRecommended ?? stock.dateRecommended,
-          priceAtRecommendation:
-            selectedPerformanceItem?.priceAtRecommendation ??
-            stock.priceAtRecommendation,
-          dateExit:
-            selectedPerformanceItem?.dateExit ?? stock.dateExit ?? "",
-          holdingPeriod:
-            selectedPerformanceItem?.holdingPeriod ?? stock.holdingPeriod,
-          cmpOrExitPrice:
-            selectedPerformanceItem?.cmpOrExitPrice ?? stock.cmpOrExitPrice,
-          percentReturn:
-            selectedPerformanceItem?.percentReturn ?? stock.percentReturn,
-          action: selectedPerformanceItem?.action ?? stock.action,
-          targetPrice:
-            selectedPerformanceItem?.targetPrice ?? stock.targetPrice,
-          upsidePotential:
-            selectedPerformanceItem?.upsidePotential ?? stock.upsidePotential,
-          latestMcapCr:
-            selectedPerformanceItem?.latestMcapCr ?? stock.latestMcapCr,
-        }
+        ...stock,
+        business_note:
+          selectedPerformanceItem?.business_note ?? stock.business_note,
+        quick_bite: selectedPerformanceItem?.quick_bite ?? stock.quick_bite,
+        video: selectedPerformanceItem?.video ?? stock.video,
+        exit_rationale:
+          selectedPerformanceItem?.exit_rationale ?? stock.exit_rationale,
+        quarterly_update:
+          selectedPerformanceItem?.quarterly_update ?? stock.quarterly_update,
+        announcements_and_update:
+          selectedPerformanceItem?.announcements_and_update ??
+          stock.announcements_and_update,
+        dateRecommended:
+          selectedPerformanceItem?.dateRecommended ?? stock.dateRecommended,
+        priceAtRecommendation:
+          selectedPerformanceItem?.priceAtRecommendation ??
+          stock.priceAtRecommendation,
+        dateExit:
+          selectedPerformanceItem?.dateExit ?? stock.dateExit ?? "",
+        holdingPeriod:
+          selectedPerformanceItem?.holdingPeriod ?? stock.holdingPeriod,
+        cmpOrExitPrice:
+          selectedPerformanceItem?.cmpOrExitPrice ?? stock.cmpOrExitPrice,
+        percentReturn:
+          selectedPerformanceItem?.percentReturn ?? stock.percentReturn,
+        action: selectedPerformanceItem?.action ?? stock.action,
+        targetPrice:
+          selectedPerformanceItem?.targetPrice ?? stock.targetPrice,
+        upsidePotential:
+          selectedPerformanceItem?.upsidePotential ?? stock.upsidePotential,
+        latestMcapCr:
+          selectedPerformanceItem?.latestMcapCr ?? stock.latestMcapCr,
+      }
       : stock;
 
 
@@ -115,7 +115,7 @@ const SingleRecommendation = () => {
         setSelectedPerformanceIndex(0);
       })
       .catch((error) => {
-        setFetchError([401,403].includes(error?.response?.status) ? 'An active CORE subscription is required to view this recommendation.' : 'Failed to fetch recommendation.');
+        setFetchError([401, 403].includes(error?.response?.status) ? 'An active CORE subscription is required to view this recommendation.' : 'Failed to fetch recommendation.');
         setStock(null);
       });
   }, [symbol, stocks]);
@@ -125,8 +125,8 @@ const SingleRecommendation = () => {
     const currentItem =
       performanceArray.length > 0
         ? performanceArray[
-            Math.min(selectedPerformanceIndex, performanceArray.length - 1)
-          ]
+        Math.min(selectedPerformanceIndex, performanceArray.length - 1)
+        ]
         : null;
 
     if (currentItem && currentItem.stock_recommendation_url) {
@@ -156,16 +156,16 @@ const SingleRecommendation = () => {
     effectiveStock?.announcements_and_update
   )
     ? effectiveStock.announcements_and_update.map((item: any, idx: number) => ({
-        id: idx,
-        date: formatMonthYear(item?.date ?? ""),
-        heading: item?.title ?? "",
-        preview: item?.description ?? "",
-        hasPdf: !!item?.pdf_url,
-        pdf_url: item?.pdf_url ?? "",
-      }))
+      id: idx,
+      date: formatMonthYear(item?.date ?? ""),
+      heading: item?.title ?? "",
+      preview: item?.description ?? "",
+      hasPdf: !!item?.pdf_url,
+      pdf_url: item?.pdf_url ?? "",
+    }))
     : [];
 
-  if(stock && String(stock.tags||'').trim().toLowerCase()!=='freemium' && (checkingAccess||!subscription?.is_premium))return <p role="alert" className="p-6">{checkingAccess?'Checking access…':'An active CORE subscription is required.'}</p>;
+  if (stock && String(stock.tags || '').trim().toLowerCase() !== 'freemium' && (checkingAccess || !subscription?.is_premium)) return <p role="alert" className="p-6">{checkingAccess ? 'Checking access…' : 'An active CORE subscription is required.'}</p>;
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {loading ? (
@@ -180,7 +180,7 @@ const SingleRecommendation = () => {
         </div>
       ) : (
         <>
-          <Header stock={stock} selectedPerformanceIndex={selectedPerformanceIndex}/>
+          <Header stock={stock} selectedPerformanceIndex={selectedPerformanceIndex} />
           <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-4">

@@ -9,12 +9,19 @@ const ClientLayout = () => {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
 
+  const isStillOnboarding =
+    Boolean(user) &&
+    user?.role !== "admin" &&
+    user?.role !== "employee" &&
+    (user?.status === "pending" || user?.status === "onboarded");
+
   if (
     user &&
     isAuthenticated &&
+    !isStillOnboarding &&
     AuthRoutes.includes(location.pathname as any)
   ) {
-    return <Navigate to={AppRoutes.home} replace />;
+    return <Navigate to={AppRoutes.dashboard} replace />;
   }
 
   return (

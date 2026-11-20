@@ -9,6 +9,7 @@ import {
   onboardUser,
   onboardingDropOffStart,
   zeroAmountAccountCreation,
+  refreshToken,
 } from "../controllers/auth.controller";
 
 const router = Router();
@@ -20,6 +21,8 @@ router.post("/reset-password", resetPassword);
 router.post("/onboarding-dropoff/start", onboardingDropOffStart);
 router.post("/onboard", onboardUser);
 router.post("/zero-amount-payment", protect, zeroAmountAccountCreation);
+// router.post("/zero-amount-payment", zeroAmountAccountCreation);
+router.post("/refresh", refreshToken);
 
 // User session routes
 router.get("/session", getUserSession);

@@ -6,6 +6,7 @@ export interface CashfreeOrderPayload {
   customer_id: string;
   customer_email: string;
   customer_phone: string;
+  return_url?: string;
   source: "register" | "subscription" | string;
   is_free?: boolean;
   coupon_code?: string | null;
@@ -59,10 +60,15 @@ export async function sendOtp(phone: string) {
   return data;
 }
 
-export async function verifyOtp(phone: string, otp: string) {
+export async function verifyOtp(
+  phone: string,
+  otp: string,
+  extra?: { email?: string; password?: string }
+) {
   const { data } = await axiosInstance.post(endpoints.otp.verify, {
     phone,
     otp,
+    ...extra,
   });
   return data;
 }
@@ -83,6 +89,11 @@ export async function fetchPlans(): Promise<Plan[]> {
 
 export async function createCashfreeOrder(payload: CashfreeOrderPayload) {
   const { data } = await axiosInstance.post(endpoints.cashfree.orders, payload);
+  return data;
+}
+
+export async function getCashfreeOrder(orderId: string) {
+  const { data } = await axiosInstance.get(endpoints.cashfree.orderById(orderId));
   return data;
 }
 
@@ -160,9 +171,14 @@ export async function uploadDigioEsignJson(payload: {
   file_name: string;
   will_self_sign: boolean;
   include_authentication_url: boolean;
+  // signers: {
+  //   identifier: string;
+  //   name: string;
+  signature_type?: string;
   signers: {
     identifier: string;
     name: string;
+    sign_type?: string;
   }[];
 }) {
   const { data } = await axiosInstance.post(

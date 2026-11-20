@@ -19,6 +19,7 @@ const PricingDialogModal = ({ showPricing, setShowPricing }) => {
         </p>
         <Link
           to="/user/app/account/subscription"
+          onClick={() => setShowPricing?.(false)}
           className="mt-3 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#c00000] text-white hover:bg-white border border-blue-900 hover:text-[#c00000] w-full"
         >
           View Plans / Subscribe

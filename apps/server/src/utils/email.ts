@@ -19,8 +19,8 @@ export function getResolvedSmtpFromAddress(): string | undefined {
   if (explicit && username && explicit.toLowerCase() !== username.toLowerCase()) {
     console.warn(
       `[email] From address (${explicit}) does not match SMTP_USERNAME (${username}). ` +
-        "Using SMTP_USERNAME as the sender. Set CONNECT_EMAIL or SMTP_FROM to the same " +
-        "address as SMTP_USERNAME, or use SMTP credentials for the mailbox you want in From."
+      "Using SMTP_USERNAME as the sender. Set CONNECT_EMAIL or SMTP_FROM to the same " +
+      "address as SMTP_USERNAME, or use SMTP credentials for the mailbox you want in From."
     );
     return username;
   }
@@ -40,6 +40,9 @@ const sendEmail = async (options: EmailOptions) => {
   const nodeMailerOptions = {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || "587"),
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000,
     auth: {
       user: process.env.SMTP_USERNAME,
       pass: process.env.SMTP_PASSWORD,

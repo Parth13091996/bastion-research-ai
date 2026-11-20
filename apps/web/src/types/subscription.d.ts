@@ -38,11 +38,12 @@ interface SubscriptionData {
 
 interface AuthContextType {
   user: User;
-  login: (user: User, token?: string) => void;
+  login: (user: User, token?: string, refreshToken?: string) => void;
   logout: () => Promise<void>;
   refetchUser: () => Promise<User>;
   refetchUserAfterAgreement: () => Promise<User>;
   isAuthenticated: boolean;
+  isOnboarding: boolean;
   isAdmin: boolean;
   isEmployee: boolean;
   isStaff: boolean;

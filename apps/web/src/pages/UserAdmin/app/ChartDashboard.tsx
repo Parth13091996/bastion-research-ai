@@ -74,10 +74,10 @@ const ChartDashboard = () => {
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div><h3 className="text-lg font-semibold sm:text-xl">Recommended Stocks XIRR vs Nifty 500</h3><p className="mt-1 text-xs text-slate-300">Annualised XIRR (%)</p><p className="mt-2 text-sm text-slate-200">Performance period: 11 Mar 2024 – {endDate ?? (isPending ? 'Loading end date…' : 'End date unavailable')}</p></div>
         <div className="flex flex-wrap items-center gap-2">
-        <XirrMethodologyDialog />
-        <button type="button" onClick={() => refetch()} disabled={isFetching} className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3 py-2 text-xs text-slate-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:opacity-50" aria-label="Refresh portfolio dashboard">
-          <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} aria-hidden="true" />{isFetching ? 'Refreshing' : 'Refresh'}
-        </button>
+          <XirrMethodologyDialog />
+          <button type="button" onClick={() => refetch()} disabled={isFetching} className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-3 py-2 text-xs text-slate-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:opacity-50" aria-label="Refresh portfolio dashboard">
+            <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} aria-hidden="true" />{isFetching ? 'Refreshing' : 'Refresh'}
+          </button>
         </div>
       </div>
       <div className="mx-auto max-w-3xl">

@@ -30,7 +30,8 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
 
   const { init: initDigio, submit: submitDigio } = useDigioSdk({
     environment: Config.digio_environment,
-    is_iframe: true,
+    is_iframe: true, //prod
+    // is_iframe: false, //dev
     callback: (response: any) => {
       if (
         response &&
@@ -85,11 +86,22 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
         file_data: pdfUrlWithAddress,
         file_name: Config.agreement_file_name(formData),
         will_self_sign: true,
+        // include_authentication_url: true,
+        // signers: [
+        //   {
+        //     identifier,
+        //     name: formData?.email || formData?.phone || "User",
+        // will_self_sign: false,
         include_authentication_url: true,
+        signature_type: "aadhaar",
         signers: [
           {
             identifier,
-            name: formData?.email || formData?.phone || "User",
+            name:
+              `${formData?.firstName || ""}${formData?.lastName ? " " + formData.lastName : ""}`.trim() ||
+              formData?.email ||
+              "User",
+            sign_type: "aadhaar",
           },
         ],
       });
@@ -107,8 +119,8 @@ const AgreementStep: React.FC<AgreementStepProps> = ({
       console.error(e);
       setError(
         e?.response?.data?.message ||
-          e?.message ||
-          "Failed to start e-signing. Please try again."
+        e?.message ||
+        "Failed to start e-signing. Please try again."
       );
       setIsEsignSubmitting(false);
     }

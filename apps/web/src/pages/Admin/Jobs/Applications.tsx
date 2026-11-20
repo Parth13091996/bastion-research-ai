@@ -10,7 +10,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Search, Trash2 } from "lucide-react";
+import { Edit, Search, Trash2, Plus } from "lucide-react";
 import { filterApplications, getJobProfileCounts } from "./application-filters";
 import { confirmDelete } from "@/utils/confirm";
 import EditRowModal from "@/components/core/common/Modals/EditRowModal";
@@ -288,17 +288,17 @@ const Applications = () => {
             onCellValueChanged={
               canEdit
                 ? (e) => {
-                    if (e.colDef.field === "comments") {
-                      const row: any = e.data;
-                      const newVal = (e.newValue ?? "").toString();
-                      if (newVal !== (e.oldValue ?? "")) {
-                        updateMutation.mutate({
-                          id: row.application_id,
-                          body: { comments: newVal },
-                        });
-                      }
+                  if (e.colDef.field === "comments") {
+                    const row: any = e.data;
+                    const newVal = (e.newValue ?? "").toString();
+                    if (newVal !== (e.oldValue ?? "")) {
+                      updateMutation.mutate({
+                        id: row.application_id,
+                        body: { comments: newVal },
+                      });
                     }
                   }
+                }
                 : undefined
             }
             pagination={true}

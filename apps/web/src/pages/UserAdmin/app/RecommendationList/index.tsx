@@ -22,33 +22,37 @@ const PricingDialogContent = () => (
   <div className="space-y-4">
     <h3 className="text-lg font-semibold text-gray-900">Upgrade Required</h3>
     <p className="text-sm text-gray-600">
-      Access all recommendations and premium research by subscribing to Bastion Research Core.
-    </p>
+      Access all recommendations and premium research by subscribing to Bastion
+      Research Core.
+    </p >
     <a
       href="/user/app/account/subscription"
       className="mt-3 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#c00000] text-white hover:bg-white border border-blue-900 hover:text-[#c00000] w-full"
     >
       View Plans / Subscribe
     </a>
-  </div>
+  </div >
 );
 
 // Utility to normalize text (mainly for tag/band)
 const normalizeText = (value?: string | null) => {
-  const normalized = value?.trim().toLowerCase() ?? '';
+  const normalized = value?.trim().toLowerCase() ?? "";
   // Normalize both "exit" and "exited" to "exit"
-  if (normalized === 'exited') return 'exit';
-  if (normalized === 'exit') return 'exit';
+  if (normalized === "exited") return "exit";
+  if (normalized === "exit") return "exit";
   return normalized;
 };
 
 // Prioritize freemium for free subscribers, everyone else sees the same order as input
-const prioritizeFreemium = <T extends { tags?: string }>(stocks: T[], user: User) => {
-  if (user?.role !== 'free_subscriber') return stocks;
+const prioritizeFreemium = <T extends { tags?: string }>(
+  stocks: T[],
+  user: User
+) => {
+  if (user?.role !== "free_subscriber") return stocks;
   const freemium: T[] = [];
   const others: T[] = [];
   for (const stock of stocks) {
-    if (normalizeText(stock.tags) === 'freemium') {
+    if (normalizeText(stock.tags) === "freemium") {
       freemium.push(stock);
     } else {
       others.push(stock);
@@ -64,14 +68,14 @@ const RecommendationList = ({
     try {
       const saved = localStorage.getItem('bastion:recommendations:view');
       if (saved === 'cards' || saved === 'table') return saved;
-    } catch {}
+    } catch { }
     return initialView;
   });
   const changeView = (next: 'cards' | 'table') => {
     setView(next);
     try {
       localStorage.setItem('bastion:recommendations:view', next);
-    } catch {}
+    } catch { }
   };
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('Newest');
@@ -109,8 +113,8 @@ const RecommendationList = ({
   const activeSort = columnSort || presetSort;
   const sortedStocks = activeSort
     ? [...filteredStocks].sort((a, b) =>
-        compareTableStocks(a, b, activeSort, !!subscription?.is_premium),
-      )
+      compareTableStocks(a, b, activeSort, !!subscription?.is_premium),
+    )
     : filteredStocks;
   const handleColumnSort = (key: TableSortKey) => {
     const direction =
@@ -216,7 +220,7 @@ const RecommendationList = ({
             hasPremiumAccess={!!subscription?.is_premium}
             onLockedClick={() => setShowPricing(true)}
             onResearchClick={(stock) => {
-              if (user?.id) void userCompanyAnalytics(stock.code, user.id).catch(() => {});
+              if (user?.id) void userCompanyAnalytics(stock.code, user.id).catch(() => { });
             }}
           />
         ) : (
@@ -238,7 +242,7 @@ const RecommendationList = ({
           <PricingDialogContent />
         </Modal>
       </div>
-    </div>
+    </div >
   );
 };
 
