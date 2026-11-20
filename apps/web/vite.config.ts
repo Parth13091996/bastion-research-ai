@@ -6,7 +6,7 @@ import path from "path";
 export default defineConfig(() => ({
   plugins: [react(), viteCompression()].filter(Boolean),
   build: {
-    outDir: "public_html",
+    outDir: "dist",
     // export default defineConfig({
     //   plugins: [react(), viteCompression()].filter(Boolean),
     //   build: {
