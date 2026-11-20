@@ -55,7 +55,10 @@ const normalizePhone = (input?: string): string => {
 };
 
 export const sendOtp = async (req: Request, res: Response) => {
-  const { phone: rawPhone } = req.body as { phone?: string };
+  const { phone: rawPhone, email: rawEmail } = req.body as {
+    phone?: string;
+    email?: string;
+  };
 
   if (!rawPhone) {
     return res.status(400).json({ message: "phone is required." });
@@ -70,6 +73,24 @@ export const sendOtp = async (req: Request, res: Response) => {
   }
 
   try {
+    // Check if an account with this email already exists before sending OTP
+    if (rawEmail && typeof rawEmail === "string" && rawEmail.trim()) {
+      const normalizedEmail = normalizeEmail(rawEmail);
+      const { data: existingEmailUser, error: emailError } = await supabase
+        .from("users")
+        .select("id")
+        .ilike("email", normalizedEmail)
+        .limit(1)
+        .maybeSingle();
+
+      if (emailError) throw emailError;
+
+      if (existingEmailUser) {
+        return res.status(409).json({
+          message: "Email already registered. Please login.",
+        });
+      }
+    }
     // Check if an active account with this phone number already exists
     const cleanDigits = phone.replace(/\D/g, "");
     const phone10 = cleanDigits.slice(-10);

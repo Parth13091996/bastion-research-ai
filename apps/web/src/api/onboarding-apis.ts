@@ -53,9 +53,10 @@ export interface OnboardingPayload {
 
 // ---------- OTP ----------
 
-export async function sendOtp(phone: string) {
+export async function sendOtp(phone: string, email?: string) {
   const { data } = await axiosInstance.post(endpoints.otp.send, {
     phone,
+    ...(email ? { email } : {}),
   });
   return data;
 }

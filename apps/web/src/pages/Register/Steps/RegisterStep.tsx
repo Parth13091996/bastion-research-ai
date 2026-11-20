@@ -61,6 +61,11 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
       setError("Please enter email.");
       return;
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
     if (!formData.phone.trim()) {
       setError("Please enter phone.");
       return;
@@ -87,7 +92,7 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     setIsLoading(true);
     try {
       const cleanPhone = formData.phone.trim().replace(/^(\+91|91|0)/, "");
-      await sendOtp("+91" + cleanPhone);
+      await sendOtp("+91" + cleanPhone, formData.email.trim());
       nextStep();
     } catch (err: any) {
       const remainingSeconds =
@@ -136,7 +141,10 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
           <input
             type="email"
             value={formData.email}
-            onChange={(e) => updateFormData("email", e.target.value)}
+            onChange={(e) => {
+              updateFormData("email", e.target.value);
+              if (error) setError(null);
+            }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             placeholder="Enter your email"
           />
