@@ -233,6 +233,22 @@ export const createUser = async (req: Request, res: Response) => {
       }
     }
 
+    if (pan_card_number && typeof pan_card_number === "string" && pan_card_number.trim()) {
+      const normalizedPan = pan_card_number.trim().toUpperCase();
+      const { data: existingPan } = await supabase
+        .from("users")
+        .select("id")
+        .eq("pan_card_number", normalizedPan)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingPan) {
+        return res.status(400).json({
+          error: "This PAN is already registered with another account.",
+        });
+      }
+    }
+
     // Insert and retrieve inserted row(s) without password field, joined membership_plan
     const { data, error } = await supabase.from("users").insert([userPayload])
       .select(`
@@ -457,6 +473,23 @@ export const updateUser = async (req: Request, res: Response) => {
     }
     if ("company" in updatePayload && isNullOrEmpty(updatePayload.company)) {
       updatePayload.company = null;
+    }
+
+    if (updatePayload.pan_card_number && typeof updatePayload.pan_card_number === "string" && updatePayload.pan_card_number.trim()) {
+      const normalizedPan = updatePayload.pan_card_number.trim().toUpperCase();
+      const { data: existingPan } = await supabase
+        .from("users")
+        .select("id")
+        .eq("pan_card_number", normalizedPan)
+        .neq("id", id)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingPan) {
+        return res.status(400).json({
+          error: "This PAN is already registered with another account.",
+        });
+      }
     }
 
     // Update and select all fields except password, joined membership_plan

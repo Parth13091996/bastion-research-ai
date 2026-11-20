@@ -483,6 +483,26 @@ export const onboardUser = async (req: Request, res: Response) => {
       role: role,
       plan_id,
     };
+
+    // Disallow multiple accounts from using the same PAN card
+    if (baseUpdate.pan_card_number && baseUpdate.pan_card_number.trim()) {
+      let panDupQuery = supabase
+        .from("users")
+        .select("id")
+        .eq("pan_card_number", baseUpdate.pan_card_number);
+
+      if (existingUser?.id) {
+        panDupQuery = panDupQuery.neq("id", existingUser.id);
+      }
+
+      const { data: duplicatePanUser } = await panDupQuery.limit(1).maybeSingle();
+
+      if (duplicatePanUser) {
+        return res.status(409).json({
+          message: "This PAN is already registered with another account.",
+        });
+      }
+    }
     let planDetails: { plan_name?: string | null } | null = null;
 
     // If a plan is attached at onboarding (e.g. free tier),

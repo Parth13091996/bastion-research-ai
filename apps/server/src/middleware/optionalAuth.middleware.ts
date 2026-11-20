@@ -15,7 +15,8 @@ export const optionalAuth = async (
   try {
     const token =
       req.cookies?.token ||
-      req.headers.authorization?.replace(/^Bearer\s+/i, "");
+      req.headers.authorization?.replace(/^Bearer\s+/i, "") ||
+      (req.headers["x-access-token"] as string | undefined);
     if (token) {
       const secret = process.env.JWT_SECRET;
       if (secret) {

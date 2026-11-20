@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -30,22 +30,9 @@ const KYCStep: React.FC<KYCStepProps> = ({
   const [verification, setVerification] =
     useState<PanVerificationSummary | null>(formData.panVerification || null);
 
-  const lastVerifiedPanRef = useRef<string | null>(
-    formData.panVerification?.valid && formData.panCard
-      ? formData.panCard.trim().toUpperCase()
-      : null
-  );
-  const lastVerificationResultRef = useRef<PanVerificationSummary | null>(
-    formData.panVerification || null
-  );
-
   useEffect(() => {
     setVerification(formData.panVerification || null);
-    if (formData.panVerification?.valid && formData.panCard) {
-      lastVerifiedPanRef.current = formData.panCard.trim().toUpperCase();
-      lastVerificationResultRef.current = formData.panVerification;
-    }
-  }, [formData.panVerification, formData.panCard]);
+  }, [formData.panVerification]);
 
   const fullName = useMemo(() => {
     return `${formData.firstName || ""} ${formData.lastName || ""}`
@@ -67,23 +54,6 @@ const KYCStep: React.FC<KYCStepProps> = ({
       return;
     }
 
-    // Check if user is re-verifying the same PAN again without making changes
-    if (
-      lastVerifiedPanRef.current === pan &&
-      (verification?.valid || lastVerificationResultRef.current?.valid)
-    ) {
-      const existingResult: PanVerificationSummary = {
-        ...(lastVerificationResultRef.current || verification || {}),
-        valid: true,
-        message: "This pan has been verified already",
-        alreadyVerified: true,
-      };
-      setVerification(existingResult);
-      updateFormData("panVerification", existingResult);
-      toast.info("This pan has been verified already");
-      return;
-    }
-
     setIsVerifying(true);
     try {
       const data = await apiVerifyPan({
@@ -94,8 +64,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
       const isAlreadyVerified = Boolean(
         data.alreadyVerified ||
         data.cached ||
-        data.message?.toLowerCase().includes("already") ||
-        lastVerifiedPanRef.current === pan
+        data.message?.toLowerCase().includes("already")
       );
 
       const result: PanVerificationSummary = {
@@ -115,9 +84,6 @@ const KYCStep: React.FC<KYCStepProps> = ({
       updateFormData("panCard", pan);
       updateFormData("panVerification", result);
 
-      lastVerifiedPanRef.current = pan;
-      lastVerificationResultRef.current = result;
-
       if (result.valid) {
         if (isAlreadyVerified) {
           toast.info("This pan has been verified already");
@@ -136,6 +102,8 @@ const KYCStep: React.FC<KYCStepProps> = ({
         "Failed to verify PAN. Please try again.";
       setError(message);
       toast.error(message);
+      setVerification(null);
+      updateFormData("panVerification", null);
     } finally {
       setIsVerifying(false);
     }
@@ -299,10 +267,6 @@ const KYCStep: React.FC<KYCStepProps> = ({
               const newVal = e.target.value.toUpperCase();
               if (verification) {
                 resetVerification();
-              }
-              if (newVal !== lastVerifiedPanRef.current) {
-                lastVerifiedPanRef.current = null;
-                lastVerificationResultRef.current = null;
               }
               updateFormData("panCard", newVal);
             }}

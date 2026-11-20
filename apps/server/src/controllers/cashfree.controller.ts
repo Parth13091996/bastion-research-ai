@@ -39,14 +39,17 @@ export const verifyPan = async (req: Request, res: Response) => {
         .from('users')
         .select('id')
         .eq('pan_card_number', normalizedPan)
+        .limit(1)
         .maybeSingle()
 
       if (existingError) {
-        console.error('Error checking PAN uniqueness:', existingError)
+        console.error('Error checking PAN uniqueness in users:', existingError)
       }
 
       if (existing && (!currentUserId || existing.id !== currentUserId)) {
-        return res.status(400).json({
+        return res.status(409).json({
+          valid: false,
+          error: 'DUPLICATE_PAN',
           message: 'This PAN is already registered with another account.',
         })
       }
@@ -64,6 +67,15 @@ export const verifyPan = async (req: Request, res: Response) => {
         .maybeSingle()
 
       if (!cacheError && cachedPan && (cachedPan.valid === true || cachedPan.status === 'VALID')) {
+        // If this cached verification is linked to a different user, reject
+        if (cachedPan.user_id && (!currentUserId || cachedPan.user_id !== currentUserId)) {
+          return res.status(409).json({
+            valid: false,
+            error: 'DUPLICATE_PAN',
+            message: 'This PAN is already registered with another account.',
+          })
+        }
+
         // Link user_id if not linked yet and user is authenticated
         if (currentUserId && !cachedPan.user_id) {
           void supabase
