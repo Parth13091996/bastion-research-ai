@@ -22,7 +22,9 @@ const UserAdminRoute = () => {
     Boolean(user) &&
     user?.role !== "admin" &&
     user?.role !== "employee" &&
-    (user?.status === "pending" || user?.status === "onboarded");
+    (user?.status === "pending" ||
+      user?.status === "onboarded" ||
+      user?.status === "agreement_signed");
 
   if (isStillOnboarding) {
     if (typeof window !== "undefined") {

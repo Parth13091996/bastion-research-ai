@@ -66,8 +66,7 @@ const Login = () => {
       const shouldResumeOnboarding =
         data?.user?.role !== "admin" &&
         data?.user?.status !== "active" &&
-        data?.user?.status !== "free" &&
-        data?.user?.status !== "agreement_signed";
+        data?.user?.status !== "free";
       if (shouldResumeOnboarding) {
         toast.success("Welcome back! Let’s finish your onboarding.");
         if (typeof window !== "undefined") {
@@ -122,7 +121,9 @@ const Login = () => {
     Boolean(user) &&
     user?.role !== "admin" &&
     user?.role !== "employee" &&
-    (user?.status === "pending" || user?.status === "onboarded");
+    (user?.status === "pending" ||
+      user?.status === "onboarded" ||
+      user?.status === "agreement_signed");
 
   useEffect(() => {
     if (isStillOnboarding) {

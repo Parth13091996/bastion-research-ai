@@ -9,6 +9,7 @@ import RegisterStep from "./Steps/RegisterStep";
 import VerifyStep from "./Steps/VerifyStep";
 import {
   fetchPlans,
+  startOnboarding,
   startOnboardingDropOffTracking,
 } from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +23,15 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
       try {
         sessionStorage.removeItem("onboarding_open");
       } catch { }
+    }
+    // When payment modal is closed without completed payment, ensure plan_id is 1 in DB
+    if (user?.id && user?.status !== "active") {
+      startOnboarding({
+        ...(formData as any),
+        status: user.status || "agreement_signed",
+        role: "free_subscriber",
+        plan_id: "1",
+      }).catch((e) => console.error("Failed to reset plan_id to 1 on close:", e));
     }
     onClose();
   };

@@ -185,6 +185,20 @@ export const signIn = async (req: Request, res: Response) => {
       // ignore
     }
 
+    if (
+      user.status !== "active" &&
+      user.role !== "admin" &&
+      user.role !== "employee" &&
+      user.plan_id !== 1
+    ) {
+      user.plan_id = 1;
+      try {
+        await supabase.from("users").update({ plan_id: 1 }).eq("id", user.id);
+      } catch (e) {
+        console.error("Failed to reset unpaid user plan_id to 1 in DB:", e);
+      }
+    }
+
     let membershipPlans: any = null;
     if (user.plan_id) {
       try {
@@ -544,6 +558,7 @@ export const onboardUser = async (req: Request, res: Response) => {
             baseUpdate.subscription_end_date = null;
             baseUpdate.status = status === "agreement_signed" ? "agreement_signed" : (status || "onboarded");
             baseUpdate.role = role || 'free_subscriber';
+            baseUpdate.plan_id = 1; // Explicitly set to plan_id 1 (Freemium) when payment is not done
           }
         }
       } catch {
@@ -1134,6 +1149,28 @@ export const getUserSession = async (req: Request, res: Response) => {
       .maybeSingle();
 
     let user = userResult.data;
+    if (
+      user &&
+      user.status !== "active" &&
+      user.role !== "admin" &&
+      user.role !== "employee" &&
+      user.plan_id !== 1
+    ) {
+      user.plan_id = 1;
+      try {
+        await supabase.from("users").update({ plan_id: 1 }).eq("id", user.id);
+        const { data: freePlan } = await supabase
+          .from("membership_plans")
+          .select("plan_code, plan_id, plan_name, duration_months, price_amount")
+          .eq("plan_id", 1)
+          .maybeSingle();
+        if (freePlan) {
+          (user as any).membership_plans = freePlan;
+        }
+      } catch (e) {
+        console.error("Failed to reset unpaid user plan_id to 1 in DB:", e);
+      }
+    }
     if (userResult.error || !user) {
       if (userResult.error) {
         console.warn(

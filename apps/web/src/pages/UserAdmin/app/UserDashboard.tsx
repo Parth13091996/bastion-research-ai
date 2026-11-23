@@ -22,8 +22,8 @@ const UserDashboard = () => {
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null,
-    is_premium: subscription?.is_premium || false,
-    currentPlan: subscription?.currentPlan || null,
+    is_premium: Boolean(subscription?.is_premium),
+    currentPlan: subscription?.is_premium ? (subscription?.currentPlan || "core") : "freemium",
   };
 
   // 🌅 Greeting
