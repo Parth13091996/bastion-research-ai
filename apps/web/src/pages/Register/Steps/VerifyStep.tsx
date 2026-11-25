@@ -19,7 +19,17 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
 }) => {
   const [startOtpTimer, setStartOtpTimer] = useState(false);
   const [otpTimer, setOtpTimer] = useState<number>(600);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const storedUntil = sessionStorage.getItem("bastion_otp_cooldown_until");
+      if (storedUntil) {
+        const remaining = Math.ceil((parseInt(storedUntil, 10) - Date.now()) / 1000);
+        return remaining > 0 ? remaining : null;
+      }
+    } catch { }
+    return 30; // Default 30-second cooldown immediately after landing from RegisterStep
+  });
   const isSubmittingRef = useRef(false);
   const { login, refetchUser } = useAuth();
 
@@ -81,6 +91,13 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
       await sendOtp("+91" + cleanPhone);
       toast.success("OTP resent successfully.");
       setOtpTimer(600); // Reset timer to 10 minutes
+      const cooldownMs = 30000;
+      try {
+        sessionStorage.setItem(
+          "bastion_otp_cooldown_until",
+          String(Date.now() + cooldownMs)
+        );
+      } catch { }
       setCooldownSeconds(30);
     } catch (err: any) {
       const remainingSeconds =
@@ -94,6 +111,12 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
 
       if (typeof remainingSeconds === "number" && remainingSeconds > 0) {
         setCooldownSeconds(remainingSeconds);
+        try {
+          sessionStorage.setItem(
+            "bastion_otp_cooldown_until",
+            String(Date.now() + remainingSeconds * 1000)
+          );
+        } catch { }
         setError && setError(null);
       } else {
         const match =
@@ -101,7 +124,14 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
             ? errorMessage.match(/(\d+)\s*second/i)
             : null;
         if (match && match[1]) {
-          setCooldownSeconds(parseInt(match[1], 10));
+          const secs = parseInt(match[1], 10);
+          setCooldownSeconds(secs);
+          try {
+            sessionStorage.setItem(
+              "bastion_otp_cooldown_until",
+              String(Date.now() + secs * 1000)
+            );
+          } catch { }
           setError && setError(null);
         } else {
           setError && setError(errorMessage);
@@ -140,6 +170,10 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
     const timer = setInterval(() => {
       setCooldownSeconds((prev) => {
         if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          try {
+            sessionStorage.removeItem("bastion_otp_cooldown_until");
+          } catch { }
           return null;
         }
         return prev - 1;
@@ -207,7 +241,9 @@ const VerifyStep: React.FC<VerifyStepProps> = ({
               disabled={isLoading || (cooldownSeconds !== null && cooldownSeconds > 0)}
               className="text-red-600 hover:underline font-medium disabled:text-gray-400 disabled:cursor-not-allowed disabled:no-underline"
             >
-              Resend OTP
+              {cooldownSeconds !== null && cooldownSeconds > 0
+                ? `Resend OTP (${cooldownSeconds}s)`
+                : "Resend OTP"}
             </button>
           </div>
         </div>

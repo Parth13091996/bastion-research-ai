@@ -186,16 +186,20 @@ export const signIn = async (req: Request, res: Response) => {
     }
 
     if (
-      user.status !== "active" &&
+      user.status === "agreement_signed" &&
       user.role !== "admin" &&
-      user.role !== "employee" &&
-      user.plan_id !== 1
+      user.role !== "employee"
     ) {
       user.plan_id = 1;
+      user.status = "active";
+      user.role = "free_subscriber";
       try {
-        await supabase.from("users").update({ plan_id: 1 }).eq("id", user.id);
+        await supabase
+          .from("users")
+          .update({ plan_id: 1, status: "active", role: "free_subscriber" })
+          .eq("id", user.id);
       } catch (e) {
-        console.error("Failed to reset unpaid user plan_id to 1 in DB:", e);
+        console.error("Failed to onboard unpaid user to free plan in DB:", e);
       }
     }
 
@@ -456,17 +460,68 @@ export const onboardUser = async (req: Request, res: Response) => {
     if (!effectiveFirstName) {
       return res.status(400).json({ message: "First name is required to start onboarding." });
     }
+    const cleanFirstName = String(effectiveFirstName).trim();
+    if (cleanFirstName.length < 2 || cleanFirstName.length > 50 || !/^[a-zA-Z\s'-]+$/.test(cleanFirstName)) {
+      return res.status(400).json({ message: "First name must be 2-50 characters and contain only letters." });
+    }
+
     if (!effectiveLastName) {
       return res.status(400).json({ message: "Last name is required to start onboarding." });
     }
+    const cleanLastName = String(effectiveLastName).trim();
+    if (cleanLastName.length < 2 || cleanLastName.length > 50 || !/^[a-zA-Z\s'-]+$/.test(cleanLastName)) {
+      return res.status(400).json({ message: "Last name must be 2-50 characters and contain only letters." });
+    }
+
     if (!effectiveDob) {
       return res.status(400).json({ message: "Date of birth is required to start onboarding." });
     }
+    const parsedDob = new Date(effectiveDob);
+    const now = new Date();
+    const minAgeDate = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
+    const maxAgeDate = new Date(now.getFullYear() - 100, now.getMonth(), now.getDate());
+    if (isNaN(parsedDob.getTime())) {
+      return res.status(400).json({ message: "Invalid date of birth format." });
+    }
+    if (parsedDob > now) {
+      return res.status(400).json({ message: "Date of birth cannot be in the future." });
+    }
+    if (parsedDob > minAgeDate) {
+      return res.status(400).json({ message: "You must be at least 18 years old to register." });
+    }
+    if (parsedDob < maxAgeDate) {
+      return res.status(400).json({ message: "Please enter a valid date of birth (after 1920)." });
+    }
+
     if (!cleanPin) {
       return res.status(400).json({ message: "PIN code is required to start onboarding." });
     }
-    if (cleanPin.length !== 6) {
-      return res.status(400).json({ message: "PIN code must be a 6-digit number." });
+    if (cleanPin.length !== 6 || !/^[1-9][0-9]{5}$/.test(cleanPin) || /^(\d)\1{5}$/.test(cleanPin)) {
+      return res.status(400).json({ message: "Invalid PIN code. It must be a valid 6-digit postal code." });
+    }
+
+    if (city && typeof city === "string" && city.trim()) {
+      const cleanCity = city.trim();
+      if (cleanCity.length < 2 || cleanCity.length > 50 || !/^[a-zA-Z\s-]+$/.test(cleanCity)) {
+        return res.status(400).json({ message: "City name must be 2-50 characters and contain only letters." });
+      }
+    }
+
+    if (address1 && typeof address1 === "string" && address1.trim()) {
+      const cleanAddress1 = address1.trim();
+      if (cleanAddress1.length < 5 || cleanAddress1.length > 150) {
+        return res.status(400).json({ message: "Address line 1 must be between 5 and 150 characters." });
+      }
+    }
+
+    if (company && typeof company === "string" && company.trim()) {
+      const cleanCompany = company.trim();
+      if (/<[^>]*>/i.test(cleanCompany) || /script/i.test(cleanCompany)) {
+        return res.status(400).json({ message: "Invalid company name. HTML or script tags are not allowed." });
+      }
+      if (cleanCompany.length < 2 || cleanCompany.length > 100 || !/^[a-zA-Z0-9\s.,&'-]+$/.test(cleanCompany)) {
+        return res.status(400).json({ message: "Company name must be 2-100 characters and contain valid characters." });
+      }
     }
 
     if (
@@ -968,6 +1023,7 @@ export const zeroAmountAccountCreation = async (
           email,
           address_1,
           pan_card_number,
+          pan_verification_metadata,
           address_2,
           state,
           city,
@@ -1122,6 +1178,7 @@ export const getUserSession = async (req: Request, res: Response) => {
           email,
           address_1,
           pan_card_number,
+          pan_verification_metadata,
           address_2,
           state,
           city,
@@ -1151,14 +1208,18 @@ export const getUserSession = async (req: Request, res: Response) => {
     let user = userResult.data;
     if (
       user &&
-      user.status !== "active" &&
+      user.status === "agreement_signed" &&
       user.role !== "admin" &&
-      user.role !== "employee" &&
-      user.plan_id !== 1
+      user.role !== "employee"
     ) {
       user.plan_id = 1;
+      user.status = "active";
+      user.role = "free_subscriber";
       try {
-        await supabase.from("users").update({ plan_id: 1 }).eq("id", user.id);
+        await supabase
+          .from("users")
+          .update({ plan_id: 1, status: "active", role: "free_subscriber" })
+          .eq("id", user.id);
         const { data: freePlan } = await supabase
           .from("membership_plans")
           .select("plan_code, plan_id, plan_name, duration_months, price_amount")
@@ -1168,7 +1229,7 @@ export const getUserSession = async (req: Request, res: Response) => {
           (user as any).membership_plans = freePlan;
         }
       } catch (e) {
-        console.error("Failed to reset unpaid user plan_id to 1 in DB:", e);
+        console.error("Failed to onboard unpaid user to free plan in DB:", e);
       }
     }
     if (userResult.error || !user) {

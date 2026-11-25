@@ -24,14 +24,14 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
         sessionStorage.removeItem("onboarding_open");
       } catch { }
     }
-    // When payment modal is closed without completed payment, ensure plan_id is 1 in DB
+    // When payment modal is closed without completed payment, onboard user to plan_id 1 (Free tier)
     if (user?.id && user?.status !== "active") {
       startOnboarding({
         ...(formData as any),
-        status: user.status || "agreement_signed",
+        status: "active",
         role: "free_subscriber",
         plan_id: "1",
-      }).catch((e) => console.error("Failed to reset plan_id to 1 on close:", e));
+      }).catch((e) => console.error("Failed to onboard to plan_id 1 on close:", e));
     }
     onClose();
   };
@@ -133,7 +133,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
         panCard: prev.panCard || user?.pan_card_number || "",
         panVerification:
           prev.panVerification ||
-          (user?.pan_card_number ? { valid: true } : null),
+          ((user as any)?.pan_verification_metadata || (user?.pan_card_number ? { valid: true } : null)),
       }));
     }
 

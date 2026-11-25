@@ -110,7 +110,9 @@ const UserDashboard = () => {
               ) : (
                 <>
                   <Shield className="h-6 w-6 text-gray-400" />
-                  <span className="text-s text-gray-400">No Active Plan</span>
+                  <span className="text-s text-gray-400 font-medium">
+                    {user?.role === "free_subscriber" ? "Free Subscriber" : "No Active Plan"}
+                  </span>
                 </>
               )}
             </div>

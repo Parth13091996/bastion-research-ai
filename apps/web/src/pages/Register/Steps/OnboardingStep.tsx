@@ -1,7 +1,11 @@
 import { ArrowLeft, Info } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { State, City } from "country-state-city";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateUser } from "@/api/onboarding-apis";
+import { SearchableSelect } from "@/components/common/SearchableSelect";
+
+const COUNTRY_CODE = "IN";
 
 const OnboardStep: React.FC<OnboardStepProps> = ({
   formData,
@@ -12,6 +16,38 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showTooltip, setShowTooltip] = useState(false);
   const { user } = useAuth();
+
+  // Indian States & Cities list
+  const indianStates = useMemo(() => {
+    return State.getStatesOfCountry(COUNTRY_CODE).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, []);
+
+  const selectedStateObj = useMemo(() => {
+    if (!formData.state) return null;
+    return (
+      indianStates.find(
+        (s) =>
+          s.name.toLowerCase() === formData.state.toLowerCase() ||
+          s.isoCode.toLowerCase() === formData.state.toLowerCase()
+      ) || null
+    );
+  }, [formData.state, indianStates]);
+
+  const stateCities = useMemo(() => {
+    if (!selectedStateObj) return [];
+    return City.getCitiesOfState(COUNTRY_CODE, selectedStateObj.isoCode).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, [selectedStateObj]);
+
+  // Date of Birth bounds: minimum 18 years old, maximum 100 years old
+  const today = new Date();
+  const maxDobDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  const maxAllowedDob = maxDobDate.toISOString().split("T")[0];
+  const minDobDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+  const minAllowedDob = minDobDate.toISOString().split("T")[0];
 
   const onBackHandler = () => {
     if (user?.id) {
@@ -34,35 +70,94 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
   const handleContinue = () => {
     const errors: Record<string, string> = {};
 
-    // Validate required fields
-    if (!formData.firstName.trim()) {
+    // 1. First Name Validation
+    const trimmedFirstName = (formData.firstName || "").trim();
+    if (!trimmedFirstName) {
       errors.firstName = "Please enter first name.";
+    } else if (trimmedFirstName.length < 2) {
+      errors.firstName = "First name must be at least 2 characters.";
+    } else if (trimmedFirstName.length > 50) {
+      errors.firstName = "First name cannot exceed 50 characters.";
+    } else if (!/^[a-zA-Z\s]+$/.test(trimmedFirstName)) {
+      errors.firstName = "First name can only contain letters.";
     }
-    if (!formData.lastName.trim()) {
+
+    // 2. Last Name Validation
+    const trimmedLastName = (formData.lastName || "").trim();
+    if (!trimmedLastName) {
       errors.lastName = "Please enter last name.";
+    } else if (trimmedLastName.length < 2) {
+      errors.lastName = "Last name must be at least 2 characters.";
+    } else if (trimmedLastName.length > 50) {
+      errors.lastName = "Last name cannot exceed 50 characters.";
+    } else if (!/^[a-zA-Z\s]+$/.test(trimmedLastName)) {
+      errors.lastName = "Last name can only contain letters.";
     }
-    if (!formData.dateOfBirth.trim()) {
+
+    // 3. Date of Birth Validation
+    const trimmedDob = (formData.dateOfBirth || "").trim();
+    if (!trimmedDob) {
       errors.dateOfBirth = "Please enter date of birth.";
-    }
-    if (!formData.address1.trim()) {
-      errors.address1 = "Please enter address line 1.";
-    }
-    if (!formData.state.trim()) {
-      errors.state = "Please enter state.";
-    }
-    if (!formData.city.trim()) {
-      errors.city = "Please enter city.";
-    }
-    if (!formData.pinCode || !formData.pinCode.trim()) {
-      errors.pinCode = "Please enter PIN code.";
     } else {
-      const cleanPin = formData.pinCode.trim().replace(/\D/g, "");
-      if (cleanPin.length !== 6) {
-        errors.pinCode = "PIN code must be a 6-digit number.";
+      const selectedDob = new Date(trimmedDob);
+      const birthYear = selectedDob.getFullYear();
+      if (isNaN(selectedDob.getTime())) {
+        errors.dateOfBirth = "Please enter a valid date of birth.";
+      } else if (selectedDob > today) {
+        errors.dateOfBirth = "Date of birth cannot be in the future.";
+      } else if (selectedDob > maxDobDate) {
+        errors.dateOfBirth = "You must be at least 18 years old to register.";
+      } else if (selectedDob < minDobDate || birthYear < 1920) {
+        errors.dateOfBirth = "Please enter a valid date of birth (year 1920 or later).";
       }
     }
-    if (!formData.company.trim()) {
+
+    // 4. Address Line 1 Validation
+    const trimmedAddress1 = (formData.address1 || "").trim();
+    if (!trimmedAddress1) {
+      errors.address1 = "Please enter address line 1.";
+    } else if (trimmedAddress1.length < 5) {
+      errors.address1 = "Address must be at least 5 characters.";
+    } else if (trimmedAddress1.length > 150) {
+      errors.address1 = "Address cannot exceed 150 characters.";
+    }
+
+    // 5. State Validation
+    const trimmedState = (formData.state || "").trim();
+    if (!trimmedState) {
+      errors.state = "Please select a state.";
+    }
+
+    // 6. City Validation
+    const trimmedCity = (formData.city || "").trim();
+    if (!trimmedCity) {
+      errors.city = "Please select a city.";
+    }
+
+    // 7. PIN Code Validation
+    const cleanPin = (formData.pinCode || "").trim().replace(/\D/g, "");
+    if (!cleanPin) {
+      errors.pinCode = "Please enter PIN code.";
+    } else if (cleanPin.length !== 6) {
+      errors.pinCode = "PIN code must be a 6-digit number.";
+    } else if (!/^[1-9][0-9]{5}$/.test(cleanPin)) {
+      errors.pinCode = "Invalid PIN code. It must be a valid 6-digit postal code.";
+    } else if (/^(\d)\1{5}$/.test(cleanPin)) {
+      errors.pinCode = "Invalid PIN code. Repeated digits are not allowed.";
+    }
+
+    // 8. Company Validation
+    const trimmedCompany = (formData.company || "").trim();
+    if (!trimmedCompany) {
       errors.company = "Please enter company name.";
+    } else if (/<[^>]*>/i.test(trimmedCompany) || /script/i.test(trimmedCompany)) {
+      errors.company = "Invalid company name. HTML or script tags are not allowed.";
+    } else if (trimmedCompany.length < 2) {
+      errors.company = "Company name must be at least 2 characters.";
+    } else if (trimmedCompany.length > 100) {
+      errors.company = "Company name cannot exceed 100 characters.";
+    } else if (!/^[a-zA-Z0-9\s.,&'-]+$/.test(trimmedCompany)) {
+      errors.company = "Company name contains invalid characters.";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -71,30 +166,28 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
     }
     setFieldErrors({});
 
-    const cleanPin = formData.pinCode.trim().replace(/\D/g, "");
-
     // Store trimmed & cleaned values in formData
-    updateFormData("firstName", formData.firstName.trim());
-    updateFormData("lastName", formData.lastName.trim());
-    updateFormData("dateOfBirth", formData.dateOfBirth.trim());
-    updateFormData("address1", formData.address1.trim());
+    updateFormData("firstName", trimmedFirstName);
+    updateFormData("lastName", trimmedLastName);
+    updateFormData("dateOfBirth", trimmedDob);
+    updateFormData("address1", trimmedAddress1);
     updateFormData("address2", (formData.address2 || "").trim());
-    updateFormData("state", formData.state.trim());
-    updateFormData("city", formData.city.trim());
-    updateFormData("company", formData.company.trim());
+    updateFormData("state", trimmedState);
+    updateFormData("city", trimmedCity);
+    updateFormData("company", trimmedCompany);
     updateFormData("pinCode", cleanPin);
 
     if (user?.id) {
       updateUser(user.id, {
-        first_name: formData.firstName.trim(),
-        last_name: formData.lastName.trim(),
-        date_of_birth: formData.dateOfBirth.trim(),
-        address_1: formData.address1.trim(),
+        first_name: trimmedFirstName,
+        last_name: trimmedLastName,
+        date_of_birth: trimmedDob,
+        address_1: trimmedAddress1,
         address_2: (formData.address2 || "").trim() || null,
-        state: formData.state.trim(),
-        city: formData.city.trim(),
+        state: trimmedState,
+        city: trimmedCity,
         pin_code: cleanPin,
-        company: formData.company.trim(),
+        company: trimmedCompany,
       }).catch((e) => console.error("Auto-save user details error:", e));
     }
 
@@ -102,7 +195,7 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
   };
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-6 relative pb-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Personal Information
@@ -120,8 +213,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             </label>
             <input
               type="text"
+              maxLength={50}
               value={formData.firstName}
-              onChange={(e) => handleFieldChange("firstName", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange(
+                  "firstName",
+                  e.target.value.replace(/[^a-zA-Z\s]/g, "").slice(0, 50)
+                )
+              }
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.firstName ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
                 }`}
               placeholder="First name"
@@ -137,8 +236,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             </label>
             <input
               type="text"
+              maxLength={50}
               value={formData.lastName}
-              onChange={(e) => handleFieldChange("lastName", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange(
+                  "lastName",
+                  e.target.value.replace(/[^a-zA-Z\s]/g, "").slice(0, 50)
+                )
+              }
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.lastName ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
                 }`}
               placeholder="Last name"
@@ -155,6 +260,8 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
           </label>
           <input
             type="date"
+            min={minAllowedDob}
+            max={maxAllowedDob}
             value={formData.dateOfBirth}
             onChange={(e) => handleFieldChange("dateOfBirth", e.target.value)}
             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.dateOfBirth ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
@@ -172,6 +279,7 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             </label>
             <input
               type="text"
+              maxLength={150}
               value={formData.address1 || ""}
               onChange={(e) => handleFieldChange("address1", e.target.value)}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.address1 ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
@@ -189,6 +297,7 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             </label>
             <input
               type="text"
+              maxLength={150}
               value={formData.address2 || ""}
               onChange={(e) => handleFieldChange("address2", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -200,13 +309,16 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               State*
             </label>
-            <input
-              type="text"
-              value={formData.state || ""}
-              onChange={(e) => handleFieldChange("state", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.state ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
-                }`}
-              placeholder="State"
+            <SearchableSelect
+              options={indianStates.map((s) => ({ label: s.name, value: s.name }))}
+              value={selectedStateObj ? selectedStateObj.name : formData.state || ""}
+              onChange={(val) => {
+                handleFieldChange("state", val);
+                handleFieldChange("city", "");
+              }}
+              placeholder="Select State"
+              searchPlaceholder="Search state..."
+              hasError={Boolean(fieldErrors.state)}
             />
             {fieldErrors.state && (
               <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.state}</p>
@@ -217,13 +329,29 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               City*
             </label>
-            <input
-              type="text"
+            <SearchableSelect
+              options={
+                formData.city &&
+                  !stateCities.some(
+                    (c) => c.name.toLowerCase() === formData.city.toLowerCase()
+                  )
+                  ? [
+                    { label: formData.city, value: formData.city },
+                    ...stateCities.map((c) => ({ label: c.name, value: c.name })),
+                  ]
+                  : stateCities.map((c) => ({ label: c.name, value: c.name }))
+              }
               value={formData.city || ""}
-              onChange={(e) => handleFieldChange("city", e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.city ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
-                }`}
-              placeholder="City"
+              onChange={(val) => handleFieldChange("city", val)}
+              placeholder={formData.state ? "Select City" : "Select State first"}
+              searchPlaceholder="Search city..."
+              disabled={!formData.state}
+              hasError={Boolean(fieldErrors.city)}
+              emptyMessage={
+                !formData.state
+                  ? "Please select a state first"
+                  : "No cities found"
+              }
             />
             {fieldErrors.city && (
               <p className="text-red-500 text-xs mt-1 font-medium">{fieldErrors.city}</p>
@@ -278,8 +406,14 @@ const OnboardStep: React.FC<OnboardStepProps> = ({
 
             <input
               type="text"
+              maxLength={100}
               value={formData.company || ""}
-              onChange={(e) => handleFieldChange("company", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange(
+                  "company",
+                  e.target.value.replace(/[<>]/g, "").slice(0, 100)
+                )
+              }
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${fieldErrors.company ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
                 }`}
               placeholder="Company name or Individual investor"

@@ -54,6 +54,127 @@ const normalizePhone = (input?: string): string => {
   return raw;
 };
 
+const COMMON_TLD_TYPOS: Record<string, string> = {
+  con: "com",
+  cmo: "com",
+  comm: "com",
+  coom: "com",
+  ocm: "com",
+  cpm: "com",
+  vom: "com",
+  xom: "com",
+  nett: "net",
+  orgg: "org",
+  innd: "in",
+};
+
+const STRICT_EMAIL_REGEX =
+  /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}$/;
+
+export const validateEmailFormat = (email?: string): string | null => {
+  if (!email || typeof email !== "string" || !email.trim()) {
+    return "Please enter email.";
+  }
+  const trimmed = email.trim().toLowerCase();
+  if (trimmed.length > 254) {
+    return "Email address is too long.";
+  }
+  if (trimmed.includes("..")) {
+    return "Email address cannot contain consecutive dots.";
+  }
+  if (trimmed.includes("@.")) {
+    return "Domain name cannot start with a dot.";
+  }
+  if (trimmed.includes(".@")) {
+    return "Local part of email cannot end with a dot.";
+  }
+  if (trimmed.startsWith(".")) {
+    return "Email cannot start with a dot.";
+  }
+  if (!STRICT_EMAIL_REGEX.test(trimmed)) {
+    return "Please enter a valid email address with a proper domain (e.g. name@example.com).";
+  }
+  const parts = trimmed.split("@");
+  if (parts.length !== 2) {
+    return "Please enter a valid email address.";
+  }
+  const domain = parts[1];
+  const domainParts = domain.split(".");
+  const tld = domainParts[domainParts.length - 1];
+  if (COMMON_TLD_TYPOS[tld]) {
+    return `Did you mean .${COMMON_TLD_TYPOS[tld]} instead of .${tld}? Please check your email domain.`;
+  }
+  return null;
+};
+
+export const validateIndianMobileNumber = (phoneInput?: string): string | null => {
+  if (!phoneInput || typeof phoneInput !== "string" || !phoneInput.trim()) {
+    return "Please enter mobile number.";
+  }
+  const cleanDigits = phoneInput.replace(/\D/g, "");
+  const phone10 = cleanDigits.slice(-10);
+
+  if (phone10.length !== 10) {
+    return "Mobile number must be exactly 10 digits.";
+  }
+
+  // Must start with 6, 7, 8, or 9
+  if (!/^[6-9]\d{9}$/.test(phone10)) {
+    return "Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.";
+  }
+
+  // Check for all identical digits (e.g. 0000000000, 5555555555, 9999999999)
+  if (/^(\d)\1{9}$/.test(phone10)) {
+    return "Invalid mobile number. Repeated digits are not allowed.";
+  }
+
+  // Check for common sequential fake numbers
+  const sequentialPatterns = ["1234567890", "0123456789", "9876543210"];
+  if (sequentialPatterns.includes(phone10)) {
+    return "Invalid mobile number. Sequential digits are not allowed.";
+  }
+
+  return null;
+};
+
+export const validatePasswordStrength = (password?: string): string | null => {
+  if (!password || typeof password !== "string") {
+    return "Please enter password.";
+  }
+  if (password.length < 8) {
+    return "Password must be at least 8 characters long.";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Password must contain at least 1 uppercase letter.";
+  }
+  if (!/[a-z]/.test(password)) {
+    return "Password must contain at least 1 lowercase letter.";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Password must contain at least 1 number.";
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/`~]/.test(password)) {
+    return "Password must contain at least 1 special character.";
+  }
+
+  const weakPasswords = [
+    "password",
+    "password123",
+    "12345678",
+    "123456789",
+    "admin123",
+    "bastion123",
+    "qwerty123",
+    "pass1234",
+    "abcdefgh",
+  ];
+  if (weakPasswords.includes(password.toLowerCase().trim())) {
+    return "This password is too common or weak. Please choose a stronger password.";
+  }
+
+  return null;
+};
+
 export const sendOtp = async (req: Request, res: Response) => {
   const { phone: rawPhone, email: rawEmail } = req.body as {
     phone?: string;
@@ -62,6 +183,18 @@ export const sendOtp = async (req: Request, res: Response) => {
 
   if (!rawPhone) {
     return res.status(400).json({ message: "phone is required." });
+  }
+
+  const phoneValidationError = validateIndianMobileNumber(rawPhone);
+  if (phoneValidationError) {
+    return res.status(400).json({ message: phoneValidationError });
+  }
+
+  if (rawEmail) {
+    const emailValidationError = validateEmailFormat(rawEmail);
+    if (emailValidationError) {
+      return res.status(400).json({ message: emailValidationError });
+    }
   }
 
   const phone = normalizePhone(rawPhone);
@@ -323,6 +456,21 @@ export const verifyOtp = async (req: Request, res: Response) => {
     return res.status(400).json({
       message: "Phone, OTP, email and password are required.",
     });
+  }
+
+  const phoneValidationError = validateIndianMobileNumber(rawPhone);
+  if (phoneValidationError) {
+    return res.status(400).json({ message: phoneValidationError });
+  }
+
+  const emailValidationError = validateEmailFormat(email);
+  if (emailValidationError) {
+    return res.status(400).json({ message: emailValidationError });
+  }
+
+  const passwordValidationError = validatePasswordStrength(password);
+  if (passwordValidationError) {
+    return res.status(400).json({ message: passwordValidationError });
   }
 
   const phone = normalizePhone(rawPhone);

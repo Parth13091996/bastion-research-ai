@@ -10,6 +10,7 @@ import { Eye, FileText, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useSectionEditAccess } from "@/hooks/use-section-edit-access";
+import { CopyableCell } from "@/components/common/CopyableCell";
 
 const StatusBadge = ({ value }: { value: string }) => {
   const getStatusColor = (s: string) => {
@@ -122,6 +123,13 @@ const PaymentHistory = () => {
     { headerName: "User", field: "user_id" },
     { headerName: "Email", field: "user_email" },
     { headerName: "Membership", field: "membership" },
+    {
+      headerName: "Transaction ID",
+      field: "transaction_id",
+      cellRenderer: (params: any) => (
+        <CopyableCell value={params.value} label="Transaction ID" />
+      ),
+    },
     { headerName: "Gateway", field: "payment_gateway" },
     { headerName: "Type", field: "payment_type" },
     { headerName: "Payer Email", field: "payer_email" },

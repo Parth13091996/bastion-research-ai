@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { confirm } from "@/utils/confirm";
 import { getSubscriptions, getPaymentHistory, getMembershipPlans, cancelSubscription } from "@/api/membership-api";
 import { ICellRendererParams } from "ag-grid-community";
+import CopyableCell from "@/components/common/CopyableCell";
 
 interface SubscriptionRow {
   membership: string;
@@ -146,13 +147,12 @@ const ActivitiesActionsRenderer = (params: ICellRendererParams<ActivityRow>) => 
 
 const StatusCellRenderer = ({ value }: { value: string }) => (
   <span
-    className={`px-2 py-1 rounded-full text-xs ${
-      value === "Success" || value === "Active"
-        ? "bg-green-100 text-green-800"
-        : value === "Failed"
-          ? "bg-red-100 text-red-800"
-          : "bg-yellow-100 text-yellow-800"
-    }`}
+    className={`px-2 py-1 rounded-full text-xs ${value === "Success" || value === "Active"
+      ? "bg-green-100 text-green-800"
+      : value === "Failed"
+        ? "bg-red-100 text-red-800"
+        : "bg-yellow-100 text-yellow-800"
+      }`}
   >
     {value}
   </span>
@@ -206,9 +206,9 @@ const ManageSubscriptions = () => {
       amount:
         typeof r.amount === "number"
           ? new Intl.NumberFormat("en-IN", {
-              maximumFractionDigits: 2,
-            }).format(r.amount) +
-            (r.currency ? ` ${r.currency}` : "")
+            maximumFractionDigits: 2,
+          }).format(r.amount) +
+          (r.currency ? ` ${r.currency}` : "")
           : r.amount,
       paymentType: r.payment_type || "",
       transactionId: r.transaction_id || "",
@@ -232,9 +232,9 @@ const ManageSubscriptions = () => {
       amount:
         typeof r.amount === "number"
           ? new Intl.NumberFormat("en-IN", {
-              maximumFractionDigits: 2,
-            }).format(r.amount) +
-            (r.currency ? ` ${r.currency}` : "")
+            maximumFractionDigits: 2,
+          }).format(r.amount) +
+          (r.currency ? ` ${r.currency}` : "")
           : r.amount,
       paymentType: r.payment_type || r.payment_gateway || "",
       status: r.transaction_status || "",
@@ -260,7 +260,13 @@ const ManageSubscriptions = () => {
     { headerName: "Expiry/Next Renewal", field: "expiryNextRenewal" },
     { headerName: "Amount", field: "amount" },
     { headerName: "Payment Type", field: "paymentType" },
-    { headerName: "Transaction ID", field: "transactionId" },
+    {
+      headerName: "Transaction ID",
+      field: "transactionId",
+      cellRenderer: (params: ICellRendererParams) => (
+        <CopyableCell value={params.value} label="Transaction ID" />
+      ),
+    },
     { headerName: "Status", field: "status", cellRenderer: StatusCellRenderer },
     {
       headerName: "Actions",
@@ -271,7 +277,13 @@ const ManageSubscriptions = () => {
   ];
 
   const activitiesColDefs: ColDef[] = [
-    { headerName: "Invoice ID", field: "invoiceId" },
+    {
+      headerName: "Invoice ID",
+      field: "invoiceId",
+      cellRenderer: (params: ICellRendererParams) => (
+        <CopyableCell value={params.value} label="Invoice ID" />
+      ),
+    },
     { headerName: "Membership", field: "membership" },
     { headerName: "Username", field: "username" },
     { headerName: "Name", field: "name" },
@@ -466,6 +478,8 @@ const ManageSubscriptions = () => {
           >
             <AgGridReact
               theme="legacy"
+              enableCellTextSelection={true}
+              ensureDomOrder={true}
               rowData={filteredData}
               columnDefs={
                 activeTab === "subscriptions"

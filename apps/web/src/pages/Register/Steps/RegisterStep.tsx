@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { sendOtp } from "@/api/onboarding-apis";
 import { Eye, EyeOff } from "lucide-react";
+import { validateEmail } from "@/utils";
 
 const RegisterStep: React.FC<RegisterStepProps> = ({
   formData,
@@ -14,9 +15,19 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
   nextStep,
 }) => {
   const isSubmittingRef = useRef(false);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const storedUntil = sessionStorage.getItem("bastion_otp_cooldown_until");
+      if (storedUntil) {
+        const remaining = Math.ceil((parseInt(storedUntil, 10) - Date.now()) / 1000);
+        return remaining > 0 ? remaining : null;
+      }
+    } catch { }
+    return null;
+  });
 
-  // Dynamic countdown timer for "Please wait XX seconds before requesting otp again."
+  // Dynamic countdown timer for cooldown
   useEffect(() => {
     if (cooldownSeconds === null || cooldownSeconds <= 0) return;
 
@@ -24,6 +35,9 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
       setCooldownSeconds((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(timer);
+          try {
+            sessionStorage.removeItem("bastion_otp_cooldown_until");
+          } catch { }
           return null;
         }
         return prev - 1;
@@ -34,8 +48,8 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
   }, [cooldownSeconds !== null]);
 
   const validatePassword = (password: string): string | null => {
-    if (password.length <= 6) {
-      return "Password must be more than 6 characters.";
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long.";
     }
     if (!/[A-Z]/.test(password)) {
       return "Password must contain at least 1 uppercase letter.";
@@ -49,6 +63,22 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     if (!/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/`~]/.test(password)) {
       return "Password must contain at least 1 special character.";
     }
+
+    const weakPasswords = [
+      "password",
+      "password123",
+      "12345678",
+      "123456789",
+      "admin123",
+      "bastion123",
+      "qwerty123",
+      "pass1234",
+      "abcdefgh",
+    ];
+    if (weakPasswords.includes(password.toLowerCase().trim())) {
+      return "This password is too common or weak. Please choose a stronger password.";
+    }
+
     return null;
   };
 
@@ -56,20 +86,39 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     if (isSubmittingRef.current || isLoading || cooldownSeconds !== null) return;
     setError(null);
 
-    // Validate mandatory fields
-    if (!formData.email.trim()) {
-      setError("Please enter email.");
+    // Validate email
+    const trimmedEmail = formData.email.trim();
+    const emailErr = validateEmail(trimmedEmail);
+    if (emailErr) {
+      setError(emailErr);
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (!formData.phone.trim()) {
+
+    // Validate phone
+    const cleanPhone = formData.phone.trim().replace(/\D/g, "").slice(-10);
+    if (!cleanPhone) {
       setError("Please enter phone.");
       return;
     }
+    if (cleanPhone.length !== 10) {
+      setError("Mobile number must be exactly 10 digits.");
+      return;
+    }
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setError("Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.");
+      return;
+    }
+    if (/^(\d)\1{9}$/.test(cleanPhone)) {
+      setError("Invalid mobile number. Repeated digits are not allowed.");
+      return;
+    }
+    const sequentialPatterns = ["1234567890", "0123456789", "9876543210"];
+    if (sequentialPatterns.includes(cleanPhone)) {
+      setError("Invalid mobile number. Sequential digits are not allowed.");
+      return;
+    }
+
+    // Validate password
     if (!formData.password.trim()) {
       setError("Please enter password.");
       return;
@@ -91,8 +140,15 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
     isSubmittingRef.current = true;
     setIsLoading(true);
     try {
-      const cleanPhone = formData.phone.trim().replace(/^(\+91|91|0)/, "");
-      await sendOtp("+91" + cleanPhone, formData.email.trim());
+      await sendOtp("+91" + cleanPhone, trimmedEmail);
+      // Set a 30-second cooldown in sessionStorage upon successfully dispatching OTP
+      const cooldownMs = 30000;
+      try {
+        sessionStorage.setItem(
+          "bastion_otp_cooldown_until",
+          String(Date.now() + cooldownMs)
+        );
+      } catch { }
       nextStep();
     } catch (err: any) {
       const remainingSeconds =
@@ -106,6 +162,12 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
 
       if (typeof remainingSeconds === "number" && remainingSeconds > 0) {
         setCooldownSeconds(remainingSeconds);
+        try {
+          sessionStorage.setItem(
+            "bastion_otp_cooldown_until",
+            String(Date.now() + remainingSeconds * 1000)
+          );
+        } catch { }
         setError(null);
       } else {
         const match =
@@ -113,7 +175,14 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
             ? errorMessage.match(/(\d+)\s*second/i)
             : null;
         if (match && match[1]) {
-          setCooldownSeconds(parseInt(match[1], 10));
+          const secs = parseInt(match[1], 10);
+          setCooldownSeconds(secs);
+          try {
+            sessionStorage.setItem(
+              "bastion_otp_cooldown_until",
+              String(Date.now() + secs * 1000)
+            );
+          } catch { }
           setError(null);
         } else {
           setError(errorMessage);
@@ -160,13 +229,15 @@ const RegisterStep: React.FC<RegisterStepProps> = ({
             </span>
             <input
               type="tel"
+              maxLength={10}
               value={formData.phone}
               onChange={(e) => {
-                updateFormData("phone", e.target.value);
-                if (cooldownSeconds !== null) setCooldownSeconds(null);
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                updateFormData("phone", digits);
+                if (error) setError(null);
               }}
               className="w-full flex-1 px-3 py-2 border-t border-r border-b border-gray-300 rounded-r-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              placeholder="Enter phone number"
+              placeholder="Enter 10-digit mobile number"
             />
           </div>
         </div>

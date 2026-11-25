@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Search, MapPin, Clock, Home } from "lucide-react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import { useQuery } from "@tanstack/react-query";
@@ -78,43 +79,49 @@ const CareerPage = () => {
         </div>
 
         {/* Job Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-50%">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading ? (
-            <div className="flex items-center justify-center h-32">
+            <div className="flex items-center justify-center h-32 col-span-full">
               <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filteredJobs.length > 0 ? (
             filteredJobs.map((job: any) => (
               <div
                 key={job.job_id}
-                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col h-full hover:shadow-md transition-shadow"
               >
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 line-clamp-2">
                   {job.job_title}
                 </h3>
 
-                <div className="flex flex-wrap items-center gap-4 mb-4">
-                  <div className="flex items-center text-gray-600">
-                    <Clock className="w-4 h-4 mr-2" />
+                <div className="flex flex-col gap-2.5 mb-6 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <Clock className="w-4 h-4 mr-2.5 text-gray-400 flex-shrink-0" />
                     <span>{job.job_type || job.commitment || "—"}</span>
                   </div>
-                  <div className="flex items-center text-gray-600">
-                    {job.location?.toLowerCase() === "office" ? (
-                      <MapPin className="w-4 h-4 mr-2" />
+                  <div className="flex items-center">
+                    {job.location?.toLowerCase().includes("office") ? (
+                      <Home className="w-4 h-4 mr-2.5 text-gray-400 flex-shrink-0" />
                     ) : (
-                      <Home className="w-4 h-4 mr-2" />
+                      <MapPin className="w-4 h-4 mr-2.5 text-gray-400 flex-shrink-0" />
                     )}
                     <span>{job.location || "—"}</span>
                   </div>
                 </div>
 
-                <button className="text-red-500 hover:text-red-600 font-medium">
-                  <a href={`/careers/${job.job_id}`}> More Details →</a>
-                </button>
+                <div className="mt-auto pt-4 flex items-center">
+                  <Link
+                    to={`/careers/${job.job_id}`}
+                    className="inline-flex items-center text-red-500 hover:text-red-600 font-medium group transition-colors"
+                  >
+                    <span>More Details</span>
+                    <span className="ml-1 transition-transform group-hover:translate-x-1">→</span>
+                  </Link>
+                </div>
               </div>
             ))
           ) : (
-            <p className="text-gray-500 text-center col-span-3">
+            <p className="text-gray-500 text-center col-span-full py-8">
               No jobs found matching your filters.
             </p>
           )}
