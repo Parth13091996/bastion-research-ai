@@ -15,6 +15,12 @@ const Header = () => {
   const [showSticky, setShowSticky] = useState(false);
   const [isOverFooter, setIsOverFooter] = useState(false);
   const isMobile = useIsMobile(486);
+  // Close drawers when navigating between pages
+  useEffect(() => {
+    setIsNavOpen(false);
+    setIsProfileOpen(false);
+  }, [location.pathname]);
+
   // Detect scroll for shadow effect
   useEffect(() => {
     const handleScroll = () => {
@@ -53,9 +59,8 @@ const Header = () => {
   return (
     <>
       <header
-        className={`fixed top-0 z-[9999] left-0 w-full py-6 transition-shadow duration-300 ${
-          scrolled ? "shadow-[0_2px_6px_rgba(0,0,0,0.08)]" : "shadow-none"
-        } bg-white/60 backdrop-blur-md border-b border-white/20`}
+        className={`fixed top-0 z-[9999] left-0 w-full py-6 transition-shadow duration-300 ${scrolled ? "shadow-[0_2px_6px_rgba(0,0,0,0.08)]" : "shadow-none"
+          } bg-white/60 backdrop-blur-md border-b border-white/20`}
         itemType="https://schema.org/Organization"
         itemScope
       >
@@ -74,11 +79,10 @@ const Header = () => {
             {!isMobile && showSticky && (
               <Link to="/register">
                 <button
-                  className={`ml-19 px-4 py-2 rounded-xl transition-colors ${
-                    isOverFooter
-                      ? "bg-white text-[#C00000] hover:bg-gray-100"
-                      : "bg-[#C00000] text-white hover:bg-[#a00000]"
-                  }`}
+                  className={`ml-19 px-4 py-2 rounded-xl transition-colors ${isOverFooter
+                    ? "bg-white text-[#C00000] hover:bg-gray-100"
+                    : "bg-[#C00000] text-white hover:bg-[#a00000]"
+                    }`}
                 >
                   Subscribe Now
                 </button>
@@ -103,11 +107,10 @@ const Header = () => {
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
           <Link to="/register">
             <button
-              className={`px-6 py-3 rounded-xl transition-colors shadow-lg ${
-                isOverFooter
-                  ? "bg-white text-[#C00000] hover:bg-gray-100"
-                  : "bg-[#C00000] text-white hover:bg-[#a00000]"
-              }`}
+              className={`px-6 py-3 rounded-xl transition-colors shadow-lg ${isOverFooter
+                ? "bg-white text-[#C00000] hover:bg-gray-100"
+                : "bg-[#C00000] text-white hover:bg-[#a00000]"
+                }`}
             >
               Subscribe Now
             </button>

@@ -119,11 +119,18 @@ export const verifyPan = async (req: Request, res: Response) => {
           .eq('id', currentUserId)
           .maybeSingle()
 
-        if (
-          currentUserData?.pan_card_number === normalizedPan &&
-          currentUserData?.pan_verification_metadata?.valid === true
-        ) {
-          const meta = currentUserData.pan_verification_metadata
+      if (
+        currentUserData?.pan_card_number === normalizedPan &&
+        currentUserData?.pan_verification_metadata?.valid === true
+      ) {
+        // Ensure user status is onboarded
+        try {
+          await supabase
+            .from('users')
+            .update({ status: 'onboarded' })
+            .eq('id', currentUserId);
+        } catch { }
+        const meta = currentUserData.pan_verification_metadata
           return res.status(200).json({
             referenceId: meta.referenceId || meta.reference_id,
             valid: true,
@@ -169,6 +176,22 @@ export const verifyPan = async (req: Request, res: Response) => {
       } catch (insertCacheErr) {
         // Non-blocking: log warning so verification doesn't fail if table isn't created yet
         console.warn('Could not cache verified PAN to pan_verifications:', insertCacheErr)
+      }
+
+      // Immediately save verified PAN to users table so if user closes tab and relogs, KYC status is preserved
+      if (currentUserId) {
+        try {
+          await supabase
+            .from('users')
+            .update({
+              pan_card_number: normalizedPan,
+              pan_verification_metadata: data,
+              status: 'onboarded',
+            })
+            .eq('id', currentUserId);
+        } catch (updateUserErr) {
+          console.warn('Could not auto-save verified PAN to users table:', updateUserErr);
+        }
       }
     }
 
@@ -230,7 +253,10 @@ export const createOrderForPlan = async (req: Request, res: Response) => {
       coupon_code,
     } = req.body
 
-    if (customer_id !== (req as any).user?.id) return res.status(403).json({ message: 'You can only purchase a plan for your own account.' });
+    const authUserId = (req as any).user?.id;
+    if (!authUserId || String(customer_id) !== String(authUserId)) {
+      return res.status(403).json({ message: 'You can only purchase a plan for your own account.' });
+    }
     if (!plan) return res.status(400).json({ message: 'plan is required' })
     if (!customer_id)
       return res.status(400).json({ message: 'customer_id is required' })

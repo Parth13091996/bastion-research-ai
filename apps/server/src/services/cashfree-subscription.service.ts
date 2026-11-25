@@ -91,7 +91,7 @@ export const getUserSubscriptionService = async (userId: string) => {
   // The active paid plan comes from a verified successful payment or the user's active plan record
   const effectivePlan =
     (lastSuccessPayment && lastSuccessPayment.membership_plans) ||
-    user?.membership_plans ||
+    (user?.status === "active" ? user?.membership_plans : null) ||
     null;
 
   const isPaidPlan = Boolean(
@@ -109,13 +109,15 @@ export const getUserSubscriptionService = async (userId: string) => {
 
   // Authoritative entitlement check:
   // A user is premium ONLY IF:
-  // 1. User status is 'active' (never 'onboarded' or 'payment_pending')
+  // 1. User status is 'active' (never 'onboarded', 'agreement_signed', or 'payment_pending')
   // 2. The plan is a paid plan (not 'freemium')
-  // 3. User has a verified successful payment OR valid active subscription dates
+  // 3. User has a verified successful payment (lastSuccessPayment != null)
+  //    (or if admin/employee: staff role override)
+  const isStaff = user?.role === "admin" || user?.role === "employee";
   const isPremium = Boolean(
     user?.status === "active" &&
     isPaidPlan &&
-    (lastSuccessPayment != null || hasValidDates)
+    (isStaff || (lastSuccessPayment != null && hasValidDates))
   );
 
   const currentPlan: string = isPremium && effectivePlan?.plan_code

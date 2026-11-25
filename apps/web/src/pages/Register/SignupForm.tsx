@@ -9,6 +9,7 @@ import RegisterStep from "./Steps/RegisterStep";
 import VerifyStep from "./Steps/VerifyStep";
 import {
   fetchPlans,
+  startOnboarding,
   startOnboardingDropOffTracking,
 } from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +23,15 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
       try {
         sessionStorage.removeItem("onboarding_open");
       } catch { }
+    }
+    // When payment modal is closed without completed payment, onboard user to plan_id 1 (Free tier)
+    if (user?.id && user?.status !== "active") {
+      startOnboarding({
+        ...(formData as any),
+        status: "active",
+        role: "free_subscriber",
+        plan_id: "1",
+      }).catch((e) => console.error("Failed to onboard to plan_id 1 on close:", e));
     }
     onClose();
   };
@@ -123,7 +133,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ isOpen, onClose, initialPlanCod
         panCard: prev.panCard || user?.pan_card_number || "",
         panVerification:
           prev.panVerification ||
-          (user?.pan_card_number ? { valid: true } : null),
+          ((user as any)?.pan_verification_metadata || (user?.pan_card_number ? { valid: true } : null)),
       }));
     }
 

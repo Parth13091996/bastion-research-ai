@@ -9,6 +9,7 @@ import {
 import {
   getPanStatus,
   startOnboarding,
+  updateUser,
   verifyPan as apiVerifyPan,
 } from "@/api/onboarding-apis";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,7 +46,7 @@ const KYCStep: React.FC<KYCStepProps> = ({
     const pan = (formData.panCard || "").trim().toUpperCase();
 
     if (!pan || !PAN_REGEX.test(pan)) {
-      setError("Please enter a valid PAN (e.g. ABCDE1234F)");
+      setError("Enter a valid PAN number");
       return;
     }
 
@@ -89,6 +90,14 @@ const KYCStep: React.FC<KYCStepProps> = ({
           toast.info("This pan has been verified already");
         } else {
           toast.success("PAN verified successfully");
+        }
+        // Immediately persist verified PAN to DB so if user closes tab and relogs, KYC step does not need to be repeated
+        if (user?.id) {
+          updateUser(user.id, {
+            pan_card_number: pan,
+            pan_verification_metadata: result,
+            status: "onboarded",
+          }).catch((e) => console.error("Auto-save verified PAN error:", e));
         }
       } else {
         toast.error(result.message || "PAN verification failed");
@@ -270,11 +279,15 @@ const KYCStep: React.FC<KYCStepProps> = ({
               }
               updateFormData("panCard", newVal);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 tracking-widest"
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 tracking-widest ${error ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+              }`}
             placeholder="ABCDE1234F"
             maxLength={10}
             autoCapitalize="characters"
           />
+          {error && (
+            <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>
+          )}
           <p className="text-xs text-gray-500 mt-1">
             Ensure the name you provided earlier matches the name on your PAN
             card.
@@ -362,8 +375,6 @@ const KYCStep: React.FC<KYCStepProps> = ({
           </div>
         )}
       </div>
-
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
       <div className="flex space-x-3">
         <button

@@ -1,5 +1,7 @@
 import { HiOutlineMenu, HiOutlineUser } from "react-icons/hi";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { AppRoutes } from "@/routes/app-routes";
 
 const MobileNav = ({ setIsNavOpen, setIsProfileOpen }) => {
   const { user, isLoading } = useAuth();
@@ -39,12 +41,13 @@ const MobileNav = ({ setIsNavOpen, setIsProfileOpen }) => {
           )}
         </button>
       ) : (
-        <button
-          onClick={() => setIsProfileOpen(true)}
-          className="text-red-600 focus:outline-none text-2xl"
+        <Link
+          to={AppRoutes.login}
+          className="text-red-600 focus:outline-none text-2xl flex items-center justify-center"
+          aria-label="Login"
         >
           <HiOutlineUser />
-        </button>
+        </Link>
       )}
     </div>
   );

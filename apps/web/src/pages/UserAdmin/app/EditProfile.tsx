@@ -1,14 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { State, City } from "country-state-city";
 import axiosInstance from "@/api/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { SearchableSelect } from "@/components/common/SearchableSelect";
 import {
   Card,
   CardContent,
@@ -17,6 +19,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+
+const COUNTRY_CODE = "IN";
 
 const profileSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -53,6 +57,8 @@ const EditProfile = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -71,6 +77,34 @@ const EditProfile = () => {
       company: "",
     },
   });
+
+  const selectedState = watch("state") || "";
+  const selectedCity = watch("city") || "";
+
+  // Indian States & Cities list
+  const indianStates = useMemo(() => {
+    return State.getStatesOfCountry(COUNTRY_CODE).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, []);
+
+  const selectedStateObj = useMemo(() => {
+    if (!selectedState) return null;
+    return (
+      indianStates.find(
+        (s) =>
+          s.name.toLowerCase() === selectedState.toLowerCase() ||
+          s.isoCode.toLowerCase() === selectedState.toLowerCase()
+      ) || null
+    );
+  }, [selectedState, indianStates]);
+
+  const stateCities = useMemo(() => {
+    if (!selectedStateObj) return [];
+    return City.getCitiesOfState(COUNTRY_CODE, selectedStateObj.isoCode).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, [selectedStateObj]);
 
   useEffect(() => {
     if (user) {
@@ -278,11 +312,50 @@ const EditProfile = () => {
               </div>
               <div>
                 <Label htmlFor="state">State</Label>
-                <Input id="state" {...register("state")} />
+                <SearchableSelect
+                  buttonClassName="h-9 rounded-md border-input shadow-sm"
+                  options={indianStates.map((s) => ({ label: s.name, value: s.name }))}
+                  value={selectedStateObj ? selectedStateObj.name : selectedState}
+                  onChange={(val) => {
+                    setValue("state", val, { shouldValidate: true, shouldDirty: true });
+                    setValue("city", "", { shouldValidate: true, shouldDirty: true });
+                  }}
+                  placeholder="Select State"
+                  searchPlaceholder="Search state..."
+                  hasError={Boolean(errors.state)}
+                />
+                {errors.state && (
+                  <p className="text-red-600 text-sm mt-1">{errors.state.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="city">City</Label>
-                <Input id="city" {...register("city")} />
+                <SearchableSelect
+                  buttonClassName="h-9 rounded-md border-input shadow-sm"
+                  options={
+                    selectedCity &&
+                      !stateCities.some((c) => c.name.toLowerCase() === selectedCity.toLowerCase())
+                      ? [
+                        { label: selectedCity, value: selectedCity },
+                        ...stateCities.map((c) => ({ label: c.name, value: c.name })),
+                      ]
+                      : stateCities.map((c) => ({ label: c.name, value: c.name }))
+                  }
+                  value={selectedCity}
+                  onChange={(val) =>
+                    setValue("city", val, { shouldValidate: true, shouldDirty: true })
+                  }
+                  placeholder={selectedState ? "Select City" : "Select State first"}
+                  searchPlaceholder="Search city..."
+                  disabled={!selectedState}
+                  hasError={Boolean(errors.city)}
+                  emptyMessage={
+                    !selectedState ? "Please select a state first" : "No cities found"
+                  }
+                />
+                {errors.city && (
+                  <p className="text-red-600 text-sm mt-1">{errors.city.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="pin_code">PIN Code</Label>

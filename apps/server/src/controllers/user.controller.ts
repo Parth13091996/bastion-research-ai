@@ -382,7 +382,7 @@ export const updateUser = async (req: Request, res: Response) => {
   if (!isStaff && actor?.id !== id) return res.status(403).json({ error: 'Not authorized for this account' });
   const protectedFields = ['role', 'plan_id', 'subscription_start_date', 'subscription_end_date'];
   if (!isStaff && protectedFields.some(key => Object.prototype.hasOwnProperty.call(req.body, key))) return res.status(403).json({ error: 'Only staff may change subscription fields.' });
-  if (!isStaff && 'status' in req.body && req.body.status !== 'agreement_signed') return res.status(403).json({ error: 'Account status cannot be changed here.' });
+  if (!isStaff && 'status' in req.body && req.body.status !== 'agreement_signed' && req.body.status !== 'onboarded') return res.status(403).json({ error: 'Account status cannot be changed here.' });
   if (!isStaff && req.body.status === 'agreement_signed') {
     const { data: documents, error } = await supabase.from('digio_documents').select('document_id').eq('user_id', id).limit(1);
     if (error || !documents?.length) return res.status(403).json({ error: 'A signed agreement is required.' });
@@ -396,6 +396,7 @@ export const updateUser = async (req: Request, res: Response) => {
     "last_name",
     "phone",
     "pan_card_number",
+    "pan_verification_metadata",
     "address_1",
     "address_2",
     "state",
@@ -426,13 +427,65 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 
   // Null-safe and format validation/normalization
+  if (typeof updatePayload.first_name === "string" && updatePayload.first_name.trim()) {
+    const cleanFirstName = updatePayload.first_name.trim();
+    if (cleanFirstName.length < 2 || cleanFirstName.length > 50 || !/^[a-zA-Z\s'-]+$/.test(cleanFirstName)) {
+      return res.status(400).json({ error: "First name must be 2-50 characters and contain only letters." });
+    }
+  }
+
+  if (typeof updatePayload.last_name === "string" && updatePayload.last_name.trim()) {
+    const cleanLastName = updatePayload.last_name.trim();
+    if (cleanLastName.length < 2 || cleanLastName.length > 50 || !/^[a-zA-Z\s'-]+$/.test(cleanLastName)) {
+      return res.status(400).json({ error: "Last name must be 2-50 characters and contain only letters." });
+    }
+  }
+
+  if (typeof updatePayload.pin_code === "string" && updatePayload.pin_code.trim()) {
+    const cleanPin = updatePayload.pin_code.trim().replace(/\D/g, "");
+    if (cleanPin.length !== 6 || !/^[1-9][0-9]{5}$/.test(cleanPin) || /^(\d)\1{5}$/.test(cleanPin)) {
+      return res.status(400).json({ error: "Invalid PIN code. It must be a valid 6-digit postal code." });
+    }
+    updatePayload.pin_code = cleanPin;
+  }
+
+  if (typeof updatePayload.city === "string" && updatePayload.city.trim()) {
+    const cleanCity = updatePayload.city.trim();
+    if (cleanCity.length < 2 || cleanCity.length > 50 || !/^[a-zA-Z\s-]+$/.test(cleanCity)) {
+      return res.status(400).json({ error: "City name must be 2-50 characters and contain only letters." });
+    }
+  }
+
+  if (typeof updatePayload.company === "string" && updatePayload.company.trim()) {
+    const cleanCompany = updatePayload.company.trim();
+    if (/<[^>]*>/i.test(cleanCompany) || /script/i.test(cleanCompany)) {
+      return res.status(400).json({ error: "Invalid company name. HTML or script tags are not allowed." });
+    }
+    if (cleanCompany.length < 2 || cleanCompany.length > 100 || !/^[a-zA-Z0-9\s.,&'-]+$/.test(cleanCompany)) {
+      return res.status(400).json({ error: "Company name must be 2-100 characters and contain valid characters." });
+    }
+  }
+
   if (
     typeof updatePayload.date_of_birth === "string" &&
     updatePayload.date_of_birth.trim()
   ) {
     updatePayload.date_of_birth = normalizeDate(updatePayload.date_of_birth);
-    if (isNaN(Date.parse(updatePayload.date_of_birth))) {
+    const parsedDob = new Date(updatePayload.date_of_birth);
+    const now = new Date();
+    const minAgeDate = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
+    const maxAgeDate = new Date(now.getFullYear() - 100, now.getMonth(), now.getDate());
+    if (isNaN(parsedDob.getTime())) {
       return res.status(400).json({ error: "Invalid date_of_birth format." });
+    }
+    if (parsedDob > now) {
+      return res.status(400).json({ error: "Date of birth cannot be in the future." });
+    }
+    if (parsedDob > minAgeDate) {
+      return res.status(400).json({ error: "You must be at least 18 years old to register." });
+    }
+    if (parsedDob < maxAgeDate) {
+      return res.status(400).json({ error: "Please enter a valid date of birth (after 1920)." });
     }
   }
 

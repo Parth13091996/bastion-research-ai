@@ -33,7 +33,7 @@ const SidebarProfile = ({ isCollapsed, profile }) => {
           {/* Premium Status & User Type */}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              {profile.currentPlan !== "freemium" ? (
+              {profile.is_premium ? (
                 <>
                   <Crown className="h-3 w-3 text-yellow-400" />
                   <span className="text-xs text-yellow-400 font-medium">

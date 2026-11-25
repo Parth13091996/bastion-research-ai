@@ -8,6 +8,7 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 import { AppRoutes } from "@/routes/app-routes";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Drawer = ({
   isNavOpen,
@@ -15,6 +16,7 @@ const Drawer = ({
   isProfileOpen,
   setIsProfileOpen,
 }) => {
+  const { user, logout } = useAuth();
   const navDrawerRef = useRef<HTMLDivElement | null>(null);
   const profileDrawerRef = useRef<HTMLDivElement | null>(null);
 
@@ -179,65 +181,60 @@ const Drawer = ({
                 <HiX />
               </button>
 
-              {/* My Account - Redirect to UserAdmin Sidebar */}
-              <div>
-                <div className="flex items-center space-x-2 font-medium text-lg mb-2">
-                  <HiOutlineUser /> <span>My Account</span>
-                </div>
-                <div className="ml-4">
-                  <Link
-                    to="/user/app/dashboard"
-                    onClick={() => setIsProfileOpen(false)}
-                    className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors bg-red-50 border border-red-200"
-                  >
-                    Go to My Account Dashboard
-                  </Link>
-                </div>
-                {/* OLD ACCOUNT LINKS - COMMENTED OUT (Now using UserAdmin sidebar)
-                <ul className="flex flex-col space-y-2 ml-4">
-                  <li>
-                    <a
-                      href="/edit-profile"
-                      className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+              {/* My Account - Only show when user is logged in */}
+              {user?.id ? (
+                <div>
+                  <div className="flex items-center space-x-3 mb-4 p-3 bg-white/80 rounded-xl border border-gray-100 shadow-sm">
+                    {user?.profile_picture ? (
+                      <img
+                        src={user.profile_picture}
+                        alt="User"
+                        className="h-10 w-10 rounded-full object-cover border-2 border-red-600"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-red-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        {user?.first_name?.[0] || user?.username?.[0] || "U"}
+                      </div>
+                    )}
+                    <div className="overflow-hidden min-w-0">
+                      <div className="font-semibold text-gray-900 truncate">
+                        {`${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "User"}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Link
+                      to="/user/app/dashboard"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block px-3 py-2.5 rounded-lg text-gray-800 font-medium hover:bg-red-50 hover:text-red-600 transition-colors bg-red-50/50 border border-red-100 text-sm"
                     >
-                      Edit Profile
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/subscription"
-                      className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      Show Subscription
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/transaction-history"
-                      className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      Transaction History
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/close-account"
-                      className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      Close Account
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/logout"
-                      className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+                      Go to My Account Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        logout();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium text-sm"
                     >
                       Logout
-                    </a>
-                  </li>
-                </ul>
-                */}
-              </div>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-gray-600 text-sm mb-4">You are not logged in.</p>
+                  <Link
+                    to={AppRoutes.login}
+                    onClick={() => setIsProfileOpen(false)}
+                    className="block w-full py-2.5 px-4 bg-primary text-white rounded-xl font-medium text-center hover:bg-red-700 transition-colors shadow-md"
+                  >
+                    Login
+                  </Link>
+                </div>
+              )}
             </div>
 
             <DrawerFooter />

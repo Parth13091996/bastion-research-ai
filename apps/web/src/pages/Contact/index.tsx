@@ -1,6 +1,9 @@
 import { sendContactMessage } from "@/api/contact-api";
 import { ReactNode, useState } from "react";
 import { toast } from "sonner";
+import { validateEmail as validateContactEmail } from "@/utils";
+
+export { validateContactEmail };
 
 import BackgroundShapes from "@/components/generic/framer-motion";
 import { motion } from "framer-motion";
@@ -25,16 +28,46 @@ export default function ContactPage() {
     message: "",
     notRobot: false,
   });
+  const [emailError, setEmailError] = useState<string | null>(null);
 
-  const onChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const target = e.target;
+    const { name, value, type } = target;
+    const checked = (target as HTMLInputElement).checked;
     setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    if (name === "email" && emailError) {
+      setEmailError(null);
+    }
   };
 
   const [submitting, setSubmitting] = useState(false);
 
-  const onSubmit = async (e) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!form.name.trim()) {
+      toast.error("Please enter your name.");
+      return;
+    }
+
+    const emailErr = validateContactEmail(form.email);
+    if (emailErr) {
+      setEmailError(emailErr);
+      toast.error(emailErr);
+      return;
+    }
+    setEmailError(null);
+
+    if (!form.phone.trim()) {
+      toast.error("Please enter your phone number.");
+      return;
+    }
+
+    if (!form.message.trim()) {
+      toast.error("Please enter your message.");
+      return;
+    }
+
     if (!form.notRobot) {
       toast.error("Please confirm you are not a robot.");
       return;
@@ -42,11 +75,11 @@ export default function ContactPage() {
     try {
       setSubmitting(true);
       await sendContactMessage({
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
         category: form.category,
-        message: form.message,
+        message: form.message.trim(),
       });
       toast.success("Thanks! Your message has been sent.");
       setForm({
@@ -57,6 +90,7 @@ export default function ContactPage() {
         message: "",
         notRobot: false,
       });
+      setEmailError(null);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to send message");
     } finally {
@@ -117,7 +151,7 @@ export default function ContactPage() {
               Tell us a bit about yourself and what you are looking for.
             </p>
 
-            <form onSubmit={onSubmit} className="mt-6 space-y-4">
+            <form noValidate onSubmit={onSubmit} className="mt-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field
                   label="Name"
@@ -140,6 +174,7 @@ export default function ContactPage() {
                   label="Email"
                   htmlFor="email"
                   required
+                  error={emailError}
                   input={
                     <input
                       id="email"
@@ -147,7 +182,15 @@ export default function ContactPage() {
                       type="email"
                       value={form.email}
                       onChange={onChange}
-                      className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                      onBlur={() => {
+                        if (form.email.trim()) {
+                          const err = validateContactEmail(form.email);
+                          setEmailError(err);
+                        }
+                      }}
+                      className={`w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
+                        emailError ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                      }`}
                       placeholder="name@example.com"
                       required
                     />
@@ -314,13 +357,26 @@ function InfoCard({ icon, title, lines, info }: { icon: ReactNode, title: string
   );
 }
 
-function Field({ label, htmlFor, required, input }) {
+function Field({
+  label,
+  htmlFor,
+  required,
+  input,
+  error,
+}: {
+  label: string;
+  htmlFor?: string;
+  required?: boolean;
+  input: ReactNode;
+  error?: string | null;
+}) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-secondary">
         {label} {required ? <span className="text-primary">*</span> : null}
       </span>
       <div className="mt-1">{input}</div>
+      {error && <p className="text-xs text-red-500 mt-1 font-medium">{error}</p>}
     </label>
   );
 }

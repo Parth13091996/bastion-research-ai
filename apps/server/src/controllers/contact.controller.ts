@@ -3,14 +3,109 @@ import sendEmail, { getResolvedSmtpFromAddress } from "../utils/email";
 import { config } from "../utils/config";
 import { supabase } from "../supabase";
 
+const COMMON_TLD_TYPOS: Record<string, string> = {
+  con: "com",
+  cmo: "com",
+  comm: "com",
+  coom: "com",
+  ocm: "com",
+  cpm: "com",
+  vom: "com",
+  xom: "com",
+  nett: "net",
+  orgg: "org",
+  innd: "in",
+};
+
+const STRICT_EMAIL_REGEX =
+  /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}$/;
+
+export const validateContactEmail = (email?: string): string | null => {
+  if (!email || typeof email !== "string" || !email.trim()) {
+    return "Please enter your email.";
+  }
+
+  const trimmed = email.trim().toLowerCase();
+
+  if (trimmed.length > 254) {
+    return "Email address is too long.";
+  }
+
+  if (trimmed.includes("..")) {
+    return "Email address cannot contain consecutive dots.";
+  }
+
+  if (trimmed.includes("@.")) {
+    return "Domain name cannot start with a dot.";
+  }
+
+  if (trimmed.includes(".@")) {
+    return "Local part of email cannot end with a dot.";
+  }
+
+  if (trimmed.startsWith(".")) {
+    return "Email cannot start with a dot.";
+  }
+
+  if (!STRICT_EMAIL_REGEX.test(trimmed)) {
+    return "Please enter a valid email address with a proper domain (e.g. name@example.com).";
+  }
+
+  const parts = trimmed.split("@");
+  if (parts.length !== 2) {
+    return "Please enter a valid email address.";
+  }
+
+  const domain = parts[1];
+  const domainParts = domain.split(".");
+  const tld = domainParts[domainParts.length - 1];
+
+  if (COMMON_TLD_TYPOS[tld]) {
+    return `Did you mean .${COMMON_TLD_TYPOS[tld]} instead of .${tld}? Please check your email domain.`;
+  }
+
+  return null;
+};
+
 export const submitContact = async (req: Request, res: Response) => {
   try {
     const { name, email, phone, category, message } = req.body || {};
 
-    if (!name || !email || !message) {
+    if (!name || !String(name).trim()) {
       return res
         .status(400)
-        .json({ message: "name, email and message are required" });
+        .json({ message: "Name is required" });
+    }
+
+    if (!email || !String(email).trim()) {
+      return res
+        .status(400)
+        .json({ message: "Email is required" });
+    }
+
+    const emailErr = validateContactEmail(String(email));
+    if (emailErr) {
+      return res.status(400).json({
+        message: emailErr,
+      });
+    }
+
+    if (!phone || !String(phone).trim()) {
+      return res.status(400).json({
+        message: "Phone number is required",
+      });
+    }
+
+    if (!category || !String(category).trim()) {
+      return res.status(400).json({
+        message: "Category is required",
+      });
+    }
+
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({
+        message: "Message is required",
+      });
     }
 
     const safe = (v: any) => (v ? String(v) : "-");
@@ -96,13 +191,17 @@ export const submitContact = async (req: Request, res: Response) => {
       });
     }
 
-    await sendEmail({
-      to: toInbox,
-      from: fromAddress,
-      subject,
-      text,
-      html,
-    });
+    try {
+      await sendEmail({
+        to: toInbox,
+        from: fromAddress,
+        subject,
+        text,
+        html,
+      });
+    } catch (emailErr) {
+      console.error("Contact form: Failed to send notification email via SMTP:", emailErr);
+    }
 
     return res.status(200).json({ message: "Message sent" });
   } catch (e: any) {

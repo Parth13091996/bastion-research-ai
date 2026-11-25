@@ -22,8 +22,8 @@ const UserDashboard = () => {
       : "Guest",
     role: user?.role || "User",
     avatarUrl: null,
-    is_premium: subscription?.is_premium || false,
-    currentPlan: subscription?.currentPlan || null,
+    is_premium: Boolean(subscription?.is_premium),
+    currentPlan: subscription?.is_premium ? (subscription?.currentPlan || "core") : "freemium",
   };
 
   // 🌅 Greeting
@@ -110,7 +110,9 @@ const UserDashboard = () => {
               ) : (
                 <>
                   <Shield className="h-6 w-6 text-gray-400" />
-                  <span className="text-s text-gray-400">No Active Plan</span>
+                  <span className="text-s text-gray-400 font-medium">
+                    {user?.role === "free_subscriber" ? "Free Subscriber" : "No Active Plan"}
+                  </span>
                 </>
               )}
             </div>
