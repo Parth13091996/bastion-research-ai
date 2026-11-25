@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { State, City } from "country-state-city";
+import { State, City } from "@/data/india-locations";
 import axiosInstance from "@/api/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";

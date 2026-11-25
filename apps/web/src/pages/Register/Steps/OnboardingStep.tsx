@@ -1,6 +1,6 @@
 import { ArrowLeft, Info } from "lucide-react";
 import React, { useState, useMemo } from "react";
-import { State, City } from "country-state-city";
+import { State, City } from "@/data/india-locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateUser } from "@/api/onboarding-apis";
 import { SearchableSelect } from "@/components/common/SearchableSelect";

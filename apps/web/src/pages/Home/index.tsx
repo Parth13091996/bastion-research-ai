@@ -1,8 +1,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+// import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import BackgroundShapes from "../../components/generic/framer-motion.tsx";
 import SignUpForm from "../Register/SignupForm.tsx";
+
+// const SignUpForm = lazy(() => import("../Register/SignupForm.tsx"));
 
 const NAVY = "#1C2852";
 const MAROON = "#C00000";
